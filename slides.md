@@ -7,8 +7,6 @@ header-img: "img/boat-waves.jpg"
 
 You can find here slides for courses that covers the topic of [the book](../book/).
 
-The [Keynotes sources and PDF of the slides are also available](https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/slides-sources).
-
 
 Slides for a Signal/Image Processing Course
 -------------------
