@@ -1,2 +1,2 @@
-# mathematical-tours.github.io
-Site web of the Mathematical Tours
+# imaging-in-paris.github.io
+Web site of the [Imaging in Paris seminar](https://imaging-in-paris.github.io/).
