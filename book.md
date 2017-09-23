@@ -1,8 +1,16 @@
 ---
 layout: page
 title: "Book"
-description: "Mathematical Foundations of Data Science"
-header-img: "img/paris6.png"
+description: "Numerical Data Science"
+header-img: "img/boat-waves.jpg"
 ---
 
-TODO
+You can retrieve the draft of a book:
+
+> Gabriel Peyré [Mathematical Foundations of Data Science](book-sources/FundationsDataScience.pdf)
+
+The [Latex sources of the book are available](https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/book-sources). 
+
+It should serves as the mathematical companion for the [Numerical Tours of Data Sciences](http://www.numerical-tours.com), which presents Matlab/Python/Julia/R detailed implementations of all the concepts covered here.
+
+This book draft presents an overview of important mathematical and numerical foundations for modern data sciences.  It covers in particulars the basics of signal and image processing (Fourier, Wavelets, and their applications to denoising and compression), imaging sciences (inverse problems, sparsity, compressed sensing) and machine learning (linear regression, logistic classification, deep learning). The focus is on the mathematically-sounded exposition of the methodological tools (in particular linear operators, non-linear approximation, convex optimization, optimal transport) and how they can be mapped to efficient computational algorithms.
