@@ -1,0 +1,448 @@
+% !TEX root = ../FundationsDataScience.tex
+
+\chapter{Sparse Regularization}
+
+TODO.
+
+
+Ref \cite{mallat2008wavelet,starck2015sparse,scherzer2009variational}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Sparsity Priors}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Ideal sparsity prior.}
+
+As detailed in Chapter \ref{chap-approximation}, it is possible to use an orthogonal basis $\Bb = \{ \psi_m \}_m$ to efficiently approximate an image $f$ in a given class $f \in \Th$ with a few atoms from $\Bb$. 
+
+To measure the complexity of an approximation with $\Bb$, we consider the $\lzero$ prior, which counts the number of non-zero coefficients in $\Bb$
+\eq{
+	\Jz(f) = \#\enscond{m}{\dotp{f}{\psi_m} \neq 0}
+	= \normz{ a }
+	\qwhereq
+	a[m] = \dotp{f}{\psi_m}.
+}
+We have introduced the $\lzero$ pseudo-norm $\normz{a}$, which we treat here as an ideal sparsity measure for the coefficients $a$ of $f$ in $\Bb$.
+
+Natural images are not exactly composed of a few atoms, but they can be well approximated by a function $f_M$ with a small ideal sparsity $M=\Jz(f)$. In particular, the best $M$-term approximation defined in \eqref{eq-nonlinear-approx} is defined by
+\eq{
+	f_M = \sum_{ |\dotp{f}{\psi_m}|>T } \dotp{f}{\psi_m} \psi_m
+	\qwhereq
+	M = \#\enscond{m}{|\dotp{f}{\psi_m}|>T}.
+}
+As detailed in Section \ref{sec-signal-models}, discontinuous images with bounded variation have a fast decay of the approximation error $\norm{f-f_M}$. Natural images $f$ are well approximated by images with a small value of the ideal sparsity prior $\Jz$.
+
+Figure \ref{fig-sparsity-wav} shows an examples of decomposition of a natural image in a wavelet basis, $\psi_m = \psi_{j,n}^\om$ $m=(j,n,\om)$. This shows that most $\dotp{f}{\psi_m}$ are small, and hence the decomposition is quite sparse.
+
+\myfigure{
+\tabdeux{
+\image{variational}{.3}{sparsity-image}&
+\image{variational}{.3}{sparsity-wav}\\
+Image $f$ & Coefficients $\dotp{f}{\psi_m}$
+}
+}{%
+	Wavelet coefficients of natural images are relatively sparse.
+}{fig-sparsity-wav}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Convex relaxation}
+
+Unfortunately, the ideal sparsity prior $\Jz$ is difficult to handle numerically because $\Jz(f)$ is not a convex function of $f$. For instance, if $f$ and $g$ have non-intersecting supports of there coefficients in $\Bb$, then $\Jz( (f+g)/2 ) = \Jz(f)+\Jz(g)$, which shows the highly non-convex behavior of $\Jz$.
+
+This ideal sparsity $\Jz$ is thus not amenable to minimization, which is an issue to solve general inverse problems considered in Section \ref{chap-invpbm}. 
+
+We consider a family of $\ell^q$ priors for $q>0$, intended to approximate the ideal prior $\Jz$ 
+\eq{
+	J_q(f) = \displaystyle \sum_m |\dotp{f}{\psi_m}|^q.
+}
+As shown in Figure \ref{fig-sparsity-lq}, the unit balls in $\RR^2$ associated to these priors are shrinking toward the axes, which corresponds to the unit ball for the $\lzero$ pseudo norm. In some sense, the $J_q$ priors are becoming closer to $\Jz$ as $q$ tends to zero, and thus $J_q$ favors sparsity for small $q$.
+
+
+\myfigure{
+\image{variational}{1}{sparsity-lq-balls}
+}{%
+	$\ell^q$ balls $\enscond{x}{J_q(x) \leq 1}$ for varying $q$.
+}{fig-sparsity-lq}
+
+
+The prior $J_q$ is convex if and only if $q \geq 1$. To reach the highest degree of sparsity while using a convex prior, we consider the $\lun$ sparsity prior $\Ju$, which is thus defined as 
+\eql{\label{eq-dfn-lun-prior}
+	\Ju(f) = \norm{(\dotp{f}{\psi_m})}_1 = \sum_m |\dotp{f}{\psi_m}|.
+}
+In the following, we consider discrete orthogonal bases $\Bb = \{\psi_m\}_{m=0}^{N-1}$ of $\RR^N$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sparse Regularization and Thresholding}
+
+Given some orthogonal basis $\{\psi_m\}_m$ of $\RR^N$, the denoising by regularization \eqref{eq-regul-denoising} is written using the sparsity $\Jz$ and $\Ju$ as 
+\eq{
+	f_{\la,q}^{\star} = \uargmin{g \in \RR^N} \frac{1}{2} \norm{f-g}^2 + \la J_q(f)
+}
+for $q=0$ or $q=1$. It can be re-written in the orthogonal basis as
+\eq{
+	f_{\la,q}^{\star} = \sum_m a_{\la,q}^{\star}[m] \psi_m
+}
+\eq{
+	a_{\la,q}^{\star} = \uargmin{b \in \RR^N} \sum_m \frac{1}{2} |a[m]-b[m]|^2 + \la \phi_q(b[m])
+}
+where $a[m]=\dotp{f}{\psi_m}$, and with 
+\eq{
+	\phi_1(x)=|x|
+	\qandq
+	\phi_0(x)=
+	\choice{
+		0 \qifq x=0, \\ 1 \; \text{otherwise.} 
+	}
+}
+Each coefficients of the denoised image is the solution of
+\eq{
+	a_{\la,q}^{\star}[m] = \uargmin{\al \in \RR}  \frac{1}{2} |a[m]-\be|^2 + \la \phi_q(\be)
+}
+and one can shows that this optimization is solved exactly in closed form using thresholding
+\eql{\label{eq-equiv-sparse-thresh}
+	a_{\la,q}^{\star}[m] = S_T^q( a[m] )
+	\qwhereq 
+	\choice{
+		T = \sqrt{2 \la} \qforq q=0,\\
+		T = \la \qforq q=1,
+	}
+}
+where $S_T^0$ is the hard thresholding introduced in \eqref{eq-hard-thresh-denoise}, and $S_T^1$ is the soft thresholding introduced in \eqref{eq-soft-thresh-denoise}.
+
+One thus has
+\eq{
+	f_{\la,q} = \sum_m S_T^q( \dotp{f}{\psi_m} ) \psi_m.
+}
+As detailed in Section \ref{sec-nl-denoising-thresh}, these denoising methods has the advantage that the threshold is simple to set for Gaussian white noise $w$ of variance $\si^2$. Theoritical values indicated that $T = \sqrt{2\log(N)} \si$ is asymptotically optimal, see Section \ref{subsec-minimax-denoise}. In practice, one should choose $T \approx 3\si$ for hard thresholding ($\lzero$ regularization), and $T \approx 3\si/2$ for soft thresholding ($\lun$ regularization), see Figure \ref{fig-wavthresh-2d}.
+
+
+
+% Bayesian interpretation:  $\dotp{f}{\psi_m}$ i.i.d. $ \sim$ generalized Gaussian
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Sparse Regularization of Inverse Problems}
+
+Sparse $\lun$ regularization in an orthogonal basis $\{\psi_m\}_m$ of $\RR^N$ makes use of the $\Ju$ prior defined in \eqref{eq-dfn-lun-prior}, so that the inversion is obtained by solving the following convex program
+\eql{\label{eq-bpdn}
+	f^\star \in \uargmin{f \in \RR^N} \frac{1}{2}\norm{y-\Phi f}^2 + \la \sum_m |\dotp{f}{\psi_m}|.
+}
+This corresponds to the basis pursuit denoising for sparse approximation introduced by Chen, Donoho and Saunders in \cite{chen-basis-pursuit}. The resolution of \eqref{eq-bpdn} can be perform using an iterative thresholding algorithm as detailed in Section \ref{subsec-proximal-ip}. 
+
+For noiseless measurements $y=\Phi f_0$, one solves a constraint basis pursuit problem
+\eq{
+	f^\star \in \uargmin{ \Phi f = y } \sum_m |\dotp{f}{\psi_m}|.
+}
+This can be recasted as a convex linear program, which can in turn by solved by various solver such as simplex, interior points, or Douglas-Rachford iterations.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{optim-geom-l1}&
+\image{invpbm}{.3}{optim-geom-l2}&
+\image{invpbm}{.3}{optim-geom-l1noisy}\\
+$\umin{\Phi f = y} \normu{\Psi^* f}$ &
+$\umin{\Phi f = y} \norm{f}^2$ &
+$\umin{\norm{\Phi f = y} \leq \epsilon} \normu{\Psi^* f}$ 
+}
+}{%
+	Geometry of convex optimizations. %
+}{fig-optim-geom}
+
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Proximal Gradient Algorithm}
+\label{subsec-proximal-ip}
+
+This section details an iterative algorithm that compute a solution of \eqref{eq-ip-regul} for either the TV prior $J=\Jtv$ or the sparse $\lun$ prior, which corresponds respectively to the minimizations \eqref{eq-tv-dn} and \eqref{eq-bpdn}.
+
+This algorithm was derived by several authors, among which \cite{figueiredo-nowak-em,daubechies-iterated}, and belongs to the general family of forward-backward splitting in proximal iterations \cite{combettes-proximal}. We note that faster algorithms can be used, such as Nesterov scheme \cite{nesterov-smooth}. % or FISTA \cite{}. 
+
+%%
+\paragraph{Surrogate functionals.}
+
+The energy to minimize in \eqref{eq-tv-dn} and \eqref{eq-bpdn} is written as
+\eq{
+	E(f) =  \frac{1}{2} \norm{\Phi f - y}^2 +  \la J(f).
+}
+The difficulty is the presence of the operator $\Phi$ in the $\ldeux$ norm, which makes this problem significantly more difficult than the simple denoising by regularization \eqref{eq-regul-denoising}.
+
+To derive an iterative algorithm, we modify the energy $E(f)$ to obtain a surrogate functional $E(f,f^{(k)})$ whose minimization corresponds to a simpler denoising problem.
+
+Given some guess $f^{(k)} \in \RR^N$ of the solution $f^\star$, the surrogate functional is defined as
+\eq{
+	E(f,f^{(k)}) =  E(f) - \frac{1}{2}\norm{\Phi f - \Phi f^{(k)}}^2 + \frac{1}{2 \tau}\norm{f-f^{(k)}}^2.
+}
+One has
+\eql{\label{eq-surrogate-pty}
+	E(f,f^{(k)}) \geq E(f) 
+	\qandq
+	E(f^{(k)},f^{(k)}) = E(f^{(k)})
+}
+so that $E(f,f^{(k)})$ is a proxy for the minimization of $E(f)$.
+
+%%
+\paragraph{Proximal iterations.}
+
+A proximal iterative algorithm computes
+\eq{
+	f^{(k+1)} = \uargmin{f \in \RR^N} E(f,f^{(k)}).
+}
+Property \eqref{eq-surrogate-pty} guarantees that $E$ is decaying
+\eq{
+	E(f^{(k+1)}) \leq E(f^{(k)}).
+}
+
+Furtheremore, one has
+\eq{
+	E(f,f^{(k)}) = C + \frac{1}{2\tau}\norm{ f - f^{(k)} + \tau\Phi^*(\Phi f ^{(k)}- y) }^2 + \la \sum_m |\dotp{f}{\psi_m}|
+}
+where $C$ is independent of $f$. Defining a proximal operator
+\eql{\label{eq-defn-proximal}
+	\prox_{\la J}(\tilde f) = \uargmin{f \in \RR^N} \frac{1}{2}\norm{\tilde f - f}^2 + \la J(f),
+} 
+that corresponds to the variational denoiser introduced in \eqref{eq-regul-denoising}, one thus has
+\eq{
+	f^{(k+1)} = \prox_{\la \tau J}\pa{ \tilde f^{(k)}  }
+	\qwhereq
+	\tilde f^{(k)} = f^{(k)} - \tau\Phi^*(\Phi f ^{(k)}- y).
+}
+
+One can prove, see \cite{}, that if $\tau < 2/\norm{\Phi^*\Phi}_S$, then 
+\eq{
+	f^{(k)} \rightarrow f^\star.
+}
+
+
+%%
+\paragraph{Noiseless case.}
+
+If $\si=0$, so that one observe noiseless measures $y=\Phi f_0$, an heuristic to compute approximately the solution $f^\star$ of \eqref{eq-ip-regul-noiseless} is to use a decaying value of $\la=\la^{(k)}$ during the iterations. One can for instance use $\la_k=\la_{\max}/k$, although there is no proof of convergence to $f^\star$. 
+
+%%
+\paragraph{constrained problem.}
+
+The constrained problem
+\eq{
+	f^\star_\epsilon \in \uargmin{ \norm{\Phi f - y} \leq \epsilon } \sum_m |\dotp{f}{\psi_m}|.
+}
+is equivalent to the problem \eqref{eq-ip-regul}, in the sense that $f^\star$ is a solution of \eqref{eq-ip-regul} for a suitable value of $\la$ that depends on $\epsilon$. Unfortunately, the correspondence between $\la$ and $\epsilon$ is unknown and depends on $y$.
+
+An heuristic to automatically find this correspondence is to iteratively update the value of $\la=\la^{(k)}$
+\eq{
+	\la^{(k+1)} = \la^{(k)} \frac{\epsilon}{\norm{\Phi f^{(k)}-y}}.
+}
+
+
+%%
+\paragraph{Sparse regularization.}
+
+For the case of $J=\Ju$, the proximal denoising  operator \eqref{eq-defn-proximal} is computed in closed form using a soft thresholding, as already noticed in \eqref{eq-equiv-sparse-thresh}. 
+
+The resulting proximal iterative algorithm corresponds to the iterative soft thresholding algorithm, that alternates a gradient descent step 
+\eql{\label{eq-ista-1}
+	\tilde f^{(k)} = f^{(k)} - \tau \Phi^* ( \Phi f^{(k)}-y ).
+}
+and soft thresholding
+\eql{\label{eq-ista-2}
+	f^{(k+1)} = \sum_m S_{\la \tau}^{1}( \dotp{\tilde f^{(k)}}{\psi_m} )  \psi_m.
+}
+Table \ref{wavelets-variational-inverse-ista} details the implementation of this method, when the data is assumed to be sparse in the trivial identity basis.
+
+%\matlab{matlab/inverse-ista.m
+%}{
+%Iterative thresholding (iteration of \eqref{eq-ista-1} and \eqref{eq-ista-2}) to solve the inverse problem regularization with $\lun$ prior, in the case where the sparsity basis is the identity. The input is the operator $\Phi$ given as a matrix \matvar{Phi}, the observation $y$ stored in \matvar{y} and the regularization parameter $\la$ stored in \matvar{lambda}. The output is the solution \matvar{fspars}.
+%}{wavelets-variational-inverse-ista}
+
+%%
+\paragraph{TV regularization.}
+
+For the case of $J=\Jtv$, the proximal operator \eqref{eq-defn-proximal} does not have a closed form solution. One thus has to use inner iteration of Chambolle's scheme \eqref{eq-chambolle-dual} to compute the proximal map.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Example: Sparse Deconvolution}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sparse Spikes Deconvolution}
+
+Sparse spikes deconvolution makes use of sparsity in the spacial domain, which corresponds to the orthogonal basis of Diracs $\psi_m[n] = \de[n-m]$. This sparsity was first introduced in the seismic imaging community \cite{}, where the signal $f_0$ represent the change of density in the underground and is assumed to be composed of a few Diracs impulse.
+
+In a simplified linearized 1D set-up, ignoring multiple reflexions, the acquisition of underground data $f_0$ is modeled as a convolution $y=h \star f_0 + w$, where $h$ is a so-called ``wavelet'' signal sent in the ground. This should not be confounded with the construction of orthogonal wavelet bases detailed in Chapter \ref{chap-wavelets}, although the term ``wavelet'' originally comes from seismic imaging.
+
+The wavelet filter $h$ is typically a band pass signal that perform a tradeoff between space and frequency concentration especially tailored for seismic exploration. Figure \eqref{fig-spikes-lun} shows a typical wavelet that is a second derivative of a Gaussian, together with its Fourier transform. This shows the large amount of information removed from $f$ during the imaging process.
+
+% \myfigure{
+% \image{invpbm}{.6}{seismic-data}
+% }{%%
+%	2D+t seismic data. %	
+% }{fig-seismic-data}
+
+The sparse $\lun$ regularization in the Dirac basis reads 
+\eq{
+	 f^\star = \uargmin{f \in \RR^N} \frac{1}{2} \norm{f \star h - y}^2 + \la \sum_m |f[m]|.
+}
+Figure \ref{fig-spikes-lun} shows the result of $\lun$ minimization for a well chosen $\la$ parameter, that was optimized in an oracle manner to minimize the error $\norm{f^\star-f_0}$.
+
+
+\myfigure{
+\tabdeux{
+\image{invpbm}{.4}{spikes-filter}&
+\image{invpbm}{.4}{spikes-filter-fourier}\\
+$h$ & $\hat h$ \\
+% \image{invpbm}{.3}{spikes-filter-fourier-inv}&
+\image{invpbm}{.4}{spikes-signal}&
+\image{invpbm}{.4}{spikes-observations}\\
+$f_0$ & $y=h \star f + w$ \\ 
+\image{invpbm}{.4}{spikes-pinv}&
+\image{invpbm}{.4}{spikes-l1}\\
+$f^+$ & $f^\star$ 
+}
+}{%
+	Pseudo-inverse and $\lun$ sparse spikes deconvolution. %	
+}{fig-spikes-lun}
+
+The iterative soft thresholding for sparse spikes inversion iterates
+\eq{
+	\tilde f^{(k)} = f^{(k)} - \tau h \star ( h \star f^{(k)}-y )
+}
+and
+\eq{
+	f^{(k+1)}[m] = S_{\la \tau}^{1}(\tilde f^{(k)}[m] )
+}
+where the step size should obeys 
+\eq{
+	\tau < 2/\norm{\Phi^* \Phi} = 2 / \umax{\om} |\hat h(\om)|^2
+}
+to guarantee convergence. Figure \ref{fig-spikes-ista-decay} shows the progressive convergence of the algorithm, both in term of energy minimization and iterates. Since the energy is not strictly convex, we note that convergence in energy is not enough to guarantee convergence of the algorithm.
+
+
+\myfigure{
+\tabdeux{
+\image{invpbm}{.4}{spikes-ista-decay-conv}&
+\image{invpbm}{.4}{spikes-ista-decay-energy} \\
+%\image{invpbm}{.3}{spikes-snr-lambda}\\
+$\log_{10}( E(f^{(k)})/E(f^\star)-1 )$ &
+$\log_{10}( \norm{f^{(k)}-f^\star}/\norm{f_0} )$
+}
+}{%
+	Decay of the energy and convergence through the iterative thresholding iterations. %	
+}{fig-spikes-ista-decay}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sparse Wavelets Deconvolution}
+
+
+Signal and image acquired by camera always contain some amount of blur because of objects being out of focus, movements in the scene during exposure, and diffraction. A simplifying assumption assumes a spatially invariant blur, so that $\Phi$ is a convolution
+\eq{
+	y = f_0 \star h + w.
+}
+In the following, we consider $h$ to be a Gaussian filter of width $\mu > 0$. The number of effective measurements can thus be considered to be $P \sim 1/\mu$, since $\Phi$ nearly set to 0 large enough Fourier frequencies. Table \ref{inverse-deconv} details the implementation of the sparse deconvolution algorithm.
+
+Figures \ref{fig-deconvolution-1d} and \ref{fig-deconvolution-2d} shows examples of signal and image acquisition with Gaussian blur. 
+
+Sobolev regularization \eqref{eq-sobol-reg-fourier} improves over $\ldeux$ regularization \eqref{eq-l2-reg-fourier} because it introduces an uniform smoothing that reduces noise artifact. It however fail to recover sharp edge and thus does a poor job in inverting the operator. To recover sharper transition and edges, one can use either a TV regularization or a sparsity in an orthogonal wavelet basis. 
+
+Figure \ref{fig-deconvolution-1d} shows the improvement obtained in 1D with wavelets with respect to Sobolev. Figure \ref{fig-deconvolution-2d} shows that this improvement is also visible for image deblurring. To obtain a better result with fewer artifact, one can replace the soft thresholding in orthogonal wavelets in during the iteration \eqref{eq-ista-2} by a thresholding in a translation invariant tight frame as defined in \eqref{eq-ti-wavframe}.
+
+\myfigure{
+\tabdeux{
+%\image{invpbm}{.3}{deconv1d-filter-fourier}&
+\image{invpbm}{.4}{deconv1d-signal}&
+\image{invpbm}{.4}{deconv1d-filter} \\
+Signal $f_0$ & Filter $h$ \\
+\image{invpbm}{.4}{deconv1d-observations}&
+\image{invpbm}{.4}{deconv1d-l1}\\
+Observation $y=h\star f_0+w$ & $\lun$ recovery $f^\star$
+}
+}{%
+	Sparse 1D deconvolution using orthogonal wavelets. %	
+}{fig-deconvolution-1d}
+
+% \image{invpbm}{.3}{deconv1d-snr}
+
+%%
+
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{deconv2d-image}&
+\image{invpbm}{.3}{deconv2d-observations}&
+\image{invpbm}{.3}{deconv2d-l2}\\
+Image $f_0$ & Observations $y=h\star f_0+w$ & $\ldeux$ regularization \\
+ & SNR=?dB & SNR=?dB  \\
+\image{invpbm}{.3}{deconv2d-sob}&
+\image{invpbm}{.3}{deconv2d-l1}&
+\image{invpbm}{.3}{deconv2d-l1inv}\\
+Sobolev regularization & $\lun$ regularization & $\lun$ invariant \\
+SNR=?dB & SNR=?dB & SNR=?dB 
+}
+}{%
+	Image deconvolution. %	
+}{fig-deconvolution-2d}
+
+Figure \ref{fig-deconvolution-2d-snr} shows the decay of the SNR as a function of the regularization parameter $\la$. This SNR is computed in an oracle manner since it requires the knowledge of $f_0$. The optimal value of $\la$ was used in the reported experiments. 
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{deconv2d-l2-snr}&
+\image{invpbm}{.3}{deconv2d-sob-snr}&
+\image{invpbm}{.3}{deconv2d-l1-snr}\\
+$\ldeux$ regularization  &
+Sobolev regularization  &
+$\lun$ regularization  
+}
+}{%
+	SNR as a function of $\la$. %	
+}{fig-deconvolution-2d-snr}
+
+
+%\matlab{matlab/inverse-deconv.m
+%}{
+%Deconvolution with $\lun$ regularization in a wavelet basis. The filter $\phi$ is given in \matvar{phi}, the observations in \matvar{y}, the regularization parameter $\la$ is \matvar{lambda}. The solution is given in \matvar{fspars}.
+%}{inverse-deconv}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sparse Inpainting}
+
+This section is a follow-up of Section~\ref{sec-inpainting-variational}.
+
+To inpaint using a sparsity prior without noise, we use a small value for $\la$. 
+The iterative thresholding algorithm \eqref{eq-ista-2} is written as follow for $\tau=1$,
+\eq{
+	f^{(k+1)} = \sum_m S_{\la}^{1}( \dotp{ P_y(f^{(k)}) }{\psi_m} )  \psi_m
+}
+Figure \ref{fig-inpainting-lena} shows the improvevement obtained by the sparse prior over the Sobolev prior if one uses soft thresholding in a translation invariant wavelet frame. 
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{inpainting-lena-image}&
+\image{invpbm}{.3}{inpainting-lena-observations}& \\
+Image $f_0$ & Observation $y=\Phi f_0$ & \\
+\image{invpbm}{.3}{inpainting-lena-sob}&
+\image{invpbm}{.3}{inpainting-lena-wavortho}&
+\image{invpbm}{.3}{inpainting-lena-wavti}\\
+Sobolev $f^\star$ & Ortho. wav $f^\star$ & TI. wav $f^\star$ \\
+SNR=?dB & SNR=?dB & SNR=?dB 
+}
+}{%
+	Inpainting with Sobolev and sparsity. %
+}{fig-inpainting-lena}
+

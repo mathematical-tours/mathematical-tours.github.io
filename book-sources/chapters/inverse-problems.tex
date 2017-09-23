@@ -1,0 +1,477 @@
+% !TEX root = ../FundationsDataScience.tex
+
+\chapter{Inverse Problems}
+
+The main references for this chapter are~\cite{mallat2008wavelet,scherzer2009variational,engl1996regularization}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Inverse Problems Regularization}
+
+Increasing the resolution of signals and images requires to solve an ill posed inverse problem. This corresponds to inverting a linear measurement operator that reduces the resolution of the image. This chapter makes use of convex regularization introduced in Chapter \ref{chap-variational} to stabilize this inverse problem.
+
+We consider a (usually) continuous linear map $\Phi : \Ss \rightarrow \Hh$ where $\Ss$ can be an Hilbert or a more general Banach space.
+%
+This operator is intended to capture the hardware acquisition process, which maps a high resolution unknown signal $f_0 \in \Ss$ to a noisy low-resolution obervation 
+\eq{
+	y = \Phi f_0 + w \in \Hh
+}
+where $w \in \Hh$ models the acquisition noise. In this section, we do not use a random noise model, and simply assume that $\norm{w}_\Hh$ is bounded.
+
+In most applications, $\Hh=\RR^P$ is finite dimensional, because the hardware involved in the acquisition can only record a finite (and often small) number $P$ of observations.
+%
+Furthermore, in order to implement numerically a recovery process on a computer, it also makes sense to restrict the attention to $\Ss=\RR^N$,  where $N$ is number of point on the discretization grid, and is usually very large, $N \gg P$. 
+%
+However, in order to perform a mathematical analysis of the recovery process, and to be able to introduce meaningful models on the unknown $f_0$, it still makes sense to consider infinite dimensional functional space (especially for the data space $\Ss$).
+
+The difficulty of this problem is that the direct inversion of $\Phi$ is in general impossible or not advisable because $\Phi^{-1}$ have a large norm or is even discontinuous. This is further increased by the addition of some measurement noise $w$, so that the relation $\Phi^{-1} y=f_0+\Phi^{-1}w$ would leads to an explosion of the noise $\Phi^{-1}w$.
+
+
+We now gives a few representative examples of forward operators $\Phi$.
+
+%%%
+\paragraph{Denoising.}
+
+The case of the identity operator $\Phi=\Id_\Ss$, $\Ss=\Hh$ corresponds to the classical denoising problem, already treated in Chapters \ref{chap-denoising} and \ref{chap-variational}. 
+
+
+%%%
+\paragraph{De-blurring and super-resolution.}
+
+
+For a general operator $\Phi$, the recovery of $f_0$ is more challenging, and this requires to perform both an inversion and a denoising. For many problem, this two goals are in contradiction, since usually inverting the operator increases the noise level.
+%
+This is for instance the case for the deblurring problem, where $\Phi$ is a translation invariant operator, that corresponds to a low pass filtering with some kernel $h$
+\eql{\label{eq-deblurring-operator}
+	\Phi f = f \star h.
+}
+One can for instance consider this convolution over $\Ss=\Hh=L^2(\TT^d)$, see Proposition~\ref{prop-ti-convol-l2}. 
+%
+In practice, this convolution is followed by a sampling on a grid $\Phi f = \enscond{(f \star h)(x_k)}{0 \leq k< P}$, see Figure \ref{fig-ip}, middle, for an example of a low resolution image $\Phi f_0$.
+%
+Inverting such operator has important industrial application to upsample the content of digital photos and to compute high definition videos from low definition videos.
+
+
+%%%
+\paragraph{Interpolation and inpainting.}
+
+Inpainting corresponds to interpolating missing pixels in an image. This is modelled by a diagonal operator over the spacial domain
+\eql{\label{eq-inp-operator}
+	(\Phi f)(x) = \choice{
+	0 \qifq x \in \Om,\\
+	f(x) \qifq x \notin \Om.
+	}
+}
+where $\Om \subset [0,1]^d$ (continuous model) or $\{0,\ldots,N-1\}$ which is then a set of missing pixels.
+%
+Figure \ref{fig-ip}, right, shows an example of damaged image $\Phi f_0$.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{ip-sample-image}&
+\image{invpbm}{.3}{ip-sample-superresol}&
+\image{invpbm}{.3}{ip-sample-inpainting}\\
+Original $f_0$ & Low resolution $\Phi f_0$ & Masked $\Phi f_0$
+}
+}{%
+	Example of inverse problem operators. %	
+}{fig-ip}
+
+
+%%%
+\paragraph{Medical imaging.}
+
+Most medical imaging acquisition device only gives indirect access to the signal of interest, and is usually well approximated by such a linear operator $\Phi$.
+%
+In scanners, the acquisition operator is the Radon transform, which, thanks to the Fourier slice theorem, is equivalent to partial Fourier mesurments along radial lines.
+% 
+Medical resonance imaging (MRI) is also equivalent to partial Fourier measures
+\eql{\label{eq-inp-operator}
+	\Phi f= \enscond{ \hat f(x) }{ x \in \Om }.
+}
+Here, $\Om$ is a set of radial line for a scanner, and smooth curves (e.g. spirals) for MRI. 
+
+Other indirect application are obtained by electric or magnetic fields measurements of the brain activity (corresponding to MEG/EEG). Denoting $\Om \subset \RR^3$ the region around which measurements are performed (e.g. the head), in a crude approximation of these measurements, one can assume $\Phi f = \enscond{(\psi \star f)(x)}{x \in \partial \Om}$ where $\psi(x)$ is a kernel accounting for the decay of the electric or magnetic field, e.g. $\psi(x)=1/\norm{x}^2$. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Theoretical Study of Quadratic Regularization}
+
+We now give a glimpse on the typical approach to obtain theoretical guarantee on recovery quality in the case of Hilbert space. The goal is not to be exhaustive, but rather to insist on the modelling hypotethese, namely smoothness implies a so called ``source condition'', and the inherent limitations of quadratic methods (namely slow rates and the impossibility to recover information in $\ker(\Phi)$, i.e. to achieve super-resolution). 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Singular Value Decomposition}
+
+Let us start by the simple finite dimensional case $\Phi \in \RR^{P \times N}$ so that $\Ss=\RR^N$ and $\Hh=\RR^P$ are Hilbert spaces.
+%
+In this case, the Singular Value Decomposition (SVD) is the key to analyze the operator very precisely, and to describe linear inversion process.  
+
+\begin{prop}[SVD]
+	There exists $(U,V) \in \RR^{N \times R} \times \RR^{P \times R}$, where $R=\rank(\Phi)=\dim(\Im(\Phi))$, with $U^\top U=V^\top V=\Id_R$, i.e. having orthogonal columns $(u_i)_{i=1}^R \subset \RR^N, (v_i)_{i=1}^R \subset \RR^P$,  and $(\si_i)_{i=1}^R$ with $\si_i>0$, such that
+	\eql{\label{eq-svd-expan}
+		\Phi = U\diag_i(\si_i) V^\top = \sum_{i=1}^R \si_i u_i v_i^\top.
+	}
+\end{prop}
+
+\begin{proof}
+	TODO.
+\end{proof}
+
+Expression~\eqref{eq-svd-expan} describes $\Phi$ as a sum of rank-1 matrices $u_i v_i^\top$.
+%
+One usually order the singular values $(\si_i)_i$ in decaying order $\si_1 \geq \ldots \geq \si_R$. If these values are different, then the SVD is unique up to $\pm 1$ sign change on the singular vectors. 
+
+The left singular vectors $U$ is an orthonormal basis of $\Im(\Phi)$, while the right singular values is an orthonormal basis of $\Im(\Phi^\top)=\ker(\Phi)^\bot$.
+
+A typical example is for $\Phi f=f \star h$ over $\RR^P=\RR^N$.  
+
+Example of convolution. In this case $N=P$, and this operator is invertible if 
+\eq{
+	\foralls \om, \quad \hat h[\om] \neq 0,
+}
+and applying the inverse filter over the Fourier domain computes $f^+ \in \RR^N$ defined as
+\eql{\label{eq-filtering-inversion}
+	\hat f^+[\om] = \hat y[\om] / \hat h[\om] = \hat f_0[\om]
+	 + \hat w[\om] / \hat h[\om].
+}
+For low pass filter, the Fourier transform $\hat h[\om]$ is small for high frequency, and the estimation $f^+$ is bad because of high frequency explosion of the noise.
+
+This shows the necessity to replace the brute force inversion \eqref{eq-filtering-inversion} by a more gentle regularization. Doing so performs a denoising that reduces the performance of the inversion but is mandatory to avoid the noise explosion at high frequencies.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Tikonov Regularization}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Numerical Resolution of Regularization}
+
+After this theoretical study in infinite dimension, we now turn our attention to more practical matters, and focus only on the finite dimensional setting.
+
+The ill-posed problem of recovering an approximation of the high resolution image $f_0 \in \RR^N$ from noisy measures $y \in \RR^P$ is regularized by solving a convex optimization problem
+\eql{\label{eq-ip-regul}
+	f^\star \in  \uargmin{ f \in \RR^N }\; \frac{1}{2} \norm{y-\Phi f}^2 + \la J(f)
+}
+where $\norm{y-\Phi f}^2$ is the data fitting term and $J(f)$ is a convex prior.
+
+The Lagrange multiplier $\la$ weights the importance of these two terms, and is in practice difficult to set.
+Simulation can be performed on high resolution signal $f_0$ to calibrate the multiplier by minimizing the super-resolution error $\norm{f_0-\tilde f}$, but this is usually difficult to do on real life problems.
+
+In the case where there is no noise, $\si = 0$, the Lagrange multiplier $\la$ should be set as small as possible. In the limit where $\la \rightarrow 0$, the unconstrained optimization problem \eqref{eq-ip-regul} becomes a constrained optimization
+\eql{\label{eq-ip-regul-noiseless}
+	f^\star = \uargmin{f \in \RR^N, \Phi f = y} J(f).
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$\Ldeux$ regularization}
+
+The simplest prior, that avoids the exposition of the noise during the inversion, is the $\ldeux$ norm
+\eq{
+	J(f) = \frac{1}{2}\norm{f}^2
+}
+that ensures that the recovered signal or image has a bounded energy.
+
+In the noise-free setting, one obtains the pseudo inverse operator that compute the solution $f^\star$
+\eql{\label{eq-pseudo-inverse}
+	f^\star = \uargmin{\Phi f = y} \norm{f}^2 = \Phi^+ y \qwhereq \Phi^+ = \Phi^* (\Phi \Phi^*)^{-1}.
+}
+It corresponds to inverting the operator on the complementary of its kernel.
+
+For noisy measures, on performs a quadratic regularization
+\eq{
+	f^\star = \uargmin{ f \in \RR^N } \norm{y-\Phi f}^2 + \la \norm{f}^2
+}
+whose closed form solution is obtained by solving a regularized (non-singular) linear system
+\eql{\label{eq-l2-regul-solution}
+	f^\star = ( \Phi^* \Phi + \la \Id_N )^{-1} \Phi^* y.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sobolev Regularization}
+
+The discrete Sobolev prior introduced in \eqref{eq-discr-sobolev} regularizes the inverse by computing a linear denoising. This corresponds to minimizing 
+\eq{
+	f^\star \in \uargmin{ f \in \RR^N }\; \norm{y -\Phi f}^2  + \la \norm{\nabla f}^2.
+}
+The solution depends linearly on the data
+\eql{\label{eq-sobol-regul-solution}
+	f^\star = ( \Phi^* \Phi - \la \Delta )^{-1} \Phi^* y,
+}
+and the parameter $\la$ controls the amount of denoising.
+
+The solutions of \eqref{eq-l2-regul-solution} and \eqref{eq-sobol-regul-solution} depend linearly on the measures $y$, and can be computed numerically using a conjugate gradient descent. For convolution operator, the solution can be computed directly over the Fourier domain, see Section \ref{subsec-deconv}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Total Variation Regularization}
+
+%%
+\paragraph{Exact total variation.}
+
+The discrete total variation prior $\Jtv(f)$ defined in \eqref{eq-discr-tv} is a convex but non differentiable function of the image $f$, so that the regularization problem \eqref{eq-ip-regul}
+\eql{\label{eq-tv-dn}
+	f^\star \in \uargmin{f \in \RR^N} \frac{1}{2}\norm{y-\Phi f}^2 + \la \sum_n \norm{\nabla f[n]}
+}
+cannot be solved using a gradient descent. Section \ref{subsec-proximal-ip} details a class of algorithm that can solve \eqref{eq-ip-regul} for both TV and sparse regularization. We note that since \eqref{eq-ip-regul} is not a strictly convex, the minimizer is not unique in general.
+
+
+%%
+\paragraph{Smoothed total variation.}
+
+One can use the smoothed total variation prior $\Jtv^\epsilon$ for some small parameter $\epsilon>0$ and solve \eqref{eq-ip-regul} using a gradient descent that generalize \eqref{eq-grad-tveps-regul} for inverse problems 
+\eq{
+	f^{(k+1)} = f^{(k)} - \tau \Phi^* ( \Phi f^{(k)} - y) + 
+		\la \tau \diverg\pa{ \frac{ \nabla f_t}{ \sqrt{\epsilon^2+\norm{\nabla f_t}^2} } }
+}
+that converges to $f^\star$ that minimizes \eqref{eq-ip-regul} if 
+\eq{
+	0 < \tau < (\norm{\Phi^*\Phi} + 4/\epsilon)^{-1}.
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Example of Inverse Problems}
+
+We detail here some inverse problem in imaging that can be solved using quadratic regularization or non-linear TV.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Deconvolution}
+\label{subsec-deconv}
+
+The blurring operator \eqref{eq-deblurring-operator} is diagonal over Fourier, so that quadratic regularization are easily solved using Fast Fourier Transforms when considering periodic boundary conditions. 
+
+The pseudo-inverse $f^\star = f^+$ defined in \eqref{eq-pseudo-inverse} is computed as
+\eq{
+	\hat f^\star[\om] = 
+	\choice{
+		\hat y[\om] / \hat h[\om] \qifq \hat h[\om] \neq 0,\\
+		\; 0 \qifq \hat h[\om] = 0.
+	}
+}
+The quadratic regularization defined in \eqref{eq-l2-regul-solution} is computed as 
+\eql{\label{eq-l2-reg-fourier}
+	\hat f^\star [\om] = \frac{ \hat h[\om]^* }{ |h[\om]|^2 + \la } \hat y[\om]
+}
+and the Sobolev regularization defined in \eqref{eq-sobol-regul-solution} satisfy
+\eql{\label{eq-sobol-reg-fourier}
+	\hat f^\star [\om] = \frac{ \hat h[\om]^* }{ |h[\om]|^2 - \la \rho^2[\om]} \hat y[\om]
+}
+where $\rho[\om]^2$ depends on the discretization of the Laplacian operator, and is given in \eqref{eq-discrete-lapl-fourier} for a finite difference implementation. Table \ref{wavelets-variational-inverse-sobolev} details the implementation of both regularization.
+
+%\matlab{matlab/inverse-sobolev.m
+%}{
+%$\ldeux$ and Sobolev regularization. The filter $\phi$ is given in \matvar{phi}, the regularization parameter $\la$ in \matvar{lambda} and the obervation $y$ in \matvar{y}. The output are the $\ldeux$ regularization \matvar{fl2} and the Sobolev regularization \matvar{fsob}.
+%}{wavelets-variational-inverse-sobolev}
+
+Both TV and sparse regularization cannot be solved as easily and necessitate iterative proximal algorithm for their resolution. We now give two example of such deconvolution for a spike and wavelet orthogonal bases.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Inpainting}
+\label{sec-inpainting-variational}
+
+For the inpainting problem, the operator defined in \eqref{eq-inp-operator} is diagonal in space
+\eq{
+	 \Phi = \diag_m( \de_{\Om^c}[m] ),
+}
+and is an orthogonal projector $\Phi^* = \Phi$.
+
+In the noiseless case, to constrain the solution to lie in the affine space $\enscond{f \in \RR^N}{y=\Phi f}$, we use the orthogonal projector
+\eq{
+	\foralls x, \quad P_y(f)(x) = \choice{
+		f(x) \qifq x \in \Om,\\
+		\; y(x) \quad \qifq x \notin \Om.
+	}
+}
+
+
+In the noiseless case, the recovery \eqref{eq-ip-regul-noiseless} is solved using a projected gradient descent.
+For the Sobolev energy, the algorithm iterates
+\eq{
+	f^{(k+1)} = P_y( f^{(k)} + \tau \Delta f^{(k)} ).
+}
+which converges if $\tau < 2 / \norm{\Delta} = 1/4$. Figure \ref{fig-inp-sob-iter} shows some iteration of this algorithm, which progressively interpolate within the missing area. Table \ref{inverse-inpainting-sob} details the implementation of the inpainting with the Sobolev prior.
+
+%\matlab{matlab/inverse-inpainting-sob.m
+%}{
+%Inpainting with Sobolev regularization. The mask $\Om$ is given in \matvar{mask}, so that the masked indices are \matvar{f(mask)}, the observations in \matvar{y}. The solution is given in \matvar{fsob}.
+%}{inverse-inpainting-sob}
+
+\myfigure{
+\tabquatre{
+\image{invpbm}{.24}{sob-inp-iter-1}&
+\image{invpbm}{.24}{sob-inp-iter-2}&
+\image{invpbm}{.24}{sob-inp-iter-3}&
+\image{invpbm}{.24}{sob-inp-iter-4} \\
+$k=1$ & $k=10$ & $k=20$ & $k=100$ 
+}
+}{%
+	Sobolev projected gradient descent algorithm. %	
+}{fig-inp-sob-iter}
+
+%\myfigure{
+%\tabdeux{
+%\image{invpbm}{.3}{sob-inp-decay-conv}&
+%\image{invpbm}{.3}{sob-inp-decay-energy} \\
+%$\log_{10}( E(f^{(k)})/E(f^\star)-1 )$ &
+%$\log_{10}( \norm{f^{(k)}-f^\star}/\norm{f_0} )$
+%}
+%}{%
+%	Decay of the energy and convergence for Sobolev inpainting.%	
+%}{fig-sob-inp-decay}
+
+Figure \ref{fig-inpainting-parrot} shows an example of Sobolev inpainting to achieve a special effect.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{inpainting-parrot-image}&
+\image{invpbm}{.3}{inpainting-parrot-mask}&
+\image{invpbm}{.3}{inpainting-parrot-sobolev}\\
+Image $f_0$ & Observation $y=\Phi f_0$ & Sobolev $f^\star$ \\
+}
+}{%
+	Inpainting the parrot cage. %	
+}{fig-inpainting-parrot}
+
+For the smoothed TV prior, the gradient descent reads
+\eq{
+	f^{(k+1)} = P_y\pa{
+			f^{(k)} + \tau \div\pa{ \frac{ \nabla f^{(k)}}{ \sqrt{\epsilon^2+\norm{\nabla f^{(k)}}^2} } }
+		}
+}
+which converges if $\tau < \epsilon/4$.
+
+Figure \ref{fig-inpainting-cameraman} compare the Sobolev inpainting and the TV inpainting for a small value of $\epsilon$. The SNR is not improved by the total variation, but the result looks visually slightly better.
+
+% For special effects : $\Ldeux$ error and SNR are not good measures of quality, $f^\star$ is very different from $f_0$ ! Pereceptual metric, visual inspection.
+
+\myfigure{
+\tabdeux{
+\image{invpbm}{.3}{inpainting-cameraman-image}&
+\image{invpbm}{.3}{inpainting-cameraman-observations}\\
+Image $f_0$ & Observation $y=\Phi f_0$ \\
+\image{invpbm}{.3}{inpainting-cameraman-sobolev}&
+\image{invpbm}{.3}{inpainting-cameraman-tv} \\
+Sobolev $f^\star$ & TV $f^\star$ \\
+SNR=?dB & SNR=?dB 
+}
+}{%
+	Inpainting with Sobolev and TV regularization. %	
+}{fig-inpainting-cameraman}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Tomography Inversion}
+
+In medical imaging, a scanner device compute projection of the human body along rays $\De_{t,\th}$ defined
+\eq{
+	x \cdot \tau_\theta = x_1 \cos\th + x_2\sin\th = t
+}
+where we restrict ourself to 2D projection to simplify the exposition.
+
+The scanning process computes a Radon transform, which compute the integral of the function to acquires along rays
+\eq{
+	\foralls \th \in [0,\pi), \foralls t \in \RR, \quad
+	p_{\th}(t) = \int_{\De_{t,\th}} f(x) \,d s
+	 = \iint f(x)\, \de( x \cdot \tau_\theta - t )\, d x 
+}
+see Figure \eqref{fig-tomo-principle}
+
+\myfigure{
+\image{invpbm}{.4}{tomo-principle}
+}{%
+	Principle of tomography acquisition. %	
+}{fig-tomo-principle}
+
+The Fourier slice theorem relates the Fourier transform of the scanned data to the 1D Fourier transform of the data along rays
+\eql{\label{eq-fourier-slice}
+	\foralls \th \in [0,\pi)~,~ 
+\foralls \xi \in \RR\quad
+		\hat p_\th(\xi) = \hat f( \xi \cos \th, \xi \sin \th ).
+}
+This shows that the pseudo inverse of the Radon transform is computed easily over the Fourier domain using inverse 2D Fourier transform
+\eq{
+	f(x) = 
+\frac{1}{2\pi} \int_{0}^\pi p_\th \star h(x \cdot \tau_\theta)\, d \th
+}
+with $\hat h(\xi) = |\xi|$.
+
+
+\myfigure{
+\tabtrois{
+% \image{invpbm}{.4}{tomo-radon}
+\image{invpbm}{.3}{tomo-image}&
+\image{invpbm}{.35}{tomo-radon-subsample}&
+\image{invpbm}{.3}{tomo-radon-fourier}\\
+Image $f$ & Radon sub-sampling & Fourier domain
+}
+}{%
+	Partial Fourier measures. %	
+}{fig-tomo-radon-subsample}
+
+
+Imaging devices only capture a limited number of equispaced rays at orientations $\{ \th_k = \pi/k \}_{0 \leq k < K}$. This defines a tomography operator which corresponds to a partial Radon transform
+\eq{
+	R f = ( p_{\th_k} )_{0 \leq k < K}.
+}
+Relation \eqref{eq-fourier-slice} shows that knowing $R f$ is equivalent to knowing the Fourier transform of $f$ along rays, 
+\eq{
+	\{ \hat f(\xi \cos(\th_k), \xi \sin(\th_k)) \}_k.
+}
+We thus simply the acquisition process over the discrete domain and model it as computing directly samples of the Fourier transform 
+\eq{
+	\Phi f = ( \hat f[\om] )_{\om \in \Om} \in \RR^P
+}
+where $\Om$ is a discrete set of radial lines in the Fourier plane, see Figure \ref{fig-tomo-radon-subsample}, right.
+
+In this discrete setting, recovering from Tomography measures $y=R f_0$ is equivalent in this setup to inpaint missing Fourier frequencies, and we consider partial noisy Fourier measures
+\eq{
+	\foralls \om \in \Om, \quad y[\om] = \hat f[\om] + w[\om]
+}
+where $w[\om]$ is some measurement noise, assumed here to be Gaussian white noise for simplicity.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{tomo-image}&
+\image{invpbm}{.3}{tomo-pinv-13}&
+\image{invpbm}{.3}{tomo-pinv-32}\\
+Image $f_0$ & 13 projections & 32 projections.
+}
+}{%
+	Pseudo inverse reconstruction from partial Radon projections. %	
+}{fig-tomo-pinv}
+
+The peuso-inverse $f^+ = R^+ y$ defined in \eqref{eq-pseudo-inverse} of this partial Fourier measurements  reads 
+\eq{
+	{\hat f}^+[\om] = \choice{
+		y[\om] \qifq \om \in \Om,\\
+		\; 0 \qifq \om \notin \Om.
+	}
+}
+Figure \ref{fig-tomo-pinv} shows examples of pseudo inverse reconstruction for increasing size of $\Om$. This reconstruction exhibit serious artifact because of bad handling of Fourier frequencies (zero padding of missing frequencies).
+
+The total variation regularization \eqref{eq-tv-dn} reads
+\eq{
+	f^\star \in \uargmin{f} \frac{1}{2}\sum_{\om \in \Om} |y[\om] - \hat f[\om]|^2 
+	+ \la \normTV{f}.
+}
+It is especially suitable for medical imaging where organ of the body are of relatively constant gray value, thus resembling to the cartoon image model introduced in Section \ref{subsec-cartoon-images}. Figure \ref{fig-tomo-tv} compares this total variation recovery to the pseudo-inverse for a synthetic cartoon image. This shows the hability of the total variation to recover sharp features when inpainting Fourier measures. This should be contrasted with the difficulties that faces TV regularization to inpaint over the spacial domain, as shown in Figure \ref{fig-inpainting-lena}.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{tomo-image}&
+\image{invpbm}{.3}{tomo-pinv-fourier}&
+\image{invpbm}{.3}{tomo-tv}\\
+Image $f_0$ & Pseudo-inverse & TV
+}
+}{%
+	Total variation tomography inversion. %	
+}{fig-tomo-tv}

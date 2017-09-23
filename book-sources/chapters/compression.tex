@@ -1,0 +1,316 @@
+% !TEX root = ../FundationsDataScience.tex
+
+\chapter{Compression}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Transform Coding}
+\label{sec-transform-coding}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Coding}
+
+State of the art compression schemes correspond to transform coders, that code quantized coefficients in an ortho-basis. They first computes the coefficients of the decomposition of the signal into an well-chosen basis (for instance wavelets)
+\eq{
+	a_m = \dotp{f}{\psi_m} \in \RR.
+}
+Quantization corresponds to rounding the coefficients to an integer using a step size $T>0$
+\eq{
+	q_m = Q_T(a_m)  \in \ZZ
+	\qwhereq 
+	Q_T(x) = \sign(x) \left\lfloor \frac{|x|}{T} \right\rfloor.
+}
+We note that this quantizer has a twice larger zero bin, so that coefficients in $[-T,T]$ are set to zero.
+
+This quantizer nonlinearity should be compared to the hard thresholding nonlinearity \eqref{eq-hard-thresh} used to perform non-linear approximation. The quantizer not only set to zero small coefficients that are smaller than $T$ in magnitude, it also modifies larger coefficients by rounding, see Figure \ref{fig-thresholding-vs-quantizing}. 
+
+\myfigure{
+\image{approximation}{.3}{thresholding-vs-quantizing}
+}{%
+	Thresholding and quantization non-linearity mappings.%	
+}{fig-thresholding-vs-quantizing}
+
+The resulting integer values $(q_m)_m$ are stored into a binary file of length $R$, which corresponds to a number of bits. 
+Sections \ref{subsec-support-coding} and \ref{subsec-entropic-coding} detail two different approach to perform this transformation from integer to bits. The goal is to reduce as much as possible the number $R$ of bits. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{De-coding}
+
+The decoder retrieves the quantized coefficients $q_m$ from the binary file, and dequantizes the coefficients using
+\eql{\label{eq-de-quantization}
+	\tilde a_m = \sign(q_m)  \pa{|q_m+\frac{1}{2}} T.
+}
+This corresponds to retrieving the value from quantization at the center of quantization bins:
+\begin{center}
+\image{approximation}{.4}{quantization-bins}
+\end{center}
+
+The compressed-decompressed image is then reconstructed as
+\eq{\label{eq-decompression-approx}
+	\Qq_T(f) \eqdef \sum_{m \in I_T} \tilde a_m \psi_m
+	= \sum_{m \in I_T} Q_T(\dotp{f}{\psi_m}) \psi_m,
+}
+thus producing a decompression error $\norm{f-\Qq_T(f)}$.
+
+This decompression reconstruction \eqref{eq-decompression-approx} should be compared with the non-linear approximation formula \eqref{eq-nonlinear-approx}. One necessarily has $\norm{f-f_M} \leq \norm{f-\Qq_T(f)}$, but in practice these two errors have comparable magnitudes. 
+
+\begin{prop}
+	One has 
+	\eql{\label{eq-error-compression}
+		\norm{f-\Qq_T(f)}^2 \leq \norm{f-f_M}^2 + M T^2/4
+		\qwhereq
+		M = \#\enscond{m}{ \tilde a_m \neq 0}.
+	}
+\end{prop}
+
+\begin{proof}
+Indeed, the de-quantization formula \eqref{eq-de-quantization} implies that for $|a_m|>T$,
+\eq{
+	|a_m-\tilde a_m| \leq \frac{T}{2}.
+}
+One thus has
+\eq{
+	\norm{f-\Qq_T(f)}^2 = \sum_m (a_m-\tilde a_m)^2 \leq
+	\sum_{ |a_m|<T } |a_m|^2 + 
+	\sum_{ |a_m| \geq T } \pa{\frac{T}{2}}^2, 
+}
+which leads to the desired bound.
+\end{proof}
+
+If $\norm{f-f_M}^2 \sim O(M^{-\al})$, then it is easy to see that $\norm{f-f_M}^2 \sim M T^2$ so that one has 
+\eq{
+	\norm{f-\Qq_T(f)}^2 \sim \norm{f-f_M}^2.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Support Coding}
+\label{subsec-support-coding}
+
+To measure how large is the additional error term $M T^2/4$ in \eqref{eq-error-compression}, one needs to choose a method to store the quantized coefficients $q_m$ into a file. 
+
+For aggressive compression scenario, where $R$ and $M$ are small with respect to the size $N$ of the image, the support 
+\eq{
+	I_M = \enscond{m}{\tilde a_m \neq 0}
+}
+is highly sparse. It thus make sense to code first this support and then to code the actual value $q_m \neq 0$ for $m \in I_M$.
+
+The remaining of this section proves the following theorem.
+
+\begin{thm}
+	We assume $\norm{f-f_M}^2 \sim O(M^{-\al})$ where $f_M$ is the $M$-term non-linear approximation of $f$ in $\{\psi_m\}_m$.
+	Then for all $T$ is a coding strategy of $\Qq_T(f)$ using $R=R(T)$ bits such that 
+	\eq{
+		\norm{ f-\Qq_T(f) }^2 =  O( \log^\al(R) R^{-\al} ).
+	}
+\end{thm}
+
+
+%%
+\paragraph{Comments on the signals constraints.}
+
+First, let us notice that, thanks to Proposition~\ref{prop-equiv-comp-decay} the error decay hypothesis $\norm{f-f_M}^2 \sim O(M^{-\al})$ is equivalent to imposing a fast decay of the ordered coefficients $d_m$ defined in \eqref{eq-dfn-ordered-coefs}
+\eql{\label{hyp-compression-1}
+	d_m \sim m^{-\frac{\al+1}{2}}.
+}
+Furthermore, a practical compression algorithm is only capable of dealing with discrete signals of size $N$. We thus considers that the algorithm has access to $N$ inner products $\{ \dotp{f}{\psi_m} \}_{0 \leq m < N}$ that are computed using a decomposition algorithm from a discretized signal or image of size $N$. For instance, Section \ref{sec-1d-wav-processing} details a discrete wavelet transform, and introduces a compatibility condition \eqref{eq-sampling-consist-1d} on the sampling operator for this inner product computation to be possible from discrete data.  
+
+For the compression from the discrete signals to be the same as a compression of a continuous signal, we impose that $N$ is large enough so that 
+\eq{
+	\foralls m \geq N, \quad |\dotp{f}{\psi_m}| < T
+}
+so that the coefficients not quantized to $0$ are contained within the set $\{ \dotp{f}{\psi_m} \}_{0 \leq m < N}$ of the $N$ computed coefficients.
+
+The other hypothesis beyond \eqref{hyp-compression-1} is that the sampling precision $N$ is not too large, and in particular, that there is a polynomial grows of $N$ with respect to the number $M$ of coefficients to code
+\eql{\label{hyp-compression-2}
+	N \sim M^{\be}
+}
+for some $\be > 0$. For the wavelet and Fourier bases, and for all the classes of signals and images detailed in Section \ref{sec-signal-models}, one can show that this is indeed the case, if one orders the basis elements $\{\psi_m\}_m$ from low frequencies (or coarse scales) to high frequencies (or fine scales). This is because in these bases, the coefficients $\dotp{f}{\psi_m}$ have a polynomial decay with $m$ if $f$ as some smoothness. See Sections~\ref{subsec-sobolev-approx} and~\ref{subsect-wavdecay} for a proof of this decay for Sobolev and piecewise regular signals.
+
+
+%%
+\paragraph{Support coding.}
+
+Since the size of the support is $|I_M|=M$, one can code the entries of $I_M$ as being a set of size $M$ within a larger set of $N$ coefficients using a number of bits
+\eql{\label{eq-nbits-1}
+	R_{\text{ind}} \leq \log_2{  N \choose M } = O(M \log_2\pa{ \frac{N}{M} })
+	= O( M \log_2(M) )
+}
+where ${  N \choose M }$ is the number of possible choices for $M$ elements in a set of $N$ elements, and where we have used hypothesis \eqref{hyp-compression-1} to derive the last equality.
+
+%%
+\paragraph{Values coding.}
+
+The quantized values satisfy $q_m \in \{-A,\ldots,A\}$, with 
+\eq{
+	A \leq \frac{1}{T}\max_m|\dotp{f}{\psi_m}| = O(T^{-1}),
+}
+so one can code them using a number of bits 
+\eql{\label{eq-nbits-2}
+	R_{\text{val}} = O( M |\log_2(T)| ) = O( M \log_2(M) ) 
+}
+where we have used hypothesis \eqref{hyp-compression-1} that implies $|\log_2(T)| \sim \log_2(M)$.
+
+%%
+\paragraph{Total number of bits.}
+
+Putting \eqref{eq-nbits-1} and \eqref{eq-nbits-2} together, the total number of bits for this support coding approach is thus
+\eq{
+	R = R_{\text{ind}}+ R_{\text{val}} = O(M \log_2(M)).
+}
+Inverting this relationship proves that 
+\eql{\label{eq-compression-bits}
+	M = O(R \log_2(R)).
+}
+
+%%
+\paragraph{Rate/distortion error decay.}
+
+Condition \eqref{hyp-compression-1} implies that $M T^2 \sim M^{-\al}$, so that putting \eqref{eq-error-compression} and \eqref{eq-compression-bits} together proves
+\eq{
+	\norm{f-\Qq_T(f)}^2 = O( \log^\al(R) R^{-\al} ).
+}
+This shows the importance of the study of non-linear approximation, and in particular the design of bases that are efficient for approximation of a given signal model $\Th$.
+
+
+\myfigure{
+\tabquatre{
+\image{approximation}{.24}{compression-original}&
+\image{approximation}{.24}{compression-original-zoom}&
+\image{approximation}{.24}{compression-support}&
+\image{approximation}{.24}{compression-result}\\
+Original $f$ & Zoom & Wavelet support & Compressed $\Qq_T(f)$
+}
+}{%
+	Image compression using wavelet support codding. %	
+}{fig-compression}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Entropic Coding}
+\label{subsec-entropic-coding}
+
+To further reduce the file size $R$ (in bits), one can use an entropic coder to transform the integer values $q_m$ into bits. 
+Such coding scheme makes use of the statistical redundancy of the quantized values, that have a large number of zero entries and very few large entries. The theory of coding was formalized by Shannon \cite{shannon-information}.
+
+We refer to Section~\ref{sec-shannon-source} for the theoretical foundation associated to what we now describe. 
+
+
+%%
+\paragraph{Probabilistic modeling.}
+
+The quantized coefficients $q_m \in \{-A,\ldots,A\}$ are assumed to take values in an alphabet of $Q=2A+1$ elements.
+A coding scheme performs the transformation 
+\eq{
+	\{q_m\}_m \longmapsto \{0,1,1,\ldots,0,1\} \in \{0,1\}^R.
+}
+To reduce the average value of $R$, one makes use of a statistical model, which assumes that the $q_m$ are drawn independently at random from a known probability distribution
+\eq{
+	\PP(q_m=i)=p_i \in [0,1].
+}
+
+%%
+\paragraph{Huffman code.}
+
+A Huffman code is a code with variable length, since it perform a mapping from symbols to binary strings
+\eq{
+	q_m=i \in \{-A,\ldots,A\} \longmapsto c_i \in \{0,1\}^{|c_i|}
+}
+where $|c_i|$ is the length of the binary code word $c_i$, that should be larger if $p_i$ is small. 
+A Huffman tree algorithm is able to build a code such that 
+\eq{
+	|c_i| \leq \lceil \log_2(p_i) \rceil
+}
+so that 
+\eq{
+	R \leq (\Ee(p)+1)N
+}
+where $\Ee$ is the entropy of the distribution, defined as
+\eq{
+	\Ee(p) = -\sum_i p_i \log_2(p_i).
+}
+Figure \ref{fig-entropy} shows different probability distribution. The entropy is small for highly sparse distribution. Wavelet coefficients of natural images tend to have a low entropy because many coefficients are small.
+
+The Huffman scheme codes symbols independently, leading to a sub-optimal code if some of the $p_i$ are large, which is usually the case for wavelet coefficients. One usually prefers arithmetic coding schemes, that codes groups of symbols, and are able to get close to the entropy bound $R \approx \Ee(p) N$ for large $N$.
+
+\myfigure{
+\tabtrois{
+\image{approximation}{.3}{entropy-1}&
+\image{approximation}{.3}{entropy-2}&
+\image{approximation}{.3}{entropy-3}\\
+$\Ee(p) = \log_2(Q)$ & $\Ee(p) = 0$ &
+$0 < \Ee(p) < \log_2(Q)$ 
+}
+}{%
+	Three different probability distributions. %	
+}{fig-entropy}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{JPEG-2000}
+
+JPEG-2000 is the latest still image compression standard. It corresponds to a wavelet transform coder that performs a clever adaptive entropy coding that makes use of the statistical redundancy of wavelet coefficients of natural images. The wavelet transform is not orthogonal, it is a symmetric 7/9 biorthogonal, with symmetric boundary condition and a lifting implementation. This transform is however close to orthogonality, so that the previous discussion about orthogonal approximation and coding is still relevant.
+
+\myfigure{
+\image{approximation}{.9}{jpeg-2k-architecture}
+}{%
+	JPEG-2000 coding architecture. %	
+}{fig-jpeg-2k-architecture}
+
+Figure \ref{fig-jpeg-2k-architecture} shows an overview of JPEG-2000 architecture. Figure \ref{fig-compression-jpeg} shows a comparison between JPEG and JPEG-2000 compressors. JPEG is based on a local DCT transform, and suffers from blocking artifacts at low bit rates, which is not the case of JPEG-2000. This new standard also comes with several important features, such as regions of interest, which allows to refine the coding in some specific parts of the image.
+ 
+\myfigure{
+\tabdeux{
+\image{approximation}{.35}{compression-jpeg-boat}&
+\image{approximation}{.35}{compression-jpeg-lena}\\
+\image{approximation}{.35}{compression-jpeg2k-boat}&
+\image{approximation}{.35}{compression-jpeg2k-lena}
+}
+}{%
+	Comparison of JPEG (left) and JPEG-2000 (right) coding.%	
+}{fig-compression-jpeg}
+
+
+%%
+\paragraph{Dyadic quantization.}
+
+The wavelet coefficients are quantized with a varying quantization step $T_i = 2^{-i}T_0$. This allows one to progressively increase the precision of the coded coefficients. For each $i$, a bit plane coding pass produces new bits to refine the value of the coefficients when $i$ increases. 
+
+%%
+\paragraph{Steam packing.}
+The bits obtained using the bit plane pass with quantizer $T_i = 2^{-i}T_0$ are entropy coded using a contextual coder. This coder processes square blocks $S_k$ of coefficients. This local coding enhances the parallelization of the method. This local block coding produces a bit stream $c_i^k$, and these streams are optimally packed into the final coded file to reduce the distortion $\norm{f-\Qq_T(f)}$ for almost every possible number $R$ of bits. This stream packing ensures scalability of the output bit stream. It means that one can receive only the $R$ first bits of a large coded file and get a low resolution decoded image $\Qq_T(f)$ that has an almost minimal distortion $\norm{f-\Qq_T(f)}$.
+
+%%
+\paragraph{Bit plane coding pass.}
+
+For each threshold $T_i$, for each scale and orientation $(j,\om \in \{V,H,D\})$, for each coefficient location $n \in S_k$, JPEG-2000 coder encodes several bit reflecting the value of the wavelet coefficient $d_j^\om[n]$. In the following we drop the dependancy on $(j,\om)$ for simplicity.
+\begin{rs}
+	\item If $d_j^\om[n] < T_{i-1}$, the coefficient was not significant at bit-plane $i-1$. It thus encodes a significance bit
+		$b_i^1[n]$ to tell wether $d_j^\om[n] \geq T_{i}$ or not.
+	\item If $b_i^1[n]=1$, meaning that the coefficient has became significant, it codes it sign as a bit $b_i^2[n]$.
+	\item For every position $n$ that was previously significant, meaning $d_j^\om[n] \geq T_{i-1}$, it codes a value refinement bit
+		 $b_i^3[n]$ to tell wether $d_j^\om[n] \geq T_{i}$ or not.
+\end{rs}
+
+%%
+\paragraph{Contextual coder.}
+
+The final bits streams $c_i^k$ are computed from the produced bits $\{ b_i^s[n] \}_{s=1}^3$ for $n \in S_k$ using a contextual coder.
+The contextual coding makes use of spacial redundancies in wavelet coefficients, especially near edges and geometric singularities that create clusters of large coefficients. The coefficients $n \in S_k$ are traversed in zig-zag order as shown on Figure \ref{fig-jpeg-2k-context}. 
+
+\myfigure{
+\image{approximation}{.6}{jpeg-2k-context}
+}{%
+	Coding order and context for JPEG-2000 coding.%	
+}{fig-jpeg-2k-context}
+
+
+For each coefficient location $n \in S_k$, the context value $v_i^s[n]$ of the bit $b_i^s[n]$ to code at position $x$ is an integer computed over a $3 \times 3$ window 
+\eq{
+	w_n = \{(n_1 +\eps_1,n_2+\eps_2)\}_{\eps_i = \pm 1}. 
+}
+This local context $v_i^s[n]$ integrates in a complicated way the previous bit plane values $\{ b_{i-1}^s[\tilde n] \}_{\tilde n \in w_n}$, and neighboring bits at plane $\{ b_i^s[\tilde n] \}_{\tilde n \in w_n, \tilde n \text{ coded}}$ that have already been coded.
+
+The bit value $b_i^s[n]$ is then coded with an arithmetic coding by making use of the conditional probability distribution $\PP( b_i^s[n] | v_i^s[n] )$. The choice made for the computation $v_i^s[n]$ allows to reduce significantly the entropy of this conditional probability condition with respect to the original distribution $\PP( b_i^s[n] )$, thus reducing the overall number of bits.

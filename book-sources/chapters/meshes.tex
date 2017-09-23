@@ -1,0 +1,1118 @@
+% !TEX root = ../FundationsDataScience.tex
+\chapter{Linear Mesh Processing}
+\label{chap-meshes}
+
+This chapter exposes the basics of surface approximation with 3D meshes and the way to process such meshes with linear operators. In particular, it studies filtering on 3D meshes and explains how a Fourier theory can be built to analyze these filters. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Surface Discretization with Triangulated Mesh}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Continuous Geometry of Surfaces}
+
+In this course, in order to simplify the mathematical description of surfaces, we consider only globally parameterized surfaces. We begin by considering surfaces embedded in euclidean space $\Mm \subset \RR^k$.
+
+\begin{defn}[Parameterized surface] \label{defn-param-surface}A parameterized surface is a mapping
+\eq{ u \in \Dd \subset \RR^2 \mapsto \phi(u) \in \Mm.} 
+\end{defn}
+
+Of course, most surfaces do not benefit from such a simple parameterization. For instance, a sphere should be split into two parts in order to be mapped on two disks $\Dd_1,\Dd_2$. These topological difficulties require the machinery of manifolds in order to incorporate a set of charts $\Dd = \{\Dd_i\}_i$ that overlap in a smooth manner. All the explanations of this course extend seamlessly to this multi-charts setting.
+
+A curve is defined in parameter domain as a 1D mapping $t \in [0,1] \mapsto \ga(t) \in \Dd$. This curve can be traced over the surface and its geometric realization is $\bar \ga(t) \eqdef \phi(\ga(t)) \in \Mm$. The computation of the length of $\ga$ in ambient $k$-dimensional space $\RR^k$ follows the usual definition, but to do the computation over the parametric domain, one needs to use a local metric defined as follow. 
+
+\begin{defn}[First fundamental form]
+For an embedded manifold $\Mm \subset \RR^k$, the first fundamental form is
+\eq{
+	I_\phi = \pa{ \dotp{\pd{\phi}{u_i}}{\pd{\phi}{u_j}} }_{i,j=1,2}.
+}
+\end{defn}
+
+This local metric $I_\phi$ defines at each point the infinitesimal length of a curve as 
+\eq{
+	L(\ga) \eqdef \int_0^1 \norm{ \bar \ga'(t) } \d t
+	= \int_0^1 \sqrt{ \transp{\ga'(t)} I_\phi(\ga(t)) \ga'(t) } \d t.
+}
+This fundamental form is an intrinsic invariant that does not depends on how the surfaces is isometrically embedded in space (since the length depends only on this tensor field $I_\phi$). In contrast, higher order differential quantities such as curvature might depend on the bending of the surface and are thus usually not intrinsic (with the notable exception of invariants such as the gaussian curvature). In this course, we restrict ourselves to first order quantities since we are mostly interested in lengths and the intrinsic study of surfaces.  
+
+
+\begin{exmp}[Isometry and conformality]
+A surface $\Mm$ is locally isometric to the plane if $I_\phi = \Id_2$. This is for instance the case for a cylinder. The mapping $\phi$ is said to be conformal if $I_\phi(u) = \la(u)\Id_2$. It means that the length of a curve over the plane is only locally scaled when mapped to the surface. In particular, the angle of two interescting curves is the same over the parametric domain and over the surface. This is for instance the case for the stereographic mapping between the plane and a sphere.
+\end{exmp}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Discretization of Surfaces with Triangulations}
+\label{subsec-mesh-structure}
+
+\paragraph{Mesh Data Structure}
+
+A triangulated mesh is a discrete structure that can be used to approximate a surface embedded in Euclidean space $\RR^k$. It is composed of a topological part $M=(V,E,F)$ and a geometrical realization $\Mm=(\Vv,\Ee,\Ff)$. It is important to make the distinction between these two parts since many algorithms rely only on geometry (point clouds processings such as dimension reduction) or on topology (such as compression).
+
+The topology $M$ of the mesh is composed of
+\begin{rs}
+	\item \textit{Vertices} (0D): this is an abstract set of indices $V \simeq \{1,\ldots,n\}$.
+	\item \textit{Edges} (1D): this is a set of pair of vertices $E \subset V \times V$. This set is assumed to be symmetric
+		\eq{ (i,j) \in E \quad\Longleftrightarrow \quad i \sim j \Leftrightarrow (j,i) \in E. }
+	\item  \textit{Faces} (2D): this is a collection of 3-tuples of vertices $F \subset V \times V \times V$, with the additional 
+		compatibility condition
+		\eq{ (i,j,k) \in F \quad\Longrightarrow \quad (i,j), (j,k), (k,i) \in E. }
+		We further assumer that there is no isolated edges
+		\eq{ \foralls (i,j) \in E, \quad \exists \, k, \; (i,j,k) \in F. }
+\end{rs}
+
+The set of edges can be stored in a symmetric matrix $A \in \RR^{n \times n}$ such that $A_{ij}=1$ if $(i,j) \in E$ and $A_{ij}=0$ otherwise. This matrix is often stored as a sparse matrix since the number of edges is usually much smaller than $n^2$. The set of vertices and edges form a non-oriented graph $\Gg=(V,E)$. Faces are often stored as a matrix $A_F \in \{1,\ldots,n\}^{3 \times m}$ where $m$ is the number of faces and a column $((A_F)_{i,1},(A_F)_{i,2},(A_F)_{i,3})$ stores the indices of a face. In a triangulation, the face matrix $A_F$ allows to recover the edge incidence matrix $A$. The face data structure allows to really capture the 2D geometry of surfaces, which is not possible with graphs alone. 
+
+The geometric realization $\Mm$ is defined through a spacial localization of the vertices (for instance in 3D space) 
+\eq{
+	 \Vv \eqdef \enscond{x_i}{ i \in V } \subset \RR^3.
+}
+This allows to define a piecewise linear mesh
+\eq{ 
+	\Ff \eqdef \bigcup_{(i,j,k) \in F} \text{Conv}(x_i,x_j,x_k) \subset \RR^3,
+}
+where the convex envelop $\text{Conv}(x,y,z)$ of three points is the Euclidean triangle generated by $(x,y,z)$. 
+
+This piecewise linear realization $\Mm$ can be displayed as a 3D surface on a computer screen. This is performed through a perspective projection of the points and a linear interpolation of color and light inside the triangle. Figure \ref{fig-display-3d} shows an example of 3D display, with a zoom on the faces of the mesh.
+  
+\myfigure{       
+\image{meshes}{0.22}{display/elephant-50kv-mesh}
+\image{meshes}{0.24}{display/elephant-50kv-mesh-faceted-2}
+\image{meshes}{0.24}{display/elephant-50kv-mesh-faceted-4}
+\image{meshes}{0.24}{display/elephant-50kv-mesh-faceted-6}
+}{
+Example of display of a 3D mesh.
+}{fig-display-3d}
+
+   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Adjacency Relationships}
+
+From the basis topological information given by $M = (V,E,F)$, one can deduce several adjacency data-structures that are important to navigate over the triangulation.
+
+\begin{defn}[Vertex 1-ring] The vertex 1-ring of a vertex $i \in V$ is 
+\eql{ \label{eq-vertex-1-ring}
+	V_i \eqdef \enscond{j \in V}{(i,j) \in E} \subset V. `
+}
+The $s$-ring is defined by induction as
+\eql{\label{eq-iterated-ring}
+	\foralls s>1, \quad V_i^{(s)} = \enscond{ j \in V }{ (k,j) \in E \qandq k \in V_i^{(s-1)} }.
+}
+\end{defn}
+
+\begin{defn}[Face 1-ring] The face 1-ring of a vertex $i \in V$ is 
+\eq{ F_i \eqdef \enscond{(i,j,k) \in F}{i,j \in V} \subset F. }
+\end{defn}
+
+The geometrical realization of a vertex 1-ring is
+\eq{ \Vv_i = \bigcup_{(i,j,k) \in V_i} \text{Conv}(x_i,x_j,x_k).  }
+A triangulated mesh is a manifold mesh if all the rings $\Vv_i$ for $i \in V$ are homeomorphic to either a disk (for interior vertices) or to a half disk (for boundary vertices). This ensures that the geometrical mesh really has the topology of a 2D surface embedded in $\RR^3$ (possibly with boundaries). In particular, it implies that there is at most two faces connected to each edge
+\eq{ \foralls (i,j) \in E, \quad \#\enscond{k}{ (i,j,k) \in F } \leq 2.}
+
+
+As an application of these local rings, one can compute a normal at each point using a simple rule
+\eq{
+\foralls f = (i,j,k) \in F, \quad \overrightarrow{n_f} \eqdef \frac{(x_j-x_i) \wedge (x_k-x_i)}{\norm{(x_j-x_i) \wedge (x_k-x_i)}}.
+}
+and where
+\eq{
+\foralls i \in V, \quad \overrightarrow{n_i} \eqdef \frac{ \sum_{f \in F_i} \overrightarrow{n_f} }{ \norm{\sum_{f \in F_i} \overrightarrow{n_f}} }.
+}
+These normals are used to define for instance a light intensity $I(i) = \max(\dotp{n_i,\ell(i)},0)$, where $\ell(i)$ is the incident light. In practice one uses a infinite light source $\ell(i)=\ell=$constant or a local spot located at position $s \in \RR^3$ through $\ell(i)=(v_i-s)/\norm{v_i-s}$. This light intensity is interpolated on the whole mesh during display. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Linear Mesh Processing}
+
+The light intensity $I$ is a particular example of a function defined at each vertex of the mesh. Mesh processing is intended to process such functions and we thus define carefully vector spaces and operators on meshes.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Functions on a Mesh}
+
+In this course, a function is a discrete set of values defined at each vertex location.
+
+\begin{defn}[Linear space on a mesh] A function on a mesh is a mapping $f \in \ldeux(\Vv) \simeq \ldeux(V) \simeq \RR^n$ and can be viewed equivalently as 
+\eq{
+	f: 
+	\left\{
+		\begin{array}{c c c}
+			\Vv & \longrightarrow & \RR\\
+			x_i & \longmapsto & f(x_i)
+		\end{array}
+	\right.
+	\quad\Longleftrightarrow\quad
+	f: 
+	\left\{
+		\begin{array}{c c c}
+			V & \longrightarrow & \RR\\
+			i & \longmapsto & f_i
+		\end{array}
+	\right.
+	\quad\Longleftrightarrow\quad
+	f=(f_i)_{i\in V} \in \RR^n.
+}
+\end{defn}
+
+The linear space of the functions on a mesh is equipped with an Hilbert space structure that allows to quantify approximation error and compute projections of functions.
+
+\begin{defn}[Inner product and norm] One defines the following inner product and norm for vector $f,g \in \RR^n$
+\eq{
+	\dotp{f}{g} \eqdef \sum_{i \in V} f_i g_i
+	\qandq 
+	\norm{f}^2 = \dotp{f}{f}.
+}
+\end{defn}
+
+In order to modify (process) functions on a mesh (such as a light intensity $I$), this course considers only linear operations that are defined through a large matrix.
+
+\begin{defn}[Linear operator $A$] A linear operator $A$ is defined as 
+\eq{ 
+	A: \ldeux(V) \rightarrow \ldeux(V) 
+	\quad\Longleftrightarrow \quad
+	A = (a_{ij})_{i,j \in V} \in \RR^{n \times n} \; \text{(matrix)}.
+}
+and operate on a function $f$ as follow
+\eq{
+	(A f)(x_i) = \sum_{j \in V} a_{ij} f(x_j)
+	\Longleftrightarrow \quad (A f)_i = \sum_{j \in V} a_{ij} f_j.
+}
+\end{defn}
+
+\begin{exmp} 
+If the coordinates of the point of a mesh are written $x_i=(x_i^1,x_i^2,x_i^3) \in \RR^3$, 
+then the $X$-coordinate defines a function $f: i \in V \mapsto x_i^1 \in \RR$. A geometric mesh $\Mm$ is thus 3 functions defined on $M$. 
+\end{exmp}
+
+Mesh processing is the task of modifying functions $f \in \ldeux(V)$. For instance, one can denoise a mesh $\Mm$ as 3 functions on $M$. The usual strategy applies a linear operator $f \mapsto A f$. Sometimes, $A$ can computed from $M$ only (for instance for compression) but most of the times it requires both $M$ and $\Mm$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Local Operators}
+\label{subsec-local-operators}
+
+In most applications, one can not store and manipulate a full matrix $A \in \RR^{n \times n}$. Furthermore, one is usually interested in exploiting the local redundancies that exist in most usual functions $f \in \RR^n$ defined on a mesh. This is why we restrict our attention to local operators that can be conveniently stored as sparse matrices (the zeros are not kept in memory). 
+
+\begin{defn}[Local operator] A local operator $W \in \RR^{n \times n}$ satisfies $w_{ij}=0$ if $(i,j) \notin E$.
+\eq{
+	(Wf)_i = \sum_{(i,j) \in E} w_{ij} f_j.
+}
+\end{defn}
+
+
+A particularly important class of local operators are local smoothings (also called filterings) that perform a local weighted sum around each vertex of the mesh. For this averaging to be consistent, we define a normalized operator $\tilde W$ whose set of weights sum to one.
+
+\begin{defn}[Local averaging operator] A local normalized averaging is $\tilde W = (\tilde w_{ij})_{i,j \in V} \geq 0$ where
+\eq{
+	\foralls (i,j) \in E, \quad \tilde w_{ij} = \frac{w_{ij}}{\sum_{(i,j)\in E} w_{ij}}.
+}
+It can be equivalently expressed in matrix form as
+\eq{
+	\tilde W = D^{-1} W \qwithq
+	D=\diag_i(d_i)
+	\qwhereq
+	d_i = \sum_{(i,j)\in E} w_{ij}.
+}
+\end{defn}
+
+The smoothing property corresponds to $\tilde W 1 = 1$ which means that the unit vector is an eigenvector of $W$ with eigenvalue 1. 
+
+
+\begin{exmp} In practice, we use three popular kinds of averaging operators. 
+\begin{rs}
+	\item \textit{Combinatorial weights:} they depends only on the topology $(V,E)$ of the vertex graph
+		\eq{ \foralls (i,j) \in E, \quad w_{ij} = 1. }
+	\item \textit{Distance weights:} they depends both on the geometry and the topology of the mesh, but do not require faces information,
+		\eq{ \foralls (i,j) \in E, \quad w_{ij} = \frac{1}{\norm{x_j-x_i}^2}. }
+	\item \textit{Conformal weights:} they depends on the full geometrical realization of the 3D mesh since they require the face information
+		\eql{ \label{eq-cotan-weights} \foralls (i,j) \in E, \quad w_{ij} = \cot(\al_{ij})+\cot(\be_{ij}). }
+		Figure \ref{fig-angles-conformal} shows the geometrical meaning of the angles $\al_{ij}$ and $\be_{ij}$
+		\eq{ \al_{ij} = \angle(x_i,x_j,x_{k_1}) \qqandqq \be_{ij} = \angle(x_i,x_j,x_{k_2}), }
+		where $(i,j,k_1) \in F$ and $(i,j,k_2) \in F$ are the two faces adjacent to edge $(i,j) \in E$.
+		We will see in the next section the explanation of these celebrated cotangent weights.
+\end{rs} 
+\end{exmp}
+
+\myfigure{       
+\image{meshes}{.3}{dual-mesh/one-ring-angles}
+}{
+One ring around a vertex $i$, together with the geometrical angles $\al_{ij}$ and $\be_{ij}$ used to compute the conformal weights.%
+}{fig-angles-conformal}
+
+One can use iteratively a smoothing in order to further filter a function on a mesh.
+The resulting vectors $\tilde W f, \tilde W^2,\ldots, \tilde W^k f$ are increasingly smoothed version of $f$. Figure \ref{fig-iterative-smoothing} shows an example of such iterations applied to the three coordinates of mesh. The sharp features of the mesh tend to disappear during iterations. We will make this statement more precise in the following, by studying the convergence of these iterations.
+
+\myfigure{       
+\image{meshes}{.9}{smoothing/smoothing-elephant} 
+\image{meshes}{.9}{smoothing/smoothing-bunny} 
+% \image{meshes}{1}{smoothing/smoothing-skull}
+}{
+Examples of iterative smoothing of a 3D mesh.%
+}{fig-iterative-smoothing}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Approximating Integrals on a Mesh}
+
+Before investigating algebraically the properties of smoothing operators, one should be careful about what are these discrete operators really approximating. In order for the derivation to be simple, we make computation for a planar triangulation $M$ of a mesh $\Mm \subset \RR^2$.
+
+In the continuous domain, filtering is defined through integration of functions over the mesh. In order to descretize integrals, one needs to define a partition of the plane into small cells centered around a vertex or an edge.
+
+\begin{defn}[Vertices Voronoi]\label{defn-vertex-voronoi} The Voronoi diagram associated to the vertices is
+\eq{
+	\foralls i \in V, \quad E_i = \enscond{x \in \Mm}{ \foralls j \neq i, \norm{x-x_i} \leq \norm{x-x_j} }
+}
+\end{defn}
+
+
+\begin{defn}[Edges Voronoi] The Voronoi diagram associated to the edges is
+\eq{
+	\foralls e=(i,j) \in E, \quad 
+	E_e = \enscond{x \in \Mm}{ \foralls e' \neq e, d(x,e) \leq d(x,e')} 
+}
+\end{defn}
+
+
+\myfigure{       
+\image{meshes}{.3}{dual-mesh/dual-mesh} 
+\image{meshes}{.3}{dual-mesh/subdivided-mesh} 
+}{
+Left: vertex Voronoi cell, right: delaunay Voronoi cell. The point $c_f$ is the orthocenter of a face $f=(i,j,k)$.%
+}{fig-voronoi-vert-edges}
+
+
+These Voronoi cells indeed form a partition of the mesh
+\eq{
+	\Mm = \bigcup_{i \in V} E_i = \bigcup_{e \in E} E_e.
+}
+The following theorem gives the formula for the area of these cells.
+
+\begin{thm}[Voronoi area formulas] For all $e=(i,j) \in E$, $\foralls i\in V$, one has
+\eq{
+	A_e = \text{Area}(E_e) = \frac{1}{2} \norm{x_i-x_j}^2 \pa{\cot(\al_{ij})+\cot(\be_{ij})}
+}
+\eq{
+	A_i = \text{Area}(E_i) = \frac{1}{2} \sum_{j \in N_i} A_{(ij)}.
+}
+\end{thm}
+
+With these areas, one can approximate integrals on vertices and edges using
+\eq{
+	\int_{\Mm} f(x) \d x 
+	\approx
+	\sum_{i \in V} A_i \, f(x_i) 
+	\approx
+	\sum_{e=(i,j) \in E} A_e \, f([x_i,x_j]).
+}
+Of particular interest is the approximation of the so-called Dirichelet energy $\int_{\Mm} \norm{\nabla_x f}^2 \d x$. In order to compute it on a triangular mesh, one can use a finite difference approximation of the gradient of a function at the point $x_{ij} = (x_i+x_j)/2$ along an edge $(i,j)$
+\eq{ \dotp{\nabla_{x_{ij}} f}{ \frac{x_i-x_j}{\norm{x_i-x_j}} } \approx \frac{f(x_i)-f(x_j)}{\norm{x_i-x_j}}. }
+This leads to the following approximation of the Dirichlet energy
+\begin{align}
+	\int_{\Mm} \norm{\nabla_x f}^2 \d x
+	& \approx \sum_{(i,j)\in E} A_{(i,j)} \dotp{\nabla_{x_{ij}} f}{ \frac{x_i-x_j}{\norm{x_i-x_j}} }^2
+	\approx \sum_{(i,j) \in E} A_{(i,j)} \, \frac{|f(x_j)-f(x_i)|^2}{\norm{x_j-x_i}^2} \\
+	& =  \sum_{(i,j) \in E} w_{ij} |f(x_j)-f(x_i)|^2
+	\qqwhereqq
+	w_{ij} = \cot(\al_{ij})+\cot(\be_{ij}). \label{eq-dirichlet-discr}
+\end{align}
+This discrete formulation shows that the correct weights to approximate the Dirichlet energy are the cotangent one, already introduced in equation \eqref{eq-cotan-weights}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Example on a Regular Grid}
+
+A regular grid is an uniform discretization with $n$ points of $[0,1)$ (in 1D) or $[0,1)^2$ (in 2D). One usually assumes periodic boundary conditions, which means that each side of the square is associated with its opposite. 
+
+Since the geometry of a regular grid is invariant under translation, local averaging operators can be computed as convolution on $D = (\ZZ/p\ZZ)^d$ where $n=p^d$ for $d$ the dimension of the domain ($d=1$ or $d=2$)
+\eq{
+	\foralls i \in D, \quad \tilde W f(i) = \sum_{k \in D} f(k) \tilde w(i-k),
+}
+where the operation $+$ and $-$ should be computed modulo $p$ and $\tilde w(k) = \tilde W(0,k)$ is the convolution kernel.
+
+\begin{exmp}[Averaging] The uniform averaging filter is defined as
+\eq{	
+	\tilde W f(i) = \frac{1}{|N|} \sum_{k \in N} f(i+k),
+}
+where $N$ is the set of neighbors of the point $0$ and $|N|=2^d$. In this case, in dimension 1, $\tilde w = (1,0,1)/2$, where this notation assumes that $\tilde w$ is centered at the point $0$.
+\end{exmp}
+
+In order to study translation invariant operators like local filtering, one needs to use the discrete Fourier transform that diagonalizes these operators.
+
+\begin{defn}[Discrete Fourier transform] The 1D discrete Fourier transform $\Phi(f) \in \CC^n$ of the vector $f \in \CC^n$
+\eq{
+	\Phi(f)(\om) = \hat f(\om) \eqdef \frac{1}{n} \sum_{k} f_k e^{ \frac{2\imath\pi}{n} k \om }.	
+}
+\end{defn}
+
+A similar definition can be given for the 2D discrete Fourier transform. The main property of the Fourier transform is the following diagonalization result.
+
+\begin{thm}[Convolution and Fourier] For any vector $f$, one has 
+\eq{
+	\Phi(\tilde W^k f) = \Phi(\tilde w * \ldots * \tilde w * f)
+	\quad\Longrightarrow\quad
+	\Phi(\tilde W^k f)(\om) = \wh{ \tilde w }(\om)^k \, \hat f(\om).
+}
+\end{thm}
+
+The main interest of this tools is that $\Phi(f)$ can be computed in $O(n \log(n))$ operations with the FFT algorithm. Using the following theorem, it gives an alternative expression of a local filtering. This expression in the Fourier domain can be used to speed up the computation of $\tilde w * f$ if $\tilde w$ has a lot of non zero entries (which is not the case in our setting of local operators). It is also useful to analyze theoretically the behavior of iterated filterings.
+
+\begin{thm}[Convergence] For any function $f$ defined on a regular grid in 1D or 2D, one has
+\eq{
+	\tilde W^k f \overset{k \rightarrow +\infty}{\longrightarrow} \frac{1}{|V|} \sum_{i\in V} f_i
+}
+\end{thm}
+
+This Fourier theory can only be developed for domains that have a group structure that enables translation invariant filtering. In particular, it does not carry over easily to an arbitrary surface. In the remaining, we define a corresponding theory for graphs and triangulated surfaces using the eigenvector of Laplacian operators. This Fourier transform on meshes enables the analysis of the convergence of many filtering schemes. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Gradients and Laplacians on Meshes}
+\label{sec-grad-lapl-meshes}
+
+\paragraph{Gradient operator}
+
+A gradient operator defines directional derivatives on a triangulation. It maps functions defined on vertices to functions defined on the set of oriented edges
+\eq{ \bar E \eqdef \enscond{(i,j) \in E}{i > j}. }
+
+\begin{defn}[Gradient] Given a local averaging $W$, the gradient operator $G$ is defined as
+\eq{
+	\foralls (i,j) \in E, \; i<j, \quad (G f)_{(i,j)} \eqdef \sqrt{w_{ij}} (f_j-f_i) \in \RR.
+}
+\end{defn}
+
+This mapping can be viewed equivalently as
+\eq{
+	\begin{array}{rcl}
+	G: \ldeux(V) \longrightarrow \ldeux(E),
+	&\quad\text{or} \quad& \quad G: \RR^n \longrightarrow \RR^p \qwhereq p = |E|,\\
+	&\quad\text{or} \quad& \quad G \in \RR^{n \times p} \quad \text{(a matrix).}
+	\end{array}
+} 
+The value of $(G f)_e$ for an edge $e=(i,j)$ can be thought as a derivative along direction $\overrightarrow{x_i x_j}$.
+
+\begin{exmp} For the local averaging based on square distances, one has
+	\eq{
+		w_{ij} = \norm{x_i-x_j}^{-2}, \quad (G f)_{(i,j)} = \frac{f(x_j)-f(x_i)}{\norm{x_i-x_j}}.
+	}
+	which is exactly the finite difference discretization of a directional derivative. 
+\end{exmp}
+
+One a regular grid, one can note that
+\begin{rs}
+	\item $G f$ discretizes $\nabla f = \transp{\pa{ \pd{f}{x},\pd{f}{y}} }$.
+	\item $\transp{G} v$ discretizes $\div(v) = \pd{v_1}{x}+\pd{v_2}{y}$.
+\end{rs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Laplacian Operator}
+
+A Laplacian operator is a discrete version of a second order derivative operator. 
+
+\begin{defn}[Laplacian] Given a local averaging $W$, the Laplacian operator $D$ is defined as
+\eq{
+	L \eqdef D-W, \qwhereq D = \diag_i( d_i), \qwithq d_i = \sum_j w_{ij}.
+}
+\end{defn}
+
+In the remaining, we also make use of normalized operators, which have an unit diagonal.
+
+\begin{defn}[Normalized Laplacian] The normalized Laplacian is defined as
+\eq{
+	\tilde L \eqdef D^{-1/2} L D^{-1/2}
+	= \Id_n - D^{-1/2} W D^{1/2}
+	= \Id_n - D^{1/2} \tilde W D^{-1/2}.
+}
+\end{defn}
+
+This normalized Laplacian correspond to the weighted graph Laplacian used in graph theory, see for instance \cite{chung-graph}.
+
+\begin{rem} One can note that
+\begin{rs}
+	\item Laplacians are symmetric operators $L,\tilde L \in \RR^{n \times n}$.
+	\item $L$ acts like a (second order) derivative since $L1=0$.
+	\item in contrast, the normalized Laplacian is not a real derivative since $\tilde L1 \neq 0$ in general.
+\end{rs}
+\end{rem}
+
+The main interest of the gradient operator is that it factorizes the Laplacian as follow. 
+
+\begin{thm}[Laplacian factorization] One has
+ \eq{ L = \transp{G} G \qandq \tilde L = \transp{(G D^{-1/2})}(G D^{-1/2}). }
+\end{thm}
+
+This theorem proves in particular that $L$ and $\tilde L$ are symmetric positive definite operators. The inner product defined by the Laplacian can be expressed as an energy summed over all the edges of the mesh
+\eq{
+	\dotp{L f}{f} = \norm{G f}^2 = \sum_{(i,j) \in E}
+	w_{ij} \norm{f_i-f_j}^2.
+}
+In the particular case of the cotangent weights introduced in equation \eqref{eq-cotan-weights}, one can see that the Laplacian norm $\dotp{L f}{f}$ is exactly the finite differences approximation of the continuous Dirichlet energy $\int_{\Mm} |\nabla_x f| \d x$ derived in equation \eqref{eq-dirichlet-discr}. This is why these cotangent weights are the best choice to compute a Laplacian that truly approximates the continuous Laplace Beltrami operator (see definition \ref{defn-laplace-beltrami}). 
+
+A similar expression is derived for the normalized laplacian
+\eq{
+	\dotp{\tilde L f}{f} = \norm{G D^{-1/2} f}^2 = \sum_{(i,j) \in E}
+	w_{ij} \normb{\frac{f_i}{\sqrt{d_i}}-\frac{f_j}{\sqrt{d_j}}}^2.
+}
+Of particular interest for the study of filtering on meshes is the behavior of the spectrum of the Laplacian. We can first study its kernel.
+
+\begin{thm}[Kernel of the Laplacian] If $M$ is connected, then 
+\eq{
+	\text{ker}(L) = \text{span}(1)
+	\qandq
+	\text{ker}(L) = \text{span}(D^{1/2}).
+}
+\end{thm}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Examples in 1D and 2D}
+
+In 1D, all local weights are equivalent since the points are equi-spaced. The corresponding Laplacian is a convolution that can be written as
+\eq{
+	(Lf)_i = \frac{1}{h^2} \pa{2f_i-f_{i+1}-f_{i-1}}
+	= \frac{1}{h^2} f * 
+	\pa{ -1,2,1 },
+}
+where it is important to remember that the notation $\pa{ -1,2,1 }$ means that the vector is centered around $0$.
+
+This discrete 1D Laplacian is the finite difference approximation of the continuous Laplacian on the torus $\Tt$ of the segment $[0,1)$ modulo 1. Up to a minus sign, this Laplacian is just the second order derivative
+\eq{
+	L \overset{h \rightarrow 0}{\longrightarrow} \; -\frac{\d^2 f}{\d x^2}(x_i)
+}
+One should be careful with our notation that consider positive semi-definite Laplacian, that have the opposite sign with respect to second order derivative operators (which are definite negative).
+
+The gradient operator corresponds to a discretization of the first order derivative $f \mapsto f'$ (which is anti symmetric). The continuous counterpart of the factorization $L=\transp{G} G$ is the integration by part formula on the torus
+\eq{
+	\int_{\Tt} f''(x) g(x) \d x = -\int_{\Tt} -f(x) g'(x) \d x
+	\quad\Longrightarrow\quad
+	\int_{\Tt} f''(x)f(x) \d x = -\int_{\Tt} |f'(x)|^2 \leq 0.
+}
+
+The discrete Laplacian on a 2D grid can also be written as a 2D convolution
+\eq{
+	(Lf)_i = \frac{1}{h^2} \pa{4f_i-f_{j_1}-f_{j_2}-f_{j_3}-f_{j_4}}
+	= \frac{1}{h^2} f * 
+	\pa{ 
+		\begin{tabular}{ccc}
+			0 & -1 & 0 \\
+			-1 & 4 & -1 \\
+			0 & -1 & 0 
+		\end{tabular}
+	}
+}
+where $\{j_k\}_k$ are the four neighbors of the point $i$. This operator is the finite difference approximation to the continuous 2D Laplacian
+\eq{
+	L \overset{h \rightarrow 0}{\longrightarrow} 
+	\; -\frac{\partial^2 f}{\partial x^2}(x_i) -
+		\frac{\partial^2 f}{\partial y^2}(x_i) = -\Delta f(x_i). 
+}
+The factorization $L f = \transp{G}G f$ corresponds to the decomposition $\Delta f = \div(\nabla f)$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Example of a Parametric Surface}
+
+We recall that a parameterized surface is a mapping $u \in \Dd \subset \RR^2 \mapsto \phi(u) \in \Mm$. Whereas the continuous Laplacian is simple to define on the plane using partial derivatives, its definition on a surface requires the intervention of an arbitrary parameterization $\phi$ which makes its expression cumbersome. 
+ 
+\begin{defn}[Laplace-Beltrami] \label{defn-laplace-beltrami}
+The Laplace-Beltrami operator on a parametric surface $\Mm$ is defined as
+\eq{
+	\sqrt{g} \Delta_{\Mm} \eqdef
+	\pd{}{u_1}
+	\pa{
+		\frac{g_{22}}{\sqrt{g}}
+		\pd{}{u_1} -
+		\frac{g_{12}}{\sqrt{g}}
+		\pd{}{u_2}
+	}
+	+
+	\pd{}{u_2}
+	\pa{
+		\frac{g_{11}}{\sqrt{g}}
+		\pd{}{u_2} -
+		\frac{g_{12}}{\sqrt{g}}
+		\pd{}{u_1}
+	}
+}
+where $g=\det(I_\phi)$ and $I_\phi = (g_{ij})_{i,j=1,2}$.
+\end{defn}
+
+The Laplacian is however an intrinsic operator that does not depends on the chosen parameterization, as shown by the following approximation theorem.
+
+\begin{rem}[Laplacian using averaging]
+\eq{
+	\Delta_{\Mm} f(x) = \lim_{h \rightarrow 0} 
+	\frac{1}{|B_h(x)|} \int_{y \in \Mm} f(y) \d y
+	\qwhereq
+	B_h(x) = \enscond{y}{ d_\Mm(x,y) \leq h }
+}
+where $d_{\Mm}$ is the geodesic distance on $\Mm$ and $h = \max_{(i,j) \in E} \norm{x_i-x_j}$ is the discretization precision. 
+\end{rem}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Diffusion and Regularization on Surfaces}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Heat Diffusion}
+
+The main linear PDE for regularization of functions is the heat equation that governs the isotropic diffusion of the values of a function in time.
+
+\begin{defn}[Heat diffusion]  $\foralls t>0$, one defines $F_t : M \rightarrow \RR$ solving
+\eq{
+	\pd{F_t}{t} = -D^{-1} L F_t = -(\Id_n - \tilde W) F_t 
+	\qqandqq
+	\foralls i \in V, \; F_0(i) = f(i)
+}
+\end{defn}
+
+In order to compute numerically the solution of this PDE, one can fix a time step $\de > 0$ and use an explicit discretization in time $\bar F_k$ as $F_0=f$ and
+\eql{\label{eq-heat-discr}
+	\frac{1}{\de}\pa{\bar F_{k+1}-\bar F_k} = - D^{-1} L \bar F_k
+	\quad\Longrightarrow\quad
+	\bar F_{k+1} = \bar F_k - \de D^{-1} L \bar F_k
+	= (\Id - \de) \bar F_k + \de \tilde W \bar F_k.
+}
+If $\de$ is small enough, one hopes that the discrete solution $\bar F_k$ is close to the continuous time solution $F_t$ for $t=\de k$. This is indeed the case as proven later in these notes.
+
+\begin{rem} In order for this scheme to be stable, one needs $\de < 1$. This is be proven later using the extension of Fourier theory to meshes.
+\end{rem}
+
+\begin{rem} If $\de=1$, then the discretization of the Heat equation corresponds to iterative smoothing since $\bar F_k = \tilde W^k f$. In this case stability is not guaranteed but only pathological meshes give unstable filtering (see theorem \ref{thm-cv-hear-discr}).
+\end{rem}
+
+Instead of using the explicit discretization in time \eqref{eq-heat-discr}, one can use an implicit scheme which compute an approximate solution $\tilde F_k$ at step $k$ by solving
+\eql{\label{eq-heat-discr-impl}
+	\frac{1}{\de}\pa{\tilde F_{k+1}-\tilde F_k} = - D^{-1} L \tilde F_{k+1}
+	\quad\Longrightarrow\quad
+	((\de+1) \Id_n - \de \tilde W) \tilde F_{k+1} = \tilde F_k.
+}
+Computing $\tilde F_k$ requires the solution of a sparse linear system at each step $k$. The implicit scheme \eqref{eq-heat-discr-impl} is thus computationally more involved than the explicit scheme \eqref{eq-heat-discr}. We will however see later that the implicit scheme is always stable for any value of $\de \leq 1$.
+
+\begin{exmp}[Mesh smoothing] In order to smooth a mesh whose points are $x_i = (x_i^1,x_i^2,x_i^3)$, one can perform a heat diffusion for each component $f_i = (x_i^k), k=1,2,3$. Figure \ref{fig-denoising-heat} shows an example of such a smoothing.
+\end{exmp}
+
+In practice, mesh smoothing is used to denoise a function $f = f_0 + \si g$ where $g \in \RR^n$ is a realization of a gaussian white noise (each entry $g(i)$ are independent and follow a gaussian law with unit variance). The difficult task it to find an optimal stopping time $t$ to minimize $\norm{F_t-f_0}$, which is not available since one does not know $f_0$. For uniformly smooth surfaces, the theory predicts that a linear filtering such as the heat equation requires a stopping time proportional to the noise level $\si$. This is however false for more complex surfaces such as the one used in computer graphics. In these case, alternate non linear diffusions such as non-linear PDE or wavelet thresholding usually perform better, see \cite{mallat-book} for an overview of these methods in image processing. 
+
+% $E_W( \norm{x_i-x_i^0}^2 )$.
+       
+   
+\myfigure{       
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}} 
+\image{meshes}{0.16}{denoising/david50kf-denoising-1}&
+\image{meshes}{0.16}{denoising/david50kf-denoising-2}&
+\image{meshes}{0.16}{denoising/david50kf-denoising-3}&
+\image{meshes}{0.16}{denoising/david50kf-denoising-4}&
+\image{meshes}{0.16}{denoising/david50kf-denoising-5}&
+\image{meshes}{0.16}{denoising/david50kf-denoising-6}\\
+Original & Iter \#1  & Iter \#2 & Iter \#3 & Iter \#4 & Iter \#5
+\end{tabular} 
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}} 
+\image{meshes}{0.19}{denoising/elephant-50kv-denoising-1}&
+\image{meshes}{0.19}{denoising/elephant-50kv-denoising-2}&
+\image{meshes}{0.19}{denoising/elephant-50kv-denoising-3}&
+\image{meshes}{0.19}{denoising/elephant-50kv-denoising-4}&
+\image{meshes}{0.19}{denoising/elephant-50kv-denoising-5}\\
+%\image{meshes}{0.2}{denoising/elephant-50kv-denoising-6} 
+Original & Iter \#1  & Iter \#2 & Iter \#3 & Iter \#4
+\end{tabular} 
+}{
+Examples of mesh denoising with the heat equation.%
+}{fig-denoising-heat}
+
+
+\paragraph{Other differential equations.}
+
+One can solve other partial differential equations involving the Laplacian over a 3D mesh $M = (V,E,F)$. For instance, one can consider the wave equation, which defines, for all $t>0$, a vector $F_t \in \ldeux(V)$ as the solution of
+\begin{equation}\label{eq-ondes}
+	\frac{\partial^2 F_t}{\partial t^2} = -D^{-1}L F_t
+	\qqandqq
+	\left\{
+	\begin{array}{l}
+	F_0 = f \in \RR^n,\\
+	\frac{\text{d}}{\text{d} t}F_0 = g \in \RR^n,
+	\end{array}
+	\right.
+\end{equation}
+In order to compute numerically the solution of this PDE, one can fix a time step $\de > 0$ and use an explicit discretization in time $\bar F_k$ as $F_0=f$, $F_1 = F_0 + \de g$ and for $k>1$
+\eq{
+	\frac{1}{\de^2}\pa{\bar F_{k+1} + \bar F_{k-1} - 2 \bar F_k} = - D^{-1} L \bar F_k
+	\quad\Longrightarrow\quad
+	\bar F_{k+1} = 2 \bar F_k - \bar F_{k-1} - \de^2 D^{-1} L \bar F_k.
+}
+Figure \ref{fig-wave-equation} shows examples of the resolution of the wave equation on 3D meshes.
+
+
+\myfigure{       
+\image{meshes}{0.19}{wave-equation/bunny-wave-eq-01}
+\image{meshes}{0.19}{wave-equation/bunny-wave-eq-03}
+\image{meshes}{0.19}{wave-equation/bunny-wave-eq-05}
+\image{meshes}{0.19}{wave-equation/bunny-wave-eq-07}
+\image{meshes}{0.19}{wave-equation/bunny-wave-eq-09}\\
+\image{meshes}{0.19}{wave-equation/elephant-50kv-wave-eq-01}
+\image{meshes}{0.19}{wave-equation/elephant-50kv-wave-eq-02}
+\image{meshes}{0.19}{wave-equation/elephant-50kv-wave-eq-03}
+\image{meshes}{0.19}{wave-equation/elephant-50kv-wave-eq-05}
+\image{meshes}{0.19}{wave-equation/elephant-50kv-wave-eq-07}
+}{
+Example of evolution of the wave equation on 3D mesh. The initial condition $f$ is a superposition of small positive and negative gaussians. %
+}{fig-wave-equation}
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Spectral Decomposition}
+
+
+In order to better understand the behavior of linear smoothing on meshes, one needs to study the spectral content of Laplacian operators. This leads to the definition of a Fourier theory for meshes. The decomposition $\tilde L = \transp{(G D^{-1/2})}(G D^{-1/2})$ of the Laplacian implies that it is a positive semi-definite operator. One can thus introduce the following orthogonal factorization.
+
+\begin{thm}[Eigen-decomposition of the Laplacian] It exists a matrix $U, \quad \transp{U}U=\Id_n$ such that 
+\eq{
+	\tilde L = U \La \transp{U}
+	\qqwhereqq \La = \diag_\om(\la_{\om}), \qquad \la_1 \leq \ldots \leq \la_n.
+}
+\end{thm}
+
+
+The eigenvalues $\la_\om$ correspond to a frequency index that ranks the eigenvectors $u_\om$ of $U=(u_\om)_\om$. One can first state some bounds on these eigenvalues.
+
+\begin{thm}[Spectral bounds]  $\foralls i, \; \la_i \in [0,2]$ and
+\begin{rs}
+	\item If $M$ is connected then $0 = \la_1 < \la_2$.
+	\item $\la_n=2$ if and only if $M$ is 2-colorable.
+\end{rs}
+\end{thm}
+
+We recall the definition of a colorable graph next.
+
+\begin{defn}[Colorable graph]
+A graph $(V,E)$ is $k$-colorable if it exist a mapping $f : V \rightarrow \{1,\ldots,k\}$ such that 
+\eq{ \foralls (i,j) \in E, \quad f(i) \neq f(j).}
+\end{defn}
+
+A 2-colorable graph is also called bi-partite. A 2-colorable mesh is pathological for filtering since one can split the set of vertices into two parts without inner connexions. The filtering process can oscillate by exchanging values between these sets, thus never converging. 
+
+The orthogonal eigen-basis $U = (u_\om)_\om$ is an orthogonal basis of the space $\RR^n \simeq \ldeux(V)$, which can be written as
+\eq{
+	u_\om: 
+	\left\{
+		\begin{array}{c c c}
+			V & \longrightarrow & \RR\\
+			i & \longmapsto & u_{\om}(x_i)
+		\end{array}
+	\right.
+}
+The orthogonality means that $\dotp{u_{\om}}{u_{\om'}} = \de_{\om}^{\om'}$. This basis allows to compute an orthogonal decomposition of any functions $f$
+\eq{
+	\foralls f \in \ldeux(V), \quad 
+	f = \sum_{\om} \dotp{f}{u_\om} u_{\om}.
+}
+Having such a tool allows to split a function $f$ in elementary contributions $\dotp{f}{u_\om}$ with a control in the energy because of orthogonality
+\eq{
+	\norm{f}^2 = \sum_\om |\dotp{f}{u_\om}|^2.
+}
+
+   
+\myfigure{       
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}} 
+\image{meshes}{0.18}{eigenvectors-levelsets/bunny-eigen-02}&
+\image{meshes}{0.18}{eigenvectors-levelsets/bunny-eigen-04}&
+\image{meshes}{0.18}{eigenvectors-levelsets/bunny-eigen-06}&
+\image{meshes}{0.18}{eigenvectors-levelsets/bunny-eigen-08}&
+\image{meshes}{0.18}{eigenvectors-levelsets/bunny-eigen-10}\\
+%\image{meshes}{0.18}{eigenvectors/bunny-eigenvectors-6}
+\image{meshes}{0.18}{eigenvectors-levelsets/elephant-50kv-eigen-02}&
+\image{meshes}{0.18}{eigenvectors-levelsets/elephant-50kv-eigen-04}&
+\image{meshes}{0.18}{eigenvectors-levelsets/elephant-50kv-eigen-06}&
+\image{meshes}{0.18}{eigenvectors-levelsets/elephant-50kv-eigen-08}&
+\image{meshes}{0.18}{eigenvectors-levelsets/elephant-50kv-eigen-10}\\
+%\image{meshes}{0.19}{eigenvectors/elephant-50kv-eigenvectors-6} 
+$\om=2$ & $\om=4$ & $\om=8$ & $\om=12$ & $\om=16$
+\end{tabular} 
+}{
+Examples of eigenvectors $u_\om$ of the Laplacian $\tilde L$. The blue colors indicated negative values, red colors positive ones. The black curve is the 0 level set of the eigenvector. %
+}{fig-eigenvectors-laplacian}
+
+Figure \ref{fig-eigenvectors-laplacian} shows some examples of eigenfunctions depicted using color ranging from blue (negative values of the eigenfunction) to red (positive values). One can see that these functions are oscillating, in a way similar to the traditional Fourier basis. In some sense (made more precise latter), this basis is the extension of the Fourier basis to meshes. A function $u_\om$ corresponding to a large spectral value $\la_\om$ is highly oscillating and corresponds thus intuitively to a high frequency atom.
+
+Extracting numerically eigenvectors from a large matrix is a difficult problem. If the matrix is sparse, a method of choice consists in using iterative powers of a shifted version of the laplacian. One starts from a random initial vector $v_0$ and iterates
+\eql{\label{eq-inverse-iterations}
+	v_{k+1} = \frac{w_{k+1}}{\norm{w_{k+1}}} \qqwhereqq w_{k+1} =(\tilde L - \la \Id_n)^{-1} v_k.
+}
+These iterates converges to the eigenvectors corresponding to the eigenvalue the closest to $\la$, as staten in the following theorem.
+
+\begin{thm}[Inverse iterations]
+	For a given shift $\la$, lets denote
+	\eq{ \om^\star = \uargmin{\om} |\la-\la_\om| \qqandqq \om^+ = \uargmin{\om \neq \om^\star} |\la-\la_\om|  }
+	If $|\la-\la_{\om^\star}| < |\la-\la_{\om^+}|$, then
+	\eq{
+		v_k \overset{k \rightarrow +\infty}{\longrightarrow} u_{\om^\star}
+		\qandq
+		\dotp{L v_k}{v_k} \overset{k \rightarrow +\infty}{\longrightarrow} \la_{\om^\star}.
+	} 
+\end{thm}
+
+The speed of convergence of these inverse iterations is governed by the conditioning of $(\tilde L-\la \Id_n)^{-1}$ since
+\eq{
+	\norm{v_k - u_{\om^\star}} \leq C \rho(\la)^k 
+	\qqwhereqq \rho(\la) \eqdef \frac{|\la-\la_{\om^\star}|}{|\la-\la_{\om^+}|} < 1.	
+}
+The smallest $\rho(\la)$ is, the faster the method converges. 
+
+In order to compute an iteration \eqref{eq-inverse-iterations} of the method, one needs to solve a sparse linear system $A w_{k+1} = v_k$ whith $A = \tilde L - \la \Id_n$. In order to do so, one can use a direct method such as LU factorization. The advantage of such an approach is that the factorization is computed once for all and can be re-used to solve very quickly at each step $k$. These factorization are however quite slow to compute especially for large matrices. For large problems, one can solve this linear system using an iterative algorithm such as conjugate gradient. These iterative method are attractive for sparse matrices, but a fast convergence requires $1/\rho(\la)$, the conditioning of $\tilde L-\la \Id_n$ to be not large, with is contradictory with the constraint for iterations \ref{eq-inverse-iterations} to converge fast.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Spectral Theory on a Regular Grid}
+
+In the particular case of a 1D or 2D lattice, the eigenfunctions defined earlier correspond exactly to the Fourier basis used in the discrete Fourier transform.
+
+\begin{thm}[Spectrum in 1D] For a 1D regular lattice,
+\eq{
+	u_{\om}(k) = \frac{1}{\sqrt{n}}\exp\pa{ \frac{2\imath\pi}{n} k \om }
+\qqandqq
+	\la_\om = 4\sin^2\pa{ \frac{2\pi}{n}\om }.
+}
+\end{thm}
+
+\begin{thm}[Spectrum in 2D] For a 2D regular lattice, $n=n_1n_2, \; \om = (\om_1,\om_2)$
+\eq{
+	u_{\om}(k) = \frac{1}{\sqrt{n}}\exp\pa{ \frac{2\imath\pi}{n} \dotp{k}{\om} }
+\qqandqq
+	\la_\om = 4\pa{ \sin^2\pa{ \frac{2\pi}{n_1}\om_1 } +
+	\sin^2\pa{ \frac{2\pi}{n_2}\om_2 } }.
+}
+\end{thm}
+
+
+As already mentioned, on a mesh, the eigenvectors of $\tilde L$ correspond to a extension of the Fourier basis to meshes. The definition of the Fourier transform on meshes requires a little care since a diagonal normalization by $D$ is used as defined next.
+
+\begin{defn}[Manifold-Fourier transform] For $f \in \ldeux(V)$, 
+\eq{
+	\Phi(f)(\om) = \hat f(\om) \eqdef \dotp{D^{1/2}f}{u_\om}
+	\quad\Longleftrightarrow\quad
+	\Phi(f) = \hat f = \transp{U} D^{1/2}.
+}
+where  $(u_\om)_{\om}$ are the eigenvectors of $\tilde L$.
+\end{defn}
+
+One can note that there is still a degree of freedom in designing this Fourier transform since one can use any local weighting (for instance combinatorial, distance or conformal). Depending on the application, one might need to use weights depending only on the topology of the mesh (combinatorial for mesh compression). 
+
+A major theoretical interest of this Fourier transform is that it diagonalizes local averaging operators.
+
+\begin{thm}[Spectral smoothing] One has $\Phi \tilde W \Phi^{-1} = \Id_n-\La$ and thus for any function $f$
+\eq{
+	\wh{ \tilde W f }(\om) = (1-\la_\om) \hat f(\om)
+}
+\end{thm}
+
+This diagonalization allows to prove the convergence of iterative smoothing.
+
+\begin{thm}[Convergence of iterated smoothing] If $\la_n<2$ (i.e. $M$ is not 2-colorable), then for any function $f$
+\eq{
+	\tilde W^k f \overset{k \rightarrow +\infty}{\longrightarrow}
+	\frac{1}{n} \sum_{i \in V} f_i.
+}
+\end{thm}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Spectral Resolution of the Heat Diffusion}
+
+Recall that the heat diffusion is defined as
+\eq{
+	\foralls t>0, \quad 
+	\pd{F_t}{t} = -D^{-1} L F_t = -(\Id_n-\tilde W) F_t 
+}
+Using the manifold Fourier expansion $\hat F_t \eqdef \transp{U} D^{1/2}  F_t$, this differential equation can be re-written as
+\eql{\label{eq-heat-fourier}
+	\pd{ \hat F_t(\om) }{t} = -\la_\om \hat F_t(\om)
+	\quad\Longrightarrow\quad
+	\hat F_t(\om) = \exp(-\la_\om t) \hat f(\om).
+}
+
+This allows to study the convergence of the continuous heat equation.
+
+\begin{thm}[Convergence of heat equation]\label{thm-cv-hear-discr} If $\Mm$ is connected, 
+\eq{
+	F_t \overset{t \rightarrow +\infty}{\longrightarrow}
+	\frac{1}{n} \sum_{i \in V} f_i.
+}
+\end{thm}
+
+Recall that the heat equation is discretized using the following explicit and implicit schemes, equations \eqref{eq-heat-discr} and \eqref{eq-heat-discr-impl}
+\eq{
+	\choice{
+	\bar F_k = (1-\de) \bar F_k + \de \tilde W \bar F_k, \\
+	( (1+\de)\Id_n - \de \tilde W)\tilde F_{k+1} = \tilde F_k.
+	}
+}
+These filtering iterations can be re-written over the Fourier domain as 
+\eq{
+	\choice{
+	\wh{\bar F_{k+1}}(\om) = (1-\de \la_\om) \wh{\bar F_{k}}(\om), \\
+	\wh{\tilde F_{k+1}}(\om) = \frac{1}{(1+\de \la_\om)} \wh{\bar F_{k}}(\om).
+	}
+}
+This allows to state the stability and convergence of the finite difference discretization.
+
+\begin{thm}[Convergence of discretization]
+	The explicit scheme is stable if $\de < 1$. The implicit scheme is always stable.
+	One has
+	\eq{ 
+	\choice{
+		\bar F_{t/\de}  \overset{\de \rightarrow 0}{\longrightarrow}  F_t, \\
+		\tilde F_{t/\de}  \overset{\de \rightarrow 0}{\longrightarrow}  F_t. 
+	} }
+	with the restriction that for the explicit scheme, the mesh must not be 2-colorable.
+\end{thm}
+
+\paragraph{Other Differential Equations.}
+
+The manifold Fourier transform can also be used to solve the wave equation \eqref{eq-ondes} since
+\eq{
+	\pdd{ \hat F_t(\om) }{t} = -\la_\om \hat F_t(\om)
+	\quad\Longrightarrow\quad
+	\hat F_t(\om) = \cos(\sqrt{\la_\om} t) \hat f(\om) + \frac{1}{\sqrt{\la_\om}}\sin(\sqrt{\la_\om} t) \hat g(\om).
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Quadratic Regularization}
+
+Instead of using a PDE for regularization, one can try to find a new function that is both close to the original one $f$ and that is smooth in a certain sense.  This leads to the notion of quadratic regularization, where one uses a Laplacian as a smoothness prior on the recovered function.
+
+\begin{defn}[Quadratic regularizer] For $t>0$, one defines
+\eq{
+	F_t^{\text{q}} = \underset{g \in \RR^n}{\argmin}\;
+	\norm{f-g}^2 + t \norm{\tilde G  g}^2
+	\qqwhereqq
+	\tilde G = G D^{-1/2}.
+}
+\end{defn}
+
+This optimization replaces $f \in \ldeux(V)$ by $F_t^{\text{q}} \in \ldeux(V)$ with small gradients. This optimization can be found in closed form by inverting a sparse linear system.
+
+\begin{thm}[Solution of quadratic regularization] $F_t^{\text{q}}$ is unique and
+\eq{
+	F_t^{\text{q}} = (\Id_n + t\tilde L)^{-1} f.
+}
+\end{thm}
+
+Over the Fourier domain, this inversion reads
+\eq{
+	\hat F_t^{\text{q}}(\om) = \frac{1}{1+t\la_\om} \hat f(\om).
+}
+This corresponds to an attenuation of the high frequency content of $f$, in a way very similar to equation \eqref{eq-heat-fourier}.
+
+Once again, similarly to the heat equation, the spectral expression of the quadratic regularizer allows to study its convergence for large $t$.
+
+\begin{thm}[Convergence of quadratic regularization] If $\Mm$ is connected, 
+\eq{
+	F_t^{\text{q}} \overset{t \rightarrow +\infty}{\longrightarrow}
+	\frac{1}{n} \sum_{i \in V} f_i.
+}
+\end{thm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Application to Mesh Compression}
+
+We have shown how the Fourier basis on meshes can be used to compute in a diagonal fashion filtering, heat diffusion and quadratic regularization. This Fourier transform is however of little interest in practice, since the original filterings (or finite difference approximation of the heat equation) are usually faster to compute directly than over the Fourier domain. The Fourier transform is thus mainly of theoretical interest in these cases since it allows to prove convergence results.
+
+Another class of applications makes use of an orthogonal expansion such as the Fourier one to perform mesh compression. This section shows how to compute a linear $M$-term approximation in this Fourier basis and to do mesh compression. We refer to the survey \cite{alliez-compression-survey} for more advanced non-linear mesh compression methods.
+
+The orthogonal basis $U=(u_\om)_\om$ of $\ldeux(V) \simeq \RR^n$, where $\tilde L = U \La \transp{U}$ allows to define a linear approximation as followed.
+
+\begin{defn}[Linear $M$-term approximation] For any $M>0$, the linear $M$-term approximation of $f$ is
+\eq{
+	f = \sum_{\om=1}^n \dotp{f}{u_\om} u_\om
+	\quad\overset{M \text{-term approx.}}{\Longrightarrow}\quad
+	f_M	\eqdef \sum_{\om=1}^{M} \dotp{f}{u_\om} u_\om.
+}
+\end{defn}
+
+The quality of the approximation is measured using the error decay, which can in turn be estimated using the removed coefficients
+\eq{
+	E(M) \eqdef \norm{f-f_M}^2 = \sum_{\om > M} |\dotp{f}{u_\om}|^2.
+}
+A good orthogonal basis $U$ is a basis for which $E(M)$ decays fast on the signals of interest. Equivalently, a fast decay of $E$ with $M$ corresponds to a fast decay of $|\dotp{f}{u_\om}|$ for large $\om$.  Figure \ref{fig-laplace-spectrum} shows the decay of the Fourier spectrum for two different functions defined on a 3D mesh. The smooth function (left in the figure) exhibits a fast decay of its spectrum, meaning that it can be well approximated with only a few Fourier coefficients.
+
+\myfigure{       
+\image{meshes}{0.48}{laplace-spectrum/shark-spectrum-1}
+\image{meshes}{0.48}{laplace-spectrum/shark-spectrum-2}
+}{
+Examples of Fourier spectrum for a smooth and a non-smooth function.%
+}{fig-laplace-spectrum}
+
+We recall that the Fourier atoms
+\eq{ \foralls \om \in \ZZ, \quad u_{\om}(x) = \frac{1}{\sqrt{2\pi}} e^{\imath \om x} }
+are the eigenvectors of the compact, symmetric, semi-definite negative operator $f \mapsto f''$ (that should be defined on the Hilbert space of twice Sobolev derivable functions). This set of function is also an Hilbert basis of the space $\Ldeux(\RR/(2\pi\ZZ))$ of $2\pi$-periodic square integrable functions and a Fourier coefficient is $\hat f(\om) \eqdef \dotp{f}{u_\om}$.
+
+Approximation theory studies this linear error decay for classical functional spaces. One can for instance study the Fourier expansion over euclidean spaces. 
+
+\begin{thm}[Fourier in 1D] If $f$ is $\Cal$ regular on $\RR/(2\pi\ZZ)$, 
+\eq{
+	\abs{\hat f(\om)} \leq \norm{f^{(\al)}}_{\infty} |\om|^{-\al}.
+}
+\end{thm}
+
+This result can be proven with a simple integration by parts. A slightly more difficult result shows that the linear approximation error decays like $M^{-\al}$. 
+
+\begin{thm}[Fourier approximation] If $f$ is $\Cal$ on $\RR/(2\pi\ZZ)$, then it exist $C>0$ such that
+\eq{
+	\sum_{\om} |\om|^{2\al} \abs{\dotp{f}{u_{\om}}}^2 < +\infty
+	\quad\Longrightarrow\quad
+	 E(M) \leq C M^{-\al}.
+}
+\end{thm}
+
+This kind of results can be extended to continuous surfaces thanks to the continuous Laplacian. We suppose that $\Mm$ is a surface parameterized by $\phi$, and a function $f = \phi \circ \bar f$ is defined on it. By definition, this function $f$ is $\Cal$ if $\bar f$ is $\Cal$ in euclidean space. For a compact surface $\Mm$, the Laplace-Beltrami operator $\Delta_{\Mm}$ is symmetric (for the inner product on the surface), is negative semi-definite and has a discrete spectrum $\Delta_{\Mm} u_\om = -\la_\om u_\om$ for $\om \in \NN$. The functions $\{u_\om\}_\om$ are an orthogonal basis for function of finite energy on the surface $\Ldeux(\Mm)$. The inner product of an arbitrary smooth function $f \in \Cal(\Mm)$ can be bounded using integration by parts
+\eq{
+	\dotp{f}{u_\om} = \frac{1}{\la_\om^k} \dotp{\Delta_{\Mm}^k f}{u_\om}
+	\quad\Longrightarrow\quad
+	|\dotp{f}{u_\om}| \leq \frac{\norm{f}_{\Cal}}{ \la_\om^{\al/2} }.
+} 
+This proves the efficiency of the Fourier basis on surfaces to approximate smooth functions.
+
+When computing the $M$-term approximation $f_M$ of $f$ one removes the small amplitude Fourier coefficients of the orthogonal expansion of $f$. Figure \ref{fig-mesh-compression} shows some examples of mesh approximation where one retains an increasing number of Fourier coefficients. Mesh compression is only a step further, since one also need to code the remaining coefficients. This requires first quantifying the coefficients up to some finite precision and then binary code these coefficients into a file. 
+
+   
+\myfigure{       
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}} 
+\image{meshes}{0.17}{compress/venus-compress-1}& 
+\image{meshes}{0.18}{compress/venus-compress-3} &
+\image{meshes}{0.18}{compress/venus-compress-5}& 
+\image{meshes}{0.18}{compress/venus-compress-7}&
+\image{meshes}{0.17}{compress/venus-compress-9} \\
+1\% & 2\% & 3\% & 4\% & 5\%
+\end{tabular}
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}   
+\image{meshes}{0.19}{compress/mushroom-compress-1} &
+\image{meshes}{0.26}{compress/mushroom-compress-3} &
+\image{meshes}{0.26}{compress/mushroom-compress-5} &
+\image{meshes}{0.26}{compress/mushroom-compress-7} \\
+1\% & 2\% & 3\% & 4\%
+\end{tabular}
+}{
+Examples of spectral mesh compression.%
+}{fig-mesh-compression}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Application to Mesh Parameterization} 
+\label{subsec-mesh-param}
+
+This section is restricted to the study of meshes that can be globally parameterized on a plane. It means that they are topologically equivalent to a 2D disk. More complex meshes should be first segmented in cells that are equivalent to a disk. 
+%The next sections describe geodesic Voronoi tesselation that can leads to such segmentations.
+
+A parameterization of a continuous surface $\Mm$ is a bijection 
+\eq{
+	\psi: \Mm \longrightarrow \Dd \subset \RR^2.
+}
+A similar definition applies to a discrete mesh where one computes a 2D position $\psi(i)$ for all the vertices $i \in V$ and then interpolates linearly the mapping to the whole piecewise linear geometric mesh. This section explains the basics of linear methods for mesh parameterization. We refer to various surveys \cite{floater-parameterization-survey,sheffer-parameterization} for more details on mesh parameterization.
+
+Usually, a 2D mesh is computed from range scanning or artistic modeling, so it does not come with such a parameterization. In order to perform texture mapping or more general mesh deformations, it is however important to use such a parameterization. Since many bijections are possible to layout the mesh in 2D, the mapping $\psi$ has to satisfy additional smoothness assumptions. Classically, one requires that each coordinate of $\psi$ has a vanishing Laplacian (it is thus harmonic) outside a set of constrained vertices that enforce boundary conditions. 
+
+More precisely, $\psi=(\psi_1,\psi_2)$ is the solution of 
+\eq{
+\choice{
+	\foralls i \notin \partial \Mm, \quad  (L \psi_{1})(i) = (L \psi_2)(i) = 0 \\
+	\foralls i \in \partial \Mm, \quad \psi(i) = \psi^0(i) \in \partial \Dd,
+}
+}
+where $\partial \Mm$ is the boundary of the mesh, which consists in vertices whose face ring is not homeomorphic to a disk but rather to a half disk. This formulation requires the solution of two sparse linear systems (one for each coordinate of $\psi$).
+
+The boundary condition $\psi^0(i)$ for $i \in \partial \Mm$ describes a 1D piecewise linear curve in the plane, that is fixed by the user. In the following, we will see that this curve should be convex for the parameterization to be bijective.
+
+
+\begin{rem} For such an harmonic parameterization, each point is the average of its neighbors since
+\eq{
+\foralls i, \quad 
+\psi(i) = \frac{1}{\sum_j w_{ij}} \sum_{(i,j) \in E} w_{i,j} \psi(j).
+}
+\end{rem}
+
+The powerful feature of this linear parameterization method is that it can be proven to produce a valid (bijective) parameterization as long as the constrained position (boundary values of $\psi$) are along a convex curve.
+
+\begin{thm}[Tutte theorem] 
+	If $\foralls (i,j) \in E, \; w_{ij} > 0$, and if $\partial \Dd$ is a convex curve, then $\psi$ is a bijection.
+\end{thm}
+
+Figure \ref{fig-mesh-parameterization} shows several examples of parameterizations. One is free to use any laplacian (combinatorial, distance or conformal) as long as it produces positive weights. There is a issue with the conformal weights, which can be negative if the mesh contains obtuse triangles. In practice however it leads to the best results. The efficiency of a parameterization can be measured by some amount of distortion induced by the planar mapping. Linear methods cannot hope to cope with large isoperimetric distortions (for instance large extrusions in the mesh) since harmonicity leads to clustering of vertices.
+
+\myfigure{     
+\begin{tabular}{rcccc} 
+\myrot{Combinatorial} & 
+\image{meshes}{0.16}{parameterization/nefertiti-mesh}&
+\image{meshes}{0.2}{parameterization/nefertiti-combinatorial-circle}&
+\image{meshes}{0.2}{parameterization/nefertiti-combinatorial-square}&
+\image{meshes}{0.2}{parameterization/nefertiti-combinatorial-triangle} \\
+\myrot{Conformal} &
+\image{meshes}{0.16}{parameterization/nefertiti-mesh}&
+\image{meshes}{0.2}{parameterization/nefertiti-conformal-circle}&
+\image{meshes}{0.2}{parameterization/nefertiti-conformal-square}&
+\image{meshes}{0.2}{parameterization/nefertiti-conformal-triangle} \\
+\myrot{Conformal} &
+\image{meshes}{0.16}{parameterization/mannequin-mesh}&
+\image{meshes}{0.2}{parameterization/mannequin-conformal-circle}&
+\image{meshes}{0.2}{parameterization/mannequin-conformal-square}&
+\image{meshes}{0.2}{parameterization/mannequin-conformal-triangle}\\
+& Mesh & Circle & Square & Triangle 
+\end{tabular}
+}{
+Examples of mesh parameterizations.%
+}{fig-mesh-parameterization}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Application to Mesh Flattening}
+\label{subsec-laplacian-flattening}
+
+One of the difficulty with linear parameterization methods is that they require to set up the positions of the vertices along the boundary of the mesh. In order to let the boundary free to evolve and find some optimal shape, one can replace the fixed point constraint by a global constraints of unit variance as follow
+\eq{
+	\underset{\psi_1,\psi_2 \in \RR^n}{ \min } \;
+	\norm{\tilde G \psi_1}^2 + \norm{\tilde G \psi_2}^2
+	\qqwithqq
+	\left\{
+		\begin{array}{l}
+			\norm{\psi_i} = 1,\\
+			\dotp{\psi_1}{\psi_2} = 0,\\
+			\dotp{\psi_i}{1} = 0. 
+		\end{array}
+	\right.
+}
+This optimization problem also has a simple global solution using eigenvectors of the Laplacian.
+
+\begin{thm}[Mesh flattening solution] The mesh flattening solution is given by
+\eq{
+	\text{Span}(\psi_1,\psi2) = \text{Span}(u_1,u_2)
+	\qwhereq \tilde L = U\La\transp{U}.
+}
+\end{thm}
+
+In order to compute this flattening, one thus needs to extract 2 eigenvectors from a sparse matrix. Note however that, in contrast to linear parameterization schemes, this flattening is not ensured to be bijective. Figure \ref{fig-mesh-flattening} shows that for meshes with large distortion, this flattening indeed leads to wrong parameterizations. 
+
+ 
+\myfigure{ 
+\begin{tabular}{cccc}     
+\image{meshes}{0.16}{flattening/nefertiti-mesh}&
+\image{meshes}{0.2}{flattening/nefertiti-flattening-combinatorial}&
+\image{meshes}{0.2}{flattening/nefertiti-flattening-conformal}&
+\image{meshes}{0.2}{flattening/nefertiti-flattening-isomap}\\
+\image{meshes}{0.16}{flattening/mannequin-mesh}&
+\image{meshes}{0.24}{flattening/mannequin-flattening-combinatorial}&
+\image{meshes}{0.24}{flattening/mannequin-flattening-conformal}&
+\image{meshes}{0.2}{flattening/mannequin-flattening-isomap}\\
+Mesh & Combinatorial & Conformal & Isomap
+\end{tabular}
+}{
+Examples of mesh flattening.%
+}{fig-mesh-flattening}
+
+

@@ -1,0 +1,774 @@
+% !TEX root = ../FundationsDataScience.tex
+
+\chapter{Multiresolution Mesh Processing}
+
+This chapter shows how computations on a mesh can be performed in a multiscale manner, by considering meshes of increasing resolutions. This leads to the notion of subdivision surfaces and wavelet transform, which are two different tools to interpolates and decompose functions on meshes. Both methods rely on a special kind of meshes whose triangulations can be obtained by applying a regular refinement rule. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%		Semi regular meshes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Semi-regular Meshes}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Nested Multiscale Grids.}
+
+In order to perform multiscale mesh processing, one needs to pack the vertices $V$ of a topological mesh $M = (V,E,F)$ in sets of increasing resolution. As explained in section \ref{subsec-mesh-structure}, it is important to remember that this construction is purely combinatorial, in that no geometrical information (such as actual positions of the vertices in $\RR^3$) is required to build the set of multi-resolution meshes. In fact these multiscale grids can be used to actually process the geometrical realization $\Mm$ of the mesh $M$ as three real valued functions (the three coordinates of the points).
+
+We thus consider a set of nested indexes 
+\eq{ V_0 \subset V_{-1} \subset \ldots \subset V_L = V } 
+which are split according to 
+\eq{ V_j = V_{j+1} \cup H_{j+1}. }
+Next section describes how to actually compute this set of nested grids using a triangular split, but most of the mathematical tools are in fact valid for arbitrary set of indices, as long as they are embedded in one each other through scales.
+
+For mesh processing, an index $\ell \in V_j$ corresponds to a vertex $x_\ell \in \Vv \subset \RR^3$. The signals to be processed are vectors $f \in \RR^n$ of size $n=|V_L|$ defined on the grid $V_L$. We sometimes write $f \in \ldeux(V_L)$ instead of $f \in \RR^n$ to emphasis the domain on which $f$ is indexed.  This chapter describes transforms for signals $f \in \ldeux(V_L)$ sampled on the finest grid $V_L$. 
+
+\myfigure{     
+\image{meshes-multires}{}{edge-split-subdivision} 
+}{
+Edge-splitting subdivision.
+}{fig-edge-split}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Semi-regular Triangulation.}
+
+The combinatorial structure of a triangular mesh is defined in section \ref{subsec-mesh-structure}. This chapter considers only a certain class of meshes $M = (V,E,F)$ that can be obtained by a regular split of faces, starting from an initial coarse triangulation. This splitting leads to a set of multiresolution meshes $M_j = (V_j,E_j,F_j)$ for $J \leq j \leq 0$, where the full mesh is $M_{J} = M$. 
+
+\myfigure{     
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}  
+\image{meshes-multires}{.24}{mesh-semiregular/triangle-semiregular-1} &
+\image{meshes-multires}{.24}{mesh-semiregular/triangle-semiregular-2} &
+\image{meshes-multires}{.24}{mesh-semiregular/triangle-semiregular-3} &
+\image{meshes-multires}{.24}{mesh-semiregular/triangle-semiregular-4} \\
+\image{meshes-multires}{.24}{mesh-semiregular/rand-semiregular-1} &
+\image{meshes-multires}{.24}{mesh-semiregular/rand-semiregular-2} &
+\image{meshes-multires}{.24}{mesh-semiregular/rand-semiregular-3} &
+\image{meshes-multires}{.24}{mesh-semiregular/rand-semiregular-4} \\
+$j=0$ & $j=-1$ & $j=-2$ & $j=-3$
+\end{tabular}
+}{
+Regular subdivision 1:4 of a single triangle. Regular subdivision of a planar triangulation $M_0$. %
+}{fig-semiregular-subdivision}
+
+Starting from this coarse triangulation, one defines by subdivision a multiscale triangulation $(V_j,E_j,F_j)_{L \leq j \leq 0}$ where
+\begin{rs}
+	\item For each edge $e \in E_j$, a central index $\ga(e) \in V_{j-1}$ is added to the vertices
+		\eq{ V_{j-1} = V_j \cup \enscond{\ga(e)}{ e \in E_j }. }
+	\item Each edge is subdivided into two finer edges
+		\eq{ \foralls e=(a,b) \in E_j, \quad \si_1(e) = (a, \ga(e)) \qandq \si_2(e)=(b, \ga(e)). }
+		The subdivided set of edges is then
+		\eq{ E_{j-1} = \enscond{ \si_i(e) }{ i=1,2 \qandq e \in E_j }. }
+	\item Each face $f = (a,b,c) \in F_{j}$ is subdivided into four faces 
+		\eq{ 
+		\choice{ 
+		\mu_1(f) = (a,\ga(a,b),\ga(a,c)), \; 
+		\mu_2(f) = (b,\ga(b,a),\ga(b,c)), \\
+		\mu_3(f) = (c,\ga(c,a),\ga(c,b)), \;
+		\mu_4(f) = (\ga(a,b),\ga(b,c),\ga(c,a)).
+		} }
+		The subdivided set of faces is then
+		\eq{ F_{j-1} = \enscond{ \mu_i(f) }{ i=1,2,3,4 \qandq f \in F_j }.  }	
+\end{rs}
+		Figure \ref{fig-edge-split} shows the notations related to the subdivision process.
+Figure \ref{fig-semiregular-subdivision} shows an example of recursive splitting of a triangle and a coarse triangulation. Figure \ref{fig-semiregular-meshes} shows examples of semi-regular triangulation using a geometric realization (position of the vertices) to create a 3D surface. 
+ 
+\myfigure{     
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}  
+\image{meshes-multires}{.24}{mesh-semiregular/bunny-semiregular-3} &
+\image{meshes-multires}{.24}{mesh-semiregular/bunny-semiregular-4} &
+\image{meshes-multires}{.24}{mesh-semiregular/bunny-semiregular-5} &
+\image{meshes-multires}{.24}{mesh-semiregular/bunny-semiregular-6} \\
+\image{meshes-multires}{.22}{mesh-semiregular/gargoyle-semiregular-3}&
+\image{meshes-multires}{.24}{mesh-semiregular/gargoyle-semiregular-4} &
+\image{meshes-multires}{.24}{mesh-semiregular/gargoyle-semiregular-5} &
+\image{meshes-multires}{.24}{mesh-semiregular/gargoyle-semiregular-6}  \\
+$j=0$ & $j=-1$ & $j=-2$ & $j=-3$
+\end{tabular}
+}{
+Examples of semi-regular meshes $(V_j)_j$ for increasing scale $j$ (from left to right).%
+}{fig-semiregular-meshes}
+
+The set of vertices can be classified as
+\begin{rs}
+	\item \textbf{Regular vertices} are those who belong	
+	 neither to the coarse mesh $V_0$ nor to a boundary of a mesh $M_j$. These vertices have always 6 neighbors.
+	\item \textbf{Extraordinary vertices} are the initial vertices of $V_0$. They exhibit arbitrary connectivity.
+	\item \textbf{Boundary vertices} are those belonging to a mesh boundary. Boundary vertices not in $V_0$ always have $4$ immediate neighbors.
+\end{rs}
+Obviously not every meshes can be obtained from such a subdivision process. In practice, an arbitrary mesh, obtained from CAD design or range scanning usually does not have any multiscale structure. It is thus necessary to remesh it in order to modify the connectivity of the mesh. During this process, the position of the vertices in $\RR^3$ is modified in order for the geometrical realization to stay close from the original piecewise linear surface. One can see \cite{alliez-remeshing-survey} fur a survey of various semi-regular remeshing methods. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Spherical Geometry Images}
+
+Starting from some input surfaces $\Ss \subset \RR^3$, one typically wants to compute a semi-regular meshes $(M_j)_{j \geq L}$ that approximate $\Ss$. In most case, the surface $\Ss$ is actually given as an arbitrary triangulated mesh and this process corresponds to a semi-regular remeshing. Many algorithm have been devised for surface remeshing and we describe here a method \cite{praun-spherical} that works for surfaces that have the topology of a sphere. It means that the surface has genus 0, without boundary and without handles.
+
+This methods works by computing several intermediate surface-wise parameterization.
+\begin{rs}
+	\item \textit{Spherical parameterization:} each points of the original triangulation of $\Ss$ is mapped onto the unit sphere.
+		This create a bijective parameterization
+		\eq{ 
+			\phi_S : S^2 \rightarrow \Ss.
+		}
+		This is a non-linear process that differ from the planar parameterization introduced in section \ref{subsec-mesh-param}.
+		We do not give the details of such a process, but it requires minimizing the smoothness of the mapping $\phi_S^{-1}$ under the constraint that it maps points of $\Ss$ to unit length vectors (point on the sphere $S^2$). The algorithm is explained in details in \cite{praun-spherical}.
+	\item \textit{Spherical-tetraedron flattening:} one flatten each quadrant (1/8) of the sphere in order to have a mapping
+			 \eq{ \phi_{T} : \text{Octaedron} \rightarrow S^2. }
+			 One can use for instance a mapping between spherical barycentric coordinate on each quadrant and Euclidean barycentric coordinates on each face of the octahedron. 
+	\item \textit{Tetraedron unfolding:} One maps each equilateral face of the octaedron on a rectangular triangle that corresponds to 1/8th of the square $[0,1]^2$
+		\eq{ \phi_U : [0,1]^2 \rightarrow \text{Octaedron}. }
+	\item \textit{Regular sampling:} the geometry image is obtained by regularly sampling the square on a uniform grid
+	\eq{ x_\ell = \phi_S \circ \phi_T \circ \phi_U(\ell/n) \qforq \ell_i = 0,\ldots,n-1. }
+\end{rs}
+The mapping $\ell \mapsto x_\ell \in \RR^3$ is the geometry image, which can be stored as a 3-channel (color) image.
+
+From such a geometry image $x_\ell$, one can easily compute a semi-regular mesh by simply performing a regular 1:4 subdivision of the octaedron. Figure \ref{fig-spherical-gim} shows the steps of the construction of a geometry image, and the resulting semi-regular mesh.
+
+\myfigure{     
+\image{meshes-multires}{}{spherical-gim} 
+}{
+Spherical geometry image construction, taken from \cite{praun-spherical}.
+}{fig-spherical-gim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Subdivision Curves}
+
+Before getting into the detail of subdivision surfaces, we describe the subdivision process in the simpler setting of 1D signals. This leads to the construction of subdivision of 1D functions and subdivision curves.  
+
+In this 1D setting, the grid point indexes are dyadic sub-grids of $\ZZ$
+\eq{ 
+	\foralls j \geq L, \quad V_j = \enscond{ \ell 2^{j-L} }{ 0 \leq \ell < s_0 2^{-j} },
+}
+where $s_0 = |V_0|$ is the size of the initial vector $f_0$ to be subdivided. 
+
+\myfigure{
+\image{meshes-multires}{.8}{subdivision-1d} 
+}{
+1D subdivision scheme with filters $h$ and $\tilde h$. The red curve represent the original signal $f^0$.
+}{fig-subdivision-1d}
+
+Each subdivision steps computes, from a set $f_j(\ell) \in \ldeux(V_j)$ of coarse values, a refined vector $f_{j-1} \in \ldeux(V_{j-1})$ defined by
+\eq{
+	\choice{
+	\foralls k \in H_j, \; f_{j-1}(k) = \sum_{t} f_j( (k-1)/2+t ) h(t), \\
+	\foralls \ell \in V_j, \; f_{j-1}(\ell) = \sum_t f_j(\ell+t) \tilde h(t).
+	}
+}
+where the set of weights $h$ and $\tilde h$ acts as local averaging operators. 
+This averaging should be corrected at the boundary, and we use here cyclic boundary conditions which identifies $0$ and $s_0 2^{-j}$ in $V_j$. Figure \ref{fig-subdivision-1d} shows a graphical display of these averaging operators.
+
+One can write this subdivision steps as convolution by introducing the global set of weights
+\eq{
+	g = [\ldots, \tilde h(-1), h(0), \tilde h(0), h(1), \tilde h(1), \ldots]
+}
+since one has
+\eq{
+	f_{j-1} = (f_j \uparrow 2)*g
+	\qwhereq
+	a\uparrow 2 = [\ldots,0,a(-1),0,a(0),0,a(1),0,\ldots].
+}
+This corresponds to the traditional description of the wavelet low-pass filtering \cite{mallat-book}. 
+
+\myfigure{
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-rand-1} 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-rand-2} 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-rand-5}\\ 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-dirac-1} 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-dirac-2} 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-dirac-5} 
+}{
+1D subdivision of a signal. Bottom row shows the subdivision from an impulse signal, converging to the scaling function $\phi$.
+}{fig-subdivision-signal}
+
+Figure \ref{fig-subdivision-signal} shows several steps of subdivision, starting from an initial vector of size $|V_0|=10$.
+
+
+\if 0
+This low pass up-sampling can be 
+
+\eq{
+	\hat f_{j}(\om) = \hat f_{j+1}(\om/2) \hat g(\om) = \hat f_0 \prod_{k=0}^{-j-1} \hat h(2^j \om/2^k)
+}
+Rescaled $\tilde f_j(x=2^j \ell) = f(\ell) \overset{j \rightarrow -\infty}{\longrightarrow} f(x) = \sum_{\ell \in V_0} \phi(x-\ell)f^0(\ell)$.
+
+\eq{
+	\hat \phi(\om) = \prod_{j=-\infty}^0 \hat g(2^j \om).
+}
+\fi
+
+One can apply this subdivision of functions to a pair of signals
+\eq{
+	(X_0,Y_0) : V_0 \rightarrow \RR^2
+}
+which is a control polygon composed of points located in the plane.
+The subdivision curve converges to the limiting curve 
+\eq{
+	(X_j,Y_j)
+	\overset{j \rightarrow -\infty}{\longrightarrow} (X(t),Y(t))_{t=0}^1 \subset \RR^2.
+}
+An interesting property is that this curve is included in the convex hull of the control polygon
+\eq{
+	(X(t),Y(t))_t \subset \text{Conv}(X_0,Y_0).
+}
+Figure \ref{fig-subdivision-curve} shows examples of subdivision curves.
+
+\myfigure{
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-square-1} 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-square-2} 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-square-5}\\ 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-curve-1} 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-curve-2} 
+\image{meshes-multires}{.32}{subdivision-curve/subdivision-func-curve-5} 
+}{
+Two examples of subdivision curves. The red curve represent the original curve $(X^0,Y^0)$.
+}{fig-subdivision-curve}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%		Subdivision surfaces
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Subdivision Surfaces}
+
+Subdivision schemes allows to compute a set of progressively refined vectors on a semi-regular mesh. More precisely, from an initial vector $f_0 \in \RR^{|V_0|}$ defined on the coarse mesh $M_0$, local interpolation kernels computes iteratively vectors $f_j \in \RR^{|V_j|}$ of finer resolution. When applied to 3 function $(f_0^i)_{i=1,2,3}$ defining the geometrical position of points in $\RR^3$, this hierarchical construction defines a subdivision surface. These subdivisions surfaces are used extensively in computer aided geometry and computer graphics. One can see \cite{subdivision-course-siggraph} for a survey of subdivision surfaces and their applications.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Interpolation Operators}
+
+In order to refine a vector $f_{j} \in \RR^{|V_j|}$ defined on the vertex $V_j$ of the mesh $M_j$, one uses two interpolators 
+\eql{\label{eq-interpolation-operators}	
+	P_j : \ldeux(V_j) \longrightarrow \ldeux(H_j)
+	\qqandqq
+	\tilde P_j : \ldeux(V_j) \longrightarrow \ldeux(V_j).	
+}
+A new refined function $f_{j-1} \in \RR^{|V_{j-1}|}$ defined on the vertices $V_{j-1}=V_j \cup H_j$ of $M_{j-1}$ is defined by applying these two refinement operators:
+\eq{
+	\foralls \ell \in V_{j-1}, \quad f_{j-1}(\ell) = 
+	\choice{
+		(P_j f_j)(\ell) \qifq \ell \in V_j, \\
+		(\tilde P_j f_j)(\ell) \qifq \ell \in H_j.
+	}
+}
+Since $V_j \subset V_{j-1}$, the operator $\tilde P_j$ only modify slightly the value at vertex in $V_j$. On the other hand, the operator $P_j$ creates new value at the vertices of $H_j$ that are inserted between $V_j$ and $V_{j-1}$.
+
+In practical applications, these interpolating operators are local, meaning that the value of $(P_j f_j)(\ell)$ and $(\tilde P_j f_j)(\ell)$ depends only on values $f_j(\ell')$ for $\ell' \in V_j$ being close to $\ell \in V_{j-1}$, typically in the 1-ring or 2-ring vertex neighborhood. 
+
+A particularly important setting for subdivision scheme is when one apply the subdivision steps in parallel to three vectors $(X_j,Y_j,Z_j)$ starting from three initial vectors describing the position in 3D space of a coarse mesh $M_0$. This allows to defines finer and finer spacial localization for the vertex of the refined meshes $M_j$. Figure \ref{fig-subdivision-surfaces} shows an example of such a subdivision surface. In order for the resulting infinitely refined surface to have good properties such as being continuous and even smooth, one needs to design carefully the interpolation operators. Next section gives examples of such operators. 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Some Classical Subdivision Stencils}
+
+In order to define the interpolation operators $P_j$ and $\tilde P_j$ of equation \eqref{eq-interpolation-operators}, one needs to use a naming convention for the neighborhoods of vertices. 
+
+For a vertex $\ell \in V_j$, the one ring neighborhood $V_\ell$ has already been defined in equation \eqref{eq-vertex-1-ring}. It is the set of vertices adjacent to $\ell$. In a regular point (that does not belongs to $V_0$ and not on a boundary of the mesh), its size is $|V_\ell|=6$ since a point has $6$ neighbors. This 1-ring is used to define $\tilde P_j$.
+
+For a vertex $k \in H_j \subset V_{j-1}$, the butterfly neighborhood is a set of vertices in $V_j$ close to $k$. This neighborhood is used to define $P_j$. The two immediate neighbors are
+\eq{
+	(v_k^1,v_k^2) \eqdef \enscond{ v \in V_j }{ (v,k) \in E_{j-1} }.
+}
+Two other vertices $(w_k^1,w_k^2)$ are defined using the two faces adjacent to edge $(v_k^2,v_k^2) \in E_j$
+\eq{
+	f_k^1=(v_k^1,v_k^2,w_k^1) \in F_j \qandq
+	f_k^2=(v_k^1,v_k^2,w_k^2) \in F_j.
+}
+For edges $E_j$ on the boundary of $M_j$, one one face is available, in which case we implicitly assume that $f_1=f_2$ (reflecting boundary conditions). The four last vertices are defined using faces adjacent to $f_1$ and $f_2$:
+\eq{
+	\foralls i, j=1,2, \quad f_k^{i,j} \eqdef (z_k^{i,j},v_k^j,w_k^j) \in F_j
+	\qwithq f_k^{i,j} \neq f_j.
+}
+Once again, reflecting boundary condition are applied for faces on the boundary of the mesh. The butterfly neighborhood is depicted on figure \ref{fig-butterfly-neigh}.
+
+\myfigure{     
+\image{meshes-multires}{.5}{butterfly-neighborhood} 
+}{
+The butterfly neighborhood of a vertex $k \in H_j$.%
+}{fig-butterfly-neigh}
+
+\paragraph{Linear Interpolating Scheme}
+
+The simplest subdivision rule compute values along edge mide point using a simple linear interpolation as follow
+\eql{\label{eq-predictor-linear}
+	\choice{
+	\foralls k \in H_j, \quad (P_j f_j)(k) = \frac{1}{2}( f(v_k^1)+f(v_k^2) ),\\
+	\foralls \ell \in V_j, \quad (\tilde P_j f_j)(\ell) = f_j(\ell).
+	}
+}
+Since $\tilde P_j$ is the identity operator, this scheme is called interpolating. It means that value of $f_0$ on points of the coarse triangulation are kept during iteration of the subdivision.
+
+\myfigure{     
+\image{meshes-multires}{.21}{subdivision-surfaces/ico-subdivision-loop-1} 
+\image{meshes-multires}{.23}{subdivision-surfaces/ico-subdivision-loop-2} 
+\image{meshes-multires}{.25}{subdivision-surfaces/ico-subdivision-loop-3} 
+\image{meshes-multires}{.25}{subdivision-surfaces/ico-subdivision-loop-4}\\ 
+\image{meshes-multires}{.24}{subdivision-surfaces/mushroom-subdivision-loop-1} 
+\image{meshes-multires}{.24}{subdivision-surfaces/mushroom-subdivision-loop-2} 
+\image{meshes-multires}{.24}{subdivision-surfaces/mushroom-subdivision-loop-3} 
+\image{meshes-multires}{.24}{subdivision-surfaces/mushroom-subdivision-loop-4} 
+}{
+Examples of iterative subdivision using Loop scheme.
+The points $(X_0,Y_0,Z_0)$ of the initial coarse mesh $M_0$ are shown in red.%
+}{fig-subdivision-surfaces}
+
+\paragraph{Butterfly Interpolating Scheme}
+
+The linear scheme creates function that are piecewise linear on each face of the coarse triangulation $F_0$. In order to create smooth surface, one needs to use more points in the butterfly neighborhood as follow
+\eql{\label{eq-predictor-butterfly}
+	\choice{
+	\foralls k \in H_j, \quad (P_j f_j)(k) = \frac{1}{2} \sum_{i=1}^2 f(v_k^i) +  
+	\frac{1}{8} \sum_{i=1}^2 f(w_k^i) - \frac{1}{16} \sum_{i,j=1}^2 f(z_k^{i,j}),\\
+	\foralls \ell \in V_j, \quad (\tilde P_j f_j)(\ell) = f_j(\ell).
+	}
+}
+
+\myfigure{    
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}  
+\image{meshes-multires}{.24}{subdivision-surfaces/nefertiti-subdivision-butterfly-1} &
+\image{meshes-multires}{.24}{subdivision-surfaces/nefertiti-subdivision-linear4-3} &
+\image{meshes-multires}{.24}{subdivision-surfaces/nefertiti-subdivision-butterfly-3} &
+\image{meshes-multires}{.24}{subdivision-surfaces/nefertiti-subdivision-loop-3} \\
+Original & Linear & Butterfly & Loop
+\end{tabular}
+}{
+Examples of subdivision schemes.
+The points $(X_0,Y_0,Z_0)$ of the initial coarse mesh $M_0$ are shown in red.
+Since the linear and butterfly scheme are interpolating, these points actually belongs to the limiting surface.%
+}{fig-subdivision-zoo} 
+
+
+\paragraph{Loop Approximating Scheme}
+
+In order to gain flexibility in the subdivision design, one can also modify points in $V_j$ during the iterations. This means that $\tilde P_j$ is not any more the identity, and that all the values will evolves during the iterations. The question of wether these iterated modification actually converge to a limit value is studied in the next section.
+
+The Loop subdivision rule is defined as
+\eq{\label{eq-predictor-loop}
+	\choice{
+	\foralls k \in H_j, \quad (P_j f_j)(k) = \frac{3}{8} \sum_{i=1}^2 f(v_k^i) +  
+	\frac{1}{8} \sum_{i=1}^2 f(w_k^i),\\
+	\foralls \ell \in V_j, \quad (\tilde P_j f_j)(\ell) = (1-|V_\ell| \be_{|V_\ell|}) f_j(\ell) + \be_{|V_\ell|} \sum_{\ell' \in V_\ell} f_j(\ell').
+	}
+}
+where the weights depends on the number of neighbors and are defined as
+\eq{
+	\be_m \eqdef \frac{1}{m}\pa{ \frac{5}{8} - \pa{\frac{3}{8} + \frac{1}{4} \cos( 2\pi/m )}^2 }.
+}
+
+\paragraph{Other schemes.}
+
+It is possible to define subdivision schemes using rules that do not involve a regular 1:4 splitting of each coarse face. For instance, in dual schemes such as the one depicted in figure \ref{fig-sqrt3-subdivision}, the faces of $F_{j}$ are not included in $F_{j-1}$ but only in $F_{j-2}$. 
+
+\myfigure{    
+\image{meshes-multires}{.32}{subdivision-surfaces/mannequin-subdivision-sqrt3-1}
+\image{meshes-multires}{.32}{subdivision-surfaces/mannequin-subdivision-sqrt3-2}
+\image{meshes-multires}{.32}{subdivision-surfaces/mannequin-subdivision-sqrt3-4}
+}{
+Surface after 0, 1 and 3 step of $\sqrt{3}$ subdivision \cite{kobbelt-sqrt-3}.%
+}{fig-sqrt3-subdivision}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Invariant Neighborhoods}
+
+In order to study the convergence of subdivision schemes, one needs to consider independently each vertex $x \in V_{j_0(x)}$, where $j_0(x)$ is the coarser scale at which $x$ appears 
+\eq{
+	j_0(x) = \max \; \enscond{j}{ x \in V_j }.
+}
+Original vertices satisfy $j_0(x)=0$ and are the only one (except boundary vertices) that have a non-regular connectivity.
+
+The vertex $x$ belongs to the mesh $M_{j_0(x)}$ which is going to be refined through scales $j<j_0(x)$. In order to analyze this refinement, one needs to define an invariant neighborhood $V_j^x \subset V_j$ of $x$ for each scale $j \leq j_0(x)$. These neighborhood are the set of points that are required to compute the operators $P_j$ and $\tilde P_j$. More precisely, given a vector $f \in \ldeux(V_{j-1})$, the neighborhoods are required to satisfy 
+\eq{
+	\choice{
+		\foralls \ell \in V_{j-1}^x \cap V_j, \quad (\tilde P_j f)(\ell) \text{ depends only on } V_j^x\\
+		\foralls k \in V_{j-1}^x \cap H_j, \quad (P_j f)(k) \text{ depends only on } V_j^x.
+	}
+}
+We further impose that all the invariant neighborhoods have the same size
+\eq{
+	\foralls j \leq j_0(x), \quad \#V_j^x = m_x.
+}
+Figure \ref{fig-invariant-neighborhood} shows an example of invariant neighborhood which corresponds to the 2-ring $V_\ell^{(2)}$, as defined in \eqref{eq-iterated-ring}. 
+
+Thanks to the invariance of these neighborhood systems, one can restrict the predictors around $x$ and define
+\eq{
+	P_j^x : V_{j}^x \longrightarrow V_{j-1}^x \cap V_j \qqandqq
+	\tilde P_j^x : V_{j}^x \longrightarrow V_{j-1}^x  \cap H_j.
+} 
+The subdivision matrix $S_j^x \in \RR^{ m_x \times m_x }$ is then defined as matrix of the following mapping
+\eq{
+	(\tilde P_j^x,P_j^x) : V_x^{j} \longrightarrow V_x^{j-1}. 
+}
+All the subdivision schemes studied in this chapter are invariant, meaning that the subdivision rule does not change through the scales $j$. This impose that the subdivision matrices are constant $S_j^x = S^x$. In fact, in all the examples given in the previous section, they only depends on the number $|V_x|$ of neighbors in the one ring of $x$.
+
+
+\myfigure{    
+\image{meshes-multires}{.5}{invariant-neighborhood}
+}{
+Invariant neighborhood $V_{j}^x$ and $V_{j-1}^x$ (indexing with red circles) of the Loop subdivision scheme for a vertex of valence $|V_\ell|=0$. The number in $\{0,\ldots,9\}$ refers to the numbering of the vertices in $V_j^x$ and $V_{j-1}^x$%
+}{fig-invariant-neighborhood}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Convergence of Subdivisions}
+
+The value at $x \in V_{j_0(x)}$ of a function $f_j \in \ldeux(V_j)$ obtained by subdividing at scale $j \leq j_0(x)$ an initial vector  $f_0 \in \ldeux(V_0)$ can be computed as
+\eq{
+	f_j(x) = \pa{ S^x f_{j+1}^x } (x) =   \pa{ (S^x)^{j_0(x)-j}  f_{j_0(x)}^x }(x),
+}
+where the vector $f_i^x \in \RR^{m_x}$ is the restriction of $f_i$ to the set $V_j^x$. 
+
+In order to analyze the limiting function resulting from an infinite number of subdivision, one can use the eigen vector decomposition of the matrix $S^x$
+\eq{
+	S^x = \tilde \Phi V \La \transp{\Phi} \qwhereq 
+	\choice{
+		\transp{\Phi} = \tilde \Phi^{-1}, \\
+		\La = \diag(\la_i), \la_1\leq \la_2 \leq \ldots \leq \la_{m_x}.
+	} 
+}
+Since the subdivision matrix $S_x$ is not symmetric, some of the eigenvalues might be complex, and we shall ignore this difficulty here. The fact that $P_j$ and $\tilde P_j$ are predictor implies that the subdivision matrix has to satisfy $S^x 1 = 1$, meaning that $\tilde \phi_1 = 1$ is an eigenvector associated to the eigenvalue $1$. In the following we further makes the following assumption
+\eql{\label{eq-condition-subdvision}
+	1 = \la_1 < \la \eqdef \la_2=\la_3 < \la_4.
+}
+This hypothesis is satisfied by all the subdivision rules introduced in the previous section.
+
+If one write $\Phi = (\phi_i)_{i=1}^m$ and $\Phi = (\phi_i)_{i=1}^m$, one has the following decomposition of a vector $f \in \RR^{m_x}$
+\eq{
+	f = \sum_{i=1}^{m_x} \dotp{f}{\phi_i} \tilde \phi_i
+	\qandq
+	(S^x)^k(x) = \sum_{i=1}^{m_x} \la_i^k \dotp{f}{\phi_i} \tilde \phi_i.
+}
+One thus has the following asymptotic expansion
+\eql{\label{eq-asymptotic-subdivision}
+	\frac{1}{\la^k} \pa{ f - \dotp{f}{\phi_1} 1 } = 
+	\dotp{f}{\phi_2}\tilde \phi_2 + 
+	\dotp{f}{\phi_3}\tilde \phi_3 + o(1).
+}
+This expression describes the asymptotic behavior of the subdivision scheme at zero order (position) and first order (tangents).
+
+\begin{thm}[Convergence of the subdivision scheme]
+	If the subdivision matrix $S^x$ of a point $x$ satisfies \eqref{eq-condition-subdvision} then the subdivision process converges at $x$ to the value 
+	\eq{
+		f^j(x) \overset{j \rightarrow -\infty}{\longrightarrow}
+		\dotp{f_{j_0(x)}^x}{\phi_1}.
+	}
+\end{thm}
+
+The smoothness of the resulting function is more difficult to analyze. A particularly important setting is when one computes the subdivision of 3 function $p_0 = (X_0,Y_0,Z_0) \in \ldeux(V_0)^3$ corresponding to the position in $\RR^3$ (geometrical realization) of a coarse mesh $M_0$. In this case, the subdivided functions $p_j = (X_j,Y_j,Z_j)$ gives refined 3D meshes that converge uniforlmy to a continuous surfaces 
+\eq{
+	p(x) = (X(x),Y(x),Z(x)) = ( \dotp{X_{j_0}^x}{\phi_1}, \dotp{Y_{j_0}^x}{\phi_1}, \dotp{Z_{j_0}^x}{\phi_1} ).
+}
+Condition \eqref{eq-condition-subdvision} nearly implies that the resulting surface is smooth. Indeed, the asymptotic expansion \eqref{eq-asymptotic-subdivision} shows that for a point $x'$ near $x$ in the subdivision domain, the differential vector can be well approximated as a projection on a 2D plane
+\eq{
+	p(x)-p(x') + o(1) \in \text{Span}(\tau_2^x,\tau_3^x)
+	\qwhereq
+	\tau^i(x) \eqdef ( \dotp{X_{j_0}^x}{\phi_i}, \dotp{Y_{j_0}^x}{\phi_i}, \dotp{Z_{j_0}^x}{\phi_i} ).
+}
+If the vectors $\tau_2^x$ and $\tau_3^x$ are linearly independent, they form a basis of the tangent plane at $p(x)$.
+
+\paragraph{Example of the Loop subdivision.}
+
+For the Loop interpolation operators defined in equation \eqref{eq-predictor-loop}, the invariant neighborhood $V_j^x$ correspond to the 2-ring of $x$ in the triangulation $G_j$, as shown in figure \ref{fig-invariant-neighborhood}. For a vertex with $k$ neighbors, $|V_x|=k$, the size of these invariant neighborhood is $m_x = 3k+1$. A particular neighboring for $k=3$ is depicted in figure \ref{fig-invariant-neighborhood}, together with an indexing in $\{0,\ldots,3k=9\}$ of the points in $V_j^x$ and $V_{j-1}^x$. For this indexing, the subdivision matrix reads
+\eq{
+	\begin{pmatrix}
+		7 & & &   & & & & 3 & 3 & 3 \\
+		1 & 1 &   &   & 1 &   & 1 & 10 & 1 & 1 \\
+		1 &   & 1 &   & 1 & 1 &   & 1 & 10 & 1 \\
+		1 &   &   & 1 &   & 1 & 1 & 1 & 1 & 10 \\
+		1 &   &   &   & 1 &   &   & 3 & 3 &   \\
+		1 &   &   &   &   & 1 &   &   & 3 & 3 \\
+		1 &   &   &   &   &   & 1 & 3 &   & 3 \\
+		1 &   &   &   &   &   &   & 3 & 1 & 1 \\
+		1 &   &   &   &   &   &   & 1 & 3 & 1 \\
+		1 &   &   &   &   &   &   & 2 & 1 & 3 \\
+	\end{pmatrix}
+}
+where the 0's have been omitted and where the rows should be rescaled to sum to 1. The eigenvalues of this matrix satisfy $\la_1=1$ and $\la_2=\la_3=1/3 > \la_4$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%		Wavelets on meshes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Wavelets on Meshes}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Multiscale Biorthogonal Bases on Meshes}
+
+The transforms considered in this section are multiscale and indexed by the set of nested grids $(V_j)_{L < j \leq J}$. This corresponds to computing a set of coefficients $(d_j)_{L <j \leq J} \cup f_J$ from an initial input signal $f$. These coefficients corresponds to inner products with basis vectors
+\eq{
+	\choice{
+		d_j \in \ldeux(H_j) \qwhereq
+			\foralls k \in H_j, \; d_j(k) = \dotp{f}{\psi_{j,k}}, \\
+		f_J \in \ldeux(V_J) \qwhereq
+			\foralls \ell \in V_J, \; f_J(\ell) = \dotp{f}{\phi_{J,\ell}}.
+	}
+}
+By analogy with the wavelet setting, the vectors $\psi_{j,k} \in \RR^n$ corresponds to primal wavelets and are intended to capture the details present in the signal $f$ at a scale $j$, whereas the scaling vectors $\phi_{J,k} \in \RR^n$ capture the missing coarse approximation of $f$ at scale $J$. This decomposition is stopped at any coarse scale $L < J \leq 0$. 
+
+In order to reconstruct the function $f$ from this set of transformed coefficients, one needs to use a set of bi-orthogonal basis vectors 
+\eq{
+	f = \sum_{L < j \leq J, k \in H_j} d_j(k) \tilde \psi_{j,k} + \sum_{\ell \in V_J} f_J(\ell) \tilde \phi_{J,\ell}.
+}
+If this reconstruction formula holds for any scale $L<J\leq 0$, the set of vectors
+\eql{\label{eq-pair-multisc-bases} 
+	(\psi_{j,k},\phi_{j,\ell})_{k \in H_j, \ell \in V_j}^{L < j \leq 0}
+	\qqandqq 
+	(\tilde \psi_{j,k},\tilde \phi_{j,\ell})_{k \in H_j, \ell \in V_j}^{L < j \leq 0},
+}
+is said to be a pair of primal and dual multiscale bases (together with their scaling functions).
+
+The following paragraph shows how one can modify such a pair of multiscale bases while still maintaining the biorthogonality property. This lifting process is useful to design multiscale bases with various properties on complicated domains.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{The Lifting Scheme}
+
+The lifting scheme is a construction of multiscale biorthogonal bases introduced by Sweldens \cite{sweldens-lifting,sweldens-listing-second-generation}. It extends the traditional construction of wavelets in two main directions:
+\begin{rs}
+	\item As explained in \cite{sweldens-factoring}, it allows to implement already existing filter banks more efficiency by splitting the computation into elementary blocks. This computational gain is described at the end of the section together with the factorization of wavelets into lifting steps.
+	\item It allows to define multiscale transforms over domains that are not translation invariant. This section gives two examples of such transforms: a non-separable 2D wavelet transform and wavelets on triangulated meshes. 
+\end{rs}
+
+In order to build wavelets on triangulation, one can specialize the lifting scheme to a particular setting where only two lifting steps are applied. 
+
+\paragraph{Forward lifting scheme.}
+
+The forward algorithm performs the transform
+\eq{ 
+	(f_{j-1}(\ell))_{\ell \in V_{j-1}}
+	\quad\longrightarrow\quad
+	(d_j(k))_{k \in H_j} \cup (f_j(\ell))_{\ell \in V_j}
+}
+by applying the following steps
+\begin{rs}
+	\item \textit{Splitting:} this corresponds selecting the coefficient of $f_{j-1}(\ell)$ that are in $V_j$ or in $H_j$
+		\eq{
+			(f_{j-1}(\ell))_{\ell \in V_{j-1}} = (f_{j}(\ell))_{\ell \in V_{j}} \cup (f_{j}(\ell))_{\ell \in H_{j}}.
+		}
+		These two sets of coefficients are treated differently in the two remaining steps of the transform.
+	\item \textit{Predict step:} creates wavelets coefficients $d_j$ by computing local differences between each coefficient in $V_j$ and its neighbors in $H_j$
+		\eq{
+			\foralls k \in H_j, \quad d_j(k) = f_{j-1}(k) - \sum_{\ell \in V_j} p_j(k,\ell) f_{j-1}(\ell).
+		}
+		The coefficients $p_j(k,\ell)$ are weights that determine the predict operator 
+		\eq{
+			P_j : \func{\ldeux(V_j)}{\ldeux(H_j)}{g}{h = P_j g}
+			 \qwhereq h(k) = \sum_{k \in H_j} p_j(k,\ell) g(\ell).
+		}
+	\item \textit{Update step:} enhance the properties of each remaining low pass coefficients $f_{j-1}(\ell)$ for $\ell \in V_j$ by pooling locally the wavelets coefficients $d_j(k)$ for $k$ around $\ell$
+		\eq{
+			\foralls \ell \in V_j, \quad f_j(\ell) = f_{j-1}(\ell) + \sum_{k \in H_j} u_j(\ell,k) d_j(k).
+		}
+		The coefficients $u_j(\ell,k)$ are weights that determine the update operator 
+		\eq{
+			U_j : \func{\ldeux(H_j)}{\ldeux(V_j)}{h}{g = U_j h}
+			 \qwhereq g(\ell) = \sum_{k \in H_j} u_j(\ell,k) h(k).
+		}
+\end{rs}
+Figure \ref{fig-lifting-diagram}, top row, shows the block diagram associated to this forward lifting wavelet transform.
+
+The iterations of the forward lifting transform can also be written in vector and operator format
+\eq{
+	\choice{
+		d_j = f_{j-1}^{H_j} - P_j f_{j-1}^{V_j},\\
+		f_j = f_{j-1}^{V_j} + U_j d_j = (\Id_{V_j}-U_j P_j) f_{j-1}^{V_j} + U_j f_{j-1}^{H_j},
+	}
+}
+where $g^A$ is the restriction of some vector $g$ to the set $A$. 
+
+
+\myfigure{     
+\image{meshes-multires}{}{lifting-scheme} 
+}{
+Block diagrams for the forward and backward lifting scheme.
+}{fig-lifting-diagram}
+
+
+\paragraph{Backward lifting scheme.}
+
+The backward transform algorithm does the reverse computation
+\eq{ 
+	(d_j(k))_{k \in H_j} \cup (f_j(\ell))_{\ell \in V_j}
+	\quad\longrightarrow\quad
+	(f_{j-1}(\ell))_{\ell \in V_{j-1}}
+}
+One of the main feature of the lifting scheme is that this is achieved by simply reversing the order of the lifting steps and interchanging +/- signs.
+\begin{rs}
+	\item \textit{Inverse update step:} 
+		\eq{
+			\foralls \ell \in V_j, \quad f_{j-1}(\ell) = f_j(\ell) - \sum_{k \in H_j} u_j(\ell,k) d_j(k).
+		}	
+	\item \textit{Inverse predict step:} 
+		\eq{
+			\foralls k \in H_j, \quad f_{j-1}(k) = d_j(k) + \sum_{\ell \in V_j} p_j(k,\ell) f_{j-1}(\ell).
+		}
+	\item \textit{Merging:} makes the union of the coefficients computed in the two previous steps
+		\eq{
+			(f_{j-1}(\ell))_{\ell \in V_{j-1}} = (f_{j}(\ell))_{\ell \in V_{j}} \cup (f_{j}(\ell))_{\ell \in H_{j}}.
+		}
+\end{rs}
+Figure \ref{fig-lifting-diagram}, top row, shows the block diagram associated to this backward lifting wavelet transform.
+ 
+The lifting scheme is more general than the algorithm described in this section since several passes of predict/update steps can be applied to further enhance the properties of the resulting transform. However, the steps beyond the two initial ones are difficult to analyze, except in the notable exception of points sampled evenly on a 1D axes, where a factorization algorithm \cite{sweldens-factoring} allows to recover traditional wavelet filters. 
+
+
+
+		
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Imposing vanishing moments.}
+
+The operator $P_j$ is called a predictor since the values of $P_j f_{j-1}^{V_j}$ should typically be close to $f_{j-1}^{H_j}$ for the wavelet coefficients $d_j$ to be small. Such predictors have already been constructed in equations \eqref{eq-predictor-linear}, \eqref{eq-predictor-butterfly} and \eqref{eq-predictor-loop}.
+
+The operator $U_j$ is called an update operator since the additional term $U_j d_j$ should enhance the properties of $f_{j-1}^{V_j}$. This update steps does not appears in the theory of subdivision surface and this section considers a local update operator which guaranty the conservation of the mean value when switching from $f_{j-1}$ to $f_j$.
+
+\paragraph{Polynomial vectors.}
+
+In order to select predict and update operator that have good properties, one follow the insight gained from the analysis of the wavelet approximation of signal on the real line. In order to do so, one need analyze the effect of a lifting wavelet transform on polynomials. The most basic constraint enforces one vanishing moment by imposing orthogonality with the constant vector $\Phi_0 = 1$. This constraint does not require to known the spacial location $x_\ell$ of each index $\ell \in V_L$. In order to impose higher order vanishing moments, one needs to assume some sampling pattern, for instance
+\eq{
+	\foralls \ell \in V_L, \quad f(\ell) = \bar f(x_\ell)
+	\qqwhereqq x_\ell \in \RR^q
+} 
+and where $\bar f$ is a function defined on $\RR^q$. For instance, the points $x_\ell$ might corresponds to a regular sampling of the line (this is the traditional wavelet setting) or to an irregular sampling of a 2D surface embedded in $\RR^3$. The next paragraphs describe several situations with different sampling grids. Once the precise locations of the samples are known, one can for instance select $\Phi_s$ as some monomials of degree $(s_1,\ldots,s_q)$ over $\RR^q$.
+
+\paragraph{Vanishing moment and polynomials reproduction.}
+
+Having defined these polynomial vectors, one requires that the following constraints are fulfilled. 
+\begin{rs}
+	\item \textit{Vanishing moments:} the wavelet coefficients of a low order polynomial should be 0, which implies that
+	\eql{\label{eq-vm-lifting}
+		\foralls k \in H_j, \; \dotp{\Phi_s}{\psi_{j,\ell}} = 0.
+	}
+	\item \textit{Polynomial reproduction:} coarse coefficients $f_j$ computed from a polynomial $f_{f-1}$ should also be polynomials, which implies that
+	\eql{\label{eq-pol-reprod}
+		\foralls \ell \in V_j, \; \dotp{\Phi_s}{\phi_{j,\ell}} = \Phi_s(\ell)
+	}
+\end{rs}
+
+In order for the wavelets and scaling function to satisfy conditions \eqref{eq-vm-lifting} and \eqref{eq-pol-reprod}, the predict operator $P_j$ and update operator $U_j$ should be designed carefully. One can impose these constraint from the fine scale $j=L$ until the coarse scale $j=0$. Indeed, if $(\phi_{j-1,\ell},\psi_{j-1,\ell})_{k,\ell}$ satisfy conditions \eqref{eq-vm-lifting} and \eqref{eq-pol-reprod}, then, for the scale $j$
+\eq{
+\foralls s \in S, \quad 
+	\choice{
+	\eqref{eq-vm-lifting} \quad\Longleftrightarrow\quad
+	P_j \Phi_s^{V_j} = \Phi_s^{H_j},\\
+	\eqref{eq-pol-reprod} \quad\Longleftrightarrow\quad
+	\transp{U_j} \pa{ \Phi_s^{V_j} + \transp{P_j} \Phi_s^{H_j} } = \Phi_s^{H_j}.
+	}
+}
+where $\Phi_s^A \in \ldeux(A)$  is the restriction of $\Phi_s$ to $A$.
+
+
+In contrast, the constraint \eqref{eq-pol-reprod} on the update operator $P_j$ is more involved and the next section shows how to handle it on a triangulation situations for only one vanishing moment $|S|=1$. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Lifted Wavelets on Meshes}
+
+The lifted wavelet bases can be used to process signals $f \in \ldeux(V_L)$ where $\ell \in V_L$ index a sampling $x_\ell$ of an arbitrary surface. The construction of biorthogonal wavelets on triangulated mesh has been first proposed by Lounsbery et al. \cite{lounsbery-multires} and re-casted into the lifting scheme framework by Schroeder and Sweldens \cite{shroder-spherical-wavelets,schroder-spherical-wav-texture}.
+
+\paragraph{Designing predict operators.}
+
+The constraints \eqref{eq-vm-lifting} on the predictor $P_j$ is easily solved. For instance, for each $k$, one selects only $|S|$ non vanishing weights $(p_j(k,\ell))_\ell$ and solves a small $|S| \times |S|$ linear system. Furthermore, in the case of a regular triangulation with edges of constant length, predictors with several vanishing moments have been already defined in \eqref{eq-predictor-linear}, \eqref{eq-predictor-butterfly} and \eqref{eq-predictor-loop}. Figure \ref{fig-predict-operators} shows the weights for these predictors.
+
+\myfigure{     
+\image{meshes-multires}{.8}{predict-triangulations} 
+}{
+Predict operators on a triangulation.
+}{fig-predict-operators}
+
+One can choose any of these operators, and creates respectively linear, butterfly and Loop wavelets bases. All these predictors have one vanishing moment since they satisfy $P_j 1^{H_j} = 1^{V_j}$. In fact they have more vanishing moments if one consider polynomials $\Phi_s$ sampled at points $x_\ell \in \RR^2$ of an hexagonal tiling with constant edge length. In practice, if the triangulation under consideration have edges with smoothly varying length, the resulting predictor are efficient to predict the value of smooth functions on the triangulation.
+
+\paragraph{Designing update operators.}
+
+In order to ensure the reproduction of constant polynomials, we design the update operator so that it depends only on the direct neighbors in $H_j$ of each point in $V_j$
+\eq{
+	\foralls \ell \in V_j, \quad V_\ell = \enscond{ \ga(\ell,\ell') }{ (\ell,\ell') \in E_j }.
+}
+One then looks for a valid update operator in the following form
+\eql{\label{eq-update-triangulation}
+	\foralls h \in \ldeux(H_j), \; 
+	\foralls \ell \in V_j, \quad ( U_j h )(\ell) = \la_\ell \sum_{k \in V_\ell} h(k),
+}
+where each $\la_\ell$ should be fixed in order for condition \eqref{eq-pol-reprod} to be satisfied. 
+
+In an semi-regular triangulation, $|V_\ell|=6$ excepted maybe for some points in the coarse grid $\ell \in V_0$. In this setting, the values of $\la_\ell$ can be computed by a recursion through the scales. In an ideal triangulation where $|V_\ell|=6$ for all $\ell$, one can use a constant weight $\la_\ell = \la$. 
+
+For the predictors defined in \eqref{eq-predictor-linear}, \eqref{eq-predictor-butterfly} and \eqref{eq-predictor-loop}, one has
+\eq{ 
+	\transp{P_j} 1^{H_j} = 3 \times 1^{V_j}
+	\qqandqq 
+	\transp{U_j} 1^{V_j} = 6 \la 1^{H_j}
+}
+so setting $\la_\ell = 1/24$ solves equation \eqref{eq-pol-reprod}. Figure \ref{fig-wavelets-triangulation} shows examples of butterfly wavelets on a planar semi-regular triangulation.
+
+
+\myfigure{    
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}  
+\image{meshes-multires}{.32}{wavelets-meshes/triangle-wavelets-3} &
+\image{meshes-multires}{.32}{wavelets-meshes/triangle-wavelets-4} &
+\image{meshes-multires}{.32}{wavelets-meshes/triangle-wavelets-5} \\
+$j=-2$ & $j=-3$ & $j=-4$
+\end{tabular}
+}{
+Example of wavelets $\psi_{j,k}$ on a semi-regular triangulation. The height over the triangle (together with the color) indicates the value of the wavelet vector. %
+}{fig-wavelets-triangulation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Non-linear Mesh Compression}
+
+These wavelets can be used to perform an approximation of a function $f \in \ldeux(V_L)$ defined on the fine triangulation. For instance a wavelet approximation can be applied to each coordinate $f_i, i=1,2,3$ of the actual position $x_\ell = (f_1(\ell),f_2(\ell),f_3(\ell)) \in \RR^3$ of the surface points, as done in \cite{guskov-meshes-multires,khodakovsky-progressive-compression}. This leads to a scheme to approximate and compress a 3D surface using the lifted biorthogonal wavelets associated to the semi-regular triangulation. This is possible because these wavelets depend only on the combinatorial grids $V_j$ and not on the precise position of the samples $x_\ell$ in 3D. 
+
+In order to perform a wavelet approximation in this biorthogonal basis, one uses a non-linear thresholding at $T>0$
+\eq{
+	f = \sum_{ (j,k) \in I_T } \dotp{f}{\psi_{j,k}} \tilde \psi_{j,k}
+}
+\eq{
+	\qwhereq I_T = \enscond{ (j,k) }{ k \in H_j \qandq |\dotp{f}{\psi_{j,k}}| > T |\supp(\psi_{j,k})|^{-1/2}}.
+}
+Note that for each coefficient the threshold $T$ is scaled according to the size of the support of the wavelet in order to approximately normalize the wavelets in $\ldeux(V_L)$ norm.   
+
+Figure \ref{fig-nonlin-mesh-compression} shows an example of compression of the position of a vertex in 3D spaces as 3 functions defined on a semi-regular mesh. Figure \ref{fig-nonlin-spherical-compression} shows an example of compression of a spherical texture map which is a single function defined at each vertex of a semi-regular mesh obtained by subdividing an icosaedron. 
+
+\myfigure{    
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}  
+\image{meshes-multires}{.24}{mesh-compression/bunny-compression-4} &
+\image{meshes-multires}{.24}{mesh-compression/bunny-compression-3} &
+\image{meshes-multires}{.24}{mesh-compression/bunny-compression-2} &
+\image{meshes-multires}{.24}{mesh-compression/bunny-compression-1} \\
+\image{meshes-multires}{.24}{mesh-compression/gargoyle-compression-4} &
+\image{meshes-multires}{.24}{mesh-compression/gargoyle-compression-3} &
+\image{meshes-multires}{.24}{mesh-compression/gargoyle-compression-2} &
+\image{meshes-multires}{.24}{mesh-compression/gargoyle-compression-1} \\
+$100\%$ & $10\%$ & $5\%$ & $2\%$
+\end{tabular}
+}{
+Non-linear wavelet mesh compression with a decreasing number of coefficients.%
+}{fig-nonlin-mesh-compression}
+
+
+\myfigure{    
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}    
+\image{meshes-multires}{.24}{mesh-compression/sphere-compression-5} &
+\image{meshes-multires}{.24}{mesh-compression/sphere-compression-4} &
+\image{meshes-multires}{.24}{mesh-compression/sphere-compression-3} &
+\image{meshes-multires}{.24}{mesh-compression/sphere-compression-2} \\
+$100\%$ & $10\%$ & $5\%$ & $2\%$
+\end{tabular}
+}{
+Non-linear spherical wavelet compression with a decreasing number of coefficients.%
+}{fig-nonlin-spherical-compression}
+

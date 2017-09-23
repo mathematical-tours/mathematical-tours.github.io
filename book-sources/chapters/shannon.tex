@@ -1,0 +1,292 @@
+% !TEX root = ../FundationsDataScience.tex
+
+\chapter{Shannon Theory}
+\label{sec-shannon}
+
+The main reference is~\cite{mallat2008wavelet}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Analog vs. Discrete Signals}
+
+To develop numerical tools and analyze their performances, the mathematical modeling is usually done over a continuous setting. 
+An analog signal is a 1D function $f_0 \in \Ldeux([0,1])$ where $[0,1]$ denotes the domain of acquisition, which might for instance be time. An analog image is a 2D function $f_0 \in \Ldeux([0,1]^2)$ where the unit square $[0,1]^2$ is the image domain.
+
+Although these notes are focussed on the processing of sounds and natural images, most of the methods extend to multi-dimensional datasets, which are higher dimensional mappings
+\eq{
+	f_0 : [0,1]^d \rightarrow [0,1]^s
+}
+where $d$ is the dimensionality of the input space ($d=1$ for sound and $d=2$ for images) whereas $s$ is the dimensionality of the feature space. For instance, gray scale images corresponds to $(d=2,s=1)$, 
+videos to $(d=3, s=1)$, color images to $(d=2, s=3)$ where one has three channels $(R,G,B)$.
+One can even consider multi-spectral images where $(d=2, s \gg 3)$ that is made of a large number of channels for different light wavelengths. Figures \ref{fig-examples-1} and \ref{fig-examples-2} show examples of such data.
+
+
+\myfigure{
+	\image{orthobases}{.35}{example-sound}
+	\image{orthobases}{.28}{example-image}
+	\image{orthobases}{.3}{example-video}
+}{%
+	Examples of sounds ($d=1$), image ($d=2$) and videos ($d=3$). %	
+}{fig-examples-1}
+
+\myfigure{
+	\image{orthobases}{.4}{example-color}
+	\image{orthobases}{.5}{example-multispectral}
+}{%
+	Example of color image $s=3$ and multispectral image ($s=32$). %	
+}{fig-examples-2}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Acquisition and Sampling}
+
+Signal acquisition is a low dimensional projection of the continuous signal performed by some hardware device. This is for instance the case for a microphone that acquires 1D samples or a digital camera that acquires 2D pixel samples.
+The sampling operation thus corresponds to mapping from the set of continuous functions to a discrete finite dimensional vector with $N$ entries.
+\eq{
+	f_0 \in \Ldeux([0,1]^d) \mapsto f \in \CC^N
+}
+
+\myfigure{
+	\image{orthobases}{.4}{discretization-image}
+	\image{orthobases}{.5}{discretization-sound}
+}{%
+	Image and sound discretization. %	
+}{fig-discretization}
+
+Figure \ref{fig-discretization} shows examples of discretized signals.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Linear Translation Invariant Sampler}
+
+A translation invariant sampler performs the acquisition as an inner product between the continuous signal and a constant impulse response $h$ translated at the sample location
+\eql{\label{eq-linear-sampling}
+	f[n] = \int_{-S/2}^{S/2} f_0(x) h(n/N - x) \d x= f_0 \star h(n/N).
+}
+The precise shape of $h(x)$ depends on the sampling device, and is usually a smooth low pass function that is maximal around $x=0$. The size $S$ of the sampler determines the precision of the sampling device, and is usually of the order of $1/N$ to avoid blurring (if $S$ is too large) or aliasing (if $S$ is too small).
+
+Section \ref{sec-sampling} details how to reverse the sampling operation in the case where the function is smooth.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Shannon Sampling Theorem}
+\label{subsec-sampling}
+
+%%%
+\paragraph{Reminders about Fourier transform.}
+
+For $f \in L^1(\RR)$, its Fourier transform is defined as
+\eql{\label{eq-fourier-transform}
+	\foralls \om \in \RR, \quad
+	\hat f(\om) \eqdef \int_\RR f(x) e^{-\imath x \om} \d x.
+}
+One has $\norm{\hat f}^2 = (2\pi)^{-1} \norm{f}^2$, so that $f \mapsto \hat f$ can be extended by continuity to $L^2(\RR)$, which corresponds to computing $\hat f$ as a limit when $T \rightarrow +\infty$ of $\int_{-T}^T f(x) e^{-\imath x \om} \d x$.
+%
+When $\hat f \in L^1(\RR)$, one can invert the Fourier transform so that
+\eql{\label{eq-i-ft}
+	f(x) = \int_\RR \hat f(\om) e^{\imath x \om} \d \om, 
+}
+which shows in particular that $f$ is continuous with vanishing limits at $\pm\infty$. 
+
+The Fourier transform $\Ff : f \mapsto \hat f$ exchanges regularity and decay. For instance, if $f \in C^p(\RR)$ with an integrable Fourier transform, then $\Ff(f^{(p)})(\om) = (\imath \om)^{-p} \hat f(\om)$ so that $|\hat f(\om)|=O(1/|\om|^p)$. 
+%
+Conversely, 
+\eql{\label{eq-fourier-regul}
+	\int_\RR (1+|\om|)^{-p} |\hat f(\om)| \d \om<+\infty
+	\qarrq f \in C^p(\RR).
+}
+
+%%%
+\paragraph{Reminders about Fourier series.}
+
+We denote $\TT=\RR/2\pi\ZZ$ the torus.
+%
+A function $f \in L^2(\TT)$ is $2\pi$-periodic, and can be viewed as a function $f \in L^2([0,1])$ (beware that this means that the boundary points are glued together), and its Fourier coefficients are
+\eq{
+	\foralls n \in \ZZ, \quad 
+	\hat f_n \eqdef \frac{1}{2\pi}\int_0^{2\pi} f(x) e^{-\imath x n} \d x.
+}
+This formula is equivalent to the computation of an inner-product $\hat f_n = \dotp{f}{e_n}$ for the inner-product $\dotp{f}{g} \eqdef \frac{1}{2\pi} \int_\TT f(x) \bar g(x) \d x$. 
+%
+For this inner product, $(e_n)_n$ is orthonormal and is actually an Hilbert basis, meaning that one reconstruct with the following converging series 
+\eql{\label{eq-fourier-series}
+	f = \sum_{n \in \ZZ} \dotp{f}{e_n} e_n
+}
+which means $\norm{f-\sum_{n=-N}^N \dotp{f}{e_n} e_n}_{L^2(\TT)} \rightarrow 0$ for $N \rightarrow +\infty$.
+%
+The pointwise convergence of~\eqref{eq-fourier-series}, and is ensured (and there is normal convergence) when for instance $f \in C^3(\TT)$. 
+
+
+%%%
+\paragraph{Poisson formula.}
+
+The poisson formula connects the Fourier transform and the Fourier series to sampling and periodization operators.
+%
+For some function $\hat f(\om)$ defined on $\RR$, its periodization reads
+\eql{\label{eq-periodizing}
+	\hat f_P(\om) \eqdef \sum_n f(\om-2\pi n).
+} 
+This formula makes sense if $\hat f \in L^1(\RR)$, and in this case $\norm{\hat f_P}_{L^1(\TT)} \leq \norm{\hat f}_1$
+%
+The Poisson formula, state in Proposition~\ref{prop-poisson} bellow, corresponds to proving that the following diagram
+\eq{
+	\begin{array}{rcccl}
+						& f(x)  &  \overset{\Ff}{\longrightarrow} &  \hat f(\om) &\\
+		\text{sampling}& \downarrow & & \downarrow &\text{periodization} \\
+						& (f(n))_n  &  \overset{\text{Fourier serie}}{\longrightarrow} &  \sum_n f(n) e^{-\imath \om n} &\\
+	\end{array}
+}
+is actually commutative.
+
+\begin{prop}[Poisson formula]\label{prop-poisson}
+Assume that $\hat f$ has compact support and that $|f(x)| \leq C(1+|x|)^{-3}$ for some $C$. Then one has 
+\eql{\label{eq-poisson-formula}
+	\foralls \om \in \RR, \quad
+	\sum_n f(n) e^{-\imath \om n} = \hat f_P(\om).
+}
+\end{prop}
+\begin{proof}
+	Since $\hat f$ is compactly supported, $\hat f_P$ is well defined (it involves only a finite sum) and since $f$ has fast decay, using~\eqref{eq-fourier-regul}, $\hat f_P$ is $C^1$. It is thus the sum of its Fourier transform
+	\eql{\label{eq-poisson-formula}
+		\hat f_P(\om) = \sum_k c_k e^{\imath k \om},
+	} 
+	where
+	\begin{align*}
+		c_k = \frac{1}{2\pi} \int_0^{2\pi} \hat f_P(\om) e^{-\imath k \om} \d \om = 
+		\frac{1}{2\pi} \int_0^{2\pi} \sum_n f(x-2\pi n) e^{-\imath k \om}  \d \om .
+	\end{align*}
+	One has 
+	\eq{
+		\int_0^{2\pi} \sum_n |f(x-2\pi n) e^{-\imath k \om}|  \d \om = \int_\RR |f| 
+	}
+	which is bounded because $\hat f \in L^1(\RR)$ (it has a compact support and is $C^1$), so one can exchange the sum and integral
+	\eq{
+		c_k = \sum_n \frac{1}{2\pi} \int_0^{2\pi} f(x-2\pi  n) e^{-\imath k \om}  \d \om
+		= \frac{1}{2\pi} \int_{\RR} f(x) e^{-\imath k \om}  \d \om
+		= f(-k)
+	}
+	where we used the inverse Fourier transform formula~\eqref{eq-i-ft}, which is legit because $\hat f \in L^1(\RR)$.
+\end{proof}
+
+
+%%%
+\paragraph{Shannon theorem.}
+
+Shannon sampling theorem state a sufficient condition ensuring that the sampling operator $f \mapsto (f(ns))_n$ is invertible for some sampling step size $s>0$. 
+%
+It require that $\supp(\hat f) \subset [-\pi/s,\pi/s]$, which, thanks to formula~\eqref{eq-i-ft}, implies that $\hat f$ is $C^\infty$ (in fact it is even analytic). 
+
+\begin{thm} \label{thm-shannon-sampling}
+	If $|f(x)| \leq C(1+|x|)^{-3}$ for some $C$ and $\supp(\hat f) \subset [-\pi/s,\pi/s]$, then one has
+	\eql{\label{eq-shannong-interp}
+		\foralls x \in \RR, \quad 
+		f(x) = \sum_n f(n s) \sinc(x/s-n) \qwhereq
+		\sinc(u) = \frac{\sin(\pi u)}{\pi u}
+	}
+	with uniform convergence.
+\end{thm}
+
+\begin{proof} 
+	The change of variable $g=f(s \cdot)$ results in $\hat g=s \hat f(s\cdot)$ so that we can restrict our attention to $s=1$.
+	%
+	The compact support hypothesis implies $\hat f(\om) = 1_{[-\pi,\pi]}(\om) \hat f_P(\om)$.  
+	Combining the inversion formula~\eqref{eq-i-ft} with Poisson formula~\eqref{eq-poisson-formula}
+	\eq{
+		f(x) = \frac{1}{2\pi} \int_{-\pi}^\pi \hat f_P(\om) e^{\imath \om x} \d \om
+		= \frac{1}{2\pi} \int_{-\pi}^\pi \sum_n f(n) e^{\imath \om (x-n)} \d \om.
+	} 
+	Since $f$ has fast decay, $\int_{-\pi}^\pi \sum_n |f(n) e^{\imath \om (x-n)}| \d \om = \sum_n |f(n)| < +\infty$, so that one can exchange summation and integration and obtain
+	\eq{
+		f(x) = \sum_n f(n)  \frac{1}{2\pi} \int_{-\pi}^\pi e^{\imath \om (x-n)} \d \om = \sum_n f(n) \sinc(x-n).
+	}
+\end{proof}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Shannon Source Coding Theorem}
+\label{sec-shannon-source}
+
+We consider an alphabet $(x_1,\ldots,x_K)$ of $K$ symbols, and assume at our disposal some probability distribution over this alphabet, which is just an histogram $p=(p_1,\ldots,p_K) \in \RR_+^K$ in the simplex, i.e. $\sum_k p_k=1$. 
+
+The entropy of such an histogram is 
+\eq{
+	H(p) \eqdef -\sum_k p_k \log_2(p_k)
+}
+with the convention $O\log_2(0)=0$.
+
+\begin{lem} One has
+\eq{
+	0 \leq H(p) \leq \log_2(K).
+}
+\end{lem}
+\begin{proof}
+	We consider the following constrained optimization problem
+	\eq{
+		\min_p \enscond{ f(p) }{ g(p) = \sum_k p_k =1 }
+	}
+	where $f=-H$. According to the linked extrema theorem, at an optimum $p^\star$, $\nabla f(p^\star)=\la \nabla g(p^\star)$ for some $\la \in \RR$, so that here $\log(p_k^\star)+1 = \la$, i.e. $p_k^\star=c$ is constant, and since $\sum_k p_k^\star=1$, one has $p_k^*=1/K$ and thus $H(p)=\log_2(K)$.
+\end{proof}
+
+A code $c_k=c(x_k)$ associate to each symbol $x_k$ a code word $c_k \in \{0,1\}^\NN$ with a varying length $|c_k| \in \NN^*$. We denote the average length associated to this code as
+\eq{
+	L(c) \eqdef \sum_k p_k |c_k|. 
+}
+
+A prefix code $c_k=c(x_k)$ is such that no word $c_k$ is the beginning of another word $c_k'$. This is equivalent to be able to embed the $(c_k)_k$ as leaves of a binary tree $T$, with the code being output of a traversal from root to leaves (with a convention that going to a left (resp. right) child output a 0 (resp. a 1). 
+%
+We denote $c=\text{Leaves}(T)$ such prefix property. The following fundamental lemma describes the set of prefix code using an inequality.
+
+\begin{lem}[Kraft inequality]\label{lem-kraft}
+	(i) For a code $c$, if there exists a tree $T$ such that $c=\text{Leaves}(T)$ then
+	\eql{\label{eq-kraft-ineg}
+		\sum_k 2^{-|c_k|} \leq 1.
+	}
+	(ii) Conversely, if $(\ell_k)_k$ are such that
+	\eql{\label{eq-kraft-ineg-2}
+		\sum_k 2^{-\ell_k} \leq 1
+	}
+	then there exists a code $c=\text{Leaves}(T)$ such that $|c_k|=\ell_k$.
+\end{lem} 
+
+\begin{proof}
+	$\Rightarrow$ We suppose $c=\text{Leaves}(T)$. We denote $m=\max_k |c_k|$ and consider the full binary tree.
+	%
+	Bellow each $c_k$, one has a sub-tree of height $m-|c_k|$. This sub-tree has $2^{m-|c_k|}$ leaves. Since all these sub-trees do not overlap, the total number of leaf do not exceed the total number of leaves $2^m$ of the full binary tree, hence
+	\eq{
+		\sum_k 2^{m-|c_k|} \leq 2^m, 
+	}
+	hence~\eqref{eq-kraft-ineg}. 
+	
+	$\Leftarrow$ Conversely, we assume~\eqref{eq-kraft-ineg} holds. Without loss of generality, we assume that $|c_1| \leq \ldots \leq |c_K|$. We start by putting a sub-tree of height $2^{m-|c_1|}$. Since the second tree is smaller, one can put it immediately aside, and continue this way. Since  $\sum_k 2^{m-|c_k|} \leq 2^m$, this ensure that we can stack side-by-side all these sub-tree, and this defines a proper sub-tree of the full binary tree. 
+\end{proof}
+
+We now are ready to state and prove Shannon theory for entropic coding.
+
+\begin{thm}
+	(i) If $c=\text{Leaves}(T)$ for some tree $T$, then 
+	\eq{
+		L(c) \geq H(p).
+	}
+	(ii) Conversely, there exists a code $c$ with $c=\text{Leaves}(T)$ such that 
+	\eq{
+		L(c) \leq H(p)+1.
+	}
+\end{thm} 
+
+\begin{proof}
+	First, we consider the following optimization problem
+	\eql{\label{eq-proof-shannon}
+		\umin{ \ell = (\ell_k)_k } \enscond{ f(\ell) \eqdef \sum_k \ell_k p_k }{ g(\ell) \eqdef  \sum_k 2^{-\ell_k} \leq 1 }.
+	}
+	We fist show that at an optimal $\ell^\star$, the constraint is saturated, i.g. $g(\ell^\star)=1$. Indeed, if $g(\ell^\star)=2^{-u} < 1$, with $u>0$, we define $\ell_k' \eqdef \ell_k^\star-u$, which satisfies $g(\ell') = 1$ and also $f(\ell')=\sum_k (\ell_k-u) p_k < f(\ell^\star)$, which is a contradiction.
+	So we can restrict in~\eqref{eq-proof-shannon} the constraint to $g(\ell)=1$ and apply the linked extra theorem, which shows that necessarily, there exists $\la \in \RR$ with $\nabla f(\ell^\star)=\nabla g(\ell^\star)$, i.e.  $(p_k)_k = -\la \ln(2) (2^{-\ell_k^\star})_k$. Since $\sum_k p_k=\sum_k 2^{-\ell_k^\star}=1$, we deduce that $\ell^\star_k = -\log(p_k)$. 
+	
+	(i) If $c=\text{Leave}(T)$, the by Kraft inequality~\eqref{eq-kraft-ineg}, necessarily $\ell_k=|c_k|$ satisfy the constraints of~\eqref{eq-proof-shannon}, and thus $H(p) = f(\ell^\star) \leq f(\ell) = L(\ell)$.
+	
+	(ii) We define $\ell_k \eqdef \lceil -\log_2(p_k) \rceil \in \NN^*$. Then $\sum_k 2^{-\ell_k} \leq \sum_k 2^{\log_2(p_k)} = 1$, so that these lengths satisfy~\eqref{eq-kraft-ineg-2}. Thanks to Proposition~\ref{lem-kraft} (ii), there thus exists a prefix code $c$ with $|c_k|=\lceil -\log_2(p_k) \rceil$. Furthermore
+	\eq{
+		L(c) = \sum_k p_k \lceil -\log_2(p_k) \rceil \leq \sum_k p_k ( -\log_2(p_k) +1) = H(p)+1.
+	}
+\end{proof}
+
