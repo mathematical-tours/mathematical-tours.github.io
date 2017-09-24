@@ -43,7 +43,7 @@ Note that one then has
 \eq{
 	P_{V_j}(f) = \sum_n \dotp{f}{\phi_{j,n}} \phi_{j,n}. 
 }
-Figure \ref{fig-multires-1d} illustrates the translation and scaling effect. 
+Figure~\ref{fig-multires-1d} illustrates the translation and scaling effect. 
 
 
 \myfigure{
@@ -77,7 +77,7 @@ in which case one can use $\phi = 1_{[0,1[}$ and $\phi_{j,n} = 2^{-j/2}1_{[2^j n
 In many case of practical interest, the space $V_j$ is describe by a translation-invariant basis which is not-orthogonal, $V_j=\Span(\th(\cdot-n))_{n \in \ZZ}$. The following proposition shows how to orthogonalize it using the Fourier transform.
 
 \begin{prop}\label{prop-spectral-ortho}
-	For $\th \in L^2(\RR)$ with fast enough decay, $\{\th(\cdot-n)\}_{n \in \ZZ}$ is orthonormal if and only if
+	For $\th \in L^2(\RR)$ (assumed regular and with fast enough decay), $\{\th(\cdot-n)\}_{n \in \ZZ}$ is orthonormal if and only if
 	\eq{
 		\foralls \om, \quad A(\om) \eqdef \sum_{k} |\hat \th(\om-2\pi k)|^2 = 1.
 	}
@@ -131,7 +131,7 @@ Once again, we suppose that $W_0$ has an Hilbertian ortho-basis of the form $\{\
 Due to the orthogonal complementarity property, one has
 \eq{
 	L^2(\RR) = \bigoplus_{j=-\infty}^{j=+\infty} W_j
-	= V_{j_0} \bigoplus_{j \leq j_0}^{j}.
+	= V_{j_0} \bigoplus_{j \leq j_0}^{j} V_j.
 }
 This means that for all $f \in L^2(\RR)$, one has the following convergence in $L^2(\RR)$, 
 \eq{
@@ -185,7 +185,7 @@ A possible choice for a mother wavelet function is
 		0 \quad \text{otherwise,}
 	}
 }
-as shown on Figure \ref{fig-haard-scaling-wav}, right.
+as shown on Figure~\ref{fig-haard-scaling-wav}, right.
 
 
 \myfigure{
@@ -203,7 +203,7 @@ $P_{V_{-5}} f$ & $P_{W_{-5}} f$
 	Projection on Haar approximation spaces (left) and detail spaces (right).%	
 }{fig-haar-appr-details}
 
-Figure \ref{fig-haar-appr-details} shows examples of projections on details spaces, and how they can be derived from projection on approximation spaces. 
+Figure~\ref{fig-haar-appr-details} shows examples of projections on details spaces, and how they can be derived from projection on approximation spaces. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -254,7 +254,7 @@ The forward discrete wavelet transform on a bounded domain is thus the orthogona
 The inverse transform, which is thus the adjoint due to orthogonality, is the inverse map.
 
 
-Figure \ref{fig-wavcoef-1d} shows examples of wavelet coefficients. For each scale $2^j$, there are $2^{-j}$ coefficients.
+Figure~\ref{fig-wavcoef-1d} shows examples of wavelet coefficients. For each scale $2^j$, there are $2^{-j}$ coefficients.
 
 \myfigure{
 \tabun{
@@ -336,7 +336,7 @@ where $\bar u_n \eqdef u_{-n}$.
 One can show that this formula is still valid when working over a bounded interval $\TT=\RR/\ZZ$, but then $\star$ denotes the periodic convolution over $\ZZ/2^{-j+1}\ZZ$.
 \end{proof}
 
-Figure \ref{fig-filterbank-fwd} shows two steps of application of these refinement relationships. 
+Figure~\ref{fig-filterbank-fwd} shows two steps of application of these refinement relationships. 
 
 \myfigure{
 \image{wavelets}{.95}{filterbank-fwd}
@@ -362,14 +362,14 @@ If $|h|,|g| \leq C$ so that both filter are compactly supported, then computing 
 }
 This shows that the fast wavelet transform is a linear time algorithm.
 %
-Figure \ref{fig-filterbank-pyramidal} shows the process of extracting iteratively the wavelet coefficients.
+Figure~\ref{fig-filterbank-pyramidal} shows the process of extracting iteratively the wavelet coefficients.
 %
-Figure \ref{fig-wavalgo-1d} shows an example of computation, where at each iteration, the coefficients of $a_j$ and $d_j$ are added to the left of the output vector. The code \ref{wavelets-fwt1d} implements this forward transform.
+Figure~\ref{fig-wavalgo-1d} shows an example of computation, where at each iteration, the coefficients of $a_j$ and $d_j$ are added to the left of the output vector.
 
 \myfigure{
 \image{wavelets}{.4}{filterbank-pyramidal}
 }{%
-	Pyramid computation of the coefficients.%	
+	Pyramid computation of the coefficients. %	
 }{fig-filterbank-pyramidal}
 
 \myfigure{
@@ -454,7 +454,22 @@ One has the following adjoint operator
 	C_{\bar h,\bar g}^*(a,b) = (h \star a, g \star b), \qandq
 	S_2( a,b ) = (a\uparrow_2, b\uparrow_2).
 }
-This is shown using matrix notations in Figure \ref{fig-inversion-transpose}.
+Indeed, let us check this for the convolution, assuming involved sequences are in $\ell_1$ (they are actually finite sums when considering periodic signals), 
+\eq{
+	\dotp{f \star \bar h}{g} = \sum_n (f \star \bar h)_n g_n = \sum_n \sum_k f_k h_{k-n} g_n
+	 = 
+	 \sum_k f_k  \sum_n h_{k-n} g_n = \dotp{f}{h \star g}, 
+}
+for the copying
+\eq{
+	\dotp{\Dd(a)}{(u,v)} = \dotp{a}{u} + \dotp{b}{u} = \dotp{a}{u+v} = \dotp{a}{\Dd^*(u,v)}, 
+}
+and for the down-sampling
+\eq{
+	\dotp{f\downarrow_2}{g} = \sum_{n} f_{2n}  g_{n} = \sum_{n} (f_{2n}  g_{n} + f_{2n+1} 0 )
+	= \dotp{f}{g \uparrow_2}.  
+}
+This is shown using matrix notations in Figure~\ref{fig-inversion-transpose}.
 %
 Putting everything together gives the desired formula.
 \end{proof}
@@ -477,7 +492,7 @@ The inverse Fast wavelet transform iteratively applies this elementary step
 		}
 	\item \textbf{Output:} $f = a_J$.
 \end{rs}
-This process is shown using a block diagram in Figure \ref{fig-filterbank-bwd}, which is the inverse of the block diagram \ref{fig-filterbank-fwd}. 
+This process is shown using a block diagram in Figure~\ref{fig-filterbank-bwd}, which is the inverse of the block diagram~\ref{fig-filterbank-fwd}. 
 
 \myfigure{
 \image{wavelets}{.95}{filterbank-bwd}
@@ -579,7 +594,7 @@ and where the three mother wavelets are
 	\psi^V(x)=\phi(x_1)\psi(x_2), \qandq
 	\psi^D(x)=\psi(x_1)\psi(x_2).
 }
-Figure \ref{fig-wavelets-2d} displays an examples of these wavelets.
+Figure~\ref{fig-wavelets-2d} displays an examples of these wavelets.
 
 \myfigure{
 \tabquatre{
@@ -597,7 +612,7 @@ $\psi^H$ & $\psi^V$ & $\psi^D$ & Support
 %%
 \paragraph{Haar 2-D multiresolution.}
 
-For the Haar multiresolution, one obtains 2-D piecewise-constant Haar approximation. A function of $V_j \otimes V_j$ is constant on squares of size $2^j \times 2^j$. Figure \ref{fig-multires-2d-haar} shows an example of projection of an image onto these 2-D Haar approximation spaces. 
+For the Haar multiresolution, one obtains 2-D piecewise-constant Haar approximation. A function of $V_j \otimes V_j$ is constant on squares of size $2^j \times 2^j$. Figure~\ref{fig-multires-2d-haar} shows an example of projection of an image onto these 2-D Haar approximation spaces. 
 
 \myfigure{
 \image{wavelets}{.24}{multires-2d-haar-0}
@@ -634,9 +649,9 @@ Approximation coefficients are defined as
 	2-D wavelet coefficients.%	
 }{fig-wavcoefs-2d}
 
-Figure \ref{fig-wavcoefs-2d} shows examples of wavelet coefficients, that are packed in an image of $N$ pixels.
+Figure~\ref{fig-wavcoefs-2d} shows examples of wavelet coefficients, that are packed in an image of $N$ pixels.
 %
-Figure \ref{fig-wavcoefs-example} shows other examples of wavelet decompositions.
+Figure~\ref{fig-wavcoefs-example} shows other examples of wavelet decompositions.
 
 \myfigure{
 \tabtrois{
@@ -658,7 +673,7 @@ A basic step of the computation of the 2-D wavelet transform computes detail coe
 \eq{
 	a_{j-1} \longmapsto (a_j, d_j^H, d_j^V, d_j^D).
 }
-Similarly to the 1-D setting, this mapping is orthogonal, and is computed using the 1-D filtering and sub-sampling formula \eqref{eq-convol-subsample}.
+Similarly to the 1-D setting, this mapping is orthogonal, and is computed using the 1-D filtering and sub-sampling formula~\eqref{eq-convol-subsample}.
 
 One first applies 1-D horizontal filtering and sub-sampling
 \eqm{
@@ -704,8 +719,8 @@ Coefficients $a_j$ & Transform on rows & Transform on columns
 	One step of the 2-D wavelet transform algorithm.%	
 }{fig-wavalgo-2d}
 
-These two forward steps are shown in block diagram in Figure \ref{fig-wavalgo-2d-step-fwd}. 
-These steps can be applied in place, so that the coefficients are stored in an image of $N$ pixels, as shown in Figure \ref{fig-wavalgo-2d}. This gives the traditional display of wavelet coefficients used in Figure \ref{fig-wavcoefs-example}.
+These two forward steps are shown in block diagram in Figure~\ref{fig-wavalgo-2d-step-fwd}. 
+These steps can be applied in place, so that the coefficients are stored in an image of $N$ pixels, as shown in Figure~\ref{fig-wavalgo-2d}. This gives the traditional display of wavelet coefficients used in Figure~\ref{fig-wavcoefs-example}.
 
 %%
 \paragraph{Fast 2-D wavelet transform.}
@@ -752,7 +767,7 @@ The second inverse step computes
 \eqm{
 	a_{j-1} &= (\tilde a_j \star^H h) \uparrow^H 2 + (\tilde d_j \star^H g) \uparrow^H 2.
 }
-Figure \ref{fig-wavalgo-2d-step-bwd} shows in block diagram this inverse filter banks, that is the inverse of the diagram \ref{fig-wavalgo-2d-step-fwd}.
+Figure~\ref{fig-wavalgo-2d-step-bwd} shows in block diagram this inverse filter banks, that is the inverse of the diagram~\ref{fig-wavalgo-2d-step-fwd}.
 
 \myfigure{
 \image{wavelets}{.9}{wavalgo-2d-step-bwd}
@@ -789,7 +804,7 @@ This section shows what are the constraints $h$ and $g$ should satisfy, and give
 
 We introduce the following three conditions on a filter $h$
 \begin{align}
-	\label{eq-cond-h-1}\tag{$C_1$}  \hat h_0&=\sqrt{2}  \\
+	\label{eq-cond-h-1}\tag{$C_1$}  \hat h(0)&=\sqrt{2}  \\
 	\label{eq-cond-h-2}\tag{$C_2$}   |\hat h(\om)|^2 + |\hat h(\om+\pi)|^2&=2, \\
 	\label{eq-cond-h-star}\tag{$C^*$}  \underset{\om \in [-\pi/2,\pi/2]}{\inf} |\hat h(\om)|&>0.
 \end{align}
@@ -801,7 +816,7 @@ Here we are using the Fourier series associated to a filter $h \in \RR^\ZZ$
 }
 If $h \in \ell^1(\ZZ)$, this defines a continuous periodic fonction $\hat h \in \Cc^0(\RR/2\pi\ZZ)$, and this definition can be extended to $h \in \ell^2(\ZZ)$ and defines $\hat h \in L^2(\RR/2\pi\ZZ)$.
 
-\begin{thm}
+\begin{thm}\label{thm-multires-approx}
 	If $\phi$ defines multi-resolution approximation spaces, then~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-2} holds for $h$ defined in~\eqref{eq-dfn-h-g}.
 	%
 	Conversely, if~\eqref{eq-cond-h-1},~\eqref{eq-cond-h-2} and~\eqref{eq-cond-h-star} holds, then there exists a $\phi$ defining multi-resolution approximation spaces so that associated filter is $h$ as defined in~\eqref{eq-dfn-h-g}.
@@ -813,14 +828,25 @@ If $h \in \ell^1(\ZZ)$, this defines a continuous periodic fonction $\hat h \in 
 We now prove condition~\eqref{eq-cond-h-1}.
 %
 The refinement equation reads like a discrete-continuous convolution (or equivalently a convolution with a distribution)
-\eq{
+\eql{\label{eq-wav-proof-refine}
 	\frac{1}{\sqrt{2}} \phi\pa{\frac{t}{2}} = \sum_{n \in \ZZ} h_n \phi(t-n).
 }
-Over the Fourier domain, this equation reads
-\eq{
-	\hat\phi(2\om) = \frac{1}{\sqrt{2}}\hat h(\om) \hat \phi(\om)
+%
+Denoting $h \star \phi$ such a convolution, assuming $h \in \ell_1(\ZZ)$ and $\phi \in L^1(\RR)$, one check that one can apply Fubini and that $h \star \phi \in L^1(\RR)$ and then 
+\begin{align*}
+	\Ff( \sum_{n \in \ZZ} h_n \phi(t-n) )(\om) &= \int_\RR \sum_{n \in \ZZ} h_n \phi(t-n) e^{-\imath \om t} \d t
+	= \sum_{n \in \ZZ} h_n \int_\RR \phi(t-n) e^{-\imath \om t} \d t \\
+	& = \sum_{n \in \ZZ} h_n e^{-\imath n \om } \int_\RR \phi(x) e^{-\imath \om x} \d x
+	= \hat \phi(\om) \hat h(\om)
+\end{align*}
+where we made the change of variable $x = t-n$. Note that here, $h(\om)$ is the $2\pi$-periodic Fourier transform (i.e. Fourier series) of infinite filters defined in~\eqref{eq-fourier-tr-infi}, whereas $\hat\phi(\om)$ is the Fourier transform of function. This is thus a product of a $2\pi$-periodic function $\hat h$ and a non-periodic function $\hat \phi$. 
+%
+We recall that $\Ff(f(\cdot/s)) = s \hat f(s \cdot)$.
+%
+Over the Fourier domain, equation~\eqref{eq-wav-proof-refine} thus reads
+\eql{\label{eq-wav-proof-refine-fourier}
+	\hat\phi(2\om) = \frac{1}{\sqrt{2}}\hat h(\om) \hat \phi(\om).
 }
-where $h(\om)$ is the $2\pi$-periodic Fourier transform (i.e. Fourier series) of infinite filters defined in \eqref{eq-fourier-tr-infi}, whereas $\hat\phi(\om)$ is the Fourier transform of function.
 One can show that $\hat \phi(0) \neq 0$ (actually, $|\hat \phi(0)| = 1$), so that this relation implies the first condition~\eqref{eq-cond-h-1}.
 
 
@@ -829,14 +855,29 @@ We now prove condition~\eqref{eq-cond-h-2}.
 %
 The orthogonality of $\phi(\cdot-n) \}_n$ is rewritten using a continuous convolution as (see also  Proposition~\ref{prop-spectral-ortho})
 \eq{
-	\foralls n \in \ZZ, \quad \phi \star \bar \phi(n)=0
+	\foralls n \in \ZZ, \quad \phi \star \bar \phi(n)=\de_0
 }
 where $\bar \phi(x) = \phi(-x)$, 
-and thus over the Fourier domain,
+and thus over the Fourier domain, using~\eqref{eq-wav-proof-refine-fourier} which shows $\hat\phi\om) = \frac{1}{\sqrt{2}}\hat h(\om/2) \hat \phi(\om/2)$
 \eq{
-	\sum_k |\hat \phi(\om+2k\pi)|^2 = 1.
+	1 = \sum_k |\hat \phi(\om+2k\pi)|^2 = \frac{1}{2}\sum_k |\hat h(\om/2+k\pi)|^2 |\hat \phi(\om/2+k\pi)|^2.
 }
-This leads to condition~\eqref{eq-cond-h-2}.
+Since $\hat h$ is $2\pi$-periodic, one can split even and odd $k$ and obtain
+\eq{
+	2 = |h(\om/2)|^2 \sum_k |\hat \phi(\om/2+2k\pi)|^2 +
+	    |h(\om/2+\pi)|^2 \sum_k |\hat \phi(\om/2+2k\pi+\pi)|^2
+}
+This leads to condition~\eqref{eq-cond-h-2}. Re-using the fact that $\sum_k |\hat \phi(\om+2k\pi)|^2=1$ for $\om'=\om/2$ in place of $\om$, one thus has 
+\eq{
+	|h(\om')|^2+|h(\om'+\pi)|^2 = 2.
+}
+
+%%
+We do not prove the converse statement, which requires to ``create'' a function $\phi$ from the filter $h$. The intuition is that iterating~\eqref{eq-wav-proof-refine-fourier} leads informally to
+\eql{\label{eq-dfn-cascade-inf}
+	\phi(\om) = \prod_{k < 0} \frac{\hat h(\om/2^k)}{\sqrt{2}}.
+}
+Condition~\eqref{eq-cond-h-star} can be shown to imply that this infinite product converge, and define a (non-periodic) function in $L^2(\RR)$.
 \end{proof}
 
 
@@ -852,10 +893,13 @@ We now introduce the following two conditions on a pair of filter $(g,h)$
 \end{align}
 
 
-\begin{thm}
-	If $(\phi,\psi)$ defines a multi-resolution analysis, then~\eqref{eq-cond-g-1} and~\eqref{eq-cond-g-2} holds for $(f,g)$ defined in~\eqref{eq-dfn-h-g}.
+\begin{thm}\label{thm-wave-h}
+	If $(\phi,\psi)$ defines a multi-resolution analysis, then~\eqref{eq-cond-g-1} and~\eqref{eq-cond-g-2} holds for $(h,g)$ defined in~\eqref{eq-dfn-h-g}.
 	%
-	Conversely, if~\eqref{eq-cond-h-1} to \eqref{eq-cond-g-2} hold, then there exists a $(\phi,\psi)$ defining multi-resolution analysis so that associated filters are $(h,g)$ as defined in~\eqref{eq-dfn-h-g}.
+	Conversely, if~\eqref{eq-cond-h-1} to~\eqref{eq-cond-g-2} hold, then there exists a $(\phi,\psi)$ defining multi-resolution analysis so that associated filters are $(h,g)$ as defined in~\eqref{eq-dfn-h-g}. Furthermore, 
+	\eql{\label{eq-rel-psi-phi}
+		\hat \psi(\om) = \frac{1}{\sqrt{2}} \hat g(\om/2) \hat \phi(\om/2).
+	}
 \end{thm}
 
 \begin{proof}
@@ -871,15 +915,15 @@ and thus over the Fourier domain
 }
 The orthogonality of $\{ \psi(\cdot-n) \}_n$ is re-written
 \eq{
-	\foralls n \in \ZZ, \quad  \psi \star \bar \psi(n)=0
+	\foralls n \in \ZZ, \quad  \psi \star \bar \psi(n)=\de_0
 }
 and thus over the Fourier domain (using Poisson formula, see also Proposition~\ref{prop-spectral-ortho})
 \eq{
 	\sum_k |\hat \psi(\om+2k\pi)|^2 = 1.
 }
-Using the Fourier domain refinement equation \eqref{eq-ref-fourier-wav}, this is equivalent to condition~\eqref{eq-cond-g-1}.
+Using the Fourier domain refinement equation~\eqref{eq-ref-fourier-wav}, similarely to the proof of Theorem~\ref{thm-multires-approx} for~\eqref{eq-cond-h-1}, this is equivalent to condition~\eqref{eq-cond-g-1}.
 %
-Figure \ref{fig-filters-complement} shows the Fourier transform of two filters that satisfy this complementary condition.
+Figure~\ref{fig-filters-complements} shows the Fourier transform of two filters that satisfy this complementary condition.
 
 \myfigure{
 \image{wavelets}{.4}{filters-complement}
@@ -897,26 +941,54 @@ and hence over the Fourier domain (using Poisson formula, similarly to Propositi
 \eq{
 	\sum_k \hat \psi(\om+2k\pi)\hat \phi^*(\om+2k\pi) = 0.
 }
-Using the Fourier domain refinement equation \eqref{eq-ref-fourier-wav}, this is equivalent to condition~\eqref{eq-cond-g-2}.
+Using the Fourier domain refinement equations~\eqref{eq-wav-proof-refine-fourier} and~\eqref{eq-ref-fourier-wav}, this is equivalent to condition~\eqref{eq-cond-g-2}.
 \end{proof}
 
 
 %%
 \paragraph{Quadrature mirror filters.}
 
-Quadrature mirror filters (QMF) impose the value of the high pass filter as follow
-\eql{\label{eq-qmf}
-	g(\om) = e^{-i \om} \hat h(\om+\pi)^*
-	\;\Longleftrightarrow\; 
-	g_n = (-1)^{1-n}h_{1-n}.
-}
-This choice of filter ensures that~\eqref{eq-cond-g-1} and~\eqref{eq-cond-g-2} are satisfied.
+Quadrature mirror filters (QMF) defines $g$ as a function of $h$ so that the conditions of Theorem~\ref{thm-wave-h} are automatically satisfy. This choice is the natural choice to build wavelet filters, and is implicitly assumed in most constructions (other choices leading to the same wavelet function anyway, since it safisfies~\eqref{eq-rel-psi-phi}).
 
-This choice is the natural choice to build wavelet filters, and is implicitly assumed in most constructions.
+\begin{prop}
+	For a filter $h \in \ell^2(\ZZ)$ satisfying~\eqref{eq-cond-h-1}, defining $g \in \ell^2(\ZZ)$ as
+	\eql{\label{eq-qmf}
+		\foralls n \in \ZZ, \quad g_n = (-1)^{1-n}h_{1-n}
+	}
+	satisfies conditions~\eqref{eq-cond-g-1} and~\eqref{eq-cond-g-2}.
+\end{prop}
+
+\begin{proof}
+	One indeed has that 
+	\eql{\label{eq-qmf}
+		\hat g(\om) = e^{-i \om} \hat h(\om+\pi)^*, 
+	}
+	so that 
+	\eq{
+		|\hat g(\om)|^2 + |\hat g(\om+\pi)|^2 = 
+		|e^{-i \om} \hat h(\om+\pi)^*|^2 + |e^{-i (\om+\pi)} \hat h(\om+2\pi)^*|^2
+		= 
+		|\hat h(\om+\pi)|^2 + |\hat h(\om+2\pi)|^2 = 2.
+	}
+	where we used the fact that $\hat h$ is $2\pi$-periodic, 
+	and also 
+	\begin{align*}
+		\hat g(\om) \hat h(\om)^* + \hat g(\om+\pi) \hat h(\om+\pi)^* &= 
+		e^{-i \om} \hat h(\om+\pi)^* \hat h(\om)^* + e^{-i (\om+\pi)} \hat h(\om+2\pi)^* \hat h(\om+\pi)^* \\
+		&=
+		(e^{-i \om}+e^{-i (\om+\pi)}) \hat h(\om+\pi)^* \hat h(\om)^*
+		=0.
+	\end{align*}
+\end{proof}
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Wavelet Design Constraints}
+
+According to the previous sections, the construction of a multi-resolution analysis (i.e. of functions $(\phi,\psi$) is obtained by designing a filter $h$ satisfying conditions~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-2}. The function $\phi$ is obtained by an infinite cascade of filtering, or equivalently in the Fourier domain by~\eqref{eq-dfn-cascade-inf}, there is in general (put aside special case such as the Haar multiresolution) no closed form expression for $\phi$. Once $\phi$ is defined, $\psi$ is automatically defined by the relation~\eqref{eq-rel-psi-phi} (and $g$ can be defined as~\eqref{eq-qmf}). 
 
 There exists only one Fourier transform, but there is a large choice of different mother wavelet functions $\psi$. They are characterized by
 \begin{rs}
@@ -945,7 +1017,7 @@ This condition can be equivalently expressed over Fourier as
 %%
 \paragraph{Support.}
 
-Figure \ref{fig-vanishing-moments-1d} shows the wavelet coefficients of a piecewise smooth signal. Coefficients of large magnitude are clustered near the singularities, because the wavelet $\psi$ has enough vanishing moments.
+Figure~\ref{fig-vanishing-moments-1d} shows the wavelet coefficients of a piecewise smooth signal. Coefficients of large magnitude are clustered near the singularities, because the wavelet $\psi$ has enough vanishing moments.
 
 \myfigure{
 \image{wavelets}{.6}{vanishing-moments-1d-coefs}
@@ -954,7 +1026,7 @@ Figure \ref{fig-vanishing-moments-1d} shows the wavelet coefficients of a piecew
 }{fig-vanishing-moments-1d}
 
 To avoid that many wavelets create large coefficients near singularities, one should choose $\psi$ with a small support.
-This requirement is however contradictory with the vanishing moment property \eqref{eq-dfn-vm}. Indeed, one can prove that 
+This requirement is however contradictory with the vanishing moment property~\eqref{eq-dfn-vm}. Indeed, one can prove that 
 for an orthogonal wavelet basis with $p$ vanishing moments
 \eq{
 	|\text{Supp}(\psi)| \geq 2p-1,
@@ -975,7 +1047,7 @@ To avoid visually unpleasant artifacts, one should thus choose a smooth wavelet 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Daubechies Wavelets}
 
-To build a wavelet $\psi$ with a fixed number $p$ of vanishing moments, one designs the filter $h$, and use the quadrature mirror filter relation \eqref{eq-qmf} to compute $g$. One thus look for $h$ such that 
+To build a wavelet $\psi$ with a fixed number $p$ of vanishing moments, one designs the filter $h$, and use the quadrature mirror filter relation~\eqref{eq-qmf} to compute $g$. One thus look for $h$ such that 
 \eq{
 	|\hat h(\om)|^2 + |\hat h(\om+\pi)|^2 = 2, \quad 
 	\hat h(0)=\sqrt{2}, \qandq
@@ -1001,7 +1073,7 @@ and for $p=3$,
 %%
 \paragraph{Wavelet display.}
 
-Figure \ref{fig-wavelets} shows examples of Daubechies mother wavelet functions with an increasing number of vanishing moments. These displays are obtained by computing in fact a discrete wavelet $\bar \psi_{j,n}$ defined in \eqref{eq-discr-wav-basis} for a very large number of samples $N$. This discrete wavelet is computed by applying the inverse wavelet transform to the coefficients
+Figure~\ref{fig-wavelets} shows examples of Daubechies mother wavelet functions with an increasing number of vanishing moments. These displays are obtained by computing in fact a discrete wavelet $\bar \psi_{j,n}$ defined in~\eqref{eq-discr-wav-basis} for a very large number of samples $N$. This discrete wavelet is computed by applying the inverse wavelet transform to the coefficients
 $d_{j',n'} = \delta_{j-j'} \delta_{n-n'}$.
 
 \myfigure{
