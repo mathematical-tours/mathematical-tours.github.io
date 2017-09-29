@@ -50,7 +50,7 @@
 %\newcommand{\myparagraph}[1]{\paragraph{#1.}}
 %\renewcommand{\myparagraph}[1]{\subsection{#1}}
  
-	The vast majority of data (text, sound, image, video, etc.) is stored and manipulated in digital form, that is, using integers which are converted into a succession of bits $\RE{0}$ and $\RE{1}$). Conversion from the continuous analog world to these discrete numerical representations is described by the theory developed by Claude Shannon (April 30, 1916 - February 24, 2001), the founding father of the theory of information. The impact of this theory on our society is absolutely colossal. Yet his name is almost unknown to the general public. The centenary of the birth of Claude Shannon is therefore a good excuse to present the work of a very great scientist.
+The vast majority of data (text, sound, image, video, etc.) is stored and manipulated in digital form, that is, using integers which are converted into a succession of bits ($\RE{0}$ and $\RE{1}$). Conversion from the continuous analog world to these discrete numerical representations is described by the theory developed by Claude Shannon (April 30, 1916--February 24, 2001), the founding father of the theory of information. The impact of this theory on our society is absolutely colossal. Yet his name is almost unknown to the general public. The centenary of the birth of Claude Shannon is therefore a good excuse to present the work of a major scientist.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,20 +58,20 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numeric Data and Coding}
 
-In the digital world that surrounds us, all data (images, films, sounds, texts, etc.) are coded in the form of a succession of $\RE{0}$ and $\RE{1}$. This encoding is not limited to storage on computers, it is also central for communications over the internet (email, \guill{streaming} video \mylink{https://en.wikipedia.org/wiki/Streaming} , etc.) as well as for applications as diverse as music players, e-readers or mobile phones.
+In the digital world that surrounds us, all data (images, films, sounds, texts, etc.) are coded in the form of a succession of $\RE{0}$ and $\RE{1}$. This encoding is not limited to storage on computers, it is also central for communications over the internet (email, \guill{streaming} video, etc.) as well as for applications as diverse as music players, e-readers or mobile phones.
 
 However, data (eg text, sounds, images, or videos) is initially represented as a succession of \textit{symbols}, which are not necessarily $\RE{0}$ or of $\RE{1}$. For example, for the case of a text, the symbols are the letters of the alphabet. For the case of images, these are the values of the pixels. It is therefore necessary to be able to convert this sequence of symbols into a sequence of $\RE{0}$ and $\RE{1}$. It is also necessary to be able to do it in an economical way, that is to say using the shortest possible sequence. This is crucial in order to be able to store this data efficiently on a hard disk, or to transmit them quickly on the Internet. This problem of \textit{compression} has become a major issue because the stored and transmitted data grow exponentially.
 
 The theory developed by Claude Shannon describes the theoretical and algorithmic bases of this coding. He mathematically formalized the three key stages of conversion from the analog world to the digital world:
 \begin{itemize}
-\item[(i)] \textit{sampling} \mylink{https://en.wikipedia.org/wiki/sampling (signal)}, which allows you to switch from continuous data to a succession of numbers;
+\item[(i)] \textit{sampling}\mylink{https://en.wikipedia.org/wiki/Sampling_(signal_processing)}, which allows one to switch from continuous data to a succession of numbers;
 %
-\item[(ii)] \textit{coding} \mylink{https://en.wikipedia.org/wiki/Compression_Data} (also known as compression), which allows you to move to a more compact sequence of $\RE{0}$ and $\RE{1}$(called binary code);
+\item[(ii)] \textit{coding}\mylink{https://en.wikipedia.org/wiki/Data_compression} (also known as compression), which allows one to move to a more compact sequence of $\RE{0}$ and $\RE{1}$ (called binary code);
 %
-\item[(iii)] \textit{error-correcting code} \mylink{https://en.wikipedia.org/wiki/Code_Corrector}, which makes code robust to errors and attacks.
+\item[(iii)] \textit{error-correcting code}\mylink{https://en.wikipedia.org/wiki/Error_detection_and_correction}, which makes code robust to errors and attacks.
 \end{itemize}
 
-For each of these steps, Claude Shannon has established \guill{upper bounds} in~\cite{Shannon1948,shannon1949}, under precise assumptions about the data and the transmission channel. These performance bounds set limits that can not be exceeded, regardless of the method used. For example, for encoding phase (ii), this bound corresponds to the minimum theoretical size of the binary messages making it possible to code the desired information. In the second half of the 20th century, efficient calculation methods and algorithms were developed to reach the limits of Shannon, leading to the 21st century on the explosion of the digital age. This article focuses on part (ii) and presents the basics of data compression as defined by Claude Shannon. For part (iii), one can for example consult this article of images of the mathematics \mylink{http://images.math.cnrs.fr/Qui-est-ce}.
+For each of these steps, Claude Shannon has established performance \guill{upper bounds} in~\cite{Shannon1948,shannon1949}, under precise assumptions about the data and the transmission channel. These performance bounds set limits that can not be exceeded, regardless of the method used. For example, for the encoding phase (ii), this bound corresponds to the minimum theoretical size of the binary messages making it possible to code the desired information. In the second half of the 20th century, efficient computational methods and algorithms were developed that reach the limits of Shannon, leading to the 21st century on the explosion of the digital age. This article focuses on part (ii) and presents the basics of data compression as defined by Claude Shannon. 
 
 You can find at the end of this article a glossary summarizing the most important terms.
 
@@ -79,23 +79,21 @@ You can find at the end of this article a glossary summarizing the most importan
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Encoding and decoding}
+\section{Encoding and Decoding}
 
 We will now describe and study the transformation (coding) from the sequence of $\{\BL{0,1,2,3}\}$ symbols to a binary code, that is, a sequence of $\RE{0}$ and $\RE{1}$.
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Example of an image}
+\subsection{Example of an Image}
 
 In the rest of this article, I will illustrate my remarks using grayscale images. Such an image is composed of pixels. To simplify, we will consider only pixels with 4 levels of gray:
-\begin{itemize}
+\begin{rs}
 \item $\BL{0}$: black, 
 \item $\BL{1}$: dark gray,
 \item $\BL{2}$: light gray,
 \item $\BL{3}$: white.
-\end{itemize}
-
-However, all that will be described hereafter is generalized to an arbitrary number of gray levels (in general, the images that are found on the internet have 256 levels) and even to the color images (which can be decomposed in 3 monochrome images, the red, green and blue components).
+\end{rs}
+However, all that will be described hereafter can be generalized to an arbitrary number of gray levels (in general, the images that are found on the Internet have 256 levels) and even to color images (which can be decomposed in 3 monochrome images, the red, green and blue components).
 
 Figure~\ref{fig-image-zoom} shows an example of an image with 4 levels of gray, with a zoom on a subset of $5 \times 5$ pixels.
 
@@ -125,11 +123,11 @@ This is a particular case of \textit{uniform} coding, which associates with each
 
 Thus the sequence of $(\BL{0, 1, 3})$ symbols is coded as
 $$
-	(\BL{0, 1, 3}) \overset{\text{codage}}{\longmapsto}
-	(\RE{00,01,11}) \overset{\text{regroupement}}{\longmapsto}
+	(\BL{0, 1, 3}) \overset{\text{coding}}{\longmapsto}
+	(\RE{00,01,11}) \overset{\text{grouping}}{\longmapsto}
 	\RE{000111}.
 $$
-The complete sequence of symbols corresponding to the image of $ 5 \times 5 $pixels shown above
+The complete sequence of symbols corresponding to the image of $5 \times 5$ pixels shown above
 will give the code
 $$
   \RE{00011110001110100110100101101010010110101001011001}.
@@ -138,14 +136,14 @@ The length (ie the number of $\BL{0}$ and $\BL{1}$) in the sequence $\BL{0}$ and
 $$
 	\mathcal{\bar L} = 25 \times 2 = 50 \text{ bits}
 $$
-The \textit{bit} (\guill{binary digit}) is the fundamental unit of information, and was introduced by John Tukey \mylink{https://en.wikipedia.org/wiki/John_Tukey} was a collaborator of Claude Shannon.
+The \textit{bit} (\guill{binary digit}) is the fundamental unit of information, and was introduced by John Tukey\mylink{https://en.wikipedia.org/wiki/John_Tukey} who was a collaborator of Claude Shannon.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Logarithm and Uniform Coding}
 
-If the number $ N $ of possible symbols (in this case $N=4$) is a power of $2$, that is $N=2^\ell$(here $N=4=2^2$ so that $\ell=2$), one can always construct such a \textit{uniform} code where one associates to each symbol its binary writing. We have given the example of the uniform coding of $N=4$ symbols, and the case of $N=8$  (thus $\ell=$ 3) symbols corresponds to the coding
+If the number $N$ of possible symbols (in this case $N=4$) is a power of $2$, that is $N=2^\ell$ (here $N=4=2^2$ so that $\ell=2$), one can always construct such a \textit{uniform} code where one associates to each symbol its binary writing. We have given the example of the uniform coding of $N=4$ symbols, and the case of $N=8$  (thus $\ell=3$) symbols corresponds to the coding
 $$
 \BL{0} \mapsto \RE{000}, \quad
 \BL{1} \mapsto \RE{001}, \quad
@@ -159,9 +157,9 @@ $$
 \BL{7} \mapsto \RE{111}.
 $$
 
-This binary script has a length $\ell $, which is called the logarithm in base of 2 \mylink{https://en.wikipedia.org/wiki/Binary_Logarithm} of $ N $, which is noted
+This binary code has a length $\ell$, which is called the logarithm in base of 2\mylink{https://en.wikipedia.org/wiki/Binary_Logarithm} of $N$, which is noted
 $$
-N=2^\ell \quad \Longleftrightarrow \quad \log_2(N) \eqdef \ell.
+	N=2^\ell \quad \Longleftrightarrow \quad \log_2(N) \eqdef \ell.
 $$
 The definition of $\log_2(x)$ also extends to the case where $x$ is not a power of 2, using the definition $\log_2(x) \eqdef \ln(x)/\ln(2)$, where $\ln$ is the \textit{natural logarithm}.
 %
@@ -171,7 +169,7 @@ $\log_2(1/x)=-\log_2(x)$, so for example, we have $\log_2(1/4)=-\log_2(4)=2$.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Variable-length encoding}
+\subsection{Variable-length Encoding}
 
 An important question is whether we can do better (that is, use fewer bits to code the same sequence of symbols). For example, the following coding may be used instead of a uniform code
 $$
@@ -186,14 +184,14 @@ $$
 	(\RE{001,01,000}) \overset{\text{regroupement}}{\longmapsto}
 	\RE{00101000}.
 $$
-The complete sequence of symbols corresponding to the image of $ 5 \times $ 5 pixels
+The complete sequence of symbols corresponding to the image of $5 \times 5$ pixels
 will give the code
 $$
   \RE{001010001001000110111010111101011110101101}.
 $$
 The length of the binary code obtained is therefore now
 $$
-\mathcal{\bar L} = 42 \text{bits}
+	\mathcal{\bar L} = 42 \text{bits}
 $$
 This shows that it is therefore possible to do better than with a \textit{uniform} coding using a \textit{variable} coding, which associates a variable length code with each symbol.
 
@@ -207,7 +205,7 @@ Compared to a uniform coding, it is seen that the average number of bits per sym
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Encoding prefix and decoding}
+\subsection{Prefix Coding and Decoding}
 
 These codings, uniform or of variable length, would be of no interest if we did not ensure that the message obtained is \textit{decodable}, ie we can find the sequence of symbols at the origin of a binary code. All encodings do not allow for this reverse path.
 
@@ -221,8 +219,8 @@ $$
 it is sufficient to separate the sequence of bits into packets of length $\log_2(N)$(here $ N=$ 4 and $\log_2(N)=$ 2) and use the encoding table in the opposite direction.
 Thus, the $\RE{000111}$ binary code is decoded as
 $$
-	\RE{000111} \overset{\text{séparation}}{\longmapsto}
-	(\RE{00,01,11})  \overset{\text{décodage}}{\longmapsto}
+	\RE{000111} \overset{\text{splitting}}{\longmapsto}
+	(\RE{00,01,11})  \overset{\text{decoding}}{\longmapsto}
 	(\BL{0, 1, 3}).
 $$
 
@@ -233,26 +231,26 @@ $$
 \BL{2} \mapsto \RE{110}, \quad
 \BL{3} \mapsto \RE{101},
 $$
-then the bit sequence $\RE{1010}$can be decoded in two ways:
+then the bit sequence $\RE{1010}$ can be decoded in two ways:
 $$
 	\RE{1010}
-	\overset{\text{séparation}}{\longmapsto}
+	\overset{\text{splitting}}{\longmapsto}
 	(\RE{10, 10})
-	\overset{\text{décodage}}{\longmapsto}
+	\overset{\text{decoding}}{\longmapsto}
 	(\BL{1, 1}),
 $$
 or
 $$
 	\RE{1010}
-	\overset{\text{séparation}}{\longmapsto}
+	\overset{\text{splitting}}{\longmapsto}
 	(\RE{101, 0})
-	\overset{\text{décodage}}{\longmapsto}
+	\overset{\text{decoding}}{\longmapsto}
 	(\BL{3, 0}).
 $$
 This means that this sequence can be decoded either as the sequence $(\BL{1, 1})$, or as the $(\BL{3, 0})$ sequence.
 Note that the $\RE{10}$ encoding word used to encode $\BL{1}$ is the beginning of the $\RE{101}$ word used to encode $\BL{3}$.
 
-To be able to do the decoding in an unambiguous way, it is enough that no word of the coding is the beginning of another word. When this condition is satisfied, we speak of \textit{prefix} \mylink{https://en.wikipedia.org/wiki/Prefix_Code}
+To be able to do the decoding in an unambiguous way, it is enough that no word of the coding is the beginning of another word. When this condition is satisfied, we speak of \textit{prefix}\mylink{https://en.wikipedia.org/wiki/Prefix_Code}
 and it is therefore possible to carry out the decoding step by step.
 It is easily verified that this is indeed the case for the non-uniform coding already considered previously
 $$
@@ -264,43 +262,42 @@ $$
 The progressive decoding of the symbol message of the pixels of the image is carried out as follows:
 $$
 	\RE{001}\LG{010001001000110111010111101011110101101}
-		\longrightarrow  \text{ décode } \BL{0}
+		\longrightarrow  \text{ decoding } \BL{0}
 $$
 $$
 	\WH{0}\BL{0}\WH{1}\RE{01}\LG{0001001000110111010111101011110101101}
-			\longrightarrow  \text{ décode } \BL{1}
+			\longrightarrow  \text{ decoding } \BL{1}
 $$
 $$
 	\WH{0}\BL{0}\WH{1}\BL{1}\WH{0}\RE{000}\LG{1001000110111010111101011110101101}
-	\longrightarrow  \text{ décode } \BL{3}
+	\longrightarrow  \text{ decoding } \BL{3}
 $$
 $$
 	\WH{0}\BL{0}\WH{1}\BL{1}\WH{0}\WH{0}\BL{3}\WH{0}\RE{1}\LG{001000110111010111101011110101101}
-		\longrightarrow  \text{ décode } \BL{2} \ldots
+		\longrightarrow  \text{ decoding } \BL{2} \ldots
 $$
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Codes and Trees}
 \label{sec-arbres}
 
-As shown in the figure~\ref{fig-trees}, in the top left, it is possible to place the set of binary codes of less than $\ell $ bits in a tree of depth $\ell + 1 $. The $ 2^\ell $ words of length exactly $\ell $ occupy the sheets, and the shorter words are the inner nodes.
+As shown in Figure~\ref{fig-trees}, in the top left, it is possible to place the set of binary codes of less than $\ell $ bits in a tree of depth $\ell + 1 $. The $ 2^\ell $ words of length exactly $\ell $ occupy the sheets, and the shorter words are the inner nodes.
 
 \myfig{
 \tabTrois{
 \includegraphics[width=.45\linewidth]{arbres/codage-prefixe}&
 \includegraphics[width=.45\linewidth]{arbres/arbre-exemple}
 }
-}{fig-trees}{Left: complete tree of all codes of length 3; right: sample encoding prefix.}
+}{fig-trees}{Left: complete tree of all codes of length 3; right: example of prefix code.}
 
-The prefix encodings are then represented as the leaves of the subtrees of this complete tree. The figure~\ref{fig-trees}, top right, shows which subtree corresponds to the variable-length code
+The prefix encodings are then represented as the leaves of the subtrees of this complete tree. Figure~\ref{fig-trees}, top right, shows which subtree corresponds to the variable-length code
 $$
 \BL{0} \mapsto \RE{001}, \quad
 \BL{1} \mapsto \RE{01}, \quad
 \BL{2} \mapsto \RE{1}, \quad
 \BL{3} \mapsto \RE{000}.
 $$
-
-Once a prefix encoding has been represented as a binary subtree, the decoding algorithm is particularly simple to implement. When decoding is begun, one moves to the root, and descends to each new bit read either to the left (for a $\RE{0}$) or to the right (for a $\RE{1}$ ). When one reaches a sheet of the subtree, one then sends the word of the code corresponding to this sheet, and one restarts to the root. The previous figure shows the decoding process.
+Once a prefix encoding has been represented as a binary subtree, the decoding algorithm is particularly simple to implement. When decoding is begun, one moves to the root, and descends to each new bit read either to the left (for a $\RE{0}$) or to the right (for a $\RE{1}$). When one reaches a leaf of the subtree, one then sends the word of the code corresponding to this leaf, and one restarts to the root. The previous figure shows the decoding process.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -312,13 +309,13 @@ After describing the coding techniques, we will now explain the Shannon theory, 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Minimum length code and random modeling}
+\subsection{Minimum Length Code and Random Modeling}
 
 The use of variable length prefix encoding shows that an average number of bits $\mathcal{L}$can be obtained than the number $\log_2(N)$ of bits obtained by a uniform code. The fundamental question, both on a theoretical and practical level, is whether we can find a prefix coding giving rise to a minimum number of bits per symbol.
 
-This question is badly asked, because its answer depends on the message to be coded, and this message is generally unknown a priori. A model is therefore needed to describe possible messages. The fundamental idea introduced by Claude Shannon is to use a probabilistic model: we do not know what messages we will have to code, but we assume that we know the probability of appearance of the symbols composing this message.
+This question is not correctly phrased, because its answer depends on the message to be coded, and this message is generally unknown a priori. A model is therefore needed to describe possible messages. The fundamental idea introduced by Claude Shannon is to use a probabilistic model: we do not know what messages we will have to code, but we assume that we know the probability of appearance of the symbols composing this message.
 
-Shannon assumes that the symbols that make up the modeled message are drawn \textit{independently} \mylink{https://en.wikipedia.org/wiki/Independencies_ (probability)}
+Shannon assumes that the symbols that make up the modeled message are drawn \textit{independently}\mylink{https://en.wikipedia.org/wiki/Independencies_(probability)}
 according to a random variable $\Mot$(the source of the message). This means that the symbols composing the modeled message are independent random variables with the same distribution as $\Mot$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -347,13 +344,12 @@ The random modeling therefore imposes on the variable $\Mot$ to have for probabi
 This is an important example of modeling, which is of course not always relevant but allows a fine analysis of the problem. For example, in the case of an image, if a pixel is black, the next one is likely to be black, even if the overall black frequency is low. This defeats the independence hypothesis (the \guill{Information Transformation} section details this example).
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Entropy} 
 
 In order to answer the coding problem with a minimum average number of bits, Shannon introduced a fundamental mathematical object: \textit{entropy}\mylink{https://en.wikipedia.org/wiki/Entropy}.
-Entropy was invented by Ludwig Boltzmann \mylink{https://en.wikipedia.org/wiki/Ludwig_Boltzmann}
-in the context of thermodynamics \mylink{https://en.wikipedia.org/wiki/Entropie_ (thermodynamics)}
+Entropy was invented by Ludwig Boltzmann\mylink{https://en.wikipedia.org/wiki/Ludwig_Boltzmann}
+in the context of thermodynamics\mylink{https://en.wikipedia.org/wiki/Entropie_(thermodynamics)}
 and this concept was taken up by Claude Shannon to develop his theory of information.
 The entropy of the distribution of the source $\Mot$ is defined by the formula
 $$
@@ -486,34 +482,32 @@ $$
 		p_{\BL{2}} \times L(c_{\BL{2}}) +
 		p_{\BL{3}} \times L(c_{\BL{3}}).
 $$
-
-As part of the random modeling using a $\Mot$ source, we will write $\mathcal{L}_\mot$ this average bit number, which is associated with the source $\Mot$ having the distribution $(p_ \mot)_{\mot}$.
+As part of the random modeling using a $\Mot$ source, we will write $\mathcal{L}_\mot$ this average bit number, which is associated with the source $\Mot$ having the distribution $(p_\mot)_{\mot}$.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Shannon Bound for Coding}
 
-Claude Shannon showed in his article~\cite{Shannon1948} that the entropy allowed to limit the average number of bits $\mathcal{L}_\mot$ within the framework of this random model. It has indeed shown that for any prefix encoding, we have
+Claude Shannon showed in his article~\cite{Shannon1948} that the entropy allows to bound the average number of bits $\mathcal{L}_\mot$ within the framework of this random model. He indeed showed that for any prefix encoding, one has
 $$
-\mathcal{H}_\Mot \leq \mathcal{L}_\mot.
+	\mathcal{H}_\Mot \leq \mathcal{L}_\mot.
 $$
-This is a lower bound, which says that no prefix encoding can do better than this bound.
+This is a lower bound, and it says no prefix encoding can do better than this bound.
 
-This result is fundamental because it describes an unbreakable limit, whatever the prefix encoding technique used. Its proof is too difficult to be exposed here, it uses the representation in the form of a tree detailed above in Section~\ref{sec-arbres}, one can look for example~\cite{mallat2009a-wav} to obtain all the details. This proof shows that it is necessary to spend on average at least $-\log_2(p_{\mot})$ bits (which is, as we have already seen, always a positive number) to code a symbol $\mot$ if one wants to have an effective coding. The most frequent symbols need fewer bits because $p_{\mot}$ is smaller, so the optimal length $-\log_2(p_{\mot})$ is also smaller. This is very natural, as can be seen in particular for the two extreme cases:
+This result is fundamental because it describes an unbreakable limit, whatever the prefix encoding technique used. Its proof is too difficult to be exposed here, it uses the representation in the form of a tree detailed above in Section~\ref{sec-arbres}, one can look for example~\cite{mallat2009a-wav} for the details. This proof shows that it is necessary to spend on average at least $-\log_2(p_{\mot})$ bits (which is, as we have already seen, always a positive number) to code a symbol $\mot$ if one wants to have an effective coding. The most frequent symbols need fewer bits because $p_{\mot}$ is smaller, so the optimal length $-\log_2(p_{\mot})$ is also smaller. This is very natural, as can be seen in particular for the two extreme cases:
 
 \begin{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \item \textbf{Minimal entropy}
 %
-If $\mathcal{H}_\Mot=0$, then with probability 1, the sequence of symbols is composed of a single symbol. In this case, the use of a prefix encoding is very inefficient, since it must use at least one bit per symbol ie $\mathcal{L}_\Mot \geq 1 $, and thus such a coding is far from reaching the boundary of Shannon.
+If $\mathcal{H}_\Mot=0$, then with probability 1, the sequence of symbols is composed of a single symbol. In this case, the use of a prefix encoding is very inefficient, since it must use at least one bit per symbol ie $\mathcal{L}_\Mot \geq 1$, and thus such a coding is far from reaching the boundary of Shannon.
 
-The entropy being zero, the boundary says that one would wish to spend nothing for coding. This is logical, because there is no need to code such a sequence (since it is always the same). More advanced coding techniques (eg arithmetic coding \mylink{https://en.wikipedia.org/wiki/ArithmeticCoding}~\cite{RissanenLangdon79})
-allow to circumvent this problem and reach the Shannon boundary when the number of symbols to be coded tends to infinity.
+The entropy being zero, the boundary says that one would wish to spend nothing for coding. This is logical, because there is no need to code such a sequence (since it is always the same). 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \item \textbf{Maximum entropy}
 %
-If $\mathcal{H}_\Mot=\log_2(N)$, then all symbols are equally probable, so we must use codewords of the same length for all symbols, which is obtained by a uniform code. As we saw above, such a code requires $\mathcal{L}_\mot=\log_2(N)=\mathcal{H}_\mot$ bits per symbol, and thus the lower bound of Shannon is in this case.
+If $\mathcal{H}_\Mot=\log_2(N)$, then all symbols are equally probable, so we must use codewords of the same length for all symbols, which is obtained by a uniform code. As we saw above, such a code requires $\mathcal{L}_\mot=\log_2(N)=\mathcal{H}_\mot$ bits per symbol, and thus the lower bound of Shannon is tight in this case.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -529,7 +523,7 @@ $$
 	\quad\text{et}\quad
 	\mathcal{L}_\Mot = 1.68 \text{ bits.}
 $$
-These values are well in agreement with the Shannon boundary, and show that the prefix encoding used allows to be close enough to this bound.
+These values are in agreement with Shannon bound, and show that the prefix encoding used allows to be close enough to this bound.
 \end{itemize}
 
 We can ask whether this bound is precise, and whether it is possible to construct codes reaching the Shannon boundary in all cases (and not just the two extreme cases). Huffmann proposed in~\cite{Huffman52} a construction of an \guill{optimal} encoding (ie having the average length $\mathcal{L}_\Mot$ minimum for a given source $\Mot$) using an elegant algorithm. The average length obtained by this coding satisfies
@@ -539,21 +533,20 @@ $$
 The fact that this average length can be potentially as large as $\mathcal{H}_\Mot+1$(and therefore quite different from Shannon's lower bound $\mathcal{H}_\mot$) the length $L(c_{word})$ of a word $c_{\mot}$ of the code is an integer, while the optimal length should be $-\log_2(p_{\mot})$ which is not generally an integer. To overcome this problem, the symbols must be coded in groups, which can be done efficiently using Arithmetic Coding\mylink{https://en.wikipedia.org/wiki/ArithmeticCoding}~\cite{RissanenLangdon79},
 which reach the boundary of Shannon when we code an infinite sequence of symbols.
 
-Shannon's theory thus makes it possible to limit the mean length, which gives important information about the performance of a coding method for a given source. However, this marker does not give information on other potentially interesting statistical quantities, such as the maximum length or the median length.
+Shannon's theory thus makes it possible to bound the average coding length, which gives important information about the performance of a coding method for a given source. However, note that this does not give information on other potentially interesting statistical quantities, such as the maximum length or the median length.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Transformation of information}
 
-The bound of the previous entropy assumes that the symbols that make up the message to be coded are generated \textit{independent} by the source $\Mot$. This hypothesis allows a simple mathematical analysis of the problem, but it is generally false for complex data, as for example for the image shown in the following figure. Indeed, it is clear that the value of a pixel is not at all independent of those of its neighbors. For example, there are large homogeneous zones where the value of the pixels is quasi-constant.
-
+This entropy bound implicitely assumes that the symbols that make up the message to be coded are generated \textit{independently} by the source $\Mot$. This hypothesis allows a simple mathematical analysis of the problem, but it is generally false for complex data, as for example for the image shown in the following figure. Indeed, it is clear that the value of a pixel is not at all independent of those of its neighbors. For example, there are large homogeneous zones where the value of the pixels is quasi-constant.
 
 In order to improve the coding performance, and to obtain effective image compression methods, it is crucial to retransform the sequence of symbols in order to reduce its entropy by exploiting the dependencies between the pixels.
 A simple transformation to do this involves replacing the $p$ pixels $(\mot_i)_{i=1}^P$ with those of their differences $(\differ_i \eqdef \mot_{i}-\mot_{i-1})_{i=1}^{P-1}$. Indeed, in a uniform zone, the successive differences will be zero because the pixels have the same value. Figure~\ref{fig-codage-differences} shows how to perform such a calculation. It also shows that this transformation is bijective, that is to say that one can return to the original values $(\mot_i)_i$ by carrying out a gradual summation of the differences, that is to say calculating
 $$
 \mot_i=\mot_0 + \sum_{j=1}^{i} \differ_j.
 $$
-In order to make this inversion, it is of course necessary to retain the value $\mot_0$ of the first pixel. The Bijectivity of Transformation
+In order to make this inversion, it is of course necessary to retain the value $\mot_0$ of the first pixel. The bijectivity of the transformation
 $$
 	(\mot_0,\ldots,\mot_{P-1}) \longmapsto (\mot_0,\differ_1,\ldots,\differ_{P-1})
 $$
@@ -563,7 +556,6 @@ is crucial for decoding and displaying the decoded image.
 \myfig{
 \includegraphics[width=\linewidth]{differences/differences}
 }{fig-codage-differences}{Difference representation}
-
 
 As the pixels can take values $\{\BL{0,1,2,3}\}$, the differences can take the values $\{\GR{-3, \ldots, 3}\}$. In particular, they may be negative (which does not pose any particular problem for defining a coding). The following figure compares the histograms of pixels and differences. We notice that the histogram of the differences is much more \guill{peaked} in the neighborhood of 0, which is logical, because many differences (corresponding to the homogeneous zones) are null or small. The entropy $\mathcal{H}_\Differ$ of the histogram of the differences (which can be modeled with a source $\Differ$) is therefore much lower than the entropy $\mathcal{H} \mot$ of the pixels.
 
@@ -591,15 +583,15 @@ $$
 	\GR{2} \mapsto \RE{0100},
 	\GR{3} \mapsto \RE{010100}.
 $$
-This encoding has an average length $\mathcal{L} \approx 1.16$ bits. This average number corresponds well to the entropy boundary and is significantly smaller than the mean length associated with the pixel histogram (1.67 bits), which is itself smaller than the mean length associated with a ($\log_2(4)=2 $ bits). If we pass these lengths to the encoding of the entire image of $ 256 \times 256 $ in gray level, we get the following gains, where 1 ko=8 $\times$ 1024 bits is a \textit{ kilo byte}.
+This encoding has an average length $\mathcal{L} \approx 1.16$ bits. This average number matches well to the entropy bound and is significantly smaller than the mean length associated with the pixel histogram (1.67 bits), which is itself smaller than the average length associated with a ($\log_2(4)=2 $ bits). If encode the entire image of $256 \times 256$ in gray level, we get the following gains, where 1kb=8 $\times$ 1024 bits is a \textit{kilo byte}.
 \eq{
 \begin{tabular}{c}
-Uniform Encoding \\
+Uniform encoding \\
 16.3 kb
 \end{tabular}
 \quad \longrightarrow \quad
 \begin{tabular}{c}
-Encoding pixels \\
+Variable encoding \\
 13.7 kb
 \end{tabular}
 \quad \longrightarrow \quad
@@ -609,18 +601,17 @@ Coding of differences \\
 \end{tabular}
 }
 
-The most efficient methods of image compression use more complex transformations, and exploit in a finer way the local regularity of the images. This is the case of the JPEG-2000\mylink{https://fr.wikipedia.org/wiki/JPEG_2000} compression method, which is considered to be the most efficient at the moment, using the wavelets \mylink{https://en.wikipedia.org/wiki/Ondelette}, see the book~\cite{mallat2009a-wav} for more details. There are many other cases where non-independence of symbols can be used to improve coding performance. An important example is the sequence of letters that compose a text.
-
+The most efficient methods of image compression use more complex transformations, and exploit in a finer way the local regularity of the images. This is the case of the JPEG-2000\mylink{https://fr.wikipedia.org/wiki/JPEG_2000} compression method, which is considered to be the most efficient at the moment, using the wavelets\mylink{https://en.wikipedia.org/wiki/Ondelette}, see the book~\cite{mallat2009a-wav} for more details. There are many other cases where non-independence of symbols can be used to improve coding performance. An important example is the sequence of letters that compose a text.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
 
-The mathematical theory initiated by Claude Shannon defines a framework of thought necessary for the development of effective techniques for the acquisition, processing, storage and transmission of data in digital form. It was these techniques that revolutionized communications and computing during the second half of the 20th century, and enabled the growth of the Internet at the beginning of the 21st century. Without the revolutionary contributions of Shannon, you could not go on vacation with your entire library in your electronic reader, and all episodes of \textit{Game of Thrones} on your tablet!
+The mathematical theory initiated by Claude Shannon defines a framework necessary for the development of effective techniques for the acquisition, processing, storage and transmission of data in digital form. These techniques that revolutionized communications and computing during the second half of the 20th century, and enabled the growth of the Internet at the beginning of the 21st century. Without the revolutionary contributions of Shannon, you could not go on vacation with your entire library in your electronic reader, and all episodes of \textit{Game of Thrones} on your tablet!
 
-For more details on the theory of information, we can look at~\cite{CoverThomas}, for its use in signal and image processing, we can look at~\cite{mallat2009a-wav}.
-The computer codes used to reproduce the figures in this article are available online at \mylink{https://github.com/gpeyre/2016-shannon-theory}, and other codes are available on the site \url{www.numerical-tours.com}~\cite{2011-peyre-cise}.
+For more details on the theory of information, one can have look at~\cite{CoverThomas}, for its use in signal and image processing, one can look at~\cite{mallat2009a-wav}.
+The computer codes used to reproduce the figures in this article are available online at\mylink{https://github.com/gpeyre/2016-shannon-theory}, and other codes are available on the site \url{www.numerical-tours.com}~\cite{2011-peyre-cise}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -632,7 +623,7 @@ The computer codes used to reproduce the figures in this article are available o
 \begin{rs}
 \glossS{Pixel}: location on the square grid of an image, sometimes used to refer to the associated value.
 \glossS{Symbol}: element $\mot$ of a finite set, for example $\{0, \ldots, N-1\}$.
-\glossS{Code}: $ 0$ and $ 1 $ sequence used to encode a $\mot$ symbol.
+\glossS{Code}: $0$ and $1$ sequence used to encode a $\mot$ symbol.
 \glossS{Coding}: set of correspondences between $\mot$ symbols and associated codes, for example $\BL{2} \mapsto \RE{10}$. Also refers to the action of replacing a sequence of symbols with a set of bits.
 \glossS{Empirical distribution}: frequency $p_{\mot}$ of appearance of symbols $\mot$ in the sequence of symbols to be coded.
 \glossS{Histogram}: graphical representation of the empirical distribution, which can also by extension designate this distribution.
@@ -649,9 +640,9 @@ The computer codes used to reproduce the figures in this article are available o
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section *{Acknowledgments}
 
-I thank Marie-Noëlle Peyré, Gwenn Guichaoua, François Béguin, Gérard Grancher, Aurélien Djament and François Sauvageot for their careful proofreading of a French version of this text.
+I thank Marie-Noëlle Peyré, Gwenn Guichaoua, François B\'eguin, Gérard Grancher, Aurélien Djament and François Sauvageot for their careful proofreading of a French version of this text.
 
-The image of the flower is due to Maïtine Bergounioux. The image of Shannon used for the logo of the article is due to the telehistoriska user of the flickr site (under license CC BY-NC 2.0).
+The image of the flower is due to Maitine Bergounioux. The image of Shannon used for the logo of the article is due to the telehistoriska user of the flickr site (under license CC-BY-NC-2.0).
 
 
 
