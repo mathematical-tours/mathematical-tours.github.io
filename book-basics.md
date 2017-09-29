@@ -13,8 +13,8 @@ The [Latex sources of this text are available](https://github.com/mathematical-t
 
 The three chapters of this text are independent and present introductions to a few important mathematical foundations of imaging sciences:
 
-- Chapter 1 presents Shannon theory of compression, and insists in particular on the entropy bound for coding of information.
+- Chapter 1 presents Shannon theory of compression, and insists in particular on the entropy bound for the coding of information.
 - Chapter 2 presents the basics of image processing, in particular some important processings (quantization, densoising, colors).
-- Chapter 3 presents sampling theory, from Shannon classical sampling to compressed sensing. It also serves as a gentle introduction to the field of inverse problem regularization.
+- Chapter 3 presents sampling theory, from Shannon to compressed sensing. It also serves as a gentle introduction to the field of inverse problem regularization.
 
-The exposition level for the two chapters is elementary. The last chapter presents more advanced mathematical concepts and results.
+The exposition level for the first two chapters is elementary. The last chapter presents more advanced mathematical concepts and results.
