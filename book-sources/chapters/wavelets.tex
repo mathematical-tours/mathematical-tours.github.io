@@ -1008,11 +1008,37 @@ A wavelet $\psi$ has $p$ vanishing moments if
 }
 This ensures that $\dotp{f}{\psi_{j,n}}$ is small if $f$ is $\Cal$, $\al<p$ on Supp$(\psi_{j,n})$.
 
-This condition can be equivalently expressed over Fourier as
-\eq{
+This condition can be equivalently expressed over Fourier as followed.
+
+\begin{prop}
+Assuming enough regularity of $\psi$, and using the QMF construction~\eqref{eq-qmf}, it has $p$ vanishing moments if and only if
+\eql{\label{eq-cond-vm-fourier}
 	\foralls k \leq p-1, \quad 
 	\frac{\d^k \hat h}{\d \om^k}(\pi) = \frac{\d^k \hat g}{\d \om^k}(0) = 0.
 }
+\end{prop}
+\begin{proof}
+	Since $\psi$ is regular, one has that $\hat\psi^{(k)} = \Ff( (-\imath \cdot)^k \psi(\cdot) )$, so that
+	\eq{
+		(-\imath)^k \int_\RR x^k \psi(x) \d x  = \hat\psi^{(k)}(0).
+	}
+	Relation~\eqref{eq-rel-psi-phi} and~\eqref{eq-qmf}  implies 
+	\eq{
+		\hat \psi(2\om) = \hat h(\om+\pi)^* \rho(\om)
+		\qwhereq
+		\rho(\om) \eqdef \frac{1}{\sqrt{2}} e^{-i \om}  \hat \phi(\om).
+	}
+	and differentiating this relation shows	
+	\eq{
+		2 \hat \psi^{(1)}(2\om) = \hat h(\om+\pi)^* \rho^{(1)}(\om) + \hat h^{(1)}(\om+\pi)^* \rho(\om)
+	}
+	which shows that, since $\rho(0) = \hat \phi(0) \neq 0$, $\psi^{(1)}(0)=0 \Leftrightarrow \hat h^{(1)}(\pi)^*=0$.
+	%
+	Recursing this argument and iterating the derrivative, one obtains that 
+	$\psi^{(k)}(0)=0 \Leftrightarrow \hat h^{(k)}(\pi)^*=0$ (assuming this hold for previous derivatives).
+\end{proof}
+
+Note that conditions~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-1} implies that $\hat h(\pi)=0$, so that an admissible wavelet necessarily has $1$ vanishing moment, i.e. $\int \psi=0$. Condition~\eqref{eq-cond-vm-fourier} shows that having more vanishing moment is equivalent to having a Fourier transform $\hat h$ which is ``flatter'' arround $\om=\pi$.
 
 %%
 \paragraph{Support.}
@@ -1026,12 +1052,18 @@ Figure~\ref{fig-vanishing-moments-1d} shows the wavelet coefficients of a piecew
 }{fig-vanishing-moments-1d}
 
 To avoid that many wavelets create large coefficients near singularities, one should choose $\psi$ with a small support.
+%
+One can show that the size of the support of $\psi$ is proportional to the size of the support of $h$.
+%
 This requirement is however contradictory with the vanishing moment property~\eqref{eq-dfn-vm}. Indeed, one can prove that 
 for an orthogonal wavelet basis with $p$ vanishing moments
 \eq{
 	|\text{Supp}(\psi)| \geq 2p-1,
 } 
 where $\sup(a)$ is the largest closed interval outside of which the function $f$ is zero.
+
+
+Chapter~\ref{chap-approx} studies in details the tradeoff of support size and vanishing moment to perform non-linear approximation of piecewise smooth signals.
 
 %%
 \paragraph{Smoothness.}
@@ -1043,6 +1075,7 @@ In compression or denoising applications, an approximate signals is recovered fr
 This approximation $f_M$ has the same smoothness as $\psi$. 
 
 To avoid visually unpleasant artifacts, one should thus choose a smooth wavelet function $\psi$. This is only for cosmetic reasons, since increasing smoothness does not leads to a better approximation. However, for most wavelet family, increasing the number of vanishing moments also increases the smoothness of the wavelets. This is for instance the case of the Daubechies family exposed in the next section.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Daubechies Wavelets}

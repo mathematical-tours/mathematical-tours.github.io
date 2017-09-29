@@ -1,0 +1,705 @@
+% !TEX root = ../IntroImaging.tex
+
+\chapter{Image Processing}
+\label{chap-images}
+
+\newcommand{\FootLink}[1]{\footnote{\url{#1}}}
+\newcommand{\myparagraph}[1]{\vspace{2mm}\noindent\textbf{#1}}
+\newcommand{\lien}[2]{#2}
+
+%\newcommand{\bs}{\_}
+
+\newcommand{\BetweenImageSpace}{\hspace{3mm}}
+
+\newcommand{\image}[1]{\includegraphics[width=0.32\linewidth]{#1}}
+\newcommand{\imageM}[1]{\includegraphics[width=0.4\linewidth]{#1}}
+\newcommand{\imageL}[1]{\includegraphics[width=0.6\linewidth]{#1}}
+\newcommand{\imageQuad}[8]{
+\begin{tabular}{@{}c@{\BetweenImageSpace{}}c@{}}
+\image{#1} & \image{#2}\\
+#5 & #6 \\
+\image{#3} & \image{#4}\\
+#5 & #6 
+\end{tabular}
+}
+\newcommand{\imageTri}[6]{
+\begin{tabular}{@{}c@{\BetweenImageSpace{}}c@{\BetweenImageSpace{}}c@{}}
+\image{#1} & \image{#2} & \image{#3}\\
+#4 & #5 & #6 \\
+\end{tabular}
+}
+\newcommand{\imageDuo}[4]{
+\begin{tabular}{@{}c@{\BetweenImageSpace{}}c@{}}
+\image{#1} & \image{#2} \\
+#3 & #4  \\
+\end{tabular}
+}
+
+\newcommand{\myfigure}[3]{
+    \begin{figure}[ht]
+    \begin{center}
+        #1                          % usual include graphics
+    \end{center}
+    \vspace{-4mm}
+        \caption{\textit{#2}}       % caption
+    \label{#3}          % label
+    \end{figure}
+}
+
+
+
+Digital cameras take a very precise photograph of the world around us. The user wants to be able to store his photos on his hard drive with minimal footprint. He also wishes to be able to rework them in order to improve their quality. This article presents the mathematical and computer tools used to perform these different tasks. It takes up in part the content of the article published on the website \textit{Images of the mathematics} \FootLink{http://images.math.cnrs.fr/Le-traitement-numerique-des-images.html}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The pixels of an image}
+
+A \lien{-}{digital image}
+in gray levels is an array of values. Each
+box of this table, which stores a value, is called a
+\lien{-}{pixel}.
+By noting \(n\) the number of rows and \(p\) the number of columns in the image,
+we manipulate an array of \(n \times p\) pixels. Figure \ref{fig-section1-original-zoom}, left, shows a visualization of a square table with \(n = p = 240\), which represents \(240\times 240\) = 57600 pixels. The
+\lien{-}{digital cameras}
+can record much larger images,
+with many
+\lien{-}{millions of pixels}.
+
+The values of the pixels are stored in
+\lien{http://en.wikipedia.org/wiki/Computer}{the computer} or
+\lien{-}{digital camera}
+in the form of
+\lien{-}{relative integer} between entre 0 et $255=2^8-1$,
+making 256 possible values for each pixel. The value 0 is black, and the value 255 is white. The intermediate values correspond to
+\lien{-}{gray levels}
+ranging from black to white. Figure \ref{fig-section1-original-zoom} shows a subpanel of \(6 \times 6\) pixels taken from the previous image. You can see both the values that make up the table and the gray levels that allow you to display the image on the screen.
+
+
+  
+\myfigure{
+\imageL{section1-original-zoom}
+}{Sub image size $5 \times 5$}{fig-section1-original-zoom}
+
+\section{Store picture}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{Binary writing}
+
+Storing large images on the
+\lien{-}{hard drive}
+of a computer takes
+many places. Whole numbers are stored
+in
+\lien{-}{binary writing},
+from 1- to 1- in the form of an inheritance
+of 0 and 1. Each 0 and every 1 is stored on an elementary unit
+storage, called bit.
+To obtain the binary writing of a pixel having the value 179,
+it is necessary to decompose this value as a sum of powers of two.
+We thus obtain
+\[ 179=2^7+2^5+2^4+2+1, \]
+where care has been taken to order the powers of two by order
+descending. In order to make the binary writing appear better,
+we add ``\(1 \times\)" before each power that appears in the writing,
+and ``\(0\times\)" before the powers that do not appear
+\[ 179=1 \times 2^7 + 0 \times 2^6 + 1 \times 2^5 + 1 \times 2^4 + 
+  0 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 1 \times 2^0. \]
+With such write, the value of each pixel, which is a number between 0 and 255, requires
+\(\log_2 (256) = 8,\text{bits}\)
+% The function \(\log_2\) is the logarithm in base 2, and this calculation expresses
+% the fact that \(256 = 2\(8\)
+% = 2 \times 2 \times 2 \times 2 \times 2 \times 2 \times 2 \times 2. \]
+The binary writing of the value 179 of the pixel is thus \((1,0,1,1,0,0,1,1)\).
+% where each 1 and every 0 corresponds to the multiplicative factor that appears before each power.
+Any value between 0 and 255 can be written in this way,
+which requires the use of 8 bits. In fact,
+256 possible values, and \(256 = 2^8\). To store the complete image, it is therefore necessary to
+\(n \times p \times 8 \text{bits}\)
+For the image shown in the previous figures, it is thus necessary to
+\[256 \times 256 \times 8 = 524288 \text{bits}. \]
+Most often used (8 bits) as a unit,
+so that this image requires 57.6kb (kilobytes).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{Sub-sample an Image}
+
+
+
+\myfigure{
+\imageTri
+%{section2-subsample-2}
+{section2-subsample-4}
+{section2-subsample-8}
+{section2-subsample-16}
+%{Une ligne/colonne sur 2}
+{One row / column of 4}
+{One row / column out of 8}
+{One row / column of 16}
+}{Subsampling of an image}{fig-section2-subsample}
+
+In order to reduce the storage space of an image, the number of pixels can be reduced.
+The easiest way to do this is to delete rows and columns in the original image. Figure \ref{fig-section2-subsample}, at the top left, shows what is obtained if one row is kept on 4 and one column out of 4. We thus have divided by \(4 \times 4 = 16\) the number of pixels of the image, 
+and thus also divided by 16 the number of bits required to store the image on
+a hard disc. In fig. \ref{fig-section2-subsample}, the results obtained can be seen by removing more and more
+more rows and columns. Of course, the quality of the image
+degrades quickly.
+
+\subsection{Quantize an image}
+
+Another way to reduce the memory space required for storage
+is to use fewer integers for each value. For example, we can only use integers between 0 and 3, which will give an image with only 4 levels of gray. You can convert the original image to an image with 4 levels of values by performing the replacements:
+\begin{rs}
+\item the values in \(0,1,\ldots, 63\) are replaced by the value 0 (black),
+\item the values in \(64,1,\ldots, 127\) are replaced by the value 1 (light gray),
+The values in \(128.1,\ldots, 191\) are replaced by the value 2 (dark gray),
+\item the values in \(192,\ldots, 255\) are replaced by the value 3 (blank).
+\end{rs}
+Such an operation is called \lien{http://en.wikipedia.org/wiki/Quantification\bs{} (signal)}{quantification}. The \ref{fig-section3-quantize}, in the center, next shows the resulting image with 4 color levels.
+
+We have already seen that we can represent any value between 0 and
+255 using 8 bits using binary write. In the same way,
+it is checked that any value between 0 and 3 can be represented using 2 bits.
+A reduction of a factor 8/2 = 4 of the square memory
+necessary
+for storing the image on a hard disk. Figure \ref{fig-section3-quantize} shows the results obtained using less and less gray levels.
+
+
+\myfigure{
+\imageDuo
+%{section3-quantize-2}
+%{section3-quantize-3}
+{section3-quantize-4}
+{section3-quantize-16}
+%{16 niveaux de gris}
+%{3 niveaux de gris}
+{4 niveaux de gris}
+{16 niveaux de gris}
+}{Quantifying an image
+}{fig-section3-quantize}
+ 
+As with the reduction of the number of pixels, the reduction of the number
+gray levels greatly affects the quality of the image.
+In order to minimize the size of an image without changing its quality,
+more complex methods of
+\lien{http://en.wikipedia.org/wiki/Compression\bs{} d\% 27image}{image compression}.
+The most effective method is JPEG-2000. It uses the theory of wavelets.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\section{Noise Removal}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{Local average}
+
+Images are sometimes of poor quality. A typical example of a defect
+is the noise
+which appears when a picture is under-exposed,
+that is if there is not enough brightness. This noise is manifested by small
+random fluctuations
+gray levels. Figure \ref{fig-section5-moyenne}, on the left, shows
+a noisy image.
+
+
+\myfigure{
+\imageM{section5-moyenne-numbers}
+}{Pixels neighborhood.
+}{fig-section5-moyenne-numbers}
+
+In order to remove the noise in the images, it is necessary to
+modification to the pixel values.
+The simplest operation is to replace the value
+\(a\) of each pixel by the average
+\(a\) and the \(b, c, d, e, f, g, h, i\) values of the 8 pixels that surround $a$. Figure \ref{fig-section5-moyenne-numbers} shows an example of a neighborhood of 9 pixels. A modified image is thus obtained by replacing a by
+\[\frac{a + b + c + d + e + f + g + h + i}{9} \]
+since the average of 9 values is averaged.
+In our example, this average is
+\[ \frac{190+192+79+54+47+153+203+189+166}{9} \approx 141. \]
+By performing this operation for each pixel, a portion
+noise, because this noise is made up of random fluctuations, which are
+decreased by averaging. Figure \ref{fig-section5-moyenne}, top left, shows the effect of such a calculation. All the noise was not removed by this operation. In order to remove more
+of noise, one can average more values around each pixel.
+%
+Figure \ref{fig-section5-moyenne} shows the result obtained by increasing the average
+of values.
+
+
+\myfigure{
+\imageTri
+{section5-moyenne-1}
+{section5-moyenne-2}
+{section5-moyenne-3}
+%{section5-moyenne-4}
+{Mean on 9 pixels}
+{Mean on 25 pixels}
+{Mean on 49 pixels}
+%{Moyenne sur 81 pixels}
+}{Mean with increasing width
+}{fig-section5-moyenne}
+
+Pixel averaging is very effective in removing noise in
+images, unfortunately it also destroys much of the
+the information of the image. It can indeed be seen that the images
+obtained by averaging are blurry.
+This is particularly visible near contours, which are not sharp.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{Local median}
+
+To reduce this blur, the mean is replaced by the median. In the example of the neighborhood of 9 pixels used in the previous section, the 9 classified values are:
+\[47, 54, 79, 153, 166, 189, 190, 192, 203. \]
+The median of these nine values is 166. In order to remove more noise, it is enough to calculate the median over a larger number of neighboring pixels, as shown in Figure \ref{fig-section6-mediane}.
+It is found that this method is more efficient than the calculation of
+because the resulting images are less blurred. However, just as
+with the calculation of averages, if we take neighborhoods that are too large, we lose
+also information of the image, especially the edges of the objects are degraded.
+
+
+\if 0
+In order to reduce this blurring, the averaging must be replaced by an operation
+a little more complex, which is called median. Given the value \(a\) of a pixel, and the values
+\(b, c, d, e, f, g, h, i\)
+by
+\lien{http://en.wikipedia.org/wiki/Ordre\bs{} ascending}{ascending order}.
+In the example of the neighborhood of 9 pixels used in the previous section,
+we obtain the 9 classified values
+\[47, 54, 79, 153, 166, 189, 190, 192, 203. \]
+The median of the nine values \(a, b, c, d, e, f, g, h,
+is the \(5^{\text{th}}\) value of this ranking (it is- to- the
+central value of this ranking).
+
+In our case, the median is 166. Note that this number is generally different from the average.
+
+\fi
+
+\myfigure{
+\imageTri
+{section6-mediane-1}
+{section6-mediane-2}
+{section6-mediane-3}
+%{section6-mediane-4}
+{Médiane sur 9 pixels}
+{Médiane sur 25 pixels}
+{Médiane sur 49 pixels}
+%{Médiane sur 81 pixels}
+}{Filtrage médian de plus plus en plus fort.
+}{fig-section6-mediane}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\section{Detecting edges of objects}
+
+In order to locate objects in the images, it is necessary to
+detecting edges
+of these objects. These edges correspond to
+areas of the image where pixel values change rapidly. It's the
+for example when passing from the hull of the boat (which is dark,
+(with small values) at sea (which is clear, therefore with
+large values).
+
+In order to know if a pixel with a value \(a\) is along an edge of an object, the values \(b, c, d, e\) of its four neighbors are taken into account, which have a common side with it (Figure \ref{fig-section7-contours-numbers}). This allows the edges of objects to be detected as accurately as possible.
+
+\if 0
+(two horizontally and two vertically), which are arranged with respect to \(a\) as shown in Figure \ref{fig-section7-contours-numbers}. Note that we use here only the 4 neighbors that have a common side with the pixel considered, which is different from the calculation of means and medians where 8 neighbors were used. This is important in order to detect the edges of objects as precisely as possible.
+\fi
+
+
+\myfigure{
+\imageM{section7-contours-numbers}
+}{Example of a neighborhood of 5 pixels.
+}{fig-section7-contours-numbers}
+
+
+A value \(\ell\) is calculated according to the formula
+\[ \ell = \sqrt{ (b-d)^2 + (c-e)^2 }.  \]
+In our example, we thus obtain
+\[ \ell= \sqrt{ (192 - 153)^2 + (189 - 54)^2 } = \sqrt{19746} \approx 141. \]
+It may be noted that if \(\ell = 0\), then \(b = c\)
+and \(d = e\). On the contrary, if
+\(\ell\) is large, this means that the neighboring pixels have very high values
+different, the pixel considered is therefore probably on the edge of an object.
+
+Figure \ref{fig-section7-contours} shows an image whose pixel value is $\min (\ell, 255) $.
+It is necessary to take the minium with 255, because the value of $\ell$ can exceed the maximum displayable value (255, which corresponds to white). These values were displayed with black when \(\ell = 0\), white when \(\ell\) was high, and gray levels were used for the intermediate values. It can be seen that in the image on the right, the outlines of the objects appear white, as they correspond to the large values of \(\ell\).
+
+\myfigure{
+\imageDuo
+{section7-image}
+{section7-contours}
+{Original Image}
+{Contour map $\ell$}
+}{Edge detection.
+}{fig-section7-contours}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The color images}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{RGB space}
+
+A
+\lien{http://en.wikipedia.org/wiki/Color}{color image}
+is actually composed of three independent images,
+in order to represent the
+\lien{-}{red, green, and blue}.
+Each of these three
+images is called a
+\lien{-}{color channel}.
+This representation in red, green and blue mimics the
+human visual system.
+Figure \ref{fig-canaux-coul} shows the three constituent channels of the image shown on the left of Figure \ref{fig-luminance}.
+
+\myfigure{
+\imageDuo
+{section8-image}
+{section8-luminance}
+{Image d'origine}
+{Luminance}
+}{Color image.
+}{fig-luminance}
+
+
+Each pixel of the color image thus contains three numbers \((r, v, b)\),
+each being an integer between 0 and 255.
+If the pixel is equal to \((r, v, b) = (255,0,0)\), it contains only information
+red, and is displayed as red.
+Similarly, the pixels of \((0.255.0)\) and \((0.0255)\) are
+respectively displayed green and blue.
+
+
+\myfigure{
+\imageTri
+{section8-rouge}
+{section8-vert}
+{section8-bleu}
+{Canal rouge}
+{Canal vert}
+{Canal bleu}
+}{Color channels
+}{fig-canaux-coul}
+
+
+A color image can be displayed on the screen.
+from its three channels \((r, v, b)\) using the rules of
+\lien{http://en.wikipedia.org/wiki/Synth\%C3\%A8se\bs{} additive}{additive color synthesis}. These rules correspond to the way in which light rays combine, hence the qualifier \guill{additive}.
+Figure \ref{fig-section8-synthese}, left, shows the composition rules
+this additive synthesis of colors.
+For example, a pixel with the values
+\((r, v, b) = (255,0,255)\) is a mixture of red and green,
+displayed as yellow.
+
+
+\myfigure{
+\imageDuo
+{section8-synthese-additive}
+{section8-synthese-soustractive}
+{Synthèse additive}
+{Synthèse soustractive}
+}{Color Synthesis
+}{fig-section8-synthese}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{CMJ Space}
+
+Another common representation for color images uses
+as background colors cyan, magenta and yellow. It is calculated
+the three numbers \((c, m, j)\) corresponding to each of these three channels
+from the red, green and blue channels \((r, v, b)\) as follows
+\[c = 255-r, \quad m = 255-v, \quad j = 255-b. \]
+For example, a pixel of pure blue
+\((r, v, b) = (0,0,255)\) will become
+\((c, m, j) = (255.255.0)\). The following figure shows the three channels
+\((c, m, j)\) of a color image.
+
+\myfigure{
+\imageTri
+{section8-cyan}
+{section8-magenta}
+{section8-jaune}
+{Canal cyan}
+{Canal magenta}
+{Canal jaune}
+}{Channels CMJ
+}{fig-canaux-cmj}
+
+
+In order to display a color image on the screen from the three channels \((c, m, j)\), the subtractive color synthesis must be used. Figure \ref{fig-section8-synthese}, right, shows the composition rules of this subtractive synthesis. They correspond in painting to the absorption of light by colored pigments, hence the qualifier \guill{subtractive}. Cyan, magenta and yellow are called primary colors.
+
+It is thus possible to store on a hard disk a color image by storing the
+three channels, corresponding to the \((r, g, b)\) or \((c, m, j)\).
+You can change color images as well as images in levels of
+Grey. The easiest way to do this is to apply the amendment
+to each of the channels.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Changing the Contrast of an Image}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{Luminance}
+
+You can calculate a grayscale image from a color image
+by means of the three channels. Thus, for each pixel, a value
+\[a = \frac{r + v + b}{3} \]
+which is called luminance
+of the color. Figure \ref{fig-luminance} shows the transition from a color image to a luminance image in
+shades of Grey.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{Grayscale contrast manipulations}
+
+It is possible to make various changes to the image in order to
+change his ontrast. We consider here a grayscale image.
+A simple manipulation consists in replacing each value \(a\) of a pixel of an image by \(255-a\), which corresponds to the opposite gray intensity. The white becomes black and vice-et-versa, giving a similar effect to that
+of the negative of film cameras, see figure \ref{fig-section4-square}, left.
+
+The image is lightened or darkened using an increasing function of $ [0,255] $ in itself, which is applied to the $a$ values of the pixels. You can darken the image by using the square function. More precisely, we define the new value of a pixel of the image as $a^2/255$ (see figure \ref{fig-section4-square} in the center). Since the result is not generally an integer, it is rounded to the nearest integer. Similarly, for lightening the image, the value $a$ of each pixel is replaced by the rounding of $\sqrt{255 a} $. Figure \ref{fig-section4-square}, on the right, shows the obtained thinning. It will be noted that these two operations (square lightening and square root darkening) are inverse to one another.
+
+% It will be noted that these two operations (square lightening and square root darkening) are inverse to one another.
+
+
+\myfigure{
+\imageTri{section4-negatif}
+{section4-square}
+{section4-sqrt}
+{Negative}
+{Square}
+{Square root}
+}{Changing the contrast.
+}{fig-section4-square}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{Manipulations of color contrast}
+
+In order to manipulate the contrast of a color image, it is important to respect the color tones as much as possible. It is therefore desired to manipulate only the luminance component \(a = (r + v + b) / 3\), while maintaining the residue \((r-a, v-a, b-a)\) constant. For example, a change in contrast can be defined by raising the luminance \(a\) to the \(\ ga> 0\) in order to obtain
+\[
+	\tilde a = 255 \times \pa{ \frac{a}{255} }^{\ga} = 255 \times \text{exp}\pa{  \ga \times \text{ln}
+		\pa{ \frac{a}{255} }  },
+\]
+(with Convention \(\tilde a = 0\) when \(a = 0\)). It is noted that for \(\ga = 1/2\) (respectively \(\ga = 2\)) the contrast change is found by squaring (respectively square root) introduced in the previous section. And of course, for \(\ga = 1\), the luminance is unchanged.
+
+% As \(\ga\) is not necessarily an integer, it is important to use the exponential and the logarithm to define this change.
+
+This change in contrast is then reflected on the color image by defining three channels \((\tilde r, \tilde v, \tilde b)\) of a new image by
+\[
+	\choice{
+	\tilde r = \max(0, \min(255, r + \tilde a - a)),\\ 
+	\tilde v = \max(0, \min(255, v + \tilde a - a)),\\
+	\tilde b = \max(0, \min(255, b + \tilde a - a)).
+	}	
+\]
+It is important to take the maximum with 0 and the minimum with 255 so that the result remains in the range \([0.255]\), and is displayed correctly. Figure \ref{fig-contrast-color} shows the result for different values of \(\ga\). For \(\ga <1\), the image is thinned, while for \(\ga> 1\), the image is darkened.
+
+\newcommand{\imgsix}[1]{\includegraphics[width=0.16\linewidth]{#1}}
+
+\myfigure{
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+\imgsix{section4-constrast-1}&
+\imgsix{section4-constrast-2}&
+\imgsix{section4-constrast-3}&
+\imgsix{section4-constrast-4}&
+\imgsix{section4-constrast-5}&
+\imgsix{section4-constrast-6}\\
+$\ga=0,5$& 
+$\ga=0,75$&
+$\ga=1$&
+$\ga=1,5$&
+$\ga=2$&
+$\ga=3$
+\end{tabular}
+}{Changing the contrast of a color image.
+}{fig-contraste-c}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Images and matrices}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\subsection{Symmetry and rotation}
+
+An image is an array of numbers, with \(n\) lines and \(p\)
+columns. It is therefore easy to
+some
+\lien{-}{geometric transformations}
+on the image. The values of the pixels that make up this table (denoted \(A\)) can be
+represented as \(A = (a_{i, j})_{i, j}\)
+or index \(i\) describes the set of numbers \(\{1,\dots, n\}\)
+(the integers between 1 and n) and the index
+\(j\) the numbers \(\{1,\dots, p\}\).
+\(a_{i, j}\) is said to be the value of the pixel at position \((i, j)\).
+
+The array of pixels thus indexed is represented as
+\[
+A = 
+\begin{pmatrix}
+a_{1,1} &           &           &   & a_{1,p}\\
+       &           &  \vdots   &   &  \\
+	   &           & a_{i-1,j} &   & \\
+\ldots & a_{i,j-1} & a_{i,j}   & a_{i,j+1} & \ldots\\
+	   &           & a_{i+1,j} &   & \\
+       &           &  \vdots   &   &  \\
+a_{n,1} &           &           &   & a_{n,p}\\
+\end{pmatrix},
+\]
+%, which shows that the pixel at the top left of the image corresponds to the value \(a_{1,1}\).
+
+This corresponds to the representation of the image in the form of a matrix. Transposing this matrix corresponds to symmetry with respect to the main diagonal. This transposition is carried out on each of the three color components (see figure \ref{fig-geometric}, on the left).
+
+\if 0
+This corresponds to the representation of the image under
+form of a matrix.
+If rows and columns are exchanged, one defines another
+table \(B\) with \(p\) rows and \(n\) columns. The formula that defines
+Table \(B = (b_{j, i})_{i, j}\) is $b_{j, i} = a_{i, j} $.
+This corresponds to a transpose
+of the pixel matrix of the image. For a color image, this modification is made on each of its
+three color components R, V and B.
+
+Figure \ref{fig-geometric} shows the image of Tables \(A\) and \(B\). The
+modify is to make the image undergo a
+symmetry compared to the diagonal
+which joins the top / left corner to the bottom / right corner.
+\fi
+
+\myfigure{
+\imageTri
+{section10-original}
+{section10-transpose}
+{section10-rotation}
+{Matrice $A$}
+{Matrix $B$ (transposed)}
+{Matrix $C$ (rotation)}
+}{Transpose and rotate.
+}{fig-geometrique}
+
+It is also possible to carry out a rotation
+a quarter turn clockwise to
+the image. This is obtained by defining a matrix \(C = (c_{i, j})_{j, i}\) of
+\(p\) lines and \(n\)
+columns by $c_{j, i} = a_{n-i + 1, j} $.
+Figure \ref{fig-geometric}, right, shows the action of this rotation on an image.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fade between two images}
+
+It is desired to carry out a
+\lien{http://en.wikipedia.org/wiki/Fondu}{transition between two images}
+\(A\) and \(B\)
+cut. It is therefore assumed that the two images have the same number \(n\) of lines
+and the same number \(p\) of columns. \(A = (a_{i, j})_{i, j}\) the pixels of image \(A\) and
+\(B = (b_{i, j})_{i, j}\) the pixels of the image \(B\).
+
+
+For a value \(t\) set between \(0\) and \(1\), the image
+\(C = (c_{i, j})_{i, j}\) as
+\[c_{i, j} = (1-t) a_{i, j} + t b_{i, j} .\]
+It is the formula of a
+\lien{http://en.wikipedia.org/wiki/Interpolation\bs{} lin\% C3\% A9aire}{linear interpolation}
+between the two images. For a color image, this formula is applied to each of the
+channels R, V and B.
+
+
+It can be seen that for \(t = 0\), the image \(C\) is equal to the image
+\(A\). For \(t = 1\), the image \(C\) is equal to the image
+\(B\). When the value \(t\) increases from 0 to 1, one thus obtains a
+effect, since the image, which at first is close to image \(A\)
+resembles more and more the image \(B\). Figure \ref{fig-interp} shows the result obtained for 6 values of \(t\) distributed between 0 and 1.
+
+\myfigure{
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+\imgsix{section11-interp-1}&
+\imgsix{section11-interp-2}&
+\imgsix{section11-interp-3}&
+\imgsix{section11-interp-4}&
+\imgsix{section11-interp-5}&
+\imgsix{section11-interp-6}\\
+Image $A$, t=0 & 
+t=0,2 &
+t=0,4 &
+t=0,6 &
+t=0,8 &
+Image $B$, t=1
+\end{tabular}
+}{Linear interpolation.
+}{fig-interp}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%
+\section*{Conclusion}
+
+Mathematical processing of images is a very active field, where the theoretical advances are realized in the form of fast calculation algorithms. These algorithms have important applications for the manipulation of digital contents. This article, however, only scratched the surface of the immense list of treatments that can be subjected to an image. \textit{A Numerical Tour of Signal Processing} \FootLink{http://www.numerical-tours.com/} can be checked for many examples of image processing and links to other resources available online.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Glossary}
+
+\newcommand{\gloss}[1]{\item \textbf{#1}}
+
+\begin{rs}
+\gloss{random}: unpredictable value often due to hazard, such as noise disturbing images of bad qualities.
+\gloss{Bit}: A basic unit for storing information in the form of 0 and 1 in a computer.
+\gloss{Channel}: One of three elemental images that make up a color image.
+\gloss{Edges}: The area of an image where the values of the pixels vary widely, which corresponds to the contours of the objects that make up the image.
+\gloss{Noise}: small perturbations that degrade the quality of an image.
+\gloss{Square}: square \(b\) with a value \(a\) is \(a \times a\). It is noted \(a^2\).
+\gloss{Contrast}: informal amount that indicates the difference between light and dark areas of an image.
+\gloss{Image Compression}: A method to reduce the amount of memory required to store an image on the hard disk.
+\gloss{Binary Writing}: Writing numeric values using only 0 and 1.
+\gloss{Blur}: Degradation of an image that makes the contours of objects unclear, and therefore difficult to locate precisely.
+\gloss{Fade}: linear interpolation between two images.
+\gloss{Color Image}: A set of three grayscale images, which can be displayed on the color screen.
+\gloss{Digital Image}: An array of values that can be displayed on the screen by assigning a gray level to each value.
+\gloss{Inverse}: operation that returns an image to its original state.
+\gloss{JPEG-2000}: recent image compression method that uses a wavelet transform.
+\gloss{Luminance}: Average of the different channels in an image, which indicates the light output of the pixel.
+\gloss{Matrix}: array of values, represented as \((a_{i, j})_{i, j}\).
+\gloss{Median}: central value when classifying a set of values in ascending order.
+\gloss{Average}: the average of a set of values is their sum divided by their number.
+\gloss{Grayscale}: Grayscale used to display a digital image on the screen.
+\gloss{integers}: numbers 0, 1, 2, 3, 4 ...
+\gloss{Byte}: Set of eight consecutive bits.
+\gloss{Wavelets}: image transformation that is used by image compression JPEG-2000 method.
+\gloss{Ascending order}: classifying a set of values from the smallest to the largest.
+\gloss{Pixel}: A box in an array of values that corresponds to a digital image.
+\gloss{Quantification}: a method of reducing the set of possible values of a digital image.
+\gloss{square root}: the square root \(b\) of a positive value \(a\) is the positive value \(b\) checking \(a = b \times b\). It is denoted \(\sqrt{a}\).
+\gloss{Resolution}: The size of an image (number of pixels).
+\gloss{Exposed}: photograph of a scene too dark for which the photographic lens did not stay open long enough.
+\gloss{Additive Synthesis}: rule to construct any color from the three colors red, green and blue. This is the rule that governs the mixing of the colors of light beams used to illuminate a white wall.
+\gloss{Subtractive Synthesis}: rule to construct any color from the three cyan, magenta and yellow colors. This is the rule that governs the mixing of colors in paint.
+\end{rs}
+ 
+
