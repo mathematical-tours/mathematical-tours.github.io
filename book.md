@@ -33,9 +33,9 @@ Chapters Available as Individual PDFs
 Chapters Soon Available
 ----------------
 
-- Convex Optimization
-- Convex Duality
-- Compressed Sensing
-- Machine Learning
-- Deep-Learning
-- Optimal Transport
+- [Convex Optimization](book-sources/chapters-pdf/convex-optim.pdf)
+- [Convex Duality](book-sources/chapters-pdf/convex-duality.pdf)
+- [Compressed Sensing](book-sources/chapters-pdf/compressed-sensing.pdf)
+- [Machine Learning](book-sources/chapters-pdf/machine-learning.pdf)
+- [Deep-Learning](book-sources/chapters-pdf/deep-learning.pdf)
+- [Optimal Transport](book-sources/chapters-pdf/optimal-transport.pdf)

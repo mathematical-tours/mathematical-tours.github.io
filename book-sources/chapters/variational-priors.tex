@@ -6,11 +6,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Sobolev and Total Variation Priors}
+\label{sec-sob-tv-variational}
 
 The simplest prior are obtained by integrating local differential quantity over the image. They corresponds to norms in functional spaces that imposes some smoothness on the signal of the image. We detail here the Sobolev and the total variation priors, that are the most popular in image processing.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Continuous Priors}
+\label{sec-sob-tv-cont}
 
 In the following, we consider either continuous functions $f \in \Ldeux([0,1]^2)$ or discrete vectors $f \in \RR^N$, and consider continuous priors and there discrete counterparts in Section \ref{subsec-disc-priors}. 
 
@@ -48,15 +50,15 @@ An analog image $f \in \Ldeux([0,1]^2)$ is discretized through an acquisition de
 
 Discrete Sobolev and total variation priors are obtained by computing finite differences approximations of derivatives, using for instance forward differences 
 \eqm{
-	\de_1 f[n_1,n_2] &= f[n_1+1,n_2]- f[n_1,n_2] \\
-	\de_2 f[n_1,n_2] &= f[n_1,n_2+1]- f[n_1,n_2],
+	\de_1 f_{n_1,n_2} &= f_{n_1+1,n_2}- f_{n_1,n_2} \\
+	\de_2 f_{n_1,n_2} &= f_{n_1,n_2+1}- f_{n_1,n_2},
 }
 and one can use higher order schemes to process more precisely smooth functions.
 One should be careful with boundary conditions, and we consider here for simplicity periodic boundary conditions, which correspond to computing the indexes $n_i+1$ modulo $N$. More advanced symmetric boundary conditions can be used as well to avoid boundary artifacts. 
 
 A discrete gradient is defined as
 \eq{
-	\nabla f[n] = ( \de_1 f[n],\de_2 f[n] ) \in \RR^{2}
+	\nabla f_n = ( \de_1 f_n,\de_2 f_n ) \in \RR^{2}
 }
 which corresponds to a mapping from images to vector fields
 \eq{
@@ -78,8 +80,8 @@ Figure \ref{fig-grad-discrete} shows examples of gradient vectors. They point in
 
 One can also use backward differences,
 \eqm{
-	\tilde\de_1 f[n_1,n_2] &= f[n_1,n_2]- f[n_1-1,n_2] \\
-	\tilde\de_2 f[n_1,n_2] &= f[n_1,n_2]- f[n_1,n_2-1].
+	\tilde\de_1 f_{n_1,n_2} &= f_{n_1,n_2}- f_{n_1-1,n_2} \\
+	\tilde\de_2 f_{n_1,n_2} &= f_{n_1,n_2}- f_{n_1,n_2-1}.
 }
 They are dual to the forward differences, so that 
 \eq{
@@ -98,7 +100,7 @@ for smooth periodic functions on $[0,1]$.
 
 A divergence operator is defined using backward differences,
 \eq{
-	\diverg(v)[n] = \tilde \de_1 v_1[n] + \tilde \de_2 v_2[n],
+	\diverg(v)_n = \tilde \de_1 v_{1,n} + \tilde \de_2 v_{2,n},
 }
 and corresponds to a mapping from vector fields to images
 \eq{
@@ -138,11 +140,11 @@ which corresponds to a semi-definite negative operator.
 
 For discrete images, and using the previously defined gradient and divergence, it is a local high pass filter
 \eql{\label{eq-discrete-lapl}
-	\Delta f[n] = \sum_{ p \in V_4(n) } f[p] - 4 f[n],
+	\Delta f_n = \sum_{ p \in V_4(n) } f_p - 4 f_n,
 }
 that approximates the continuous second order derivative
 \eq{
-	\pdd{f}{x_1}(x) + \pdd{f}{x_2} \approx N^2 \De f[n] \qforq x = n/N.
+	\pdd{f}{x_1}(x) + \pdd{f}{x_2} \approx N^2 \De f_n \qforq x = n/N.
 }
 
 Lapalacian operators thus correspond to filterings. A continuous Laplacian is equivalently defined over the Fourier domain in diagonal form as
@@ -151,9 +153,9 @@ Lapalacian operators thus correspond to filterings. A continuous Laplacian is eq
 }
 and the discrete Laplacian \eqref{eq-discrete-lapl} as
 \eql{\label{eq-discrete-lapl-fourier}
-	g = \Delta f \qarrq \hat g[\om] =  \rho[\om]^2 \hat f(\om)
+	g = \Delta f \qarrq \hat g_\om =  \rho_\om^2 \hat f(\om)
 	\qwhereq
-	\rho[\om]^2 = \sin\pa{ \frac{\pi}{N}\om_1 }^2 + \sin\pa{ \frac{\pi}{N}\om_2 }^2.
+	\rho_\om^2 = \sin\pa{ \frac{\pi}{N}\om_1 }^2 + \sin\pa{ \frac{\pi}{N}\om_2 }^2.
 }
 
 %%
@@ -161,18 +163,18 @@ and the discrete Laplacian \eqref{eq-discrete-lapl} as
 
 A discrete Sobolev energy is obtained by using the $\ldeux$ norm of the discrete gradient vector field
 \eql{\label{eq-discr-sobolev}
-	\Jsob(f) = \frac{1}{2} \sum_n ( \de_1 f[n] )^2 + ( \de_2 f[n] )^2 = \frac{1}{2} \norm{\nabla f}^2.
+	\Jsob(f) = \frac{1}{2} \sum_n ( \de_1 f_n )^2 + ( \de_2 f_n )^2 = \frac{1}{2} \norm{\nabla f}^2.
 }
 Similarly, a discrete TV energy is defined as the $\lun$ norm of the gradient field
 \eql{\label{eq-discr-tv}
-	\Jtv(f) = \sum_n \sqrt{ ( \de_1 f[n] )^2 + ( \de_2 f[n] )^2 }
+	\Jtv(f) = \sum_n \sqrt{ ( \de_1 f_n )^2 + ( \de_2 f_n )^2 }
 	= \normu{\nabla f}
 }
 where the $\lun$ norm of a vector field $v \in \RR^{N \times 2}$ is
 \eql{\label{eq-lun-norm}
-	\normu{v} = \sum_n \norm{v[n]}
+	\normu{v} = \sum_n \norm{v_n}
 }
-where $v[n] \in \RR^2$.
+where $v_n \in \RR^2$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -186,7 +188,7 @@ Image smoothing is obtained by minimizing the prior using a gradient descent.
 
 The gradient of the prior $J : \RR^N \rightarrow \RR$ is a vector $\grad J(f)$. It describes locally up to the first order the variation of the prior
 \eq{
-	J(f+\epsilon) = J(f) + \dotp{\epsilon}{\grad J(f)} + o(\norm{\epsilon}^2).
+	J(f+\epsilon) = J(f) + \dotp{\epsilon}{\grad J(f)} + o(\norm{\epsilon}).
 }
 
 If $J$ is a smooth function of the image $f$, a discrete energy minimization is obtained through a gradient descent
@@ -269,11 +271,11 @@ This shows the regularizing property of the heat flow, that operates a blurring 
 
 The discrete Sobolev energy \eqref{eq-discr-sobolev} minimization defined a PDE flow that is discrete in space
 \eq{
-	\pd{f_t}{t}[n] = - (\grad J(f_t))[n] = \De f_t[n].
+	\pd{f_{n,t}}{t} = - (\grad J(f_t))_n = (\De f_t)_n.
 }
 It can be further discretized in time as done in \eqref{eq-gradmin-flow} and leads to a fully discrete flow
 \eq{	
-	f^{(k+1)}[n] = f^{(k)}[n] + \tau \Big( \sum_{p \in V_4(n)} f[p] - 4 f[n] \Big) = f \star h [n]
+	f^{(k+1)}_n = f^{(k)}_n + \tau \Big( \sum_{p \in V_4(n)} f_p - 4 f_n \Big) = (f \star h)_n
 }
 where $V_4(n)$ are the four neighbor to a pixel $n$. The flow thus corresponds to iterative convolutions
 \eq{
@@ -291,13 +293,13 @@ It can be shown to be stable and convergent if $\tau<1/4$.
 %%
 \paragraph{Total variation gradient.}
 
-The total variation energy $\Jtv$, both continuous \eqref{eq-dfn-tv-energy} and discrete \eqref{eq-discr-tv} is not a smooth function of the image. For instance, the discrete $\Jtv$ is non-differentiable at an image $f$ such that there exists a pixel $n$ where $\nabla f[n] = 0$.
+The total variation energy $\Jtv$, both continuous \eqref{eq-dfn-tv-energy} and discrete \eqref{eq-discr-tv} is not a smooth function of the image. For instance, the discrete $\Jtv$ is non-differentiable at an image $f$ such that there exists a pixel $n$ where $\nabla f_n = 0$.
 
-If $\nabla f[n] \neq 0$, one can compute the gradient of the TV energy specialized at pixel $n$ as
+If $\nabla f_n \neq 0$, one can compute the gradient of the TV energy specialized at pixel $n$ as
 \eq{
-	(\grad J(f))[n] = -\diverg\pa{ \frac{ \nabla f}{ \norm{\nabla f} } }[n]
+	(\grad J(f))_n = -\diverg\pa{ \frac{ \nabla f}{ \norm{\nabla f} } }_n
 }
-which exhibits a division by zero singularity for a point with vanishing gradient. Figure \ref{fig-discrete-operators-lapl} shows an example of TV gradient, which appears noisy in smooth areas, because $\norm{\nabla f[n]}$ is small in such regions.
+which exhibits a division by zero singularity for a point with vanishing gradient. Figure \ref{fig-discrete-operators-lapl} shows an example of TV gradient, which appears noisy in smooth areas, because $\norm{\nabla f_n}$ is small in such regions.
 
 This non-differentiabilty makes impossible the definition of a gradient descent and a TV flow.
 
@@ -306,7 +308,7 @@ This non-differentiabilty makes impossible the definition of a gradient descent 
 	
 To avoid this issue, one can modify the TV energy, and define a smoothed TV prior
 \eql{\label{eq-tv-smoothed}
-	\Jtv^\epsilon(f) = \sum_n \sqrt{ \epsilon^2 + \norm{ \nabla f[n] }^2 }
+	\Jtv^\epsilon(f) = \sum_n \sqrt{ \epsilon^2 + \norm{ \nabla f_n }^2 }
 }
 where $\epsilon>0$ is a small regularization parameter. Figure \ref{fig-regul-abs} shows this effect of this regularization on the absolute value function.
 
@@ -368,7 +370,7 @@ Figure \ref{fig-flow} shows a comparison between the heat flow and the total var
 \subsection{PDE Flows for Denoising}
 \label{subsec-pde-denoise}
 
-PDE flows can be used to remove noise from an observation $f= f_0 + w$. As detailed in Section \ref{subsec-image-formation} a simple noise model assumes that each pixel is corrupted with a Gaussian noise $w[n] \sim \Nn(0,\si)$, and that these perturbations are independent (white noise).
+PDE flows can be used to remove noise from an observation $f= f_0 + w$. As detailed in Section \ref{subsec-image-formation} a simple noise model assumes that each pixel is corrupted with a Gaussian noise $w_n \sim \Nn(0,\si)$, and that these perturbations are independent (white noise).
 
 The denoising is obtained using the PDE flow within initial image $f$ at time $t=0$
 \eq{
@@ -477,7 +479,7 @@ which shows that the regularization \eqref{eq-regul-denoising} is computing an e
 
 If the differential operators are computed with periodic boundary conditions, this linear system can be solved exactly over the Fourier domain
 \eql{\label{eq-sobol-reg-fourier}
-	\hat f^\star_\la[\om] = \frac{1}{1 + \la \rho_\om^2 } \hat f[\om]
+	 (\hat f^\star_\la)_\om = \frac{1}{1 + \la \rho_\om^2 } \hat f_\om
 }
 where $\rho_\om$ depends on the discretization of the Laplacian, see for instance \eqref{eq-discrete-lapl-fourier}.
 
@@ -491,9 +493,6 @@ This Sobolev regularization denoising is a particular case of the linear estimat
 
 The total variation prior $\Jtv$ defined in \eqref{eq-discr-tv} is non-differentiable. One can either use a smoothed approximation of the prior, or use an optimization algorithm not based on a gradient descent.
 
-%%
-\paragraph{Smoothed TV.}
-
 The TV prior can be approximated to obtain the prior $\Jtv^\epsilon(g)$ defined in \eqref{eq-tv-smoothed}, which is differentiable with respect to $g$.
 Using the gradient of this prior defined in \eqref{eq-grad-tv-eps}, one obtains the following instantiation of the gradient descent \eqref{eq-grad-desc-regul} 
 \eql{\label{eq-grad-tveps-regul}
@@ -502,50 +501,7 @@ Using the gradient of this prior defined in \eqref{eq-grad-tv-eps}, one obtains 
 }
 which converge to the unique minimizer $f^\star_\la$ of \eqref{eq-regul-denoising}.
 
-%%
-\paragraph{Chambolle's algorithm.}
-
-Chambolle in \cite{chambolle-algo-tv} detail an algorithm to minimize exactly the TV denoising problem
-\eql{\label{eq-prox-tv}
-	f_\la^\star = \uargmin{g \in \RR^N} \frac{1}{2} \norm{f-g}^2 + \la \normTV{g}.
-}
-It uses a relationship between the vectorial $\lun$ and $\linf$ norms
-\eq{
-	\normu{v} = \sum_{m=0}^{N-1} \norm{v[m]} \qandq
-	\normi{v} = \umax{0 \leq m < N} \norm{v[m]}
-}
-where each $v[m] \in \RR^2$ and $v \in \RR^{N \times 2}$. One has
-\eq{
-	\normu{v} = \umax{ \normi{w} \leq 1 } \dotp{w}{u}
-}
-which allows one to re-write the optimization \eqref{eq-prox-tv} as
-\eq{
-	\umin{g \in \RR^N} \umax{\normi{w} \leq 1} 
-		\frac{1}{2} \norm{f-g}^2 + \la \dotp{w}{\nabla g}.
-}
-Exchanging the roles of the min and the max, one proves that the solution of  \eqref{eq-prox-tv} is re-written as
-\eql{\label{eq-primal-dual-chambolle}
-	f_\la^\star =  f + \la \diverg(w^\star)
-}
-where 
-\eql{\label{eq-chambolle-dual}
-	w^\star \in \uargmin{\normi{w} \leq 1} \norm{f + \la \diverg(w^\star)}^2.
-}
-The convex optimization problem \eqref{eq-chambolle-dual} computes a dual vector field $w^\star \in \RR^{N \times 2}$, from which the denoised image is recovered using \eqref{eq-primal-dual-chambolle}.
-
-The dual problem \eqref{eq-chambolle-dual} is the minimization of a quadratic functional subject to a convex $\linf$ constraint. It can thus be solved using for instance a projected gradient descent
-\eq{
-	w^{(k+1)}[m] = \frac{ \tilde w^{(k)}[m] }{ \max(|\tilde w^{(k)}[m]|,1) }
-	\qwhereq
-	\tilde w^{(k)} = w^{(k)} + \tau \nabla( f/\la + \diverg(w^{(k)}) ).
-}  
-If the gradient step size satisfy $0 < \tau < 1/4$, one can prove that 
-\eq{
-	f + \la \diverg(w^{(k)}) \longrightarrow f_\la^\star
-	\qwhenq
-	k \rightarrow +\infty.
-}
-
+Section~\ref{sec-fb-dual} details a better alternative which does not require introducing this $\epsilon$ smoothing. 
 
 %\matlab{matlab/variational-tv-chambolle.m
 %}{Total variation regularization computed using Chambolle's algorithm. The input is the noisy image \matvar{f}, the output is \matvar{ftv}, the solution $f_\la$ of \eqref{eq-prox-tv}.

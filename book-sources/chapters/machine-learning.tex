@@ -1,9 +1,563 @@
-% !TEX root = ../FundationsDataScience.tex
+%!TEX root = ../FundationsDataScience.tex
 
 \chapter{Machine Learning}
 
-TODO.
+
+% Refs \cite{rosasco2017notes,friedman2001elements,murphy2012machine}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Supervised vs Unsupervised Learning}
+
+TOOD: describe the general settings and problems. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{PCA, Nearest-Neighbors Classification and Clustering}
 
 
-Refs \cite{rosasco2017notes,friedman2001elements,murphy2012machine}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dimenionality Reduction and PCA}
 
+We detail Principal Component Analysis (dimentionality reduction), supervised classification using nearest neighbors
+and unsupervised clustering using $k$-means.
+
+
+We use here the famous
+% <https://en.wikipedia.org/wiki/Iris_flower_data_set  
+IRIS dataset of Fisher. 
+The data set consists of 50 samples from each of three species of Iris (Iris setosa, Iris virginica and Iris versicolor).
+ Four features were measured from each sample: the length and the width of the sepals and petals, in centimetres. 
+
+
+The feature are stored as the row of a matrix $X \in \RR^{n \times p}$
+
+$n$ is the number of samples, $p$ is the dimensionality of the features,
+$k$ is the number of classes.
+
+
+In order to display in 2-D or 3-D the data, dimensionality reduction is needed.
+The simplest method is the Principal Component Analysis (PCA), 
+which perform an orthogonal linear projection on the principal axis (eigenvector) of the
+covariance matrix.
+
+We compute the empirical mean
+\eq{
+    m = \frac{1}{n} \sum_{i=1}^n x_i \in \RR^p
+} 
+and  covariance
+\eq{
+ C = \frac{1}{n} \sum_{i=1}^n (x_i-m) (x_i-m)^\top \in \RR^{p \times p}. 
+}
+Denoting $\tilde X = X - 1_p m^\top $, one has $C=\tilde X^\top
+\tilde X$. 
+
+% saveas(gcf,[rep 'cov.png']);
+
+
+We compute PCA ortho-basis using the SVD decomposition
+\eq{
+ \tilde X = U \diag(d) V  
+}
+where $U \in \RR^{n \times p}$ and $V \in \RR^{p \times p}$ have
+orthonormal columns. $V$ are the principal directions of variance and
+are order by decreasing variances. 
+
+We then compute the feature in the PCA basis, $z_i=V^\top (x_i-m) $, stored in matrix format as $Z=\tilde X V$.
+
+
+One can plot the singular values of the covariances, which corresponds to the standard deviation of the data 
+along the principal directions.
+
+% saveas(gcf,[rep 'svd.png']);
+
+
+The first dimensions of the $z_i$ are the optimal way to linearly
+embed the data in a low dimensional space. 
+This can be used for display in 2-D using the first two dimension.
+One can do a similar display in 3-D.
+
+% saveas(gcf,[rep 'points-2d.png']);
+% saveas(gcf,[rep 'points-3d.png']);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Supervised Learning: Nearest Neighbor Classification}
+
+Probably the simplest method for supervised classification is Nearest
+Neighbor ($R$-NN), where $R$ is a parameter indexing the number of neighbor.
+Increasing $R$ is important to cope with noise and obtain smoother
+decision boundary, and hence better generalization performance.
+
+The class predicted for a point $x$ is the one which is the most
+represented among the $R$ points $(x_i)_i$ which are the closed to
+$x$.
+
+
+The data needs to be split into training and testing.
+
+One then compute Euclidean distance between some $x$ 
+and all other $x_{1,j}$ in the training set. 
+%
+Then sort the distance and generate the list of sorted classes $ y_\sigma = (y_{\si(i)})_i$. This
+generate an indexing $\si$ (a permutation of $\{1,\ldots,n\}$) such that 
+\eq{
+ \norm{x-x_{\si(1)}} \leq \norm{x-x_{\si(2)}} \leq \ldots \leq \norm{x-x_{\si(n)}}. 
+}
+
+
+For a given $R$, one can compute the histogram of class apparition
+\eq{
+ h_\ell \eqdef \frac{1}{R} \enscond{ i }{ \si(i) \in \{1,\ldots,R\} }
+  = \sharp \si^{-1}( \{1,\ldots,R\} ). 
+}
+The decision class for $x$ is then the maximum of the histogram
+\eq{
+ c(x) \eqdef \uargmax{\ell} h_\ell 
+}
+
+One can display the histogram $(h_\ell)_\ell$ of repartition of class indexes as $R$ grows.
+% 
+Then perform the NN classification for all the points in the test set, and for varying $R$.
+And show how the classification score $S$ (number of correctly classified points)
+evolves with $R$.
+
+% saveas(gcf,[rep 'hist-classif.eps'], 'epsc');
+% saveas(gcf,[rep 'hist-classif-score.eps'], 'epsc');
+
+
+One can also display, as a function of the position in 2-D PCA space, the class output by 
+the $R$-NN method when applied in 2-D.
+
+
+% saveas(gcf,[rep 'classif-vizu.eps'], 'epsc');
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Unsupervised Learning: $k$-means}
+
+In an un-supervised setting, the class information $y$ is not
+available. The basic problem is then to recover class information from
+the knowledge of $x$ only. This corresponds to the clustering problem.
+
+
+
+The most basic algorithm is the $k$-means, which tries to recover the
+class index $\bar y_i=\ell$ from the distance $ \norm{x_i-c_\ell} $
+between the feature point $x_i$ and the class centroid $c_\ell$
+(which are the unknown of the problem). 
+
+It does so by minimizing the following non-convex energy
+\eq{
+ \umin{ (c_\ell)_\ell } \sum_i \umin{\ell} \norm{x_i-c_\ell}^2   
+}
+We first initialize the class centroids $ (c_\ell)_\ell $ at random among the points.
+They are stored in as the row of a matrix $ C \in \RR^{k \times p} $.
+
+
+The $k$-means algorithm iterate between first determining the class of
+each point using the distance to the centroids
+\eq{
+ \forall i \in \{1,\ldots,n\}, \quad \bar y_i \leftarrow
+          \uargmin{\ell} \norm{x_i-c_\ell}. 
+}
+
+One can display the centroids and the classes using colors.
+This corresponds to a Voronoi diagram segmentation in the high
+dimensional space, but here the display is done in 2D.
+
+The second step of the $k$-means algorithm is to update the centroids
+position to be the mean of the points inside each class
+ \eq{
+ \forall \ell \in \{1,\ldots,k\}, \quad c_\ell \leftarrow
+      \frac{ \sum_{i:y_i=\ell} x_i }{ \sharp \{i:y_i=\ell\} }. 
+}
+One can then perform several step of the $k$-means algorithm. 
+And display the histogram of (true, i.e. according to $y$) class  inside
+each estimated class (i.e. according to $\bar y$).
+
+
+% saveas(gcf,[rep 'kmeans-iter.eps'], 'epsc');
+
+% saveas(gcf,[rep 'kmeans-classif-scores.eps'], 'epsc');
+
+It is possible to implement better initialization strategies such as farthest point sampling or $k$-means++.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Linear Regression and Kernel Methods}
+
+We now study linear regression method, and its non-linear variant using kernelization.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Linear Regression}
+
+We test the method on the Boston house prices dataset, consisting in $n=506$ samples with
+features $x_i \in \RR^p$ in dimension $p=13$. The goal is to predict the price value
+$y_i \in \RR$. 
+
+We separate the features $X$ from the data $y$ to predict information.
+$n$ is the number of samples, $p$ is the dimensionality of the features,
+
+In order to display in 2-D or 3-D the data, dimensionality is needed.
+The simplest method is the principal component analysis, which perform an
+orthogonal linear projection on the principal axsis (eigenvector) of the
+covariance matrix.
+
+We look for a linear relationship $ y_i = \dotp{w}{x_i} $
+written in matrix format $ y= X w $
+where the rows of $X \in \RR^{n \times p}$ stores the features $x_i \in \RR^p$.
+
+Since here $n>p$, this is an over-determined system, which can
+solved in the least square sense
+\eq{
+	 \umin{ w }  \norm{Xw-y}^2, 
+}
+whose solution is given using the Moore-Penrose pseudo-inverse
+\eq{
+	 w = (X^\top X)^{-1} X^\top y.
+}
+
+Regularization is obtained by introducing a penalty. It is often called
+ridge regression, and is defined as 
+\eq{
+	 \umin{ w }  \norm{Xw-y}^2 + \lambda \norm{w}^2 
+}
+where $\lambda>0$ is the regularization parameter.
+
+The solution is given using the following equivalent formula
+\eq{
+	 w = (X^\top X + \lambda \text{Id}_p )^{-1} X^\top y, 
+}
+\eq{
+	 w = X^\top ( XX^\top + \lambda \text{Id}_n)^{-1} y, 
+}
+When $p<n$ (which is the case here), the first formula should be
+preferred. 
+
+In contrast, when the dimensionality $p$ of the feature is very
+large and there is little data, the second is faster. Furthermore, this
+second expression is generalizable to Kernel Hilbert space setting,
+corresponding possibly to $p=+\infty$ for some kernels. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Kernelized Ridge Regression}
+
+In order to perform non-linear and non-parametric regression, it is
+possible to use  kernelization. It is non-parametric in the sense that the number of
+parameter grows with the number $n$ of samples (while for the initial
+linear  method, the number of parameter is $p$). This allows in particular to
+generate estimator of arbitrary complexity. 
+
+Given a kernel $ \kappa(x,z) \in \RR $ defined for $(x,z) \in \RR^p \times \RR^p$,
+the kernelized method replace the linear approximation functional $f(x) =
+\dotp{x}{w}$ by a sum of kernel centered on the samples 
+\eq{
+	 f_h(x) = \sum_{i=1}^n h_i k(x_i,x) 
+}
+where $h \in \RR^n$ is the unknown vector of weight to find. 
+
+When using the linear kernel $\kappa(x,y)=\dotp{x}{y}$, one retrieves
+the previously studied linear method. 
+
+% saveas(gcf,[rep 'scatter-2d.png']);
+
+
+The gaussian kernel is the most well known and used kernel
+\eq{
+	 \kappa(x,y) \eqdef e^{-\frac{\norm{x-y}^2}{2\sigma^2}} . 
+}
+The bandwidth parameter $\si>0$ is crucial and controls the locality of
+the model. It is typically tuned through cross validation.  
+
+Once evaluated on grid points, the kernel define a matrix
+\eq{
+	 K = (\kappa(x_i,x_j))_{i,j=1}^n \in \RR^{n \times n}.  
+}
+
+The weights $h \in \RR^n $ are solutions of
+\eq{
+	 \umin{h} \norm{Kh-y}^2 + \la \dotp{Kh}{h}  
+}
+and hence can be computed by solving a linear system
+\eq{
+	 h = (K+\la \text{Id}_n)^{-1} y  
+}
+
+%  saveas(gcf,[rep 'regul-evol.png']);
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Logistic Classification}
+
+We now detail the logistic classification method (for 2 classes and
+multi-classes).
+
+Note thatlLogisitic classification is actually called ``logistic
+regression'' in the literature, but it is in fact a classification method.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Two Classes Logistic Classification}
+
+Logistic classification is, with support vector machine (SVM), the baseline
+method to perform classification. Its main advantage over SVM is that is
+is a smooth minimization problem, and that it also output class
+probabity, offering a probabilistic interpretation of the classification.
+
+To understand the behavior of the method, we generate synthetic data
+distributed according to a mixture of Gaussian with an overlap governed by an offset $\omega$.
+ Here classes indexes are set to $y_i \in
+\{-1,1\}$ to simplify the equations.
+
+% saveas(gcf,[rep 'classes-2.eps'], 'epsc');
+
+Logistic classification minimizes a logistic loss in place of the usual
+$\ell^2$ loss for regression
+\eq{
+	 \umin{w} E(w) \eqdef \frac{1}{n} \sum_{i=1}^n L(\dotp{x_i}{w},y_i)  
+}
+where the logistic loss reads
+\eq{
+	 L( s,y ) \eqdef \log( 1+\exp(-sy) ) 
+}
+This corresponds to a smooth convex minimization. If $X$ is injective,
+this is also strictly convex, hence it has a single global minimum.
+
+One can compare the binary (ideal) 0-1 loss, the logistic loss and the hinge loss (the one used for SVM).
+
+% saveas(gcf,[rep 'losses.eps'], 'epsc');
+
+This can be interpreted as a maximum likelihood estimator when one
+models the probability of  belonging to the two classes for sample $x_i$ as
+\eq{
+	 h(x_i) \eqdef (\th(x_i),1-\th(x_i)) \qwhereq
+          \th(s) \eqdef \frac{e^{s}}{1+e^s} = (1+e^{-s})^{-1}  
+}
+
+Re-writting the energy to minimize
+\eq{
+	 E(w) = \Ll(X w,y) \qwhereq \Ll(s,y)= \frac{1}{n}  \sum_i L(s_i,y_i), 
+}
+its gradient reads
+\eq{
+	 \nabla E(w) = X^\top \nabla \Ll(X w,y)
+      \qwhereq
+      \nabla \Ll(s,y) = \frac{y}{n} \odot \th(-y \odot s),   
+}
+where $\odot$ is the pointwise multiplication operator, i.e. \texttt{.*} in
+Matlab.
+
+
+In order to improve performance, it is important (especially
+in low dimension $p$) to add a constant bias term $w_{p+1} \in \RR$, and replace $\dotp{x_i}{w}$
+by $ \dotp{x_i}{w} + w_{p+1} $.  This is equivalently achieved by
+adding an extra $(p+1)^{\text{th}}$ dimension equal to 1 to each
+$x_i$, which we do using a convenient macro.
+
+With this added bias term, once $w_{\ell=0} \in \RR^{p+1}$ initialized
+(for instance at $0_{p+1}$),
+
+one step of gradient descent reads
+ \eq{
+	 w_{\ell+1} = w_\ell - \tau_\ell \nabla E(w_\ell). 
+}
+
+One can then implement a gradient descent
+ \eq{
+	 w_{\ell+1} = w_\ell - \tau_\ell \nabla E(w_\ell). 
+}
+
+
+One can display the data overlaid on top of the
+classification probability, this highlight the
+separating hyperplane $ \enscond{x}{\dotp{w}{x}=0} $.
+
+
+
+% saveas(gcf,[rep 'classes-2-separation-influ.png']);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Kernelized Logistic Classification}
+
+Logistic classification tries to separate the classes using
+a linear separating hyperplane $ \enscond{x}{\dotp{w}{x}=0}. $
+
+In order to generate a non-linear descision boundary, one can replace the
+parametric linear model by a non-linear non-parametric model, thanks to
+kernelization. It is non-parametric in the sense that the number of
+parameter grows with the number $n$ of sample (while for the basic
+method, the number of parameter is $p$. This allows in particular to
+generate decision boundary of arbitrary complexity.
+
+The downside is that the numerical complexity of the method grows
+(at least) quadratically with $n$.
+
+The good news however is that thanks to the theory of reproducing kernel Hilbert spaces
+(RKHS), one can still compute this non-linear decision
+function using (almost) the same numerical algorithm.
+
+Given a kernel $ \kappa(x,z) \in \RR $ defined for $(x,z) \in \RR^p$,
+the kernelized method replace the linear decision functional $f(x) =
+\dotp{x}{w}$ by a sum of kernel centered on the samples
+\eq{
+	 f_h(x) = \sum_{i=1}^p h_i k(x_i,x) 
+}
+where $h \in \RR^n$ is the unknown vector of weight to find.
+
+When using the linear kernel $\kappa(x,y)=\dotp{x}{y}$, one retrieves
+the previously studied linear method.
+
+
+The gaussian kernel is the most well known and used kernel
+\eq{
+	 \kappa(x,y) \eqdef e^{-\frac{\norm{x-y}^2}{2\sigma^2}} . 
+}
+The bandwidth parameter $\si>0$ is crucial and controls the locality of
+the model. It is typically tuned through cross validation.
+
+%  saveas(gcf,[rep 'classes-kernel.eps'], 'epsc');
+
+Once evaluated on grid points, the kernel define a matrix
+\eq{
+	 K = (\kappa(x_i,x_j))_{i,j=1}^n \in \RR^{n \times n}.  
+}
+
+Valid kernels are those that gives rise to positive symmetric matrices
+$K$. The linear and Gaussian kernel are valid kernel functions. Other
+popular kernels include the polynomial kernel $ \dotp{x}{y}^a $ for $a
+\geq 1$ and the Laplacian kernel $ \exp( -\norm{x-y}^2/\si ) $.
+
+The kernelized Logistic minimization reads
+\eq{
+	 \umin{h} F(h) \eqdef \Ll(K h,y). 
+}
+
+This minimization can be related to an infinite dimensional optimization
+problem where one minimizes directly over the function $f$. This
+is shown to be equivalent to the above finite-dimenisonal optimization problem
+thanks to the theory of RKHS.
+One can then use a gradient descent to minimize $F(h)$.
+
+
+Once this optimal $h$ has been found, class probability at a point
+$x$ are obtained as
+\eq{
+	 (\th(f_h(x)), 1-\th(f_h(x)) 
+}
+where $f_h$ has been defined above.
+
+
+% saveas(gcf,[rep 'classes-kernel-result.png'], 'png');
+
+
+One can separate the dataset into a training set and a testing set. Evaluate the classification performance
+for varying $\si$. Try to introduce regularization and minmize
+\eq{
+	 \umin{h} F(h) \eqdef \Ll(K h,y) + \la R(h) 
+}
+where for instance $R=\norm{\cdot}_2^2$ or  $R=\norm{\cdot}_1$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Multi-Classes Logistic Classification}
+
+The logistic classification method is extended to an arbitrary number
+$k$ of classes by considering a family of weight vectors $ ( w_\ell )_{\ell=1}^k $, which are conveniently stored as columns of matrix $W \in \RR^{p \times k}$.
+
+This allows to model probabilistically the belonging of a point $x \in \RR^p $ to a
+the classes using an exponential model
+\eq{
+	 h(x) = \pa{ \frac{ e^{-\dotp{x}{w_\ell}} }{ \sum_m e^{-\dotp{x}{w_m}} } }_\ell 
+}
+This vector $h(x) \in [0,1]^k $ describes the probability of $x$
+belonging to the different classes, and $ \sum_\ell h(x)_\ell = 1 $.
+
+The computation of $w$ is obtained by solving a maximum likelihood
+estimator
+ \eq{
+	 \umax{w \in \RR^k} \frac{1}{n} \sum_{i=1}^n \log( h(x_i)_{y_i} ) 
+}
+where we recall that $y_i \in \{1,\ldots,k\}$ is the class index of
+point $x_i$.
+
+This is conveniently rewritten as
+\eq{
+	 \umin{w} \sum_i \text{LSE}( XW )_i - \dotp{XW}{D} 
+}
+where $D \in \{0,1\}^{n \times k}$ is the binary class index matrices
+\eq{
+	  D_{i,\ell} = \choice{
+          1 \qifq y_i=\ell, \\
+          0 \text{otherwise}.
+      }
+}
+and LSE is the log-sum-exp operator
+\eq{
+	 \text{LSE}(S) = \log\pa{ \sum_\ell \exp(S_{i,\ell}) } \in \RR^n. 
+}
+
+
+The computation of LSE is
+unstable for large value of $S_{i,\ell}$ (numerical overflow, producing NaN), but this can be
+fixed by substracting the largest element in each row,
+since $ \text{LSE}(S+a)=\text{LSE}(S)+a $ if $a$ is constant along rows. This is
+the LSE trick.
+
+
+The gradient of the LSE operator is the soft-max operator
+\eq{
+	  \nabla \text{LSE}(S) = \text{SM}(S) \eqdef
+      \pa{
+          \frac{
+                  e^{S_{i,\ell}}
+              }{
+                  \sum_m e^{S_{i,m}}
+              } }   
+}
+Similarly to the LSE, it needs to be stabilized.
+
+
+We load a dataset of $n$ images of size $p = 8 \times 8$, representing digits from 0
+to 9 (so there are $k=10$ classes).
+%
+Separate the features $X$ from the data $y$ to predict information.
+%
+$n$ is the number of samples, $p$ is the dimensionality of the features, $k$
+the number of classes.
+%
+One can display a few samples digits
+
+
+% saveas(gcf,[rep 'digits.png'], 'png');
+% saveas(gcf,[rep 'digits-2d.png'], 'png');
+% saveas(gcf,[rep 'digits-3d.png'], 'png');
+
+We compute the $D$ matrix and define the energy $E(W)$.
+%
+Then define its gradients
+\eq{
+	 \nabla E(W) =  \frac{1}{n} X^\top ( \text{SM}(X W) - D ).  
+}
+and one can use a gradient descent
+ \eq{
+	 W_{\ell+1} = W_\ell - \tau_\ell \nabla E(W_\ell). 
+}
+We can evaluate class probability associated to weight vectors on this grid.
+
+
+% saveas(gcf,[rep 'digits-classes-all.png'], 'png');
+% saveas(gcf,[rep 'digits-classes-single.png'], 'png');

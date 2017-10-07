@@ -29,7 +29,7 @@ Digital camera & Confocal imaging & SAR imaging
 One should thus model both the acquisition process and the statistics of the noise to fit the imaging process. Then one should also model the regularity and geometry of the clean signal to choose a basis adapted to its representation. 
 This chapter describes how thresholding methods can be used to perform denoising in some specific situations where the noise statistics are close to being Gaussian and the mixing operator is a sum or can be approximated by a sum. 
 
-In the following, we consider only finite dimensional signal $f \in \CC^N$.
+Since noise perturbs discrete measurements acquired by some hardware, in the following, we consider only finite dimensional signal $f \in \CC^N$.  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Image Formation}
@@ -75,11 +75,11 @@ $f_0$ & $f$
 	2-D additive noise example.%	
 }{fig-noise-example-2d}
 
-The simplest noise model assumes that each entry $w[n]$ of the noise is a Gaussian random variable of variance $\si^2$, and that the $w[n]$ are independent. This is the white noise model.
+The simplest noise model assumes that each entry $w_n$ of the noise is a Gaussian random variable of variance $\si^2$, and that the $w_n$ are independent, i.e. $w \sim \Nn(0,\Id_N)$. This is the white noise model.
 
-Depending on the image acquisition device, one should consider different noise distributions, such as for instance uniform noise $w[n] \in [-a,a]$ or Impulse noise
+Depending on the image acquisition device, one should consider different noise distributions, such as for instance uniform noise $w_n \in [-a,a]$ or Impulse noise
 \eq{
-	\PP(w[n]=x) \propto e^{-|x/\si|^\al}
+	\PP(w_n=x) \propto e^{-|x/\si|^\al}
 	\qwhereq \al<2
 }
 
@@ -91,11 +91,15 @@ In many situations, the noise perturbation is not additive, and for instance its
 A denoiser (also called estimator) is an estimation $\tilde f$ of $f_0$ computed from the observation $f$ alone. It is thus also a random vector that depends on the noise $w$. Since $f$ is a random vector of mean $f_0$, the numerical denoising process corresponds to the estimation of the mean of a random vector from a single realization. Figure \ref{fig-denoising-clean} shows an example of denoising.
 
 The quality of a denoiser is measured using the average mean square risk $\EE_w(\norm{f_0-\tilde f}^2)$.
-where $\EE_w$ is the esperance (averaging) with respect to the noise $w$. Since $f_0$ is unknown, this corresponds to a theoretical measure of performance, that is bounded using a mathematical analysis. In the numerical experiments, one observes a single realization $f = f_0 + w$, and the performance is estimated from this single denoising using the SNR
+where $\EE_w$ is the esperance (averaging) with respect to the noise $w$. Since $f_0$ is unknown, this corresponds to a theoretical measure of performance, that is bounded using a mathematical analysis. In the numerical experiments, one observes a single realization $f^{r} \sim f_0 + w$, and the performance is estimated from this single denoising using the SNR
 \eq{
-	\text{SNR}(\tilde f,f0) = -20\log_{10}( \norm{\tilde f-f_0}/\norm{f_0} ),
+	\text{SNR}(\tilde f^r,f0) = -20\log_{10}( \norm{\tilde f^r-f_0}/\norm{f_0} ),
 }
-which is expressed in dB. This measure of performance requires the knowledge of the clean signal $f_0$, and should thus only be considered as an experimentation tool, that might not be available in a real life denoising scenario where clean data are not available. Furthermore, the use of an $\Ldeux$ measure of performance is questionable, and one should also observe the result to judge of the visual quality of the denoising.
+where $\tilde f^r$ should be computed from the single realization $f^r$ of $f$.
+%
+In the following, with an abuse of notation, when displaying single realization, we ignore the exponent $^r$.
+%
+The SNR is expressed in ``decibels'', denoted dB. This measure of performance requires the knowledge of the clean signal $f_0$, and should thus only be considered as an experimentation tool, that might not be available in a real life denoising scenario where clean data are not available. Furthermore, the use of an $\ell^2$ measure of performance is questionable, and one should also observe the result to judge of the visual quality of the denoising.
 
 
 \myfigure{
@@ -127,8 +131,9 @@ Such a denoiser can always be written as a filtering
 }
 where $h \in \RR^N$ is a (low pass) filter, that should satisfy at least 
 \eq{
-	\sum_n h[n] = \hat h[0] = 1.
+	\sum_n h_n = \hat h_0 = 1
 }
+where $\hat h$ is the discrete Fourier transform. 
 
 Figure \ref{fig-filtering-denoised} shows an example of denoising using a low pass filter.
 
@@ -150,9 +155,9 @@ $f \star h$ & $\log(\hat f \cdot \hat h) = \log(\hat h) + \log(\hat h)$
 
 The filtering strength is usually controlled the width $s$ of $h$. A typical example is the Gaussian filter
 \eql{\label{eq-gaussian-filters}
-	\foralls -N/2 < i \leq N/2, \quad h_s[i] = \frac{1}{Z_s} \exp\pa{ -\frac{ i^2 }{ 2s^2} }
+	\foralls -N/2 < i \leq N/2, \quad h_{s,i} = \frac{1}{Z_s} \exp\pa{ -\frac{ i^2 }{ 2s^2} }
 }
-where $Z_s$ ensures that $\sum_i h_s[i]=1$ (low pass). Figure \ref{fig-filtering-denoised} shows the effect of Gaussian filtering over the spacial and Fourier domains.
+where $Z_s$ ensures that $\sum_i h_{s,i}=1$ (low pass). Figure \ref{fig-filtering-denoised} shows the effect of Gaussian filtering over the spacial and Fourier domains.
 
 \if 0
 \myfigure{
@@ -224,20 +229,110 @@ These optimal filtering appear quite noisy, and the optimal SNR choice is usuall
 If one has a random model both for the noise $w \sim W$ and for for the signal $f_0 \sim F$, one can derives an optimal filters in average over both the noise and the signal realizations. One further assumes that $w$ and $f_0$ are independent realization.
 The optimal $h$ thus minimizes
 \eq{
-	\text{E}_{W,F}(\norm{h \star (F+W)-F}^2)
+	\EE_{W,F}(\norm{h \star (F+W)-F}^2)
 }
 If both $F$ is wide-sense stationary, and $W$ is a Gaussian white noise of variance $\si^2$, then the optimal filer is known as the Wiener filter
 \eq{
-	\hat h(\om) = \frac{|\hat F(\om)|^2}{|\hat F(\om)|^2+\si^2}
+	\hat h_\om = \frac{|\hat F_\om|^2}{|\hat F_\om|^2+\si^2}
 }
 where $|\hat F|^2$  is the power spectrum of $F$, 
 \eq{
-	\hat F(\om) = \hat C(\om) \qwhereq
-	C[n] = \EE( \dotp{F}{F[\cdot+n]} ),
+	\hat F_\om = \hat C_\om \qwhereq
+	C_n = \EE( \dotp{F}{F[\cdot+n]} ),
 }
-the Fourier transform of an infinite vector is defined in \eqref{eq-fourier-tr-infi}.
+the Fourier transform of an infinite vector is defined in Section~\ref{sec-dft}.
 
 In practice, one rarely has such a random model for the signal, and interesting signals are often not stationary. Most signals exhibit discontinuities, and are thus poorly restored with filtering.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Denoising and Linear Approximation}
+
+In order to study linear (and also non-linear, see the section bellow) denoising without assuming a random signal model, one should use approximation theory as studied in Chapter~\ref{chap-approx}. 
+%
+We thus consider an ortho-basis $\Bb = (\psi_m)_m$ of $\RR^N$, and consider a simple denoising obtained by keeping only the $M$ first term elements of the approximation of the noisy observation in $\Bb$
+\eql{\label{eq-ideal-linear-denoise}
+	\tilde f \eqdef \sum_{m=1}^M \dotp{f}{\psi_m} \psi_m.
+}
+This is a linear projection on the space spanned by $(\psi_m)_{m=1}^M$.
+%
+This denoising scheme is thus parameterized by some integer $M>0$, increasing $M$ increases the denoising strength. 
+%
+For instance, when $\Bb$ is the discrete Fourier basis, this corresponds to an ideal low-pass filter against a (discretized) Dirichlet kernel.
+
+More advanced linear denoising operator can be designed by computing weighted average $\sum_{m} \la_m \dotp{f}{\psi_m} \psi_m$, and~\eqref{eq-ideal-linear-denoise} is retrieve when using binary weights $\al_n=1$ for $n \leq M$, and $\al_n=0$ otherwise. The asymptotic theoretical performances described by the following theorem are however not improved by using non-binary weights.
+
+\begin{thm}\label{thm-linear-denoising}
+	We assume that $f_0 \in \RR^N$ has a linear approximation error decay that satisfies 
+	\eq{
+		\foralls M, \quad 
+		\norm{f_0 - f_{0,M}^{\text{lin}} }^2 \leq C M^{-2\be}
+		\qwhereq
+		f_{0,M}^{\text{lin}} \eqdef \sum_{m=1}^M \dotp{f_0}{\psi_m} \psi_m
+	} 
+	for some constant $C$. Then the linear denoising error using~\eqref{eq-ideal-linear-denoise} satisfies
+	\eq{
+		\EE(\norm{f_0 - \tilde f}^2) \leq 2 C^{\frac{1}{2\be+1}} \si^{2-\frac{1}{\be+1/2}}, 
+	}
+	when choosing 
+	\eql{\label{eq-lineardenoising-scale}
+		M = C^{\frac{1}{2\be+1}} \si^{-\frac{2}{2\be+1}}. 
+	}
+\end{thm}
+
+\begin{proof}
+	One has, thanks to the ortho-normality of $(\psi_m)_m$
+	\begin{align*}
+		\EE(\norm{f_0 - \tilde f}^2) &= 
+		\EE( \sum_m \dotp{f_0 - \tilde f}{\psi_m}^2 )
+		= 
+		\EE( \sum_{m=1}^M \dotp{f_0 - f}{\psi_m}^2 + \sum_{m>M} \dotp{f_0 }{\psi_m}^2 ) \\
+		&=
+		\EE\pa{\sum_{m=1}^M \dotp{w}{\psi_m}^2} + \sum_{m>M} \dotp{f_0}{\psi_m}^2
+		= M \si^2 + \norm{f_0 - f_{0,M}^{\text{lin}}}^2 \\
+		&\leq M \si^2 + C M^{-2\be}.
+	\end{align*}
+	Here we use the fundamental fact that $(\dotp{w}{\psi_m})_m$ is also $\Nn(0,\si^2\Id_N)$.
+	% 
+	Choosing $M$ such that $M \si^2 = C M^{-2\be}$, i.e. $M = C^{\frac{1}{2\be+1}} \si^{-\frac{2}{2\be+1}}$ leads 
+	to 
+	\eq{
+		\EE(\norm{f_0 - \tilde f}^2)  = 2 C M^{-2\be} = 2 C C^{-\frac{2\be}{2\be+1}} \si^{\frac{4\be}{2\be+1}}
+		= 2 C^{\frac{1}{2\be+1}} \si^{2 - \frac{1}{\be+1/2}}.
+	}
+\end{proof}
+
+There are several important remark regarding this simple but important result:
+\begin{rs}
+	\item Thanks to the decay of the linear approximation error, the denoising error $\EE(\norm{f_0 - \tilde f}^2)$ is bounded \textit{independently} of the sampling size $N$, although the input noise level $\EE(\norm{w}^2)=N\si^2$ growth with $N$.
+	\item If the signal is well approximated linearly, i.e. if $\be$ is large, then the denoising error decays fast when the noise level $\si$ drops to zero. The upper bound approaches the optimal rate $\si^2$ by taking $\be$ large enough. 
+	\item This theory is finite dimensional, i.e. this computation makes only sense when introducing some discretization step $N$. This is natural because random noise vectors of finite energy are necessarily finite dimensional. For the choice~\eqref{eq-lineardenoising-scale} to be realizable, one should however have $M \leq N$, i.e. $N \geq C^{\frac{1}{2\be+1}} \si^{-\frac{2}{2\be+1}}$. Thus $N$ should increase when the noise diminish for the denoising effect to kick-in. 
+	\item Section~\ref{sec-linear-approx-error} bounds the linear approximation error for infinite dimensional signal and image model. This theory can be applied provided that the discretization error is smaller than the denoising error, i.e. once again, one should use $N$ large enough. 
+\end{rs}
+
+A typical setup where this denoising theorem can be applied is for the Sobolev signal and image model detailed in Section~\ref{subsec-smooth-class}.  In the discrete setting, where the sampling size $N$ is intended to grow (specially if $\si$ diminishes), one can similarly consider a ``Sobolev-like'' model, and similarely as for Proposition~\ref{prop-sobol-fourier-lin}, this model implies a decay of the linear approximation error.
+
+\begin{prop}
+	Assuming that 
+	\eql{\label{eq-discr-sobol}
+		\sum_{m=1}^N m^{2\al} |\dotp{f_0}{\psi_m}|^{2} \leq C
+	}
+	then 
+	\eq{
+		\foralls M, \quad 
+		\norm{f_0 - f_{0,M}^{\text{lin}}}^2 \leq C M^{-2\al}
+	} 
+\end{prop}
+\begin{proof}
+	\eq{
+		C \geq \sum_{m=1}^N m^{2\al} |\dotp{f_0}{\psi_m}|^{2}
+		\geq \sum_{m>M} m^{2\al} |\dotp{f_0}{\psi_m}|^{2}
+		\geq M^{2\al} \sum_{m>M} |\dotp{f_0}{\psi_m}|^{2}
+		\geq M^{2\al} \norm{f_0 - f_{0,M}^{\text{lin}}}^2.
+	}
+\end{proof}
+
+If $\psi_m$ is the discrete Fourier basis defined in~\eqref{eq-dft}, then this discrete Sobolev model~\eqref{eq-discr-sobol} is equivalent to the continuous Sobolev model of Section~\ref{subsec-smooth-class}, up to a discretization error which tends to $0$ as $N$ increase. Choosing $N$ large enough shows that smooth signals and image are thus efficiently denoised by a simple linear projection on the first $M$ element of the Fourier basis. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -251,7 +346,7 @@ In practice, one rarely has such a random model for the signal, and interesting 
 \label{subsec-denoise-hard}
 
 We consider an orthogonal basis $\{\psi_{m}\}_m$ of $\CC^N$, for instance a discrete wavelet basis.
-
+%
 The noisy coefficients satisfy
 \eql{\label{eq-noisy-transformed}
 	\dotp{f}{\psi_m} = \dotp{f_0}{\psi_m} + \dotp{w}{\psi_m}.
@@ -302,7 +397,7 @@ Figure \ref{fig-thresholding-hard-vs-soft} shows the 1-D curves of these 1-D non
 }{fig-thresholding-hard-vs-soft}
 
 For $q=0$ and $q=1$, these thresholding defines two different estimators
-\eq{
+\eql{\label{eq-hard-soft-thresh}
 	\tilde f^q = \sum_m S_T^q( \dotp{f}{\psi_m} ) \psi_m
 }
 
@@ -322,7 +417,7 @@ For wavelet transforms, it tends to introduces unwanted low-frequencies artifact
 	\tilde f^1 = \sum_{0 \leq n < 2^{-j_0}} \dotp{f}{\phi_{j_0,n}} \phi_{j_0,n}
 	+ \sum_{j=j_0}^0 \sum_{0 \leq n < 2^{-j}} S_T^1(\dotp{f}{\psi_{j_0,n}}) \psi_{j_0,n}.
 }
-Code \ref{denoising-softthresh} implements this soft thresholding with coarse scale management.
+% Code \ref{denoising-softthresh} implements this soft thresholding with coarse scale management.
 
 % \matlab{matlab/denoising-softthresh.m
 % }{Denoising by soft thresholding. Input: noisy image \matvar{f}, coarse scale \matvar{j0}, threshold \matvar{T}, output: denoised image \matvar{f1}.  }{denoising-softthresh}
@@ -355,16 +450,16 @@ Although these are experimental conclusions, these results are robust across var
 
 To analyze the performance of the estimator, and gives an estimate for the value of $T$, we first assumes that the coefficients
 \eq{
-	a_0[m] = \dotp{f_0}{\psi_m} \in \RR^N
+	a_{0,m} = \dotp{f_0}{\psi_m} \in \RR^N
 }
-are sparse, meaning that most of the $a_0[m]$ are zero, so that its $\lzero$ norm
+are sparse, meaning that most of the $a_{0,m}$ are zero, so that its $\lzero$ norm
 \eq{
-	\norm{a_0}_0 = \#\enscond{m}{a_0[m] \neq 0}
+	\norm{a_0}_0 = \#\enscond{m}{a_{0,m} \neq 0}
 }
 is small. 
 As shown in \eqref{eq-noisy-transformed}, noisy coefficients 
 \eq{
-	\dotp{f}{\psi_m} = a[m] = a_0[m] + z[m]
+	\dotp{f}{\psi_m} = a_m = a_{0,m} + z_m
 }
 are perturbed with an additive Gaussian white noise of variance $\si^2$. Figure \ref{fig-sparse-signal} shows an example of such a noisy sparse signal. 
 
@@ -387,11 +482,11 @@ are perturbed with an additive Gaussian white noise of variance $\si^2$. Figure 
 
 If 
 \eq{
-	\umin{ m : a_0[m] \neq 0 } |a_0[m]|
+	\umin{ m : a_{0,m} \neq 0 } |a_{0,m}|
 }
 is large enough, then $\norm{f_0-\tilde f}=\norm{a_0-S_T(a)}$ is minimum for 
 \eq{
-	T \approx \tau_N = \umax{0 \leq m< N} |z[m]|.
+	T \approx \tau_N = \umax{0 \leq m< N} |z_m|.
 }
 $\tau_N$ is a random variable that depends on $N$. One can show that its mean is $\si \sqrt{2 \log(N)}$, and that as $N$ increases, its variance tends to zero and $\tau_N$ is highly concentrated close to its mean. Figure \ref{fig-max-gaussian-mean} shows that this is indeed the case numerically.
 
@@ -404,20 +499,29 @@ $\tau_N$ is a random variable that depends on $N$. One can show that its mean is
 
 
 %%
-\paragraph{Asymptotic minimax optimality.}
+\paragraph{Asymptotic optimality.}
 
-Donoho and Jonhstone \cite{donoho-shrinkage} have shown that the universal threshold $T = \si \sqrt{2 \log(N)}$ is a good theoritical choice for the denoising of signals that are well approximated in $\{\psi_m\}_m$. In particular, they show that if the non-linear approximation error in this basis decays like
-\eq{
-	\norm{f-f_M}^2 = O(M^{-\al}), 
-}
-then the denoising average error with hard and soft thresholding decays like
-\eq{
-	\EE_w( \norm{f_0 - \tilde f}^2 ) = O( \si^{ \frac{2\al}{\al+1} } ), 
-}
-and that this decay rate with $\si$ is in some sense optimal. 
+Donoho and Jonhstone \cite{donoho-shrinkage} have shown that the universal threshold $T = \si \sqrt{2 \log(N)}$ is a good theoretical choice for the denoising of signals that are well approximated non-linearly in $\{\psi_m\}_m$.  The obtain denoising error decay rate with $\si$ can also be shown to be in some sense optimal. 
 
-This universal threshold choice is however very conservative since it is guaranteed to remove almost all the noise. In practice, as shown in Figure \ref{fig-wavthresh-2d}, better results are obtained on natural signals and images by using $T \approx 3\si$ and $T \approx 3\si/2$ for hard and soft thresholdings.
 
+\begin{thm}\label{thm-nonlinear-denoising}
+	We assume that $f_0 \in \RR^N$ has a non-linear approximation error decay that satisfies 
+	\eq{
+		\foralls M, \quad 
+		\norm{f_0 - f_{0,M}^{\text{nlin}} }^2 \leq C M^{-2\be}
+		\qwhereq
+		f_{0,M}^{\text{nlin}} \eqdef \sum_{r=1}^M \dotp{f_0}{\psi_{m_r}} \psi_{m_r}
+	} 
+	for some constant $C$, where here $( \dotp{f_0}{\psi_{m_r}} )_r$ are the coefficient sorted by decaying magnitude. 
+	%
+	Then the non-linear denoising error using~\eqref{eq-ideal-linear-denoise} satisfies
+	\eq{
+		\EE(\norm{f_0 - \tilde f^q}^2) \leq C' \ln(N) \si^{2-\frac{1}{\be+1/2}}, 
+	}
+	for some constant $C'$, when choosing $T=\sqrt{2\ln(N)}$, where $\tilde f^q$ is defined in~\eqref{eq-hard-soft-thresh} for $q \in \{0,1\}$.
+\end{thm}
+
+This universal threshold choice $T=\sqrt{2\ln(N)}$ is however very conservative since it is guaranteed to remove almost all the noise. In practice, as shown in Figure \ref{fig-wavthresh-2d}, better results are obtained on natural signals and images by using $T \approx 3\si$ and $T \approx 3\si/2$ for hard and soft thresholdings.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -726,7 +830,7 @@ One should be aware that more advanced denoisers use complicated statistical mod
 \section{Data-dependant Noises}
 \label{sect-data-dept-noises}
 
-For many imaging devices, the variance of the noise that perturbs $f_0[n]$ depends on the value of $f_0[n]$. This is a major departure from the additive noise formation model considered so far. We present here two popular examples of such non-additive models.
+For many imaging devices, the variance of the noise that perturbs $f_{0,n}$ depends on the value of $f_{0,n}$. This is a major departure from the additive noise formation model considered so far. We present here two popular examples of such non-additive models.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Poisson Noise}
@@ -736,14 +840,14 @@ Many imaging devices sample an image through a photons counting operation. This 
 %%
 \paragraph{Poisson model.}
 
-The uncertainty of the measurements for a quantized unknown image $f_0[n] \in \NN$ is then modeled using a Poisson noise distribution 
+The uncertainty of the measurements for a quantized unknown image $f_{0,n} \in \NN$ is then modeled using a Poisson noise distribution 
 \eq{
-	f[n] \sim \Pp(\la)
-	\qwhereq \la=f_0[n] \in \NN,
+	f_n \sim \Pp(\la)
+	\qwhereq \la=f_{0,n} \in \NN,
 }
 and where the Poisson distribution $\Pp(\la)$ is defined as
 \eq{
-	\PP(f[n]=k)=\frac{\la^k e^{-\la}}{k!}
+	\PP(f_n=k)=\frac{\la^k e^{-\la}}{k!}
 }
 and thus varies from pixel to pixel. Figure \ref{fig-poisson-distrib} shows examples of Poisson distributions.
 
@@ -755,11 +859,11 @@ and thus varies from pixel to pixel. Figure \ref{fig-poisson-distrib} shows exam
 
 One has 
 \eq{
-	\EE(f[n])=\la=f_0[n]
+	\EE(f_n)=\la=f_{0,n}
 	\qandq
-	\text{Var}(f[n])=\la=f_0[n]
+	\text{Var}(f_n)=\la=f_{0,n}
 }
-so that the denoising corresponds to estimating the mean of a random vector from a single observation, but the variance now depends on the pixel intensity. This shows that the noise level increase with the intensity of the pixel (more photons are coming to the sensor) but the relative variation $(f[n]-f_0[n])/f_0[n]$ tends to zero in expectation when $f_0[n]$ increases.
+so that the denoising corresponds to estimating the mean of a random vector from a single observation, but the variance now depends on the pixel intensity. This shows that the noise level increase with the intensity of the pixel (more photons are coming to the sensor) but the relative variation $(f_n-f_{0,n})/f_{0,n}$ tends to zero in expectation when $f_{0,n}$ increases.
 
 Figure \ref{fig-poisson-denoising} shows examples of a clean image $f_0$ quantized using different values of $\la_{\max}$ and perturbed with the Poisson noise model.
 
@@ -772,7 +876,7 @@ Figure \ref{fig-poisson-denoising} shows examples of a clean image $f_0$ quantiz
 $\la_{\max}=5$ & $\la_{\max}=50$ & $\la_{\max}=50$ & $\la_{\max}=100$
 }
 }{%
-	 Noisy image with Poisson noise model, for various $\la_{\max}= \max_n f_0[n]$. %	
+	 Noisy image with Poisson noise model, for various $\la_{\max}= \max_n f_{0,n}$. %	
 }{fig-poisson-denoising}
 
 %%
@@ -786,9 +890,9 @@ to $f$ might give poor results since the noise level fluctuates from point to po
 \eql{\label{eq-var-stab}
 	\phi(f) \approx \phi(f_0) + w
 }
-where $w[n] \sim \Nn(0,\si)$ is a Gaussian white noise of fixed variance $\si^2$.
+where $w_n \sim \Nn(0,\si)$ is a Gaussian white noise of fixed variance $\si^2$.
 
-Perfect stabilization is impossible, so that \eqref{eq-var-stab} only approximately holds for a limited intensity range of $f_0[n]$.
+Perfect stabilization is impossible, so that \eqref{eq-var-stab} only approximately holds for a limited intensity range of $f_{0,n}$.
 Two popular variation stabilization functions for Poisson noise are the Anscombe mapping
 \eq{
 	\phi(x) = 2\sqrt{x+3/8}
@@ -802,7 +906,7 @@ Figure \ref{fig-variance-stabilization} shows the effect of these variance stabi
 \myfigure{
 \image{denoising}{.5}{variance-stabilization}
 }{%
-	 Comparison of variariance stabilization: display of $\text{Var}(\phi(f[n]))$ as a function of $f_0[n]$. %	
+	 Comparison of variariance stabilization: display of $\text{Var}(\phi(f_n))$ as a function of $f_{0,n}$. %	
 }{fig-variance-stabilization}
 
 A variance stabilized denoiser is defined as
@@ -824,35 +928,35 @@ Figure \ref{fig-poisson-wav} shows that for moderate intensity range, variance s
 }{fig-poisson-wav}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Multiplicative Noise}
+\subsection{Multiplicative Noise}
 
 %%
 \paragraph{Multiplicative image formation.}
 
 A multiplicative noise model assumes that
 \eq{
-	f[n] = f_0[n] w[n]
+	f_n = f_{0,n} w_n
 }
 where $w$ is a realization of a random vector with  $\EE(w)=1$.
 Once again, the noise level depends on the pixel value
 \eq{
-	\EE(f[n]) = f_0[n]
+	\EE(f_n) = f_{0,n}
 	\qandq
-	\text{Var}(f[n]) = f_0[n]^2 \si^2 
+	\text{Var}(f_n) = f_{0,n}^2 \si^2 
 	\qwhereq 
 	\si^2 = \text{Var}(w).	
 }
 Such a mutiplicative noise is a good model for SAR satellite imaging, where $f$ is obtained by averaging $S$ images
 \eq{
-	\foralls 0 \leq s < K, \quad f^{(s)}[n] = f_0[n] w^{(s)}[n] + r^{(s)}[n]
+	\foralls 0 \leq s < K, \quad f^{(s)}_n = f_{0,n} w^{(s)}_n + r^{(s)}_n
 }
-where $r^{(s)}$ is a Gaussian white noise, and $w^{(s)}[n]$ is distributed according to a one-sided exponential distribution
+where $r^{(s)}$ is a Gaussian white noise, and $w^{(s)}_n$ is distributed according to a one-sided exponential distribution
 \eq{
-	\Pp(w^{(s)}[n]=x) \propto e^{-x} \: \mathbb{I}_{x>0}.
+	\Pp(w^{(s)}_n=x) \propto e^{-x} \: \mathbb{I}_{x>0}.
 }
 For $K$ large enough, averaging the images cancels the additive noise and one obtains
 \eq{
-	f[n] = \frac{1}{K} \sum_{s=1}^K f^{(s)}[n] \approx f_0[n] w[n]
+	f_n = \frac{1}{K} \sum_{s=1}^K f^{(s)}_n \approx f_{0,n} w_n
 }
 where $w$ is distributed according to a Gamma distribution 
 \eq{
@@ -888,9 +992,9 @@ where
 and where $\Ga$ is the Gamma function that generalizes the factorial function to non-integer.
 One thus has
 \eq{
-	\phi(f)[n] = \phi(f_0)[n] + z[n],
+	\phi(f)_n = \phi(f_0)_n + z_n,
 }
-where $z[n]=\log(w)-c$ is a zero-mean additive noise. 
+where $z_n=\log(w)-c$ is a zero-mean additive noise. 
 
 \myfigure{
 \image{denoising}{.45}{multnoise-hist-unstab}

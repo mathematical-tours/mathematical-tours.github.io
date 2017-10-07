@@ -2,8 +2,248 @@
 
 \chapter{Deep Learning}
 
-TODO.
+% Ref: \cite{Rufflewind2017blog}
 
-Ref: \cite{Rufflewind2017blog}
+Before detailing deep architecture and their use, we start this chapter by presenting two essential computational tools that are used to train these model: stochastic optimization methods and automatic differentiation. In practice, they work hand-in-hand to be able to learn painlessly complicated non-linear model on large-scale datasets. 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Stochastic Optimization}
+
+
+We detail stochastic Gradient Descent, with an application to the binary logistic classification problem.
+
+
+We set the classes indexes to be $\{-1,+1\}$, and remove empty features, normalize $X$.
+$n$ is the number of samples, $p$ is the dimensionality of the features,
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Batch Gradient Descent (BGD)}
+
+We first recall the usual deterministic (batch) gradient descent (BGD) on the problem of
+supervised logistic classification.
+
+We refer to the dedicated section on logistic classification for
+background and more details about the derivations of the energy and its
+gradient.
+
+Logistic classification aims at solving the following convex program
+  \eq{
+	\umin{w} E(w) \eqdef \frac{1}{n} \sum_{i=1}^n L(\dotp{x_i}{w},y_i) 
+}
+where the logistic loss reads
+  \eq{
+	L( s,y ) \eqdef \log( 1+\exp(-sy) )
+}
+We can define energy $E$ and its gradient $\nabla E$ and use a vanilla gradient descent
+ \eq{
+	w_{\ell+1} = w_\ell - \tau_\ell \nabla E(w_\ell).
+}
+
+% saveas(gcf,[rep 'error-bgd.eps'], 'epsc');
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Stochastic Gradient Descent (SGD)}
+
+
+As any empirical risk minimization procedure, the 
+logistic classification minimization problem can be written as 
+\eq{
+	\umin{w} E(w) = \frac{1}{n} \sum_i E_i(w) \qwhereq E_i(w) = L(\dotp{x_i}{w},y_i).
+}
+For very large $n$ (which could in theory even be infinite, in which case the sum needs to be replaced 
+by an expectation or equivalenty an integral), computing $\nabla E$ is prohebitive.  
+It is possible instead to use a stochastic gradient descent (SGD) scheme
+  \eq{
+	w_{\ell+1} = w_\ell - \tau_\ell \nabla E_{i(\ell)}(w_\ell)
+}
+where, for each iteration index $\ell$, $i(\ell)$
+is drawn uniformly at random in $  \{1,\ldots,n\} $. 
+%
+Note that here
+\eq{
+	\nabla E_{i}(w) = x_i \nabla L( \dotp{x_i}{w}, y_i )
+  \qwhereq  \nabla L(u,v) = v \odot \th(-u) 
+}
+
+Note that each step of a batch gradient descent has complexity $O(np)$,
+while a step of SGD only has complexity $O(p)$. SGD is thus
+advantageous when $n$ is very large, and one cannot afford to do
+several passes through the data. In some situation, SGD can provide
+accurate results even with $\ell \ll n$, exploiting redundancy between
+the samples.  
+
+
+A crucial question is the choice of step size schedule $\tau_\ell$. It
+must tends to 0 in order to cancel the noise induced on the gradient by
+the stochastic sampling. But it should not go too fast to zero in order
+for the method to keep converging. 
+
+
+A typical schedule that ensures both properties is to have asymptically $\tau_\ell \sim \ell^{-1}$ for
+$\ell\rightarrow +\infty$. We thus propose to use 
+\eq{
+	\tau_\ell \eqdef \frac{\tau_0}{1 + \ell/\ell_0}
+}
+where $\ell_0$ indicates roughly the number of iterations serving as a
+"warmup" phase.
+
+
+One can prove the following convergence result
+ \eq{
+	\EE( E(w_\ell) ) - E(w^\star) = O\pa{ \frac{1}{\sqrt{\ell}} },
+}
+where $\EE$ indicates an expectation with respect to the i.i.d.
+sampling performed at each iteration.
+
+
+We can perform the Stochastic gradient descent and display the evolution of the energy $E(w_\ell)$. 
+One can overlay on top (black dashed curve) the convergence of the batch gradient descent, with a carefull scaling of the 
+number of iteration to account for the fact that the complexity of a batch iteration is $n$ times larger. 
+
+
+%  saveas(gcf,[rep 'error-sgd.eps'], 'epsc');
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Stochastic Gradient Descent with Averaging (SGA)}
+
+Stochastic gradient descent is slow because of the fast decay of
+$\tau_\ell$ toward zero.
+
+To improve somehow the convergence speed, it is possible to average the past
+iterate, i.e. run a ``classical" SGD on auxiliary variables $ (\tilde w_\ell)_\ell$
+  \eq{
+	\tilde w_{\ell+1} = \tilde w_\ell - \tau_\ell \nabla E_{i(\ell)}(\tilde w_\ell)
+}
+and output as estimated weight vector the average
+\eq{
+	w_\ell \eqdef \frac{1}{\ell} \sum_{k=1}^\ell \tilde w_\ell.
+}
+This defines the Stochastic Gradient Descent with Averaging (SGA)
+algorithm.
+
+
+Note that it is possible to avoid explicitly storing all the iterates by simply
+updating a running average as follow
+\eq{
+	w_{\ell+1} = \frac{1}{\ell} \tilde w_\ell +  \frac{\ell-1}{\ell} w_\ell. 
+}
+
+
+In this case, a typical choice of decay is rather of the form 
+\eq{
+	\tau_\ell \eqdef \frac{\tau_0}{1 + \sqrt{\ell/\ell_0}}.
+}
+Notice that the step size now goes much slower to 0, at rate $\ell^{-1/2}$.
+
+
+Typically, because the averaging stabilizes the iterates, the choice of
+$(\ell_0,\tau_0)$ is less important than for SGD. 
+
+% <https://arxiv.org/pdf/1303.6149.pdf 
+
+Bach proves that for logistic classification, 
+it leads to a faster convergence (the constant involved are
+smaller) than SGD, since 
+on contrast to SGD, SGA is adaptive to the local strong convexity of $E$.
+
+We can display the evolution of the energy $E(w_\ell)$.
+
+% saveas(gcf,[rep 'error-sga.eps'], 'epsc');
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Stochastic Averaged Gradient Descent (SAG)}
+
+% https://arxiv.org/pdf/1309.2388
+For problem size $n$ where the dataset (of size $n \times p$) can
+fully fit into memory, it is possible to further improve the SGA method
+by bookeeping the previous gradient. This gives rise to the 
+Stochastic Averaged Gradient Descent (SAG) algorithm.
+
+
+We stored all the previously computed gradient in $ (G^i)_{i=1}^n $,
+which necessitate $n \times p$ memory. 
+The iterates are defined by using a proxy $g$ for the batch gradient,
+which is progressively enhanced during the iterates.
+
+The algorithm reads
+\eq{
+	h \leftarrow \nabla E_{i(\ell)}(\tilde w_\ell),
+}
+\eq{
+	g  \leftarrow g - G^{i(\ell)} + h,  
+}
+\eq{
+	G^{i(\ell)} \leftarrow h, 
+}
+\eq{
+	w_{\ell+1} = w_\ell - \tau g. 
+}
+Note that in contrast to SGD and SGA, this method uses a fixed step
+size $\tau$. Similarely to the BGD, in order to ensure convergence, 
+the step size $\tau$ should be of the order of $1/L$
+where $L$ is the Lipschitz constant of $E$.
+
+
+This algorithm improves over SGA and BGD
+since it has a convergence rate of $O(1/\ell$. 
+Furthermore, in the presence of strong convexity (for instance when $X$ is
+injective for logistic classification), it has a linear convergence rate, 
+i.e. 
+ \eq{
+	\EE( E(w_\ell) ) - E(w^\star) = O\pa{ \rho^\ell },
+}
+for some $0 < \rho < 1$. 
+
+Note that this improvement over SGD and SGA is made possible only because
+SAG explicitly use the fact that $n$ is finite (while SGD and SGA can
+be extended to infinite $n$ and more general minimization of
+expectations).
+
+
+We display the evolution of the energy $E(w_\ell)$.
+% saveas(gcf,[rep 'error-sag.eps'], 'epsc');
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Automatic Differentiation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Deep Discriminative Models}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Deep Generative Models}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Density Fitting}
+
+%%%
+\paragraph{Fitting and MLE}
+
+%%%
+\paragraph{Generative Models}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Auto-encoders}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{GANs}

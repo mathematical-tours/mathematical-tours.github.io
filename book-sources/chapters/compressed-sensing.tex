@@ -7,6 +7,271 @@ Main ref: \cite{mallat2008wavelet,foucart2013mathematical,scherzer2009variationa
 
 TODO.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Motivation and Potential Applications}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Dual Certificate Theory and Non-Uniform Guarantees}
+
+Polytopes, descent cone and Gaussian width.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{RIP Theory for Uniform Guarantees}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RIP Constants}
+
+The RIP constant $\de_s$ of a matrix $\Phi \in \RR^{P \times N}$ is defined as
+\eql{\label{eq-rip}
+	\foralls z \in \RR^N, \quad
+	\normz{z} \leq s \qarrq
+	(1-\de_{s}) \norm{z}^2 \leq \norm{\Phi z}^2 \leq (1+\de_{s}) \norm{z}^2 
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RIP implies stable recovery}
+
+
+RIP implies dual certificate guarantees.
+
+
+
+
+In the following, we fixe a vector $x \in \RR^N$ and denote $y=\Phi x + w$ the measurement, with $\norm{w} \leq \epsilon$. We denote $x_s \in \RR^N$ the best $s$-term approximation of $x$, obtained by only keeping the $s$ largest coefficients in magnitude from $x$ and setting the others to 0.
+
+We consider a solution $x^\star$ of
+\eq{
+	\umin{\norm{\Phi \tilde x - y} \leq \epsilon} \normu{\tilde x}. 	
+}
+This note recall the proof from~\cite{candes-cras} of the following theorem
+
+\begin{thm}[\cite{candes-cras}]\label{thm-rip}
+	If $\de_{2s} \leq \sqrt{2}-1$ then there exists $C_0, C_1$ such that
+	\eq{
+		\normu{x^\star-x} \leq \frac{C_0}{\sqrt{s}}\norm{x_s-x} + C_1 \epsilon.
+	}
+\end{thm}
+
+The remaining of this section is devoted to proving this theorem.
+
+%%
+\paragraph{Notations.}
+
+We denote in the following $h = x^\star - x$ and denote $T_0$ the largest $s$ coefficients of $x$ in magnitude (so that $x_s=x_{T_0}$), $T_1$ the $s$ largest coefficients of $h_{T_0^c}$, $T_2$ the following $s$ largest coefficients of  $h_{T_0^c}$ and so on. We denote $T = T_0 \cup T_1$ which is an index set of size $2s$.
+
+
+\begin{lem}\label{lemma-1}
+	One has
+	\eq{
+		\sum_{j \geq 2} \norm{h_{T_j}} \leq \frac{1}{\sqrt{s}} \normu{h_{T_0^c}}
+	}
+\end{lem}
+\begin{proof}
+	By the definition of $T_j$ for $j \geq 2$, one has, for all $j \geq 2$
+	\eq{
+		\foralls i \in T_{j-1}, \quad
+		\normi{h_{T_j}} \leq h_i, 
+	}
+	and hence
+	\eq{
+		\normi{h_{T_j}} \leq \frac{1}{s}\normu{h_{T_{j-1}}}.
+	}
+	This proves that
+	\eq{
+		\norm{h_{T_j}} \leq \sqrt{s} \normi{h_{T_j}} \leq \frac{1}{\sqrt{s}}\normu{h_{T_{j-1}}}
+	}
+	and thus 
+	\eq{
+		\sum_{j \geq 2} \norm{h_{T_j}} \leq \frac{1}{\sqrt{s}} 
+		\sum_{j \geq 1} \normu{h_{T_j}} = \frac{1}{\sqrt{s}}  \normu{h_{T_0^c}}.
+	}
+\end{proof}
+
+%%
+\begin{lem}\label{lemma-2}
+	One has 
+	\eq{
+		\normu{h_{T_0^c}} \leq \normu{h_{T_0}} + 2 \normu{x_{T_0^c}}
+	}	
+\end{lem}
+\begin{proof}
+	One has
+	\begin{align*}
+		\normu{x}
+		& \geq \norm{x+h}
+			& \text{because $x^\star$ is a minimizer} \\
+		& = \normu{(x+h)_{T_0}} + \normu{(x+h)_{T_0^c}}
+		  	& \\ 
+		& \geq \normu{x_{T_0}} - \normu{h_{T_0}}
+		+ \normu{h_{T_0^c}} - \normu{x_{T_0^c}}
+			&\text{using the triangular inequality.}
+	\end{align*}
+	Decomposing the left hand size $\normu{x}=\normu{x_{T_0}} + \normu{x_{T_0^c}}$, 
+	one obtains the result.
+\end{proof}
+
+%%
+\begin{lem}\label{lemma-3}
+	If $z$ and $z'$ have disjoints supports and $\norm{z} \leq s$ and $\normz{z'} \leq s$, 
+	\eq{
+		|\dotp{\Phi z}{\Phi z'}| \leq \de_{2s} \norm{z}\norm{z'}.
+	}	
+\end{lem}
+\begin{proof}
+	Using the RIP \eqref{eq-rip} since $z \pm z'$ has support of size $2s$ and the fact that $\norm{z \pm z'}^2 = \norm{z}^2 + \norm{z'}^2$, one has
+	\eq{
+		(1-\de_{2s}) \pa{ \norm{z}^2 + \norm{z'}^2 } 
+		\leq \norm{\Phi z \pm \Phi z'}^2 \leq
+		(1+\de_{2s}) \pa{ \norm{z}^2 + \norm{z'}^2 } .
+	}
+	One thus has using the parallelogram equality
+	\eq{
+		|\dotp{\Phi z}{\Phi z'}| =
+		\frac{1}{4}
+		| \norm{\Phi z + \Phi z'}^2 - \norm{\Phi z - \Phi z'}^2 |^2
+		\leq
+		\de_{2s} \norm{z}\norm{z'}.
+	}
+\end{proof}
+
+Theorem \ref{thm-rip} requires bounding $\norm{h}$. We bound separately $\norm{h_T}$ and $\norm{h_{T^c}}$.
+
+%%
+\paragraph{Part 1: bounding $\norm{h_T}$.}
+
+One has
+\begin{align*}
+	\norm{h_{T^c}} 
+			& = \norm{\sum_{j \geq 2} h_{T_j}} \leq \sum_{j \geq 2} \norm{ h_{T_j} }
+				& \text{using the triangular inequality} \\
+			&\leq \frac{1}{\sqrt{s}} \normu{h_{T_0^c}}
+				& \text{using Lemma \ref{lemma-1}}\\
+			&\leq \frac{1}{\sqrt{s}} \normu{h_{T_0}} + \frac{2}{\sqrt{s}}\normu{x_{T_0^c}}
+				&  \text{using Lemma \ref{lemma-2}}\\
+			&\leq \frac{1}{\sqrt{s}} \normu{h_{T_0}} + 2 e_0
+				& \text{denoting } e_0 = \frac{1}{\sqrt{s}}\normu{x_{T_0^c}} \\
+			& \leq  \norm{h_{T_0}} + 2 e_0
+				& \text{ using Cauchy-Schwartz}\\
+			& \leq  \norm{h_{T}} + 2 e_0 
+				& \text{because } T_0 \subset T.
+\end{align*}
+The final bound reads
+\eql{\label{eq-5}
+	\norm{ h_{T^c} } \leq \norm{h_{T}} + 2 e_0.
+}
+
+
+%%
+\paragraph{Part 2: bounding $\norm{h_{T^c}}$.}
+
+One has 
+\begin{align*}
+	\norm{h_{T}}^2 
+		&\leq \frac{1}{1-\de_{2s}} \norm{ \Phi h_T }^2 & \text{using the RIP~\eqref{eq-rip}} \\
+		& = \frac{A - B}{1-\de_{2s}} & \text{using } \Phi h_T = \Phi h - \sum_{j \geq 2} \Phi h_{T_j},
+\end{align*}
+where we have introduced 
+\eq{
+		A = \dotp{\Phi h_T}{\Phi h}
+		\qandq
+		B = \dotp{\Phi h_T}{ \sum_{j \geq 2 } \Phi h_{T_j} }	.
+}
+
+One has  
+\begin{align*}
+	|A|  & \leq \norm{\Phi h_T} \norm{\Phi h} 
+			& \text{using Cauchy-Schwartz} \\
+		 & \leq \sqrt{1+\de_{2s}} \norm{h_T} \norm{\Phi h}
+		 	& \text{using the RIP~\eqref{eq-rip}} \\
+		& \leq  \sqrt{1+\de_{2s}} \norm{h_T} 2 \epsilon 
+		 & \text{using }  \norm{\Phi h} \leq \norm{\Phi x - y} + \norm{\Phi x^\star - y} \leq 2 \epsilon 
+\end{align*}
+The final bound reads
+\eql{\label{eq-2}
+	|A| \leq 2 \epsilon  \sqrt{1+\de_{2s}} \norm{h_T} 
+}
+
+One has 
+\begin{align*}
+	|B| &\leq |\dotp{\Phi h_{T_0}}{\sum_{j \geq 2} \Phi h_{T_j}}| + 
+			 |\dotp{\Phi h_{T_1}}{\sum_{j \geq 2} \Phi h_{T_j}}|
+			& \text{using the triangular inequality} \\
+		& \leq \sum_{j \geq 2} |\dotp{\Phi h_{T_0}}{\Phi h_{T_j}}| + |\dotp{\Phi h_{T_0}}{\Phi h_{T_j}}| 
+			& \text{using the triangular inequality} \\
+		& \leq \sum_{j \geq 2} \de_{2s} \norm{h_{T_0}} \norm{h_{T_j}} + \de_{2s} \norm{h_{T_1}} \norm{h_{T_j}}
+			& \text{using Lemma \ref{lemma-3}} \\
+		& =  \de_{2s} (\norm{h_{T_0}} + \norm{h_{T_1}}) \sum_{j \geq 2} \norm{h_{T_j}}
+			& \\
+		& \leq \de_{2s} \sqrt{2} \norm{h_{T}} \sum_{j \geq 2} \norm{h_{T_j}} 
+			& \text{$T_0$ and $T_1$ are disjoints} \\
+		& \leq \frac{\sqrt{2} \de_{2s}}{\sqrt{s}} \norm{h_T} \normu{h_{T_0^c}}
+			& \text{using Lemma \ref{lemma-1}}
+\end{align*}
+The final bound reads
+\eql{\label{eq-3}
+	|B| \leq \frac{\sqrt{2} \de_{2s}}{\sqrt{s}} \norm{h_T} \normu{h_{T_0^c}}.
+}
+
+Putting together \eqref{eq-2} and \eqref{eq-3} one obtains
+\eq{
+	\norm{h_{T}}^2 \leq \frac{\norm{h_{T}}}{ 1-\de_{2s} } \pa{
+		\sqrt{1+\de_{2s}} 2 \epsilon  + \frac{2}{\sqrt{s}} \de_{2s} \normu{ h_{T_0^c} }
+	}
+}
+thus
+\begin{align*}
+	\norm{h_{T}} 
+	&\leq \al \epsilon + \frac{\rho}{\sqrt{s}} \normu{h_{T_0^c}}
+		&\text{denoting}
+		\choice{
+			\al = 2 \frac{\sqrt{1+\de_{2s}}}{1-\de_{2s}}, \\
+			\rho = \frac{\sqrt{2} \de_{2s}}{1-\de_{2s}}.
+		}\\
+	& \leq \al \epsilon + \frac{\rho}{\sqrt{s}} \normu{h_{T_0}}
+			+ \frac{2 \rho}{\sqrt{s}} \normu{x_{T_0^c}} 
+		& \text{using Lemma \ref{lemma-2}} \\
+	& \leq \al \epsilon + \rho \norm{h_{T_0}} + 2 \rho e_0 
+		& \text{using Cauchy-Schwartz}		\\
+	& \leq \al \epsilon + \rho \norm{h_T} + 2 \rho e_0
+		& \text{because } T_0 \subset T.
+\end{align*}
+
+Note that since $\de_{2s} < \sqrt{2}-1$, one has $\rho < 1$.
+This implies 
+\eql{\label{eq-4}
+	\norm{h_{T}} \leq
+	\frac{\al}{1-\rho} \epsilon + \frac{2\rho}{1-\rho} e_0.
+}
+
+
+%%
+\paragraph{Conclusion.}
+
+One has
+\begin{align*}
+	\norm{h} &\leq \norm{h_T} + \norm{h_{T^c}} 
+		& \text{using the triangular inequality} \\
+	&\leq 2 \norm{h_T} + 2e_0 
+		& \text{using \eqref{eq-5}} \\
+	&\leq \frac{2\al}{1-\rho} \epsilon + 2\frac{1+\rho}{1-\rho} e_0
+		& \text{using \eqref{eq-4}}
+\end{align*}
+which proves the theorem.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Gaussian Matrices RIP}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fourier sampling RIP}
 
 
