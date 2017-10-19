@@ -23,7 +23,7 @@ Quantization corresponds to rounding the coefficients to an integer using a step
 }
 We note that this quantizer has a twice larger zero bin, so that coefficients in $[-T,T]$ are set to zero.
 
-This quantizer nonlinearity should be compared to the hard thresholding nonlinearity \eqref{eq-hard-thresh} used to perform non-linear approximation. The quantizer not only set to zero small coefficients that are smaller than $T$ in magnitude, it also modifies larger coefficients by rounding, see Figure \ref{fig-thresholding-vs-quantizing}. 
+This quantizer nonlinearity should be compared to the hard thresholding nonlinearity~\eqref{eq-hard-thresh} used to perform non-linear approximation. The quantizer not only set to zero small coefficients that are smaller than $T$ in magnitude, it also modifies larger coefficients by rounding, see Figure \ref{fig-thresholding-vs-quantizing}. 
 
 \myfigure{
 \image{approximation}{.3}{thresholding-vs-quantizing}
@@ -53,9 +53,9 @@ The compressed-decompressed image is then reconstructed as
 }
 thus producing a decompression error $\norm{f-\Qq_T(f)}$.
 
-This decompression reconstruction \eqref{eq-decompression-approx} should be compared with the non-linear approximation formula \eqref{eq-nonlinear-approx}. One necessarily has $\norm{f-f_M} \leq \norm{f-\Qq_T(f)}$, but in practice these two errors have comparable magnitudes. 
+This decompression reconstruction~\eqref{eq-decompression-approx} should be compared with the non-linear approximation formula~\eqref{eq-nonlinear-approx}. One necessarily has $\norm{f-f_M} \leq \norm{f-\Qq_T(f)}$, but in practice these two errors have comparable magnitudes. 
 
-\begin{prop}
+\begin{prop}\label{prop-error-compression}
 	One has 
 	\eql{\label{eq-error-compression}
 		\norm{f-\Qq_T(f)}^2 \leq \norm{f-f_M}^2 + M T^2/4
@@ -65,7 +65,7 @@ This decompression reconstruction \eqref{eq-decompression-approx} should be comp
 \end{prop}
 
 \begin{proof}
-Indeed, the de-quantization formula \eqref{eq-de-quantization} implies that for $|a_m|>T$,
+Indeed, the de-quantization formula~\eqref{eq-de-quantization} implies that for $|a_m|>T$,
 \eq{
 	|a_m-\tilde a_m| \leq \frac{T}{2}.
 }
@@ -78,16 +78,12 @@ One thus has
 which leads to the desired bound.
 \end{proof}
 
-If $\norm{f-f_M}^2 \sim O(M^{-\al})$, then it is easy to see that $\norm{f-f_M}^2 \sim M T^2$ so that one has 
-\eq{
-	\norm{f-\Qq_T(f)}^2 \sim \norm{f-f_M}^2.
-}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Support Coding}
 \label{subsec-support-coding}
 
-To measure how large is the additional error term $M T^2/4$ in \eqref{eq-error-compression}, one needs to choose a method to store the quantized coefficients $q_m$ into a file. 
+To measure how large is the additional error term $M T^2/4$ in~\eqref{eq-error-compression}, one needs to choose a method to store the quantized coefficients $q_m$ into a file. 
 
 For aggressive compression scenario, where $R$ and $M$ are small with respect to the size $N$ of the image, the support 
 \eq{
@@ -97,46 +93,75 @@ is highly sparse. It thus make sense to code first this support and then to code
 
 The remaining of this section proves the following theorem.
 
-\begin{thm}
-	We assume $\norm{f-f_M}^2 \sim O(M^{-\al})$ where $f_M$ is the $M$-term non-linear approximation of $f$ in $\{\psi_m\}_m$.
-	Then for all $T$ is a coding strategy of $\Qq_T(f)$ using $R=R(T)$ bits such that 
+\begin{thm}\label{thm-compression}
+	We assume $\norm{f-f_M}^2 \sim M^{-\al}$ where $f_M$ is the $M$-term non-linear approximation of $f$ in $\{\psi_m\}_m$.
+	%
+	We also assume that the required number of discrete samples $N$ used can be bounded polynomially with $N$ (see~\eqref{hyp-compression-2} bellow for more details).
+	%
+	Then for all $T$ there exists a coding strategy of $\Qq_T(f)$ using $R=R(T)$ bits such that 
 	\eq{
-		\norm{ f-\Qq_T(f) }^2 =  O( \log^\al(R) R^{-\al} ).
+		\norm{ f-\Qq_T(f) }^2 = O( \log^\al(R) R^{-\al} ).
 	}
 \end{thm}
 
 
+\begin{proof} This proof is split in several parts.
+
 %%
-\paragraph{Comments on the signals constraints.}
+\paragraph{Signals constraints.}
 
-First, let us notice that, thanks to Proposition~\ref{prop-equiv-comp-decay} the error decay hypothesis $\norm{f-f_M}^2 \sim O(M^{-\al})$ is equivalent to imposing a fast decay of the ordered coefficients $d_m$ defined in \eqref{eq-dfn-ordered-coefs}
+First, let us notice that, thanks to Proposition~\ref{prop-equiv-comp-decay} the error decay hypothesis $\norm{f-f_M}^2 \sim M^{-\al}$ is equivalent to imposing a fast decay of the ordered coefficients $d_m$ defined in~\eqref{eq-dfn-ordered-coefs} satisfies 
 \eql{\label{hyp-compression-1}
-	d_m \sim m^{-\frac{\al+1}{2}}.
+	d_m \sim m^{-\frac{\al+1}{2}}
+	\qarrq
+	T \sim M^{-\frac{\al+1}{2}}.
 }
-Furthermore, a practical compression algorithm is only capable of dealing with discrete signals of size $N$. We thus considers that the algorithm has access to $N$ inner products $\{ \dotp{f}{\psi_m} \}_{0 \leq m < N}$ that are computed using a decomposition algorithm from a discretized signal or image of size $N$. For instance, Section \ref{sec-1d-wav-processing} details a discrete wavelet transform, and introduces a compatibility condition \eqref{eq-sampling-consist-1d} on the sampling operator for this inner product computation to be possible from discrete data.  
+Thanks to Proposition~\ref{prop-error-compression}, one thus has
+\eql{\label{eq-compression-error}
+	\norm{f-f_M}^2 \leq \norm{f-\Qq_T(f)}^2 \leq \norm{f-f_M}^2 + M T^2/4 \sim M^{-\al} \sim \norm{f-f_M}^2,
+}
+which shows that the compression error is comparable with the approximation error. 
 
+%%
+\paragraph{Discrete computation and scaling of $N$.}
+ 
 For the compression from the discrete signals to be the same as a compression of a continuous signal, we impose that $N$ is large enough so that 
-\eq{
+\eql{\label{eq-compression-lincond}
 	\foralls m \geq N, \quad |\dotp{f}{\psi_m}| < T
 }
 so that the coefficients not quantized to $0$ are contained within the set $\{ \dotp{f}{\psi_m} \}_{0 \leq m < N}$ of the $N$ computed coefficients.
+%
+For instance, if $f$ is bounded and one considers a wavelet basis,~\eqref{eq-wavcoef-decay-2} ensures that $|\dotp{f}{\psi_m}|=O(2^{-jd/2})$, and thus choosing $T \sim 2^{-j_{\max} d/2}$ ensures~\eqref{eq-compression-lincond} where $N=2^{-j_{\max}d}$, i.e. 
+\eql{\label{eq-scale-t-n}
+	N = O(1/T^2).
+} 
 
-The other hypothesis beyond \eqref{hyp-compression-1} is that the sampling precision $N$ is not too large, and in particular, that there is a polynomial grows of $N$ with respect to the number $M$ of coefficients to code
+The other hypothesis beyond~\eqref{hyp-compression-1} of Theorem~\ref{thm-compression} is that the number $N$ of required discrete samples is not too large, and in particular, that there is a polynomial grows of $N$ with respect to the number $M$ of coefficients to code
 \eql{\label{hyp-compression-2}
-	N \sim M^{\be}
+	N = O( M^{\be} )
 }
-for some $\be > 0$. For the wavelet and Fourier bases, and for all the classes of signals and images detailed in Section \ref{sec-signal-models}, one can show that this is indeed the case, if one orders the basis elements $\{\psi_m\}_m$ from low frequencies (or coarse scales) to high frequencies (or fine scales). This is because in these bases, the coefficients $\dotp{f}{\psi_m}$ have a polynomial decay with $m$ if $f$ as some smoothness. See Sections~\ref{subsec-sobolev-approx} and~\ref{subsect-wavdecay} for a proof of this decay for Sobolev and piecewise regular signals.
+for some $\be > 0$. 
+%
+For instance, under the decay condition~\eqref{hyp-compression-1} and the worse case scaling~\eqref{eq-scale-t-n} for bounded function in a wavelet basis, 
+\eq{
+	N = O(1/T^2)
+	\qandq
+	T \sim M^{-\frac{\al+1}{2}} 
+	\qarrq
+	N = O(M^{\al+1}). 
+}
+
+% For the wavelet and Fourier bases, and for all the classes of signals and images detailed in Section \ref{sec-signal-models}, one can show that this is indeed the case, if one orders the basis elements $\{\psi_m\}_m$ from low frequencies (or coarse scales) to high frequencies (or fine scales). This is because in these bases, the coefficients $\dotp{f}{\psi_m}$ have a polynomial decay with $m$ if $f$ as some smoothness. See Sections~\ref{subsec-sobolev-approx} and~\ref{subsect-wavdecay} for a proof of this decay for Sobolev and piecewise regular signals.
 
 
 %%
 \paragraph{Support coding.}
 
-Since the size of the support is $|I_M|=M$, one can code the entries of $I_M$ as being a set of size $M$ within a larger set of $N$ coefficients using a number of bits
+One can simply encode the $M$ indexes of each element $m \in I_M \subset \{1,\ldots,N\}$ using $\log_2(N)$ bits, so that the total number of bits for the support $I_M$ is
 \eql{\label{eq-nbits-1}
-	R_{\text{ind}} \leq \log_2{  N \choose M } = O(M \log_2\pa{ \frac{N}{M} })
-	= O( M \log_2(M) )
+	R_{\text{ind}} = M \log_2(N) = O(M\log_2(M))
 }
-where ${  N \choose M }$ is the number of possible choices for $M$ elements in a set of $N$ elements, and where we have used hypothesis \eqref{hyp-compression-1} to derive the last equality.
+where we used~\eqref{hyp-compression-1}. 
 
 %%
 \paragraph{Values coding.}
@@ -149,28 +174,37 @@ so one can code them using a number of bits
 \eql{\label{eq-nbits-2}
 	R_{\text{val}} = O( M |\log_2(T)| ) = O( M \log_2(M) ) 
 }
-where we have used hypothesis \eqref{hyp-compression-1} that implies $|\log_2(T)| \sim \log_2(M)$.
+where we have used hypothesis~\eqref{hyp-compression-1} that implies $|\log_2(T)| \sim \log_2(M)$.
 
 %%
 \paragraph{Total number of bits.}
 
-Putting \eqref{eq-nbits-1} and \eqref{eq-nbits-2} together, the total number of bits for this support coding approach is thus
-\eq{
+Putting~\eqref{eq-nbits-1} and~\eqref{eq-nbits-2} together, the total number of bits for this support coding approach is thus
+\eql{\label{eq-bound-bits}
 	R = R_{\text{ind}}+ R_{\text{val}} = O(M \log_2(M)).
 }
-Inverting this relationship proves that 
-\eql{\label{eq-compression-bits}
-	M = O(R \log_2(R)).
-}
-
-%%
-\paragraph{Rate/distortion error decay.}
-
-Condition \eqref{hyp-compression-1} implies that $M T^2 \sim M^{-\al}$, so that putting \eqref{eq-error-compression} and \eqref{eq-compression-bits} together proves
+The function $\phi(m) = m \log_2(m)$ is strictly increasing, one can invert it, and we now show that $\phi^{-1}(r) = r/\log(r) + o(1)$ for large $r$. Indeed, writing $r=\phi(m)$ 
 \eq{
-	\norm{f-\Qq_T(f)}^2 = O( \log^\al(R) R^{-\al} ).
+	m = \frac{r}{\log_2(m)} = \frac{r}{\log_2(r) - \log_2\log_2(m)} \sim \frac{r}{\log_2(r)} 
 }
-This shows the importance of the study of non-linear approximation, and in particular the design of bases that are efficient for approximation of a given signal model $\Th$.
+where we used the fact that since $m \leq r$, $\log_2\log_2(m) = o(\log_2(r))$.
+%
+Inverting this relationship~\eqref{eq-bound-bits} thus proves that 
+\eql{\label{eq-compression-bits}
+	M \geq C \frac{R}{\log_2(R)}
+}
+for some constant $C$. 
+%
+Using~\eqref{eq-compression-error} and~\eqref{eq-compression-bits}, one thus finally arrives to 
+\eq{
+	\norm{f-\Qq_T(f)}^2 \sim M^{-\al} = O( \log^\al(R) R^{-\al} ).
+}
+\end{proof}
+
+
+This theorem shows the importance of the study of non-linear approximation, and in particular the design of bases that are efficient for approximation of a given signal model $\Th$.
+%
+Let us also insists on the fact that a practical compression algorithm is only capable of dealing with discrete signals of size $N$. We thus considers that the algorithm has access to $N$ inner products $\{ \dotp{f}{\psi_m} \}_{1 \leq m < N}$ that are computed using a decomposition algorithm from a discretized signal or image of size $N$. For instance, Section \ref{sec-1d-wav-processing} details a discrete wavelet transform, and introduces a compatibility condition~\eqref{eq-sampling-consist-1d} on the sampling operator for this inner product computation to be possible from discrete data. 
 
 
 \myfigure{

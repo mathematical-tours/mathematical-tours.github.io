@@ -173,9 +173,13 @@ Another definition of compact operator is that they are the limit of finite rank
 
 Typical example of compact operator are matrix-like operator with a continuous kernel $k(x,y)$ for $(x,y) \in \Om$ where $\Om$ is a compact sub-set of $\RR^d$ (or the torus $\TT^d$), i.e.
 \eq{
-	\Phi f = \int_{\Om} k(x,y) f(y) \d y
+	(\Phi f)(x) = \int_{\Om} k(x,y) f(y) \d y
 } 
-where $\d y$ is the Lebesgue measure. An example of such a setting which generalizes~\eqref{eq-diag-filter-finite} is when $\Phi f = h \star h$ on $\TT^d=(\RR/2\pi\ZZ)^d$, which is corresponds to a translation invariant kernel $k(x,y) = h(x-y)$, in which case $u_m(x)=(2\pi)^{-d/2} e^{\imath \om x}$, $\si_m = |\hat f_m|$.
+where $\d y$ is the Lebesgue measure. 
+%
+An example of such a setting which generalizes~\eqref{eq-diag-filter-finite} is when $\Phi f = f \star h$ on $\TT^d=(\RR/2\pi\ZZ)^d$, which is corresponds to a translation invariant kernel $k(x,y) = h(x-y)$, in which case $u_m(x)=(2\pi)^{-d/2} e^{\imath \om x}$, $\si_m = |\hat f_m|$.
+% 
+Another example on $\Om=[0,1]$ is the integration, $(\Phi f)(x) = \int_{0}^x f(y) \d y$, which corresponds to $k$ being the indicator of the ``triangle'', $k(x,y)=1_{x \leq y}$.
 
 %\eql{\label{eq-filtering-inversion}
 %	\hat f^+[\om] = \hat y[\om] / \hat h[\om] = \hat f_0[\om]
@@ -194,7 +198,7 @@ In the case where $w=0$, it makes to try to directly solve $\Phi f = y$. The two
 }
 The following proposition shows how to compute this least square solution using the SVD and by solving linear systems involving either $\Phi\Phi^*$ or $\Phi^*\Phi$. 
 
-\begin{prop}
+\begin{prop}\label{prop-pseudo-inv}
 	One has
 	\eql{\label{eq-pseudo-inverse}
 		f^+ = \Phi^+ y 
@@ -264,20 +268,28 @@ where $J$ is some regularization functional which should at least be continuous 
 \eql{\label{eq-regul-normsq}
 	f_\la \eqdef \uargmin{f \in \Ss} \norm{y-\Phi f}_\Hh^2 + \la \norm{f}^2
 }
-which can be conveniently rewritten in the basis of singular vectors as
+which is indeed a special case of~\eqref{eq-regul-pinv} as we now prove.
+
+\begin{prop}
+	The solution of~\eqref{eq-regul-normsq} has the form $f_\la = \Phi^+_\la y$ as defined in~\eqref{eq-regul-pinv} for the specific choice of function
+	\eq{
+		\foralls \si \in \RR, \quad \mu_\la(\si) = \frac{\si}{\si^2+\la}.
+	}
+\end{prop} 
+\begin{proof}
+Problem~\eqref{eq-regul-normsq} can be conveniently rewritten in the basis of singular vectors as
 \eql{\label{eq-regul-inv-singul}
-	f_\la = \uargmin{f \in \Im(\Phi^*)} \sum_m  (\si_m \dotp{f}{v_m} - \dotp{y}{v_m})^2 + \la \dotp{f}{v_m}^2
+	f_\la = \uargmin{f \in \Im(\Phi^*)} \sum_m  (\si_m \dotp{f}{v_m} - \dotp{y}{u_m})^2 + \la \dotp{f}{v_m}^2 + \la \norm{ \Proj_{\ker(\Phi)^\bot} f }^2.
 }
-where we have use the fact that necessarily $f_\la \in \Im(\Phi^*)$ because of the square penalty. The minimization~\eqref{eq-regul-inv-singul} boils down to independent scalar minimization over each coordinate $f_m \eqdef \dotp{f}{v_m}$ and the first order condition reads
+This shows that necessarily $\Proj_{\ker(\Phi)^\bot} f_\la=0$, i.e. $f_\la \in \Im(\Phi^*)$. The minimization~\eqref{eq-regul-inv-singul} thus boils down to independent scalar minimization over each coordinate $f_m \eqdef \dotp{f}{v_m}$ and the first order condition reads
 \eq{
 	\si_m ( \si_m f_m - y_m) + \la f_m = 0
 	\qwhereq
-	y_m \eqdef \dotp{y}{v_m}. 
+	y_m \eqdef \dotp{y}{u_m}
 }
-One thus has $f_\la = \Phi^+_\la$ where $\Phi^+_\la$ is in the form~\eqref{eq-regul-pinv} for the specific choice of function
-\eq{
-	\foralls \si \in \RR, \quad \mu_\la(\si) = \frac{\si}{\si^2+\la}.
-}
+which shows the desired formula.
+\end{proof}
+
 
 The question is to understand how to choose $\la$ as a function of the noise level $\norm{w}_\Hh$ in order to guarantees that $f_\la \rightarrow f_0$ and furthermore establish convergence speed. One first needs to ensure at least $f_0=f_0^+$, which in turns requires that $f_0 \in \Im(\Phi^*)=\ker(\Phi)^\bot$. Indeed, an important drawback of linear recovery methods (such as quadratic regularization) is that necessarily $f_\la \in \Im(\Phi^*)=\ker(\Phi^\bot)$ so that no information can be recovered inside $\ker(\Phi)$. Non-linear methods must be used to achieve a ``super-resoltution'' effect and recover this missing information.
 
@@ -285,7 +297,7 @@ The question is to understand how to choose $\la$ as a function of the noise lev
 \paragraph{Source condition.}
 
 In order to ensure convergence speed, one quantify this condition and impose a so-called source condition of order $\be$, which reads
-\eq{
+\eql{\label{eq-source-cond-init}
 	f_0 \in \Im( (\Phi^*\Phi)^\be ) = \Im( V \diag( \si_m^{2\be} ) V^* ).
 }
 This condition means that there should exists $z \in \Ss$ such that $f_0 = V \diag( \si_m^{2\be} ) V^* z$, i.e. $z =V \diag( \si_m^{-2\be} ) V^* f_0$. Denoting $\rho \eqdef \norm{z}$, we thus in fact impose the following constraint
@@ -293,8 +305,8 @@ This condition means that there should exists $z \in \Ss$ such that $f_0 = V \di
 	\sum_m \si_m^{-2\be} \dotp{f}{v_m}^2 \leq \rho^2 < +\infty. 
 }
 This is a Sobolev-type constraint, similar to those imposed in~\ref{eq-discr-sobol}. A prototypical example is for a low-pass filter $\Phi f = f \star h$ where $h$ as a slow polynomial-like decay of frequency, i.e. $|\hat h_m| \sim 1/m^{\al}$ for large $m$. In this case, since $v_m$ is the Fourier basis, the source condition~\eqref{eq-source-cond-quad} reads
-\eql{\label{eq-source-cond-quad}\tag{$S_{\be,\rho}$}
-	\sum_m \norm{m}^{2\al\be} |\hat f_m|^2 \leq \rho^2 < +\infty. 
+\eq{
+	\sum_m \norm{m}^{2\al\be} |\hat f_m|^2 \leq \rho^2 < +\infty, 
 }
 which is a Sobolev ball of radius $\rho$ and differential order $\al\be$. 
 
@@ -304,7 +316,7 @@ which is a Sobolev ball of radius $\rho$ and differential order $\al\be$.
 
 The following theorem shows that this source condition leads to a convergence speed of the regularization. 
 
-\begin{thm}
+\begin{thm}\label{thm-sublin-quad}
 	Assuming the source condition~\eqref{eq-source-cond-quad} with $0 < \be \leq 2$, then the solution of~\eqref{eq-regul-normsq} for $\norm{w} \leq \de$ satisfies
 	\eq{
 		\norm{f_\la - f_0} \leq C \rho^{\frac{1}{\be+1}} \de^{\frac{\be}{\be+1}}
@@ -353,7 +365,7 @@ The following theorem shows that this source condition leads to a convergence sp
 	}
 	In the case of the regularization~\eqref{eq-regul-normsq}, one has $\mu_\la(\si) = \frac{\si}{\si^2+\la}$, and
 	thus $\frac{ 1 - \mu_\la(\si) \si }{\si^{\be}} = \frac{\la \si^\be}{\si^2+\la}$. 
-	For $\be \leq 2$, one verifies that 
+	For $\be \leq 2$, one verifies (see Figure~\ref{fig-bound-regul}) that 
 	\eq{
 		C_\la = \frac{1}{2\sqrt{\la}}
 		\qandq
@@ -367,6 +379,19 @@ The following theorem shows that this source condition leads to a convergence sp
 		= O( \de^{\frac{\be}{\be+1}} \rho^{\frac{1}{\be+1}} ) .
 	}
 \end{proof}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.35\linewidth]{inverse-problems/bound-regul-1} \quad
+\includegraphics[width=.35\linewidth]{inverse-problems/bound-regul-2}
+\caption{\label{fig-bound-regul}
+Bounding $\mu_{\la}(\si) \leq C_\la = \frac{1}{2\sqrt{\la}}$ (left)  and 
+$\frac{\si^\be}{\la+\si^2} \leq D_{\la,\be}/\la$ (right). 
+}
+\end{figure}
+
+
 
 This theorem shows that using larger $\be \leq 2$ leads to faster convergence rates as $\norm{w}$ drops to zero.
 The rate~\eqref{eq-rate-tikhon} however suffers from a ``saturation'' effect, indeed, choosing $\be > 2$ does not helps (it gives the same rate as $\be=2$), and the best possible rate is thus 
@@ -387,17 +412,40 @@ After this theoretical study in infinite dimension, we now turn our attention to
 
 Following~\eqref{eq-regul-inv}, the ill-posed problem of recovering an approximation of the high resolution image $f_0 \in \RR^N$ from noisy measures $y = \Phi f_0 + w \in \RR^P$ is regularized by solving a convex optimization problem
 \eql{\label{eq-ip-regul}
-	f^\star \in  \uargmin{ f \in \RR^N }\; \Ee(f) \eqdef \frac{1}{2} \norm{y-\Phi f}^2 + \la J(f)
+	f_\la \in  \uargmin{ f \in \RR^N }\; \Ee(f) \eqdef \frac{1}{2} \norm{y-\Phi f}^2 + \la J(f)
 }
 where $\norm{y-\Phi f}^2$ is the data fitting term (here $\norm{\cdot}$ is the $\ell^2$ norm on $\RR^P$) and $J(f)$ is a convex functional on $\RR^N$.
 
 The Lagrange multiplier $\la$ weights the importance of these two terms, and is in practice difficult to set.
 Simulation can be performed on high resolution signal $f_0$ to calibrate the multiplier by minimizing the super-resolution error $\norm{f_0-\tilde f}$, but this is usually difficult to do on real life problems.
 
-In the case where there is no noise, $w = 0$, the Lagrange multiplier $\la$ should be set as small as possible. In the limit where $\la \rightarrow 0$, the unconstrained optimization problem~\eqref{eq-ip-regul} becomes a constrained optimization
+
+In the case where there is no noise, $w = 0$, the Lagrange multiplier $\la$ should be set as small as possible. In the limit where $\la \rightarrow 0$, the unconstrained optimization problem~\eqref{eq-ip-regul} becomes a constrained optimization, as the following proposition explains.
+%
+Let us stress that, without loss of generality, we can assume that $y \in \Im(\Phi)$, because one has the orthogonal decomposition
+\eq{
+	\norm{y-\Phi f}^2 = \norm{y-\Proj_{\Im(\Phi)}(y)}^2 + \norm{\Proj_{\Im(\Phi)}(y)-\Phi f}^2
+}
+so that one can replace $y$ by $\Proj_{\Im(\Phi)}(y)$ in~\eqref{eq-ip-regul}. 
+
+Let us recall that a function is coercive if its non-empty levelsets $\enscond{f}{J(f) \leq c}$ are bounded (and hence compact) for all $c$.
+
+\begin{prop}
+We assume that $J$ is coercive and that $y \in \Phi$. Then, if for each $\la$, $f_\la$ is a solution of~\eqref{eq-ip-regul}, then $(f_\la)_\la$ is a bounded set and any accumulation point $f^\star$ is a solution of
 \eql{\label{eq-ip-regul-noiseless}
 	f^\star = \uargmin{f \in \RR^N} \enscond{ J(f) }{ \Phi f = y }.
 }
+\end{prop}
+
+\begin{proof}
+	Denoting $h$, any solution to~\eqref{eq-ip-regul-noiseless}, which in particular satisfies $\Phi h = y$, because of the optimality condition of $f_\la$ for~\eqref{eq-ip-regul}, one has
+	\eq{
+		\frac{1}{2\la} \norm{\Phi f_\la-y}^2 + J(f_\la) \leq \frac{1}{2\la} \norm{\Phi h-y}^2 + J(h) = J(h). 
+	}
+	This shows that $J(f_\la) \leq J(h)$ so that since $J$ is coercive the set $(f_\la)_\la$ is bounded and thus one can consider an accumulation point $f_{\la_k} \rightarrow f^\star$ for $k \rightarrow +\infty$.  Since $\norm{\Phi f_{\la_k}-y}^2 \leq \la_k J(h)$, one has in the limit $\Phi f^\star = y$, so that $f^\star$ satisfies the constraints in~\eqref{eq-ip-regul-noiseless}. Furthermore, by continuity of $J$, passing to the limit in $J(f_{\la_k}) \leq J(h)$, one obtains $J(f^\star) \leq J(h)$ so that $f^\star$ is a solution of~\eqref{eq-ip-regul-noiseless}. 
+\end{proof}
+
+Note that it is possible to extend this proposition in the case where $J$ is not necessarily coercive on the full space (for instance the TV functionals in Section~\ref{sec-tv-regul} bellow) but on the orthogonal to $\ker(\Phi)$. The proof is more difficult.
 
 
 %%%%
@@ -487,7 +535,7 @@ $\it{g} \eqdef \nabla \Ee(\it{f}) = A\it{f}-b$.
 %
 It can also be shown that the direction $\it{d}$ are orthogonal, so that after $\ell=N$ iterations, the conjugate gradient computes the unique solution $f^{(\ell)}$ of the linear system $A f = b$.  It is however rarely used this way (as an exact solver), and in practice much less than $N$ iterates are computed.
 %
-It should also be noted that iterations~\eqref{eq-iter-cgs} can be caried over for an arbitrary smooth convex function $\Ee$, and it typically improves over the gradient descent (although in practice quasi-Newton method are often preferred). 
+It should also be noted that iterations~\eqref{eq-iter-cgs} can be carried over for an arbitrary smooth convex function $\Ee$, and it typically improves over the gradient descent (although in practice quasi-Newton method are often preferred). 
 
 
 
@@ -498,6 +546,7 @@ It should also be noted that iterations~\eqref{eq-iter-cgs} can be caried over f
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Total Variation Regularization}
+\label{sec-tv-regul}
 
 A major issue with quadratic regularization such as~\eqref{eq-quad-regul} is that they typically leads to blurry recovered data $f_\la$, which is thus not a good approximation of $f_0$ when it contains sharp transition such as edges in images. 
 %
@@ -580,7 +629,7 @@ It is a strictly convex problem (because $\norm{\cdot}_\epsilon$ is strictly con
 \label{sec-grad-descent}
 
 The optimization program~\eqref{eq-ip-tv-eps} is a example of smooth unconstrained convex optimization of the form
-\eql{\label{eq-min-smooth-uncons}
+\eql{\label{eq-min-smooth-uncons-ip}
 	\umin{f \in \RR^N} \Ee(f)
 }
 where $\Ee : \RR^N \rightarrow \RR$ is a $\Cc^1$ function. Recall that the gradient $\nabla \Ee : \RR^N \mapsto \RR^N$ of this functional (not to be confound with the discretized gradient $\nabla f \in \RR^N$ of $f$) is defined by the following first order relation
@@ -590,137 +639,18 @@ where $\Ee : \RR^N \rightarrow \RR$ is a $\Cc^1$ function. Recall that the gradi
 where we used $O(\norm{r}_{\RR^N}^2)$ in place of $o(\norm{r}_{\RR^N})$ (for differentiable function) because we assume here $\Ee$ is of class $\Cc^1$ (i.e. the gradient is continuous). 
 
 For such a function, the gradient descent algorithm is defined as
-\eq{
-	\iit{f} = \it{f} - \tau_\ell \nabla \Ee( \it{f} ), 
+\eql{\label{eq-grad-desc}
+	\iit{f} \eqdef \it{f} - \tau_\ell \nabla \Ee( \it{f} ), 
 }
 where the step size $\tau_\ell>0$ should be small enough to guarantee convergence, but large enough for this algorithm to be fast.
 
-To allow for not-too-small steps, 
-
-One needs to quantify the smoothness of $\Ee$. This is enforced by requiring that the gradient is $L$-Lipschitz, i.e.
-\eql{\label{eq-lipsch-grad}\tag{$\Rr_L$}
-	\foralls (f,g) \in (\RR^N)^2, \quad
-	\norm{ \nabla \Ee(f)-\nabla \Ee(g) } \leq L \norm{f-g}. 
-}
-In order to obtain fast convergence of the iterates themselve, it is needed that the function has enough ``curvature'' (i.e. is not too flat), which corresponds to imposing that $\Ee$ is $M$-strongly convex
-\eql{\label{eq-strong-conv}\tag{$\Ss_L$}
-	\foralls (f,g), \in (\RR^N)^2, \quad
-	\dotp{\nabla \Ee(f)-\nabla \Ee(g)}{ f-g } \geq M \norm{f-g}^2. 
-}
-The following proposition express these conditions as constraints on the hessian for $\Cc^2$ functions.
-
-\begin{prop}
-If $\Ee$ is of class $\Cc^2$, conditions~\eqref{eq-lipsch-grad} and~\eqref{eq-strong-conv} are equivalent to
-\eql{\label{eq-upper-lower-bound-hess}
-	\foralls f, \quad M \Id_{N \times N}  \preceq \partial^2 \Ee(f) \preceq L \Id_{N \times N}
-}
-where $\partial^2 \Ee(f) \in \RR^{N \times N}$ is the Hessian of $\Ee$, and 
-where $\preceq$ is the natural order on symmetric matrices, i.e.
-\eq{
-	A \preceq B \quad\Longleftrightarrow\quad
-	\foralls u \in \RR^N, \quad \dotp{A u}{u} \leq \dotp{B u}{u}.
-}
-\end{prop}
-
-Condition~\eqref{eq-upper-lower-bound-hess} thus reads that the singular values of $\partial^2 \Ee(f)$ should be contained in the interval $[M,L]$. The upper bound is also equivalent to $\norm{\partial^2 \Ee(f)}_{\text{op}} \leq L$ where $\norm{\cdot}_{\text{op}}$ is the operator norm, i.e. the largest singular value. 
-%
-In the special case of a quadratic function $\Qq$ of the form~\eqref{eq-quad-func}, $\partial^2 \Ee(f)=A$ is constant, so that $[M,L]$ can be chosen to be the range of the singular values of $A$.
-
-The following theorem ensure the convergence of the gradient descent with a linear speed.
-
-\begin{thm}\label{thm-gradsec-strong-conv}
-	If $f$ satisfy conditions~\eqref{eq-lipsch-grad} and~\eqref{eq-strong-conv}, assuming there exists $(\tau_{\min},\tau_{\max})$ such that
-	\eql{\label{eq-descent-step-cond}
-		0 < \tau_{\min} \leq \tau_\ell \leq \tau_{\max} < \frac{2 M}{L}
-	}
-	then there exists $0 \leq \rho<1$ such that 
-	\eql{\label{eq-global-linrate-grad}
-		\norm{ \it{f}-f^\star } \leq \rho^\ell \norm{\itz{f}-f^\star}
-	} 
-	where $f^\star$ is the unique solution to~\eqref{eq-min-smooth-uncons}. 
-\end{thm}
-\begin{proof}
-	Since $\nabla \Ee(f^\star)=0$, one has
-	\eq{
-		\iit{f}-f^\star = (\it{f}-f^\star) - \tau_\ell ( \nabla\Ee(\it{f})-\nabla\Ee(f^\star) ).
-	}
-	Hence, using strong convexity and Lipschitz gradient
-	\begin{align*}
-		\norm{\iit{f}-f^\star }^2 &= \norm{ \it{f}-f^\star }^2 - 2\tau_\ell \dotp{\it{f}-f^\star}{\nabla\Ee(\it{f})-\nabla\Ee(f^\star)}
-		+ \tau_\ell^2 \norm{\nabla\Ee(\it{f})-\nabla\Ee(f^\star)}^2 \\
-		& \leq P(\tau_\ell) \norm{ \it{f}-f^\star }^2 
-		\qwhereq
-		P(\tau) = 1-2 M \tau + L^2 \tau^2. 
-	\end{align*}
-	Figure~\ref{} shows visually the shape of the second order polynomial $P$, which shows that condition~\eqref{eq-descent-step-cond} on $\tau_\ell$ implies
-	\eq{
-		P(\tau_\ell)^{\frac{1}{2}} \leq \rho \eqdef \max( P(\tau_{\min}), P(\tau_{\max}) )^{\frac{1}{2}}< 1, 
-	}
-	which shows the desired result.
-\end{proof}
-
-The error decay rate~\eqref{eq-global-linrate-grad}, although it is geometrical $O(\rho^\ell)$ is called a ``linear rate'' in the optimization litterature. It is a ``global'' rate because it hold for all $\ell$ (and not only for large enough $\ell$).
-%
-The best (smallest) rate $\rho$ is obtained when choosing 
-\eql{\label{eq-best-rate-global}
-	\tau_\ell = \frac{M}{L^2}
-	\qarrq
-	\rho = 1 - \frac{M^2}{L^2}.
-} 
+We refer to Section~\ref{sec-grad-descent} for a detailed analysis of the convergence of the gradient descent, and a study of the influence of the step size $\tau_\ell$.
 
 
-In the case of a quadratic functional of the form~\eqref{eq-quad-func}, one can sharpen the convergence proof because the iterates are computed in closed form using matrix multiplication
-\eq{
-	\it{f}-f^\star = ( \Id_{N} - \tau_\ell A ) (\itz{f}-f^\star)
-}
-which immediately leads to the following proposition.
-
-\begin{prop}\label{prop-graddesc-quad}
-	For $\Ee(f)=\dotp{A}{f}-\dotp{b}{f}$ with the singular values of $A$ upper-bounded by $L$, assuming there exists $(\tau_{\min},\tau_{\max})$ such that
-	\eql{\label{eq-descent-step-cond}
-		0 < \tau_{\min} \leq \tau_\ell \leq \tilde\tau_{\max} < \frac{2}{L}
-	}
-	then there exists $0 \leq \tilde\rho<1$ such that 
-	\eql{\label{eq-global-linrate-grad}
-		\norm{ \it{f}-f^\star } \leq \tilde\rho^\ell \norm{\itz{f}-f^\star}.
-	} 
-	If the singular values are lower bounded by $M$, then the best rate $\tilde\rho$ is obtained for 
-	\eql{\label{eq-best-rate-local}
-		\tau_\ell = \frac{1}{L+M}
-		\qarrq
-		\tilde\rho \eqdef \frac{L-M}{L+M}.
-	} 
-\end{prop}
-
-The maximum allowable step size $\tilde\tau_{\max}$ in~\eqref{eq-descent-step-cond} is much larger than $\tau_{\max}$ given in~\eqref{eq-descent-step-cond}, and the optimal rate~\eqref{eq-best-rate-local} is also much better (smaller) than the one in~\eqref{eq-best-rate-global}. In particular, if $\epsilon \eqdef M/L \ll 1$ (which is the typical setup for ill-posed problems), then 
-\eq{
-	\rho \sim 1-\epsilon^2
-	\qandq
-	\tilde\rho \sim 1 - 2\epsilon.
-}
-
-These two results are however complementary. Indeed, if the gradient descent converges, then ultimately $\it{f}$ is close to $f^\star$, so that one can approximate up to second order $\Ee(f) \approx \Ee(f^\star) + \dotp{Af}{f}-\dotp{f}{b}$ with $A=\partial^2 \Ee(f^\star)$ and $b=-\nabla\Ee(f^\star)$. So that the ``local'' rate, the one obtained after a large enough of iterations, is actually driven by $\tilde\rho$ and not $\rho$. It is thus important to distinguish between the global rate and the local rate. In practice, descent algorithm typically have two phase: a first ``slow'' phase govern by the global rate, and a second ``fast'' phase governed by the local rate. Unfortunately, the optimal step sizes $\tau_\ell$ are in general different for the two phase, so that optimal adaptation of step size is a difficult problems. This is why more advanced users typically use various line search strategies (to find the optimal step size at each iteration) or use second order information using quasi-Newton technics (BFGS).
-
-The convergence result of Proposition~\ref{prop-graddesc-quad} does not requires strong convexity, while Theorem~\ref{thm-gradsec-strong-conv} does. In the general non-strongly convex case, it is still possible to prove convergence, but the rate is only sub-linear, and is only on the value of $\Ee$, not on the iterate $\it{f}$ themselves.
-%
-Note that in this case, the solution of the minimization problem is not necessarily unique.
-%
-The proof is more technical.
-
-\begin{thm}\label{thm-gradsec-non-strong-conv}
-	If $f$ satisfy conditions~\eqref{eq-lipsch-grad}, assuming there exists $(\tau_{\min},\tau_{\max})$ such that
-	\eql{\label{eq-descent-step-cond}
-		0 < \tau_{\min} \leq \tau_\ell \leq \tau_{\max} < \frac{2}{L}, 
-	}
-	then $\it{f}$ converges to a solution $f^\star$ of~\eqref{eq-min-smooth-uncons} and
-	there exists $C>0$ such that 
-	\eq{
-		\Ee(\it{f})-\Ee(f^\star) \leq \frac{C}{\ell}.
-	} 
-\end{thm}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Examples of Gradient Computation}
+\label{eq-example-grad}
 
 Note that the gradient of a quadratic function $\Qq(f)$ of the form~\eqref{eq-quad-func} reads
 \eq{
@@ -762,9 +692,9 @@ Computation shows that the Hessian of $\norm{\cdot}_\epsilon$ is bounded by $1/\
 }
 Furthermore, this functional is strongly convex because $\norm{\cdot}_\epsilon$ is $\epsilon$-strongly convex, and the Hessian is lower bounded by
 \eq{
-	M = \epsilon + \si_{\min}( \Phi )^2
+	\mu = \epsilon + \si_{\min}( \Phi )^2
 }
-where $\si_{\min}( \Phi )$ is the smallest singular value of $\Phi$. For ill-posed problems, typically $\si_{\min}( \Phi )=0$ or is very small, so that both $L$ and $M$ degrades (tends respectively to $0$ and $+\infty$) as $\epsilon \rightarrow 0$, so that gradient descent becomes prohibitive for small $\epsilon$, and it is thus required to use dedicated non-smooth optimization methods detailed in the following chapters. 
+where $\si_{\min}( \Phi )$ is the smallest singular value of $\Phi$. For ill-posed problems, typically $\si_{\min}( \Phi )=0$ or is very small, so that both $L$ and $\mu$ degrades (tends respectively to $0$ and $+\infty$) as $\epsilon \rightarrow 0$, so that gradient descent becomes prohibitive for small $\epsilon$, and it is thus required to use dedicated non-smooth optimization methods detailed in the following chapters. 
 %
 On the good news side, note however that in many case, using a small but non-zero value for $\epsilon$ often leads to better a visually more pleasing results, since it introduce a small blurring which diminishes the artifacts (and in particular the so-called ``stair-casing'' effect) of TV regularization. 
 

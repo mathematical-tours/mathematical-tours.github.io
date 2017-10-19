@@ -29,12 +29,15 @@ Chapters Available as Individual PDFs
 - [Variational Priors and Regularization](book-sources/chapters-pdf/variational-priors.pdf)
 - [Inverse Problems](book-sources/chapters-pdf/inverse-problems.pdf)
 - [Sparse Regularization](book-sources/chapters-pdf/sparse-regularization.pdf)
+- [Convex Analysis](book-sources/chapters-pdf/convex-analysis.pdf)
+- [Theory of Sparse Regularization](book-sources/chapters-pdf/sparse-theory.pdf)
+- [Convex Optimization](book-sources/chapters-pdf/convex-optim.pdf)
+
+
 
 Chapters Soon Available
 ----------------
 
-- [Convex Optimization](book-sources/chapters-pdf/convex-optim.pdf)
-- [Convex Duality](book-sources/chapters-pdf/convex-duality.pdf)
 - [Compressed Sensing](book-sources/chapters-pdf/compressed-sensing.pdf)
 - [Machine Learning](book-sources/chapters-pdf/machine-learning.pdf)
 - [Deep-Learning](book-sources/chapters-pdf/deep-learning.pdf)

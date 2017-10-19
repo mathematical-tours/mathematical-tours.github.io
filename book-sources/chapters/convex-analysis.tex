@@ -1,0 +1,191 @@
+% !TEX root = ../FundationsDataScience.tex
+
+\chapter{Convex Analysis}
+\label{chap-convex-optim}
+
+The main references for this chapter are \cite{ciarlet1982introduction,boyd2004convex}.
+%
+This chapters uses different notations than the previous one, and we denote $f(x)$ a typical function to minimized with respect to the variable $x$. 
+%
+We discus here some important concepts from convex analysis and use them to study theoretically the performance of $\ell^1$-type methods.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Basics of Convex Analysis}
+
+We consider minimization problems of the form
+\eql{\label{eq-convex-function}
+	\umin{x \in \Hh} f(x)
+}
+over the finite dimension (Hilbertian) space $\Hh \eqdef \RR^N$, with the canonical inner product $\dotp{\cdot}{\cdot}$. 
+%
+Most of the results of this chapter extends to possibly infinite dimensional Hilbert space. 
+
+Here $f : \Hh \longrightarrow \bar \RR \eqdef \RR \cup \{+\infty\}$ is a convex function. Note that we allow here $f$ to take the value $+\infty$ to integrate constraints in the objective, and the constraint set is thus the ``domain'' of the function
+\eq{
+	\dom(f) \eqdef \enscond{x}{f(x)<+\infty}.
+}
+
+A useful notation is the indicator function of a set $\Cc \subset \Hh$
+\eq{
+	\iota_{\Cc}(x) \eqdef \choice{
+		0 \qifq x \in \Cc, \\
+		+\infty \quad\text{otherwise.}
+	}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Convex Sets and Functions}
+
+A convex set $\Om \subset \Hh$ is such that
+\eq{
+	\foralls (x,y,t) \in \Hh^2 \times [0,1], \quad (1-t)x+ty \in \Om.
+}
+A convex function is such that 
+\eql{\label{eq-convex-defn}
+	\foralls (x,y,t) \in \Hh^2 \times [0,1], \quad f( (1-t)x+ty ) \leq (1-t)f(x)+t f(y)
+}
+and this is equivalent to its epigraph $\enscond{(x,r) \in \Hh \times \RR}{r \geq f(x)}$ being a convex set. Note that here we use $\leq$ as a comparison over $\bar\RR$. 
+%
+The function $f$ is strictly convex if equality in~\eqref{eq-convex-defn} only holds for $t \in \{0,1\}$.
+%
+A set $\Om$ being convex is equivalent to $\iota_{\Cc}$ being a convex function.
+
+In the remaining part of this chapter, we consider convex function $f$ which are proper, i.e. such that $\dom(f) \neq \emptyset$, and that should be lower-semi-continuous (lsc), i.e. such that for all $x \in \Hh$, 
+\eq{
+	\lim\inf_{y \rightarrow x} f(y)  \geq f(x). 
+}
+It is equivalent to $\epi(f)$ being a closed convex set.
+%
+We denote $\Ga_0(\Hh)$ the set of proper convex lsc functions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{First Order Conditions}
+
+%%%
+\paragraph{Existence of minimizers.}
+
+Before looking at first optimality conditions, one has to check that there exists minimizers, which is implied by the l.s.c. property and coercivity.
+
+\begin{prop}
+	If $f$ is l.s.c. and coercive (i.e. $f(x)\rightarrow +\infty$ as $x \rightarrow +\infty$), then there exists a minimizer $x^\star$ of $f$. 
+\end{prop}
+
+\begin{proof}
+Since $f$ is coercive, it is bounded from bellow, one can consider a minimizing sequence $(x_n)_n$ such that $f(x_n) \rightarrow \min f$. 
+%
+Since $f$ is l.s.c., this implies that the sub-level set of $f$ are closed, and coercivity imply they are bounded, hence compact. One can thus extract from $(x_n)_n$ a converging sub-sequence $(x_{n(p)})_p$, $x_{n(p)} \rightarrow x^\star$. Lower semi-continuity implies that $\min f = \lim_p f(x_{n(p)}) \geq f(x^\star)$, and hence $x^\star$ is a minimizer.
+\end{proof}
+
+This existence proof is often called the ``direct method of calculus of variation''.
+%
+Note that if the function $f$ is in $\Ga_0(\Hh)$, then the set of minimizer $\argmin f$ is a closed convex set, and all local minimizers (i.e. minimizer of the function restricted to an open ball) are global one. If it is furthermore strictly convex, then there is a single minimizer. 
+
+%%%
+\paragraph{Sub-differential.}
+
+The sub-differential at $x$ of such a $f$ is defined as
+\eq{
+	\partial f(x) \eqdef \enscond{u \in \Hh^*}{ \forall y, f(y) \geq f(x) + \dotp{u}{z-x} }.
+}
+We denote here $\Hh^* = \RR^N$ the set of ``dual'' vector. Although in finite dimensional Euclidean space, this distinction is not needed, it helps to distinguish primal from dual vectors, and recall that the duality pairing implicitly used depends on the choice of an inner product.
+%
+The sub-differential $\partial f(x)$ is thus the set of ``slopes'' $u$ of tangent affine planes $f(x) + \dotp{u}{z-x}$ that fits bellow the graph of $f$. 
+
+Note that $f$ being differentiable at $x$ is equivalent to the sub-differential being reduced to a singleton (equal to the gradient vector)
+\eq{
+	\partial f(x) = \{ \nabla f(x) \}. 
+}
+Informally, the ``size'' of $\partial f(x)$ controls how smooth $f$ is at $x$.
+
+One easily checks that $\partial f(x) \subset \Hh^*$ is a convex set, and it is non-empty if and only if $x \in \dom(f)$.
+%
+The operator $\partial f : \Hh \mapsto 2^{\Hh^*}$ is thus ``set-valued'', and we often denote this as $\partial f : \Hh \hookrightarrow \Hh^*$.
+
+\begin{rem}[Maximally monotone operator]
+The operator $\partial f$ is particular instance of so-called monotone operator, since one can check that $U=\partial f$ satisfies 
+\eq{
+	\foralls (u,v) \in U(x) \times U(y), \quad
+		\dotp{y-x}{v-u} \geq 0. 
+}
+In the 1-D setting, being monotone is the same as being an increasing map.
+%
+Sub-differential can also be shown to be maximally monotone, in the sense that such an operator is not striclty included in the graph of another monotone operator. 
+%
+Note that there exists monotone maps which are not subdifferential, for instance $(x,y) \mapsto (-y,x)$. 
+% 
+Much of the theory of convex analysis and convex optimization can be extended to deal with arbitrary maximally monotone-maps in place of subdifferential, but we will not pursue this here.
+\end{rem}
+
+A prototypical example is the absolute value $f(x)=|\cdot|$, and writing conveniently $\partial f(x) = \partial |\cdot|(x)$, one verifies that
+\eq{
+	\partial |\cdot|(x) = 
+	\choice{
+		-1 \qifq x < 0, \\
+		+1 \qifq x > 0, \\
+		{[-1,1]} \qifq x=0.
+	}
+}
+
+\todo{sub-differential of an indicator}
+
+%%%
+\paragraph{Sub-differential calculus.}
+
+There is a large set of calculus rules that allows to simplify the computation of sub-differentials. For decomposable function $f(x_1,\ldots,x_K)=\sum_{k=1}^K f_k(x_k)$, the sub-differential is the product of the sub-differentials
+\eq{
+	\partial f(x_1,\ldots,x_K) = \partial f_1(x_1) \times \ldots \times \partial f_K(x_K).
+}
+This can be used to compute the sub-differential of the $\ell^1$ norm $\norm{x}_1=\sum_{k=1}^N |x_k|$
+\eq{
+	\partial \norm{\cdot}_1(x) = \prod_{k=1}^N \partial |\cdot|(x_k)
+}
+which is thus an hyper rectangle. This means that, denoting $I = \supp(x)$, one has $u \in \partial \norm{\cdot}_1(x)$ is equivalent to 
+\eq{
+	u_I = \sign(x_I)
+	\qandq
+	\norm{u_{I^c}}_\infty \leq 1.
+}
+
+A tricky problem is to compute the sub-differential of the sum of two functions. If one of the two function is continuous at $x$ (i.e. it has a finite value), then 
+\eq{
+	\partial (f+g)(x) = \partial f(x) \oplus \partial g(x) = \enscond{u+v}{(u,v) \in \partial f(x) \times \partial g(x)}
+}
+where $\oplus$ thus denotes the Minkowski sum. For instance, if $f$ is differentiable at $x$, then 
+\eq{
+	\partial (f+g)(x) = \nabla f(x) + \partial g(x) = \enscond{\nabla f(x) + v }{ v \in \partial g(x) }.
+}
+Positive linear scaling is simple to handle
+\eq{
+	\foralls \la \in \RR_+, \quad
+	\partial (\la f)(x) = \la (\partial f(x)). 
+}
+
+The chain rule for sub-differential is difficult since in general composition does not work so-well with convexity. 
+%
+The only simple case is composition with linear functions, which preserves convexity. Denoting $A \in \RR^{P \times N}$ and $f \in \Ga_0(\RR^P)$, one has that $f \circ A \in \Ga_0(\RR^N)$ and
+\eq{
+	\partial (f \circ A)(x) = A^* (\partial f)(Ax) \eqdef \enscond{A^* u}{ u \in \partial f(Ax) }. 
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Convex Duality}
+
+Duality is associated to a particular formulation of the optimization problem, so that for instance making change of variables results in a different duality. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fenchel Transform}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Lagrange Duality}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fenchel-Rockafeller Duality}
