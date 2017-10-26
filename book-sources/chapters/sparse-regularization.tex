@@ -18,12 +18,15 @@ As detailed in Chapter \ref{chap-approximation}, it is possible to use an orthog
 
 To measure the complexity of an approximation with $\Bb$, we consider the $\lzero$ prior, which counts the number of non-zero coefficients in $\Bb$
 \eq{
-	\Jz(f) = \#\enscond{m}{\dotp{f}{\psi_m} \neq 0}
-	= \normz{ a }
+	\Jz(f) \eqdef \#\enscond{m}{\dotp{f}{\psi_m} \neq 0}
 	\qwhereq
-	a_m = \dotp{f}{\psi_m}.
+	x_m = \dotp{f}{\psi_m}.
 }
-We have introduced the $\lzero$ pseudo-norm $\normz{a}$, which we treat here as an ideal sparsity measure for the coefficients $a$ of $f$ in $\Bb$.
+One often also denote it as the $\lzero$ ``pseudo-norm''
+\eq{
+	\normz{x} \eqdef \Jz(f).
+}
+which we treat here as an ideal sparsity measure for the coefficients $x$ of $f$ in $\Bb$.
 
 Natural images are not exactly composed of a few atoms, but they can be well approximated by a function $f_M$ with a small ideal sparsity $M=\Jz(f)$. In particular, the best $M$-term approximation defined in \eqref{eq-nonlinear-approx} is defined by
 \eq{
@@ -79,34 +82,34 @@ In the following, we consider discrete orthogonal bases $\Bb = \{\psi_m\}_{m=0}^
 
 Given some orthogonal basis $\{\psi_m\}_m$ of $\RR^N$, the denoising by regularization \eqref{eq-regul-denoising} is written using the sparsity $\Jz$ and $\Ju$ as 
 \eq{
-	f_{\la,q}^{\star} = \uargmin{g \in \RR^N} \frac{1}{2} \norm{f-g}^2 + \la J_q(f)
+	f^\star = \uargmin{g \in \RR^N} \frac{1}{2} \norm{f-g}^2 + \la J_q(f)
 }
 for $q=0$ or $q=1$. It can be re-written in the orthogonal basis as
 \eq{
-	f_{\la,q}^{\star} = \sum_m (a_{\la,q}^{\star})_m \psi_m
+	f^\star = \sum_m x^\star_m \psi_m
 }
 \eq{
-	a_{\la,q}^{\star} = \uargmin{b \in \RR^N} \sum_m \frac{1}{2} |a_m-b_m|^2 + \la \phi_q(b_m)
+	\qwhereq
+	x^{\star} = \uargmin{y \in \RR^N} \sum_m \frac{1}{2} |x_m-y_m|^2 + \la |y_m|^q
 }
-where $a_m=\dotp{f}{\psi_m}$, and with 
+where $x_m \eqdef \dotp{f}{\psi_m}$, $y_m \eqdef \dotp{g}{\psi_m}$, and where we use the following slight abuse of notation for $q=0$
 \eq{
-	\phi_1(x)=|x|
-	\qandq
-	\phi_0(x)=
+	\foralls u \in \RR, \quad
+	|u|^0=
 	\choice{
-		0 \qifq x=0, \\ 1 \; \text{otherwise.} 
+		0 \qifq u=0, \\ 1 \quad \text{otherwise.} 
 	}
 }
-Each coefficients of the denoised image is the solution of
-\eq{
-	(a_{\la,q}^{\star})_m = \uargmin{\al \in \RR}  \frac{1}{2} |a_m-\be|^2 + \la \phi_q(\be)
+Each coefficients of the denoised image is the solution of a 1-D optimization problem
+\eql{\label{eq-var-1D-spars}
+	x_m^\star = \uargmin{u \in \RR}  \frac{1}{2} |x_m-u|^2 + \la |u|^q
 }
 and the following proposition this optimization is solved exactly in closed form using thresholding.
 
 \begin{prop}\label{prop-equiv-sparse-thresh}
 One has
 \eql{\label{eq-equiv-sparse-thresh}
-	(a_{\la,q}^{\star})_m = S_T^q( a_m )
+	x^{\star}_m = S_T^q( x_m )
 	\qwhereq 
 	\choice{
 		T = \sqrt{2 \la} \qforq q=0,\\
@@ -115,21 +118,46 @@ One has
 }
 where 
 \eql{\label{eq-hard-thresh}
-	S_T^0(r) = \eqdef
+	\foralls u \in \RR, \quad
+	S_T^0(u) \eqdef
 	\choice{
-		0 \qifq |r| < T, \\
-		r \quad\text{otherwise}	
+		0 \qifq |u| < T, \\
+		u \quad\text{otherwise}	
 	}
 } 
 is the hard thresholding introduced in~\eqref{eq-hard-thresh-denoise}, and 
 \eql{\label{eq-soft-thresh}
-	S_T^1(r) \eqdef  \sign(r) ( |r|-\la )_+
+	\foralls u \in \RR, \quad
+	S_T^1(u) \eqdef  \sign(u) ( |u|-T )_+
 } 
 is the soft thresholding introduced in~\eqref{eq-soft-thresh-denoise}.
 \end{prop}
+
+	
 \begin{proof}
-	TODO. Put a plot of the thresholding functions.
+	One needs to solve~\eqref{eq-var-1D-spars}. Figure~\ref{fig-varspars}, left shows the function $\norm{x-y}^2+T^2 \norm{x}_0$, and the minimum is clearly at $x=0$ when $T \geq y$, and at $x=y$ otherwise. This is thus a hard thresholding with threshold $T^2=2\la$. 
+	%
+	Figure~\eqref{fig-varspars}, right, shows the evolution with $\la$ of the function $\frac{1}{2}\norm{x-y}^2+\la |x|$. 
+	% 
+	For $x>0$, one has $F'(x)=x-y+\la$ wich is $0$ at $x=y-\la$.
+	The minimum is at $x=y-\la$ for $\la \leq y$, and stays at $0$ for all $\la>y$. 
 \end{proof}
+
+\myfigure{
+\image{sparse-reg}{.19}{var-l0}
+%
+\image{sparse-reg}{.19}{var-l1-1}
+\image{sparse-reg}{.19}{var-l1-2}
+\image{sparse-reg}{.19}{var-l1-3}
+\image{sparse-reg}{.19}{var-l1-4}
+}{%	
+	Leftmost: function $\norm{\cdot-y}^2+T^2 \norm{\cdot}_0$ .
+	%
+	Others: evolution with $\la$ of the function $F(x) \eqdef \frac{1}{2}\norm{\cdot-y}^2+\la |\cdot|$. %	
+}{fig-varspars}
+
+
+
 
 One thus has
 \eq{
@@ -162,7 +190,7 @@ When the set of atoms $\Psi = \{\psi_m\}_{m=1}^Q$ is non-orthognal (and might ev
 }
 In the following, with a slight abuse of notation, we denote the ``analysis'' and ``synthesis'' operator as
 \eq{
-	\Psi : a \in \RR^Q \mapsto \Psi a = \sum_m a_m \psi_m
+	\Psi : x \in \RR^Q \mapsto \Psi x = \sum_m x_m \psi_m
 	\qandq
 	\Psi^* : f \in \RR^N \mapsto ( \dotp{f}{\psi_m} )_{m=1}^Q \in \RR^Q.
 }
@@ -173,13 +201,13 @@ The so-called analysis-type prior is simply measuring the sparsity of the correl
 }
 The so-called synthesis-type priori in contrast measure the sparsity of the sparsest expansion of $f$ in $\Psi$, i.e.
 \eql{\label{eq-sparsity-synthesis}
-	J_1^{\text{S}}(f) \eqdef \umin{a \in \RR^q, \Psi a = f} \norm{a}_1.  
+	J_1^{\text{S}}(f) \eqdef \umin{x \in \RR^q, \Psi x = f} \norm{x}_1.  
 }
 While the analysis regularization~\eqref{eq-sparsity-analysis} seems simpler to handle, it is actually the contrary. Solving~\eqref{eq-regul-generic} with $J=J_1^{\text{A}}$ is in fact quite involved, and necessitate typically primal-dual algorithm as detailed in Chapter~\ref{chap-conv-duality}. Furthermore, the theoretical study of the performance of the resulting regularization method is mostly an open problem. 
 
 We thus now focus on the synthesis regularization problem $J=J_1^{\text{S}}$, and we re-write~\eqref{eq-regul-generic} conveniently as $f_\la = \Psi x_\la$ where $x_\la$ is any solution of the following Basis Pursuit Denoising problem
 \eql{\label{eq-lasso-lagr-ip}
-	x_\la \in \uargmin{x \in \RR^Q} \frac{1}{2\la} \norm{y-Ax}^2 + \la \norm{x}_1
+	x_\la \in \uargmin{x \in \RR^Q} \frac{1}{2\la} \norm{y-Ax}^2 + \norm{x}_1
 } 
 where we introduced the following matrix
 \eq{
@@ -212,7 +240,7 @@ $\umin{\norm{\Phi f = y} \leq \epsilon} \normu{\Psi^* f}$
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Proximal Gradient Algorithm}
+\section{Iterative Soft Thresholding Algorithm}
 \label{subsec-proximal-ip}
 
 This section details an iterative algorithm that compute a solution of~\eqref{eq-lasso-lagr-ip}.
@@ -280,21 +308,73 @@ A drawback of this projected gradient descent scheme is that it necessitate to s
 %
 This algorithm was derived by several authors, among which \cite{figueiredo-nowak-em,daubechies-iterated}, and belongs to the general family of forward-backward splitting in proximal iterations \cite{combettes-proximal}, which we detail in Section~\ref{sec-fb}.
 
+For the sake of simplicity, let us derive this algorithm in the special case of $\ell^1$ by surrogate function minimization. 
+%
+We aim at minimizing~\eqref{eq-bpdn} 
+\eq{
+	\Ee(x) \eqdef \frac{1}{2} \norm{y-Ax}^2 + \la \norm{x}_1
+}
+and we introduce for any fixed $x'$ the function 
+\eq{
+	\Ee_\tau(x,x') \eqdef \Ee(x) - \frac{1}{2}\norm{Ax-Ax'}^2 + \frac{1}{2\tau}\norm{x-x'}.
+}
+We notice that $\Ee(x,x)=0$ and one has 
+\eq{
+	K(x,x') \eqdef - \frac{1}{2}\norm{Ax-Ax'}^2 + \frac{1}{2\tau}\norm{x-x'} = 
+	\frac{1}{2}\dotp{ \pa{\frac{1}{\tau}\Id_N-A^*A} (x-x') }{x-x'}.
+}
+This quantity $K(x,x')$ is positive if $\la_{\max}(A^*A) \leq 1/\tau$ (maximum eigenvalue), i.e. $\tau \leq 1/\norm{A}_{\text{op}}^2$, where we recall that $\norm{A}_{\text{op}} = \si_{\max}(A)$ is the operator (algebra) norm.
+%
+This shows that $\Ee_\tau(x,x')$ is a valid surrogate functional, in the sense that
+\eq{
+	\Ee(x) \leq \Ee_\tau(x,x'), \quad
+	\Ee_\tau(x,x')=0, \qandq
+	\Ee(\cdot)-\Ee_\tau(\cdot,x') \text{ is smooth.} 
+}
+This leads to define
+\eql{\label{eq-ista-surrog}
+	\iit{x} \eqdef \uargmin{x} \Ee_{\tau_\ell}(x,\it{x})
+}
+which by construction satisfies 
+\eq{
+	\Ee(\iit{x}) \leq \Ee(\it{x}).
+}
 
-For the special case~\eqref{eq-bpdn}, one can consider a splitting of the form~\eqref{eq-fb-split} defining
+\begin{prop}
+	The iterates $\it{x}$ defined by~\eqref{eq-ista-surrog} satisfy
+	\eql{\label{eq-ista}
+		\iit{x} = \Ss^1_{\la\tau_\ell}\pa{
+			\it{x} - \tau_\ell A^*( A \it{x} - y ) 
+		}
+	}
+	where $\Ss^1_\la(x) = (  S^1_\la(x_m) )_m$ where $S^1_\la(r) = \sign(r) (|r|-\la)_\oplus$ is the soft thresholding operator defined in~\eqref{eq-soft-thresh}. 
+\end{prop}
+\begin{proof}
+	One has 
+	\begin{align*}
+		\Ee_\tau(x,x') &= \frac{1}{2}\norm{Ax-y}^2 - \frac{1}{2}\norm{Ax-Ax'}^2 + \frac{1}{2\tau}\norm{x-x'} + \la \norm{x}_1 \\
+			& = C + \frac{1}{2}\norm{Ax}^2-\frac{1}{2}\norm{Ax}^2+\frac{1}{2\tau}\norm{x}^2
+			- \dotp{Ax}{y} + \dotp{Ax}{Ax'} - \frac{1}{\tau}\dotp{x}{x'}
+			+ \la \norm{x}_1 \\
+			& = C + \frac{1}{2\tau}\norm{x}^2 + \dotp{x}{ -A^*y+AA^*x'-\frac{1}{\tau}x' } + \la \norm{x}_1 \\
+			&= C' + \frac{1}{\tau} \pa{
+				\norm{ x - \pa{ x'-\tau A^*(Ax'-y) } }^2 + \tau \la \norm{x}_1.
+			}
+	\end{align*}
+	Proposition~\eqref{prop-equiv-sparse-thresh} shows that the minimizer of $\Ee_\tau(x,x')$ is thus 
+	indeed $\Ss^1_{\la\tau}( x' - \tau_\ell A^*( A x' - y ) )$.
+\end{proof}
+
+Of course, these iterations~\eqref{eq-ista} are the same as the FB iterates~\eqref{eq-fb-split}, when, for the special case~\eqref{eq-bpdn}, one can consider a splitting of the form~\eqref{eq-fb-split} defining
 \eql{\label{eq-bpdn-func}
-	\Gg=\frac{1}{2} \norm{A \cdot - y}^2
+	\Ff=\frac{1}{2} \norm{A \cdot - y}^2
 	\qandq 
-	\Ff=\la \norm{\cdot}_1. 
+	\Gg=\la \norm{\cdot}_1. 
 }
 %
-In the case~\eqref{eq-bpdn-func}, Proposition~\eqref{prop-equiv-sparse-thresh} shows that $\Prox_{\rho J}$ is the soft thresholding, so that~\eqref{eq-fb} now reads 
-\eql{\label{eq-ista}
-	\iit{x} = \Ss^1_{\la\tau_\ell}\pa{
-		\it{x} - \tau_\ell A^*( A \it{x} - y ) 
-	}
-}
-where $\Ss^1_\la(x) = (  S^1_\la(x_m) )_m$ where $S^1_\la(r) = \sign(r) (|r|-\la)_\oplus$ is the soft thresholding operator defined in~\eqref{eq-soft-thresh}. 
+In the case~\eqref{eq-bpdn-func}, Proposition~\eqref{prop-equiv-sparse-thresh} shows that $\Prox_{\rho J}$ is the soft thresholding.
+
+
 
 
 
