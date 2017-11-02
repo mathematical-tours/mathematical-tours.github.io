@@ -129,15 +129,217 @@ This expression can be understood as a form of generalized soft thresholding (on
 \end{prop}
 
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Duality}
+\label{sec-duality-lasso}
+
+We now related the first order conditions and ``dual certificate'' introduced above to the duality theory detailed in Section~\ref{sec-cvx-duality}. This is not strictly needed to derive the theory of sparse regularization, but this offers an alternative point of view and allows to better grasp the role played by the certificates. 
+
+
+\begin{thm}
+	For any $\la \geq 0$ (i.e. including $\la=0$), one has strong duality between~\eqref{eq-lasso-lagr} and
+	\eql{\label{eq-dual-lasso}
+		 \usup{p \in \RR^P} \enscond{ \dotp{y}{p} - \frac{\la}{2} \norm{p}^2 }{ \norm{A^* p}_\infty \leq 1 }.
+	}
+	One has for any $\la \geq 0$ that $(x^\star,p^\star)$ are primal and dual solutions if and only if
+	\eql{\label{eq-pd-support-localization}
+		A^* p^\star \in \partial \norm{\cdot}_1(x^\star)
+		\quad\Leftrightarrow\quad
+		\pa{
+		I \subset \sat(A^* p)
+		\qandq
+		\sign(x_I^\star) = A_I^* p
+		}, 
+	}
+	where we denoted $I=\supp(x^\star)$, 
+	%
+	and furthemore, for $\la>0$, 
+	\eq{
+		p^\star = \frac{y-A x^\star}{\la}.
+	}
+	while for $\la=0$, $Ax^\star=y$.
+\end{thm}
+
+\begin{proof}
+	There are several ways to derive the same dual. One can for instance directly use the Fenchel-Rockafeller formula~\eqref{eq-fenchel-rockafeller}. But it is instructive to do the computations using Lagrange duality. One can first consider the following re-writing of the primal problem
+	\eq{
+		\umin{x \in \RR^N} \enscond{ f(z) + \norm{x}_1 }{ Ax=z } = \umin{x \in \RR^N} \usup{p \in \RR^p} \Ll(x,z,p) \eqdef f_\la(z) + \norm{x}_1 + \dotp{z-Ax}{p}
+	}
+	where $f_\la(z) \eqdef \frac{1}{2\la}\norm{z-y}^2$ if $\la>0$ and $f(z)=\iota_{\{y\}}(z)$ if $\la=0$.
+	%
+	For $\la>0$ since $f_\la$ and $\norm{\cdot}_1$ are continuous, strong duality holds. 
+	%
+	For $\la=0$, since the constraint appearing in $f_0$ is linear (actually a singleton), strong duality holds also. 
+	%
+	Thus using Theorem~\ref{thm-strong-duality}, one can exchange the min and the max and obtains
+	\eq{
+		\umax{p \in \RR^P} \pa{ \min{z} \dotp{z}{p}+ f_\la(z)  } + \pa{ \min{x} \norm{x}_1 - \dotp{x}{A^*p} }
+		= \umax{p \in \RR^P} - f_\la^*( -p ) - (\norm{\cdot}_1)^*( A^* p ).
+	}
+	Using~\eqref{prop-dual-lp}, one has that $(\norm{\cdot}_1^* = \iota_{\norm{\cdot}_\infty \leq 1}$. 
+	%
+	For $\la>0$, one has using Proposition~\ref{eq-example-legendre} that 
+	\eq{
+		f_\la^* = ( \frac{1}{2\la}\norm{\cdot-y}^2 )^* = \frac{1}{\la} ( \frac{1}{2}\norm{\cdot-y}^2 )^*(\la \cdot)
+		=   \frac{1}{2\la} \norm{\la \cdot}^2 + \dotp{\cdot}{y}
+	}
+	which gives the desired dual problem. 
+	%
+	The first order optimality conditions read $Ax^\star=z^\star$ and
+	\eq{
+		0 \in \partial \norm{\cdot}_1(x^\star) - A^* p^\star
+		\qandq
+		0 \in \partial f_\la(z^\star) + p^\star.
+	}
+	The first condition is equivalent to~\eqref{eq-pd-support-localization}.
+	For $\la>0$, $f_\la$ is smooth, and the second condition is equivalent to 
+	\eq{
+		p^\star = \frac{y-A^* x^\star}{\la}
+		\qandq
+		A^* p^\star \in \partial \norm{\cdot}_1(x^\star)
+	}
+	which are the desired formula.
+	%
+	For $\la=0$, the second condition holds as soon as $z^\star = Ax^\star=y$.
+\end{proof}
+
+
+Note that in the case $\la>0$,~\eqref{eq-dual-lasso} is strongly convex, and in fact the optimal solution $p_\la$ is computed as an orthogonal projection
+\eq{
+	p_\la \in \uargmin{p \in \RR^P} \enscond{ \norm{p-y/\la} }{ \norm{A^* p}_\infty \leq 1 }. 
+}
+The sup in~\eqref{eq-dual-lasso} is thus actually a max if $\la>0$. If $\la>0$, in case $\ker(A^*)=\Im(A)^\bot=\{0\}$, the constraint set of the dual is bounded, so that the sup is also a max. 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Consistency and Sparsitency}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Consistency and Convergence Rates}
+\subsection{Bregman Divergence Rates for General Regularizations}
 
-The following theorem studies the convergence rate of the sparse regularized solution, under the same hypothesis has Proposition~\ref{sec-prop-uniquness-constr} (with $x^\star=x_0$).
+Here we consider the case of a general regularization of the form 
+\eql{\label{eq-lagr-J}
+	\umin{x \in \RR^N} \frac{1}{2\la}\norm{Ax-y}^2+J(x)
+}
+for a convex regularizer $J$.
+
+For any $\eta \in \partial J(x_0)$, we define the associated Bregman divergence as
+\eq{
+	D_\eta(x|x_0) \eqdef J(x)-J(x_0)-\dotp{\eta}{x-x_0}.
+}
+One has $D_\eta(x_0|x_0)$, and since $J$ is convex, one has $D_\eta(x|x_0) \geq 0$ \todo{put here drawings}.
+
+In the case where $J$ is differentiable, since $\partial J(x_0)=\{\nabla J(x_0)\}$, this divergence simply reads
+\eq{
+	D(x|x_0) \eqdef J(x)-J(x_0)-\dotp{\nabla J(x_0)}{x-x_0}.
+}
+If furthermore $J$ is strictly convex, then $D(x|x_0)=0$ if and only if $x=x_0$, so that $D(\cdot|\cdot)$ is similar to a distance function (but it does not necessarily satisfies the triangular inequality.
+
+If $J=\norm{\cdot}^2$, then $D(x|x_0) = \norm{x-x_0}^2$ is the Euclidean norm. 
+%
+If $J(x) = \sum_i x_i (\log(x_i)-1) + \iota_{\RR^+}(x_i)$ is the entropy, then 
+\eq{
+	D(x|x_0)  = \sum_i x_i \log\pa{ \frac{x_i}{x_{0,i}} } + x_{0,i}-x_i
+}
+is the so-called Kulback-Leibler divergence on $\RR_+^N$. 
+
+The following proposition, which is due to Burger-Osher, state a linear rate in term of this Bregman divergence.
+
+\begin{prop}
+	If there exists 
+	\eql{\label{eq-sourcecond-J}
+		\eta  = A^* p \in \Im(A^*) \cap \partial J(x_0), 
+	}
+	then one has for any $x_\la$ solution of~\eqref{eq-lagr-J}
+	\eql{\label{eq-bregman-rate}
+		D_\eta( x_\la|x_0 ) \leq \frac{1}{2}\pa{ \frac{\norm{w}}{\sqrt{\la}} + \sqrt{\la}\norm{p} }^2.
+	}
+	Futhermore, one has the useful bound
+	\eql{\label{eq-predict-source}
+		\norm{Ax_\la-y} \leq \norm{w} + (\sqrt{2}+1) \norm{p} \la.
+	}
+\end{prop}
+\begin{proof}
+	The optimality of $x_\la$ for~\eqref{eq-lagr-J} implies
+	\eq{
+		\frac{1}{2\la}\norm{Ax_\la-y}^2+J(x_\la) \leq \frac{1}{2\la}\norm{Ax_0-y}^2+J(x_0) = \frac{1}{2\la}\norm{w}^2+J(x_0).
+	}
+	Hence, using $\dotp{\eta}{x_\la-x_0} = \dotp{p}{Ax_\la-Ax_0} = \dotp{p}{A x_\la - y+w}$, one has
+	\begin{align*}
+		D_\eta(x_\la|x_0) &= J(x_\la)-J(x_0)-\dotp{\eta}{x_\la-x_0} 
+			\leq \frac{1}{2\la}\norm{w}^2 - \frac{1}{2\la}\norm{Ax_\la-y}^2 -\dotp{p}{A x_\la-y} - \dotp{p}{w} \\
+			& = \frac{1}{2\la}\norm{w}^2 - \frac{1}{2\la}\norm{Ax_\la-y + \la p }^2 + \la \norm{p}^2 - \dotp{p}{w} \\
+			& \leq \frac{1}{2\la}\norm{w}^2 + \frac{\la}{2} \norm{p}^2 + \norm{p}\norm{w}
+			= \frac{1}{2}\pa{ \frac{\norm{w}}{\sqrt{\la}} + \sqrt{\la}\norm{p} }^2.
+	\end{align*}
+	From the second line above, since $D_\eta(x_\la|x_0) \geq 0$, one has using Cauchy-Schwartz
+	\eq{
+		\norm{Ax_\la-y + \la p }^2 \leq \norm{w}^2 + 2 \la^2 \norm{p}^2 + 2 \la\norm{p} \norm{w} 
+		\leq 
+		\norm{w}^2 + 2 \sqrt{2}\norm{p} \norm{w} \la  + 2 \la^2 \norm{p}^2
+		= \pa{ \norm{w} + \sqrt{2}\la \norm{p} }^2.
+	}
+	Hence
+	\eq{
+		\norm{Ax_\la-y } \leq \norm{Ax_\la-y + \la p } + \la \norm{p}
+		\leq \norm{w} + \sqrt{2}\la \norm{p} + \la \norm{p}.
+	}
+\end{proof}
+
+Choosing $\la = \norm{w}/\norm{p}$ in~\eqref{eq-bregman-rate}, one thus obtain a linear rate in term of Bregman divergence $D_\eta( x_\la|x_0 ) \leq 2 \norm{w}\norm{p}$. 
+%
+For the simple case of a quadratic regularized $J(x)=\norm{x}^2/2$, as used in Section~\ref{}, one sees that the source conditions~\eqref{eq-sourcecond-J} simply reads
+\eq{
+	x_0 \in \Im(A^*)
+}
+which is equivalent to~\eqref{eq-source-cond-init} with exponent $\be=\frac{1}{2}$, and under this condition,~\eqref{eq-bregman-rate} gives the following sub-linear rate in term of the $\ell^2$ norm
+\eq{
+	\norm{x_0-x_\la} \leq 2 \sqrt{ \norm{w}\norm{p} }.
+}
+\todo{This seems inconsistent, this should corresponds to $\be=1$ to obtain the same rates in both theorems!}
+
+%
+Note that the ``source condition''~\eqref{eq-sourcecond-J} is equivalent to $x_0$ such that $Ax_0=y$ is a solution to the constraint problem
+\eq{
+	\umin{Ax=y} J(x). 
+}
+So simply being a solution of the constraint noiseless problem thus implies a linear rate for the resolution of the noisy problem in term of the Bregman divergence.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Linear Rates in Norms for $\ell^1$ Regularization}
+
+The issue with the control~\eqref{eq-bregman-rate} of the error in term of Bregman divergence is that it is not ``distance-like'' for regularizers $J$ which are not strictly convex. This is in particular the case for the $\ell^1$ norm $J=\norm{\cdot}_1$ which we now study. 
+
+The following fundamental lemma shows however that this Bregman divergence for $\ell^1$ behave like a distance (and in fact controls the $\ell^1$ norm) on the indexes where $\eta$ does not saturate. 
+
+\begin{lem}
+	For $\eta \in \partial \norm{\cdot}_1(x_0)$, let $J \eqdef \sat(\eta)$. Then
+	\eql{\label{eq-bound-breg-source}
+		D_\eta(x|x_0) \geq (1-\norm{\eta_{J^c}}_\infty) \norm{(x-x_0)_{J^c}}_1.
+	}
+\end{lem}
+
+\begin{proof}
+	Note that $x_{0,J^c}=0$ since $\supp(x_0) \subset \sat(\eta)$ by definition of the sub-differential of the $\ell^1$ norm. 
+	Since the $\ell^1$ norm is separable, each term in the sum defining $D_\eta(x|x_0)$ is positive, hence
+	\begin{align*}
+		D_\eta(x|x_0) &= \sum_i |x_i|-|x_{0,i}|- \eta_i ( x_{i}-x_{0,i} ) 
+			\geq \sum_{i \in J^c} |x|-|x_0|- \eta_i ( x_{i}-x_{0,i} ) \\
+		&= \sum_{i \in J^c} |x_i|- \eta_i x_{i} \geq \sum_{i \in J^c} (1-|\eta_i|) |x_i|
+		\geq (1-\norm{\eta_{J^c}}_\infty) \sum_{i \in J^c} |x_i|
+		= (1-\norm{\eta_{J^c}}_\infty) \sum_{i \in J^c} |x_i-x_{0,i}|.
+	\end{align*}
+\end{proof}
+
+The quantity $1-\norm{\eta_{J^c}}_\infty>0$ controls how much $\eta$ is ``inside'' the sub-differential. The larger this coefficients, the better is the control of the Bregman divergence.  
+
+The following theorem uses this lemma to state the convergence rate of the sparse regularized solution, under the same hypothesis has Proposition~\ref{sec-prop-uniquness-constr} (with $x^\star=x_0$).
 
 \begin{thm}\label{thm-linrate-l1}
 	If there exists 
@@ -145,11 +347,57 @@ The following theorem studies the convergence rate of the sparse regularized sol
 		\eta \in \Dd_0(A x_0,x_0)
 	}
 	and $\ker(A_{J})=\{0\}$ where
-	$J \eqdef \sat(\eta)$ then there exists $(C,C')$ such that choosing $\la = C' \norm{w}$ for any solution $x_\la$ of $\Pp(A x_0+w)$ satisfy
+	$J \eqdef \sat(\eta)$ then choosing $\la = c \norm{w}$, there exists $C$ (depending on $c$) such that any solution $x_\la$ of $\Pp(A x_0+w)$ satisfies
 	\eql{\label{eq-linrate-l1}
 		\norm{x_\la-x_0} \leq C \norm{w}. 
 	}
 \end{thm}
+\begin{proof}
+	We denote $y=A x_0+w$.
+	%
+	The optimality of $x_\la$ in~\eqref{eq-lasso-lagr} implies
+	\eq{
+		\frac{1}{2\la} \norm{Ax_\la-y}^2 + \norm{x_\la}_1 \leq 
+		\frac{1}{2\la} \norm{Ax_0-y}^2 + \norm{x_0}_1 = \frac{1}{2\la} \norm{w}^2 + \norm{x_0}_1
+	}
+	and hence
+	\eq{
+		\norm{Ax_\la-y}^2 \leq \norm{w}^2 + 2\la \norm{x_0}_1
+	}
+	%
+	Using the fact that $A_J$ is injective, one has $A_J^+A_J=\Id_{J}$, so that
+	\begin{align*}
+		\norm{(x_\la-x_0)_J}_1 &= \norm{A_J^+ A_J(x_\la-x_0)_J}_1
+			\leq \norm{A_J^+}_{1,2} \norm{ A_J x_{\la,J} - y + w }
+			\leq \norm{A_J^+}_{1,2} \pa{ \norm{ A_J x_{\la,J} - y } + \norm{w} }  \\
+			& \leq 
+			\norm{A_J^+}_{1,2} \pa{ \norm{ A x_{\la} - y } + \norm{A_{J^c} x_{\la,J^c}} + \norm{w} }\\
+			&\leq 
+			\norm{A_J^+}_{1,2} \pa{ \norm{ A x_{\la} - y } + \norm{A_{J^c}}_{2,1} \norm{ x_{\la,J^c} - x_{0,J^c} }_1 + \norm{w} } \\
+			&\leq 
+			\norm{A_J^+}_{1,2} \pa{ \norm{w} + (\sqrt{2}+1) \norm{p} \la + \norm{A_{J^c}}_{2,1} \norm{ x_{\la,J^c} - x_{0,J^c} }_1 + \norm{w} } 			
+	\end{align*}
+	where we used $x_{0,J^c}=0$ and~\eqref{eq-predict-source}. 
+	One plug this bound in the decomposition, and using~\eqref{eq-bound-breg-source} and~\eqref{eq-bregman-rate}
+	\begin{align*}
+		\norm{x_\la-x_0}_1 &= \norm{(x_\la-x_0)_J}_1 + \norm{(x_\la-x_0)_{J^c}}_1 \\
+		& \leq \norm{(x_\la-x_0)_{J^c}}_1 \pa{ 1 + \norm{A_J^+}_{1,2} \norm{A_{J^c}}_{2,1} }
+		+ \norm{A_J^+}_{1,2} \pa{   (\sqrt{2}+1) \norm{p} \la + 2 \norm{w} }		\\
+		& \leq \frac{D_\eta(x|x_0)}{1-\norm{\eta_{J^c}}_\infty} \pa{ 1 + \norm{A_J^+}_{1,2} \norm{A_{J^c}}_{2,1} }
+		+ \norm{A_J^+}_{1,2} \pa{   (\sqrt{2}+1) \norm{p} \la + 2 \norm{w} } \\
+		& \leq \frac{ 
+				\frac{1}{2}\pa{ \frac{\norm{w}}{\sqrt{\la}} + \sqrt{\la}\norm{p} }^2
+			}{1-\norm{\eta_{J^c}}_\infty} \pa{ 1 + \norm{A_J^+}_{1,2} \norm{A_{J^c}}_{2,1} }
+		+ \norm{A_J^+}_{1,2} \pa{   (\sqrt{2}+1) \norm{p} \la + 2 \norm{w} }. 
+	\end{align*}	
+	Thus setting $\la=c\norm{w}$, one obtains the constant
+	\eq{
+		C \eqdef \frac{ 
+				\frac{1}{2}\pa{ \frac{1}{\sqrt{c}} + \sqrt{c}\norm{p} }^2
+			}{1-\norm{\eta_{J^c}}_\infty} \pa{ 1 + \norm{A_J^+}_{1,2} \norm{A_{J^c}}_{2,1} }
+		+ \norm{A_J^+}_{1,2} \pa{   (\sqrt{2}+1) \norm{p} c + 2  }.
+	}
+\end{proof}
 
 
 Note that this theorem does not imply that $x_\la$ is a unique solution, only $x_0$ is unique in general.

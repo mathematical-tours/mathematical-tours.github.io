@@ -101,7 +101,8 @@ Note that $f$ being differentiable at $x$ is equivalent to the sub-differential 
 }
 Informally, the ``size'' of $\partial f(x)$ controls how smooth $f$ is at $x$.
 
-One easily checks that $\partial f(x) \subset \Hh^*$ is a convex set, and it is non-empty if and only if $x \in \dom(f)$.
+One checks that $\partial f(x) \subset \Hh^*$ is a closed convex set.
+%  and it is non-empty if and only if $x \in \dom(f)$.
 %
 The operator $\partial f : \Hh \mapsto 2^{\Hh^*}$ is thus ``set-valued'', and we often denote this as $\partial f : \Hh \hookrightarrow \Hh^*$.
 
@@ -129,6 +130,11 @@ A prototypical example is the absolute value $f(x)=|\cdot|$, and writing conveni
 		{[-1,1]} \qifq x=0.
 	}
 }
+The sud-differential of an indicator function is a convex cone, the so-called normal cone to the constraint
+\eq{
+	\partial \iota_\Cc(x) = \Nn_\Cc(x) \eqdef \enscond{ y-x }{ \foralls z \in \Cc, \dotp{z-x}{y-x} \leq 0 }.
+}
+For an affine space $\Cc = a+\Vv$ where $\Vv \subset \Hh$ is a linear space, then $\Nn_\Cc(x)=\Vv^\bot$ is the usual orthogonal for linear spaces. If $x \in \int(\Cc)$ is in the interior of $\Cc$, then $\Nn_\Cc(x)=\RR^N$.  
 
 \todo{sub-differential of an indicator}
 
@@ -176,16 +182,282 @@ The only simple case is composition with linear functions, which preserves conve
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Convex Duality}
+\label{sec-cvx-duality}
 
 Duality is associated to a particular formulation of the optimization problem, so that for instance making change of variables results in a different duality. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Fenchel Transform}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Lagrange Duality}
 
+We consider a minimization of the form
+\eql{\label{eq-lagrange-primal}
+	p^\star = \umin{x \in \RR^N} \enscond{ f(x) }{ Ax=y \qandq g(x) \leq 0 }
+}
+for a continuous convex functions $f : \Hh \rightarrow 0$, a matrix $A \in \RR^{P \times N}$ and a function $g : \Hh \rightarrow \RR^Q$ such that each of its coordinates $g_i : \Hh \rightarrow \RR$ are continuous and convex.  
+%
+Note that it is always the case that equality in convex program corresponds to affine ones. 
+%
+One can always write a convex minimization problem with positivity constraints in the form~\eqref{eq-lagrange-primal}, although there exists infinite way of doing so (each one giving a different duality formula). 
+
+Here we have assumed for simplicity that $f$ is continuous, i.e. $\dom(f)=\RR^N$.
+%
+The following exposition can be generalized to $\dom(f)$ being arbitrary, but this is more technical. For the sake of simplicity, we thus assume all the constraint defining the domain are encoded in $Ax=y$ and $g(x) \leq 0$
+
+
+Note that it is possible to generalized the previous Lagrange duality results by replacing ``$x \geq 0$'' by ``$X \succeq 0$'' where $X$ is a matrix (and in fact even more generally using convex cones). 
+
+One can represent the constraints appearing in~\eqref{eq-lagrange-primal} conveniently using a maximization over so-called Lagrange multipliers
+\eq{
+	p^\star = \umin{x} \umax{u \in \RR^P, v \in \RR_-^Q } \Ll(x,u,v) \eqdef f(x) + \dotp{Ax-y}{u} + \dotp{g(x)}{v} .
+}
+
+It is tempting to inverse the inf and the sup, and study 
+\begin{align}\label{eq-lagrange-dual}
+	d^\star = \umax{(u,v) \in \RR^P \times \RR_+^Q } F(u,v) &\eqdef \umin{x}  f(x) + \dotp{Ax-y}{u} + \dotp{g(x)}{v}	
+\end{align}
+One remark that $F$ is a concave function (as being the minimum of linear forms), and this ``dual'' problem is thus a maximization of a concave function. 
+
+
+The following proposition is the so-called weak duality, which assert that values of the dual problems always lower bounds values of the primal one
+
+\begin{prop}
+	One always have, for all $(u,v) \in \RR^P \times \RR_+^Q$, % for $x$ such that $Ax=y, g(x) \leq 0$ and 
+	\eq{
+		F(u,v) \leq p^\star \qarrq d^\star \leq p^\star.
+	}
+\end{prop}
+\begin{proof}
+	Since $g(x) \leq 0 $ and $v \geq 0$, one has $\dotp{g(x)}{v} \leq 0$, and since $Ax=y$, one has $\dotp{Ax-y}{u}=0$, so that 
+	\eq{
+		\Ll(x,u,v) \leq f(x) \qarrq F(u,v) = \uinf{x} \Ll(x,u,v) \leq \uinf{x} f(x) = p^\star.
+	}
+\end{proof}
+
+The following fundamental theorem, more difficult to prove give a sufficient condition (so-called qualification of the constraints) such that one actually has equality.
+
+\begin{thm}\label{thm-strong-duality}
+	If 
+	\eql{\label{eq-slater} 
+		\exists x_0 \in \RR^N, \quad
+			Ax_0=y \qandq g(x_0)<0, 
+	}
+	then $p^\star=d^\star$. Furthermore, $x^\star$ and $(u^\star,v^\star)$ are  solutions of respectively~\eqref{eq-lagrange-primal} and~\eqref{eq-lagrange-dual} if and only if
+	\begin{align}
+		\label{eq-lagr-dual-1}  & Ax^\star=y, \quad g(x^\star) \leq 0, \quad u^\star \geq 0 \\
+		\label{eq-lagr-dual-2} 0 &\in \partial f(x^\star) + A^*u^\star + \sum_i v_i^\star \partial g_i(x^\star) \\
+		\label{eq-lagr-dual-3}  \foralls i, \quad & u_i^\star g_i(x^\star) = 0
+	\end{align}
+\end{thm}
+
+The existence of such an $x_0$ is called ``constraint qualification'', and as written here, this corresponds to the so-called ``Slater'' qualification condition (many other weaker sufficient conditions exist). 
+
+Condition~\eqref{eq-lagr-dual-1} is simply the primal and dual constraints. 
+%
+Condition~\eqref{eq-lagr-dual-2} is the first order condition for the minimization of $\Ll(x,u,v)$ over $x$.
+%
+Condition~\eqref{eq-lagr-dual-3} is the first order condition for the maximization of $\Ll(x,u,v)$ over $(u,v)$.
+%
+These three conditions are often referred to as ``Karush-Kuhn-Tucker'' (KKT) conditions, and under a constraint qualification condition, they are necessary and sufficient condition for optimality. 
+
+
+The last condition $u_i^\star g_i(x^\star) = 0$ (so called ``complementary slackness'') states that if $g_i(x^\star)<0$ (the constraints is not saturated) then $u_i=0$, and also that if $u_i>0$ then $g_i(x^\star)=0$.
+%
+Note that it is possible to weaken the hypotheses of this theorem, for the linear constraints of the form $g_i(x) = \dotp{x}{h_i} - c_i \leq 0$, by replacing the $g_i(x_0)<0$ by the weaker condition $\dotp{x_0}{h_i} \leq c_i$.
+
+One can generalize this theorem to the setting where $\dom(f)$ is not equal to $\RR^N$ (i.e. it is not continuous, and thus integrates extra constraint beside the $\leq$). In this case, one has to add the extra constraint $x_0 \in \relint(\dom(f))$.
+	
+Theorem~\ref{thm-strong-duality} generalizes the necessary conditions provided by Lagrange multipliers for equality constrained optimization. The setting is both more complex because one can deal with inequalities that might be saturated (so this introduce positivity constraints on the multipliers $v$) but also simpler because of convexity (which thus gives also necessary conditions).
+
+As a simple example, we now derive the dual for a simple linear projection problem. A more complicated computation is carried over in Section~\ref{sec-duality-lasso} for the Lasso. We consider
+\begin{align*}
+	p^\star = \umin{Ax=y} \frac{1}{2}\norm{x-z}^2 &= \umin{x} \umax{u} \frac{1}{2}\norm{x-z}^2 + \dotp{Ax-y}{u}
+	= \umax{u} F(u) = \umin{x} \frac{1}{2}\norm{x-z}^2 + \dotp{Ax-y}{u}, 
+\end{align*}
+where we used the fact that strong duality holds because only linear constraints are involved.
+%
+For each $u$, the optimal $x$ satisfies $x-z+A^*u$, i.e. $x=z-A^*u$, so that 
+\eq{
+	F(u) = \frac{1}{2}\norm{A^*u}^2 + \dotp{A(z-A^*u)-y}{u} = -\frac{1}{2}\norm{A^*u}^2 + \dotp{u}{Az-y}.
+}
+Weak duality states $p^\star \geq F(u)$ for any $u$, and $p^\star = F(u^\star)$ where the optimal $u^\star$ satisfies $AA^*u = Az-y$. If $y \in \Im(A)$, then such a $u^\star$ exists and can be chosen as $u^\star = u=(AA^*)^{-1} (Az -y)$, and the (unique) primal solution reads 
+\eql{\label{eq-proj-aff}
+	x^\star = \Proj_{A\cdot=y}(z) (Id-A^+A)z - A^+y.
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Fenchel-Rockafeller Duality}
+\subsection{Legendre-Fenchel Transform}
+
+In order to simplify and accelerate computation involving Lagrange duality, it is very convenient to introduce a particular transformation of convex functions the Legendre-Fenchel transform. In some sense, it is the canonical ``isomorphisms'' (pairing) between convex functions. In spirit, is plays a similar role for convex function as the Fourier transform for signal or images. 
+
+For $f \in \Ga_0(\Hh)$, we define its Legendre-Fenchel transform as
+\eql{\label{eq-fenchel-transf}
+	f^*(u) \eqdef \usup{x} \dotp{x}{u} - f(x).
+}
+Being the maximum of affine functional, one obtains that $f^*$ is itself a convex function, and that in fact $f^\star \in \Ga_0(\Hh^*)$. One can prove the following fundamental bi-duality result.
+
+\begin{thm}
+One has
+\eq{
+	\foralls f \in \Ga_0(\Hh), \quad (f^{*})^* = f. 
+}
+\end{thm}
+
+In fact, $f^*$ is convex even in the case where $f$ is not, and $f^{**}$ is the convex envelop of $f$ (i.e. the largest convex function smaller than $f$). \todo{drawing}
+
+
+One has the following basic property relating the sub-differentials of $f$ and $f^*$.
+
+\begin{prop}
+One has $\partial f^* = (\partial f)^{-1}$, where the inverse of a set valued map is defined in~\eqref{eq-inv-setvalued}, and 
+\eq{
+	\foralls (x,y), \quad \dotp{x}{y} \leq f(x) + f^*(y)
+	\qandq
+	\dotp{x}{y} = f(x) + f^*(y) 
+	\quad\Leftrightarrow\quad x \in \partial f^*(y)
+	\quad\Leftrightarrow\quad y \in \partial f(x).
+}
+\end{prop}
+
+\begin{prop}\label{prop-dual-lp}
+	For $1/p+1/q=1$, 
+	\eq{
+		( \iota_{\norm{\cdot}_p \leq 1} )^* = \norm{\cdot}_q
+		\qandq
+		( \norm{\cdot}_q  )^* =  \iota_{\norm{\cdot}_p \leq 1}
+	}
+\end{prop}
+
+
+Let us now give some example of Legendre transform. 
+
+\begin{prop}\label{eq-example-legendre}
+	For $f(x)=\frac{1}{2}\dotp{Ax}{x} - \dotp{b}{x}$ with $A$ inversible, then $f^*(u) = \frac{1}{2}\dotp{A^{-1} u}{u} - \frac{1}{2}\dotp{A^{-1} b}{b}$.
+	In particular, for $f=\norm{\cdot}^2/2$, then $f^*=f$. 
+	One has\todo{check}
+	\eq{
+		f(\cdot-z)^* = f + \dotp{z}{\cdot}, \quad
+		(f + \dotp{z}{\cdot})^* = f(\cdot-z), \quad
+		(\la f)^* = \la f^*(\cdot/\la).		
+	}
+\end{prop}
+\begin{proof}
+	One has $f^*(u) = \dotp{Ax^\star}{x^\star} - \dotp{b}{x^\star}$ where $x^\star$ solves
+	\eq{
+		u = Ax^\star-b \qarrq
+		x^\star = A^{-1} u + A^{-1} b.
+	}
+	Hence
+	\eq{
+		f^*(u)  = \frac{1}{2}\dotp{A A^{-1} ( u +  b )}{A^{-1}( u +  b)} - \dotp{b}{A^{-1} (u + b)}
+			= \frac{1}{2}\dotp{A^{-1} u}{u} 
+			- \frac{1}{2}\dotp{A^{-1} b}{b}
+	}
+	
+\end{proof}
+
+%%%%
+\paragraph{Legendre transform and smoothness.}
+
+While the Fourier transform is a pairing between smoothness and decay (see Section~\ref{}), the Legendre-Fenchel is really a pairing between smoothness and strong convexity. This can be intuitively seen by the fact that the Legendre-Fenchel inverts the sub-differentials~\eqref{} and hence when the functions involved are $\Cc^2$, it inverse the Hessians 
+\eq{
+	\partial^2 f(x) = ( \partial^2 f^*(y) )^{-1} \quad \text{at} \quad y = \nabla f(x).
+}
+This relation between Hessian can be seen as implying the exchange of strong convexity and uniform bound on the Hessian, as detailed in Proposition~\ref{prop-smooth-strong}.
+
+\begin{prop}
+	One has
+	\eq{
+		\nabla f \text{ is $L$-Lipschitz } 
+		\quad\Longleftrightarrow\quad
+		\nabla f^* \text{ is $\mu$-strongly convex.} 
+	}
+\end{prop}
+
+This results suggests a way to smooth any function $f$. Instead of doing a convolution, one can use the infimal convolution
+\eq{
+	(f \otimes g)(x) \eqdef \sup{ y+y'=x } f'(y) + g(y').
+}
+One can check that if $(f,g)$ are convex, so is $f \otimes g$, and that the Legendre transform actually exchanges sum and inf-convolution
+\eq{
+	( f+g )^* = f \otimes g 
+	\qandq 
+	( f \otimes g )^* = f + g.
+}
+The Moreau-Yosida regularization of $f$ is corresponds to a $\mu$-strict-convexification of $f^*$, i.e.
+\eql{\label{eq-moreau-yosida}
+	f_\mu \eqdef f \otimes (\frac{1}{2\mu}\norm{\cdot}^2) = ( f^* + \frac{\mu}{2}\norm{\cdot}^2 )^*.
+}
+Since $f^* + \frac{\mu}{2}\norm{\cdot}^2$ is at least $\mu$-strongly convex, then $f_\mu$ as a $1/\mu$-Lipchitz gradient.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fenchel-Rockafellar Duality}
+
+%It is possible to express the Lagrange duality in term of Fenchel transform. Indeed for instance, re-write~\eqref{eq-lagrange-primal} as
+%\eq{
+%	\umin{(x,z) \in \RR^N} \enscond{ f(x) }{ Ax=y, x=z \qandq g(z) \leq 0 }
+%}
+%and then form the Lagrange dual
+%\begin{align*}
+%	 \umax{u \in \RR^P, v \RR_-^Q, w \in \RR^N } &\umin{x,z}  f(x) + \dotp{Ax-y}{u} + \dotp{x-z}{w} + \dotp{g(z)}{v} \\
+%	 \umax{u \in \RR^P, v \RR_-^Q, w \in \RR^N } &\umin{x} f(x) + \dotp{x}{A^*u+w} + \sum_i \umin{z} - \dotp{z}{w} + g_i(z) {v_i} \\
+%\end{align*}
+
+Very often the Lagrange dual can be expressed using the conjugate of the function $f$. We give here a particularly important example, which is often called Fenchel-Rockafellar Duality. 
+
+We consider the following structured minimization problem
+\eql{\label{eq-fench-rock-basicpb}
+	p^\star = \uinf{x} f(x) + g(Ax).	
+}
+Re-writing it as 
+\eq{
+	\uinf{y=Ax} f(x) + g(y), 
+}
+we can form the primal-dual problem
+\eq{
+	\uinf{(x,y)} \usup{u} f(x) + g(y) + \dotp{Ax-y}{u}. 
+}
+If sufficient condition on the domain of $(f,g)$ holds (such as those stated in Theorem~\ref{}), one one can exchange the min and the max and obtains the dual problem
+\begin{align}\label{eq-deriv-rock-fench}
+	d &= \usup{u} \umin{(x,y)} f(x) + g(y) + \dotp{Ax-y}{u} \\
+	&= \usup{u} \pa{ \umin{x} \dotp{x}{A^* u} + f(x) } + \pa{ \umin{y} -\dotp{y}{u} + g(y) } 
+\end{align}
+which leads to the celebrated Fenchel-Rockafellar, which we summarize together with qualification sufficient condition ensuring strong duality.
+
+\begin{thm}[Fenchel-Rockafellar]\label{thm-fenchel-Rockafellar}
+If 
+\eql{\label{eq-qualif-fenchrock}
+	0 \in \relint( \dom(g) ) - A \relint( \dom(f) )
+}
+the one has the following strong duality
+\begin{align}\label{eq-fenchel-Rockafellar}
+	\uinf{x} f(x) + g(Ax) &= \uinf{x} \usup{u} \Ll(x,u) 
+	= \usup{u} \uinf{x}\Ll(x,u)  
+	= \usup{u} - f^*(-A^*u) - g^*(u)
+\end{align}
+\eq{
+	\qwhereq  \Ll(x,u)  \eqdef f(x) + \dotp{Ax}{u}  - g^*(u).
+}
+Furthermore one has that $(x^\star,u^\star)$ is a pair of optimal primal-dual solutions if and only if
+\eql{\label{eq-primal-dual}
+	-A^* u^\star \in \partial f(x^\star)  
+	\qandq
+	A x^\star \in  \partial g^*(u^\star).
+}
+\end{thm}
+
+Condition~\eqref{eq-qualif-fenchrock} is the constraint qualification ensuring that one can inverse the inf and the sup in~\eqref{eq-fenchel-Rockafellar}. It can be recovered from Slater's qualification condition~\eqref{eq-slater} when deriving the dual problem as in~\eqref{eq-deriv-rock-fench}.
+%
+The primal-dual relations~\eqref{eq-primal-dual} are the first order condition along the $x$ and the $u$ variables in minimization and maximization of $\Ll$. They are sometimes summarised in ``matrix'' form 
+\eq{
+	0 \in 
+	\begin{pmatrix}
+		\partial f & -A^* \\
+		A & \partial g^*
+	\end{pmatrix}
+	\begin{pmatrix}
+		x^\star \\
+		u^\star
+	\end{pmatrix}
+}
