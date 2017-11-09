@@ -7,7 +7,7 @@ The main references for this chapter are~\cite{chambolle2010introduction,chambol
 
 
 We consider a general convex optimization problem
-\eql{\label{eq-general-pbm} % eq-min-smooth-uncons
+\eql{\label{eq-general-pbm} 
 	\umin{x \in \Hh} f(x)
 }
 where $\Hh=\RR^N$ is a finite dimensional Hilbertian (i.e. Euclidean) space, 
@@ -98,66 +98,10 @@ Condition~\eqref{eq-upper-lower-bound-hess} thus reads that the singular values 
 %
 In the special case of a quadratic function $\Qq$ of the form~\eqref{eq-quad-func}, $\partial^2 f(x)=A$ is constant, so that $[\mu,L]$ can be chosen to be the range of the singular values of $A$.
 
-The following theorem ensure the convergence of the gradient descent with a linear speed.
-
-\begin{thm}\label{thm-gradsec-strong-conv}
-	If $f$ satisfy conditions~\eqref{eq-lipsch-grad} and~\eqref{eq-strong-conv}, assuming there exists $(\tau_{\min},\tau_{\max})$ such that
-	\eql{\label{eq-descent-step-cond}
-		0 < \tau_{\min} \leq \tau_\ell \leq \tau_{\max} < \frac{2 \mu}{L}
-	}
-	then there exists $0 \leq \rho<1$ such that 
-	\eql{\label{eq-global-linrate-grad}
-		\norm{ \it{x}-x^\star } \leq \rho^\ell \norm{\itz{x}-x^\star}
-	} 
-	where $x^\star$ is the unique solution to~\eqref{eq-min-smooth-uncons}. 
-\end{thm}
-\begin{proof}
-	Since $\nabla f(x^\star)=0$, one has
-	\eq{
-		\iit{x}-x^\star = (\it{x}-x^\star) - \tau_\ell ( \nabla f(\it{x})-\nabla f(x^\star) ).
-	}
-	Hence, using strong convexity and Lipschitz gradient
-	\begin{align*}
-		\norm{\iit{x}-x^\star }^2 &= \norm{ \it{x}-x^\star }^2 - 2\tau_\ell \dotp{\it{x}-x^\star}{\nabla f(\it{x})-\nabla f(x^\star)}
-		+ \tau_\ell^2 \norm{\nabla f(\it{x})-\nabla f(x^\star)}^2 \\
-		& \leq P(\tau_\ell) \norm{ \it{x}-x^\star }^2 
-		\qwhereq
-		P(\tau) = 1-2 \mu \tau + L^2 \tau^2. 
-	\end{align*}
-	Figure~\ref{fig-grad-desc-contract}, left, shows visually the shape of the second order polynomial $P$, which shows that condition~\eqref{eq-descent-step-cond} on $\tau_\ell$ implies
-	\eq{
-		P(\tau_\ell)^{\frac{1}{2}} \leq \rho \eqdef \max( P(\tau_{\min}), P(\tau_{\max}) )^{\frac{1}{2}}< 1, 
-	}
-	which shows the desired result.
-\end{proof}
-
-
-\begin{figure}
-\centering
-\includegraphics[width=.35\linewidth]{inverse-problems/grad-desc-general} \quad
-\includegraphics[width=.35\linewidth]{inverse-problems/grad-desc-linear}
-\caption{\label{fig-grad-desc-contract}
-Contraction constant $P(\tau)$ and $\tilde P(\tau)$ for a gradient descent step in the generic case (left) and for a quadratic function (right). 
-}
-\end{figure}
-
-The error decay rate~\eqref{eq-global-linrate-grad}, although it is geometrical $O(\rho^\ell)$ is called a ``linear rate'' in the optimization literature. It is a ``global'' rate because it hold for all $\ell$ (and not only for large enough $\ell$).
-%
-The best (smallest) rate $\rho$ is obtained when choosing 
-\eql{\label{eq-best-rate-global}
-	\tau_\ell = \frac{\mu}{L^2}
-	\qarrq
-	\rho = 1 - \frac{\mu^2}{L^2}.
-} 
-
-In the case of a quadratic functional of the form~\eqref{eq-quad-func}, one can sharpen the convergence proof because the iterates are computed in closed form using matrix multiplication
-\eq{
-	\it{x}-x^\star = ( \Id_{N} - \tau_\ell A ) (\itz{x}-x^\star)
-}
-which leads to the following proposition (see also Figure~\ref{fig-grad-desc-contract}, right, for the corresponding contraction constant involved as a function of $\tau$).
+In order to get some insight on the convergence proof and the associated speed, we first study the simple case of a quadratic functional.  
 
 \begin{prop}\label{prop-graddesc-quad}
-	For $f(x)=\dotp{A}{f}-\dotp{b}{x}$ with the singular values of $A$ upper-bounded by $L$, assuming there exists $(\tau_{\min},\tau_{\max})$ such that
+	For $f(x)=\dotp{Ax}{x}-\dotp{b}{x}$ with the singular values of $A$ upper-bounded by $L$, assuming there exists $(\tau_{\min},\tau_{\max})$ such that
 	\eql{\label{eq-descent-step-cond}
 		0 < \tau_{\min} \leq \tau_\ell \leq \tilde\tau_{\max} < \frac{2}{L}
 	}
@@ -169,44 +113,68 @@ which leads to the following proposition (see also Figure~\ref{fig-grad-desc-con
 	\eql{\label{eq-best-rate-local}
 		\tau_\ell = \frac{2}{L+\mu}
 		\qarrq
-		\tilde\rho \eqdef \frac{L-\mu}{L+\mu}.
+		\tilde\rho \eqdef \frac{L-\mu}{L+\mu} = 1 - \frac{2\epsilon}{1+\epsilon}
+		\qwhereq
+		\epsilon \eqdef \mu/L.
 	} 
 \end{prop}
+\begin{proof}
+	One iterate of gradient descent reads 
+	\eq{
+		\iit{x}=\it{x}-\tau_\ell (A\it{x}-b).
+	}	
+	Since the solution $x^\star$ (which by the way is unique by strict convexity) satisfy the first order condition $Ax^\star=b$, it gives
+	\eq{
+		\iit{x}-x^\star =\it{x}-x^\star-\tau_\ell A(\it{x}-x^\star) = (\Id_N-\tau_\ell)(\it{x}-x^\star).
+	}	
+	One thus has to study the contractance ratio of the linear map $\Id_N-\tau_\ell A$, i.e. its largest singular value, which reads
+	\eq{
+		h(\tau) \eqdef \norm{\Id_N-\tau A}_2 = \si_{\max}(\Id_N-\tau) = \max( |1-\tau_\ell \si_{\max}(A)|,|1-\tau \si_{\min}(A)| ).
+	}
+	For a quadratic function, one has $\si_{\min}(A)=\mu, \si_{\max}(A)=L$. Figure~\ref{fig-grad-desc-contract}, right, shows a display of $h(\tau)$. One has that for $0<\tau<2/L$, $h(\tau)<1$.
+\end{proof}
 
 
-The maximum allowable step size $\tilde\tau_{\max}$ in~\eqref{eq-descent-step-cond} is much larger than $\tau_{\max}$ given in~\eqref{eq-descent-step-cond}, and the optimal rate~\eqref{eq-best-rate-local} is also much better (smaller) than the one in~\eqref{eq-best-rate-global}. In particular, if 
-\eq{
-	\epsilon \eqdef M/L \ll 1
-} 
-(which is the typical setup for ill-posed problems), then 
-\eq{
-	\rho \sim 1-\epsilon^2
-	\qandq
-	\tilde\rho \sim 1 - 2\epsilon.
+
+\begin{figure}
+\centering
+\includegraphics[width=.35\linewidth]{inverse-problems/grad-desc-linear}
+\caption{\label{fig-grad-desc-contract}
+Contraction constant $h(\tau)$ for a quadratic function (right). 
 }
+\end{figure}
+
+
+Note that when the condition number $\epsilon \eqdef \mu/L \ll 1$
+is small (which is the typical setup for ill-posed problems), then the contraction constant appearing in~\eqref{eq-best-rate-local} scales like 
+\eql{\label{eq-rate-strong-quad}
+	\tilde\rho \sim 1-2\epsilon.
+}
+%
 The quantity $\epsilon$ in some sense reflects the inverse-conditioning of the problem. For quadratic function, it indeed corresponds exactly to the inverse of the condition number (which is the ratio of the largest to smallest singular value). The condition number is minimum and equal to $1$ for orthogonal matrices.
 
-These two results are however complementary. Indeed, if the gradient descent converges, then ultimately $\it{x}$ is close to $x^\star$, so that one can approximate up to second order $f(x) \approx f(x^\star) + \dotp{Af}{f}-\dotp{f}{b}$ with $A=\partial^2 f(x^\star)$ and $b=-\nabla f(x^\star)$. So that the ``local'' rate, the one obtained after a large enough of iterations, is actually driven by $\tilde\rho$ and not $\rho$. It is thus important to distinguish between the global rate and the local rate. In practice, descent algorithm typically have two phase: a first ``slow'' phase govern by the global rate, and a second ``fast'' phase governed by the local rate. Unfortunately, the optimal step sizes $\tau_\ell$ are in general different for the two phase, so that optimal adaptation of step size is a difficult problems. This is why more advanced users typically use various line search strategies (to find the optimal step size at each iteration) or use second order information using quasi-Newton technics (BFGS).
 
-The convergence result of Proposition~\ref{prop-graddesc-quad} does not requires strong convexity, while Theorem~\ref{thm-gradsec-strong-conv} does. In the general non-strongly convex case, it is still possible to prove convergence, but the rate is only sub-linear, and is only on the value of $f$, not on the iterate $\it{x}$ themselves.
+The error decay rate~\eqref{eq-global-linrate-grad}, although it is geometrical $O(\rho^\ell)$ is called a ``linear rate'' in the optimization literature. It is a ``global'' rate because it hold for all $\ell$ (and not only for large enough $\ell$).
+
+We now give convergence theorem for a general convex function. On contrast to quadratic function, if one does not assumes strong convexity, one can only show a sub-linear rate on the function values (and no rate at all on the iterates themselves!). It is only when one assume strong convexity that linear rate is obtained. 
 %
 Note that in this case, the solution of the minimization problem is not necessarily unique.
-%
-The proof is more technical.
 
 \begin{thm}\label{thm-gradsec-non-strong-conv}
 	If $f$ satisfy conditions~\eqref{eq-lipsch-grad}, assuming there exists $(\tau_{\min},\tau_{\max})$ such that
 	\eql{\label{eq-descent-step-cond}
 		0 < \tau_{\min} \leq \tau_\ell \leq \tau_{\max} < \frac{2}{L}, 
 	}
-	then $\it{x}$ converges to a solution $x^\star$ of~\eqref{eq-min-smooth-uncons} and
+	then $\it{x}$ converges to a solution $x^\star$ of~\eqref{eq-general-pbm} and
 	there exists $C>0$ such that 
 	\eql{\label{eq-sublin-rate-gd}
 		f(\it{x})-f(x^\star) \leq \frac{C}{\ell+1}.
 	} 
+	If furthermore $f$ is $\mu$-strongly convex, then there exists $0 \leq \rho < 1$ such that $\norm{\it{x}-x^\star} \leq \rho^\ell \norm{\itz{x}-x^\star}$.
 \end{thm}
+
 \begin{proof}
-	We only prove~\eqref{eq-sublin-rate-gd} since the proof that $\it{x}$ converges is more technical. Note indeed that if the minimizer $x^\star$ is non-unique, then it might be the case that the iterate $\it{x}$ ``cycle'' while approaching the set of minimizer, but actually convexity of $f$ prevents this kind of pathological behavior. 
+	In the case where $f$ is not strongly convex, we only prove~\eqref{eq-sublin-rate-gd} since the proof that $\it{x}$ converges is more technical. Note indeed that if the minimizer $x^\star$ is non-unique, then it might be the case that the iterate $\it{x}$ ``cycle'' while approaching the set of minimizer, but actually convexity of $f$ prevents this kind of pathological behavior. 
 	%
 	For simplicity, we do the proof in the case $\tau_\ell = 1/L$, but it extends to the general case. 
 	%
@@ -216,13 +184,12 @@ The proof is more technical.
 		\leq 
 		f(\it{x}) + \dotp{\nabla f(\it{x})}{\iit{x}-\it{x}} + \frac{L}{2}\norm{\iit{x}-\it{x}}^2.
 	}
-	Using the fact that $\iit{x}-\it{x} = -\frac{2}{L} \nabla f(\it{x})$, one obtains
+	Using the fact that $\iit{x}-\it{x} = -\frac{1}{L} \nabla f(\it{x})$, one obtains
 	\eql{\label{eq-proox-x'rad-nonstrong-1}
 		f(\iit{x}) 
 		\leq 
-		f(\it{x}) -  \norm{\nabla f(\it{x})}^2
-		\leq 
-		f(\it{x}) - \frac{1}{2L} \norm{\nabla f(\it{x})}^2
+		f(\it{x}) -  \frac{1}{L} \norm{\nabla f(\it{x})}^2 + \frac{1}{2L} \norm{\nabla f(\it{x})}^2
+		\leq  f(\it{x}) -  \frac{1}{2L} \norm{\nabla f(\it{x})}^2 
 	}
 	This shows that $(f(\it{x}))_\ell$ is a decaying sequence.
 	%
@@ -231,26 +198,44 @@ The proof is more technical.
 		f(\it{x}) + \dotp{\nabla f(\it{x})}{x^\star-\it{x}} \leq  f(x^\star)
 	}
 	and plugging this in~\eqref{eq-proox-x'rad-nonstrong-1} shows
-	\begin{align*}
+	\begin{align}
 		f(\iit{x})  &\leq   
 		f(x^\star) - \dotp{\nabla f(\it{x})}{x^\star-\it{x}} - \frac{1}{2L} \norm{\nabla f(\it{x})}^2 \\
 		&= f(x^\star) + \frac{L}{2}\pa{
 			\norm{\it{x}-x^\star}^2 - \norm{\it{x}-x^\star-\frac{1}{L}\nabla f(\it{x})}^2
 		}\\
 		&= f(x^\star) + \frac{L}{2}\pa{
-			\norm{\it{x}-x^\star}^2 - \norm{x^\star-\iit{x}}^2 }.
-	\end{align*}
+			\norm{\it{x}-x^\star}^2 - \norm{x^\star-\iit{x}}^2 }. \label{eq-conv-rate-proof-1}
+	\end{align}
 	Summing these inequalities for $\ell=0,\ldots,k$, one obtains
 	\eq{
-		\sum_{\ell=1}^k f(\iit{x}) - k x^\star \leq  \frac{L}{2}\pa{
+		\sum_{\ell=0}^k f(\iit{x}) - (k+1) f(x^\star) \leq  \frac{L}{2}\pa{
 			\norm{\itz{x}-x^\star}^2 - \norm{x^{(k+1)}-x^\star}^2 }
 	}
-	and since $f(\iit{x})$ is decaying $\sum_{\ell=1}^k f(\iit{x}) \geq (k+1) f(x^{(k+1)})$, thus 
+	and since $f(\iit{x})$ is decaying $\sum_{\ell=0}^k f(\iit{x}) \geq (k+1) f(x^{(k+1)})$, thus 
 	\eq{
 		f(x^{(k+1)}) - f(x^\star) \leq \frac{L \norm{\itz{x}-x^\star}^2}{2(k+1)}
 	}
 	which gives~\eqref{eq-sublin-rate-gd} for $C \eqdef L \norm{\itz{x}-x^\star}^2/2$.
+	
+	If we now assume $f$ is $\mu$-strongly convex, then, using $\nabla f(x^\star)=0$, one has $\frac{\mu}{2}\norm{x^\star-x}^2 \leq f(x)-f(x^\star)$ for all $x$. 
+	%
+	Re-manipulating~\eqref{eq-conv-rate-proof-1} gives
+	\eq{
+		\frac{\mu}{2}\norm{ \iit{x} - x^\star}^2 \leq f(\iit{x})-f(x^\star) \leq \frac{L}{2}\pa{
+			\norm{\it{x}-x^\star}^2 - \norm{x^\star-\iit{x}}^2 }, 
+	}
+	and hence
+	\eql{\label{eq-rate-strong}
+		\norm{ \iit{x} - x^\star} \leq \sqrt{ \frac{L}{L+\mu} } \norm{ \iit{x} - x^\star}, 
+	}
+	which is the desired result. 
 \end{proof}
+
+Note that in the low conditioning setting $\epsilon \ll 1$, one retrieve a dependency of the rate~\eqref{eq-rate-strong} similar to the one of quadratic functions~\eqref{eq-rate-strong-quad}, indeed 
+\eq{
+	\sqrt{ \frac{L}{L+\mu} } = (1+\epsilon)^{?\frac{1}{2}} \sim 1 - \frac{1}{2}\epsilon. 
+}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -330,6 +315,18 @@ When $f=\iota_\Cc$ is an indicator, the proximal map boils down to a projection 
 	One has $\norm{ \prox_{f}(x)-\prox_{f}(y) } \leq \norm{x-y}$.
 \end{prop}
 
+
+
+\begin{figure}
+\centering
+%%
+\includegraphics[width=.6\linewidth]{convexity/prox-proj}
+%%
+\caption{\label{fig-prox-proj}
+Proximal map and projection map.}
+\end{figure}
+
+
 %%%
 \paragraph{Examples}
 
@@ -349,14 +346,21 @@ where the soft-thresholding is defined as
 }
 (see also~\eqref{eq-soft-thresh}). For $A \in \RR^{P \times N}$, one has
 \eql{\label{eq-prox-quad}
-	\Prox_{\frac{\tau}{2}\norm{A \cdot-y}^2} = (\Id_{P} +\tau A^*A)^{-1} A^*
-	=  A^* (\Id_N + \tau AA^*)^{-1} 
+	\Prox_{\frac{\tau}{2}\norm{A \cdot-y}^2}(x) = (\Id_N + \tau A^* A)^{-1} ( x + \tau A^* y ).
+	%= (\Id_{P} +\tau A^*A)^{-1} A^*	=  A^* (\Id_N + \tau AA^*)^{-1} 
 }
 \end{prop}
 \begin{proof}
 	The proximal map of $\norm{\cdot}_1$ was derived in Proposition~\ref{prop-equiv-sparse-thresh}.
 	%
-	\todo{for the quadratic case}
+	For the quadratic case
+	\eq{
+		z = \Prox_{\frac{\tau}{2}\norm{A \cdot-y}^2}(x) 
+		\quad\Leftrightarrow\quad 
+		z-x + \tau A^*( A z - y ) = 0
+		\quad\Leftrightarrow\quad
+		(\Id_N + \tau A^* A) z = x + \tau A^* y.
+	}
 \end{proof}
 
 
@@ -370,11 +374,10 @@ $\Prox_{\tau \norm{\cdot}_0}$ is the hard thresholding associated to the thresho
 We recap some useful proximal-calculus.
 
 \begin{prop}
-One has\todo{??}
+One has
 \eq{
-	\Prox_{f+\dotp{y}{\cdot}} = \Prox_{f}(\cdot-y), \quad
-	\Prox_{\la f} = \Prox_{f}(\cdot/\la),
-	\Prox_{f(\cdot-y)} = y + \Prox_{f}(\cdot-y),
+	\Prox_{f+\dotp{y}{\cdot}} = y + \Prox_{f}, \quad
+	\Prox_{f(\cdot-y)} = y + \Prox_{f}(\cdot-y).
 }
 If $f(x)=\sum_{k=1}^K f(x_k)$ for $x=(x_1,\ldots,x_K)$ is separable, then
 \eql{\label{eq-prox-separable}
@@ -382,7 +385,22 @@ If $f(x)=\sum_{k=1}^K f(x_k)$ for $x=(x_1,\ldots,x_K)$ is separable, then
 }
 \end{prop}
 \begin{proof}
-TODO
+	One has
+	\eq{
+		z = \Prox_{f+\dotp{y}{\cdot}}(x) 
+		\quad\Leftrightarrow\quad 0 \in x-z + (\partial f(x)+y) 
+		\quad\Leftrightarrow\quad 0 \in x-(z-y) + \partial f(x) 
+	}
+	which is the optimality condition for $z-y = \Prox_{f}(x)$.
+	
+	
+	One has
+	\eq{
+		z = \Prox_{f(\cdot-y)}(x)
+		\quad\Leftrightarrow\quad 0 \in x-z + \la \partial f(x-y)
+		\quad\Leftrightarrow\quad 0 \in x'-(z-y) + \partial f(x') 
+	}
+	where we defined $x' \eqdef x-y$, and this is the optimality condition for $z-y = \Prox_{f}(x')$
 \end{proof}
 
 The following proposition is very useful.
@@ -643,9 +661,9 @@ The Douglas-Rachford iterations read
 \eql{\label{eq-dr-iter} 
 	 \iit{\tilde x} \eqdef \pa{1-\frac{\mu}{2}} \it{\tilde x} + 
 	\frac{\mu}{2} \rProx_{\tau g}( \rProx_{\tau f}( \it{\tilde x} )  ) 
-	\qandq \iit{x} \eqdef \Prox_{\tau f}( \iit{\tilde x},)
+	\qandq \iit{x} \eqdef \Prox_{\tau f}( \iit{\tilde x}), 
 }
-We have used the following shortcuts
+where we have used the following shortcuts
 \eq{   	
 	\rProx_{\tau f}(x) = 2\Prox_{\tau f}(x)-x .
 }

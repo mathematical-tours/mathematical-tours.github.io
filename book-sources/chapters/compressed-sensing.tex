@@ -1,20 +1,242 @@
 % !TEX root = ../FundationsDataScience.tex
 
 \chapter{Compressed Sensing}
+\label{chap-cs}
 
-Main ref: \cite{mallat2008wavelet,foucart2013mathematical,scherzer2009variational}
+This chapter details an important class of inverse problems, which corresponds to using ``random'' forward operators $\Phi$. This is interesting from an applicative point of view since it allows to model a novel class of imaging devices which can potentially have improved resolution with respect to traditional operators (e.g. low-pass filters for usual cameras) when using in conjunction with sparse regularization technics. This is also interesting from a theoretical point of view, since the mathematical analysis becomes much simpler than with deterministic operators, and one can have good recovery and stability performances.
+%
+Let us however stress that the ``physical'' creation of hardware that fulfils the theoretical hypothesis, in particular in medical imaging, is still largely open (put aside some restricted areas), although the theory gives many insightful design guides to improve imaging devices.
 
+The main references for this chapter are~\cite{mallat2008wavelet,foucart2013mathematical,scherzer2009variational}.
 
-TODO.
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Motivation and Potential Applications}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Dual Certificate Theory and Non-Uniform Guarantees}
+\subsection{Single Pixel Camera}
 
-Polytopes, descent cone and Gaussian width.
+In order to illustrate the exposition, we will discuss the \guill{single pixel camera} prototype developed at Rice University~\cite{DuarteSinglePixel}, and which is illustrated by the figure~\ref{fig-single-pixel} (left).
+%
+It is an important research problem of developing a new class of cameras allowing to obtain both the sampling and the compression of the image. Instead of first sampling very finely (ie with very large $Q$) the analog signal $\tilde f$ to obtain a $f \in \RR^Q$ image then compressing enormously (ie with $M$ small) using~\eqref{eq-formule-thresh}, we would like to dispose directly of an economic representation $y \in \RR^P$ of the image, with a budget $P$ as close to $M$ and such that one is able to \guill{decompress} $y$ to obtain a good approximation of the image $f_0$.
+
+The \guill{single-pixel} hardware performs the compressed sampling of an observed scene $\tilde f_0$ (the letter \guill{R} in Figure~\ref{fig-single-pixel}), which is a continuous function indicating the amount of light $\tilde f_0(s)$ reaching each point $s \in \RR^2$ of the focal plane of the camera.
+%
+To do this, the light is focused against a set of $Q$ micro-mirrors aligned on the focal plane. These micro-mirrors are not sensors. Unlike conventional sampling (described in Section~\ref{sec-sampling}), they do not record any information, but they can each be positioned to reflect or absorb light.
+%
+To obtain the complete sampling/compression process, one very quickly changes $P$ times the configurations of the micro-mirrors. For $p = 1,\dots, P$, one sets $\Phi_{p, q} \in \{0,1\}$, depending on whether the micromirror at position $q$ has been placed in the absorbing (0) or reflective (value 1) position at step $p$ of the acquisition.
+%
+The total light reflected at step $p$ is then accumulated into a single sensor (hence the name \guill{single pixel}, in fact it is rather a \guill{single sensor}), which achieves a linear sum of the reflected intensities to obtain the recorded $y_p \in \RR$ value.
+%
+In the end, if the light intensity arriving on the surface $c_q$ of the mirror indexed by $f_q = \int_{c_q} \tilde f_0(s) \text{d} s$ is denoted (as in the~\ref{sec-sampling} section) as $q$, the equation that links the discrete image $f \in \RR^Q$ \guill{seen through the mirrors} to the $P$ measures $y \in \RR^P$ is
+\eq{
+	\foralls p = 1,\ldots,P, \quad
+	y_p \approx \sum_q \Phi_{p,n} \int_{c_n} \tilde f_0(s) \text{d} s = (\Phi f_0)_p, 
+}
+(here $\approx$ accounts for some noise), 
+which corresponds to the usual forward model of inverse problems
+\eq{
+	y = \Phi f_0 + w \in \RR^P
+}
+where $w$ is the noise vector. 
+%
+It is important to note that the mirrors do not record anything, so in particular the $f_0$ discrete image is never calculated or recorded, since the device directly calculates the compressed representation $y$ from the analog signal $\tilde f_0$.
+%
+The term $w$ models here the acquisition imperfections (measurement noise). The compressed sampling therefore corresponds to the transition from the observed scene $\tilde f_0$ to the compressed vector $y$. The \guill{decompression} corresponds to the resolution of an inverse problem, whose goal is to find a good approximation of $f_0$ (the discrete image \guill{ideal} as seen by the micro-mirrors) from $y$.
+
+\begin{figure} \centering
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+\includegraphics[width=.45\linewidth]{cs/single-pixel/single-pixel-schema}&
+\includegraphics[width=.25\linewidth]{cs/single-pixel/reconstruction-1}&
+\includegraphics[width=.25\linewidth]{cs/single-pixel/reconstruction-6}\\
+Diagram of the device & $f$ & $f^\star$, $P/Q = 6$
+\end{tabular}
+\caption{Left: diagram of the single-pixel acquisition method.
+%
+Center: image $f_0 \in \RR^Q$ \guill{ideal} observed in the focal plane of the micro-mirrors.
+%
+Right: image $f_0^\star = \Psi x^\star$ reconstructed from observation $y \in \RR^P$ with a compression factor $P / Q = 6$ using $\ell^1$-type regularization.
+\label{fig-single-pixel}}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sparse Recovery}
+
+In order to reconstruct an approximation of the (unknown) image $f_0$, following Section~\ref{sec-sparse-ip}, we assume it is sparse in some dictionary $\Psi$. Denoting $A \eqdef \Psi \Phi \in \RR^{P \times N}$, this leads us to consider the usual $\ell^1$ regularized poblem~\eqref{eq-lasso-lagr-ip}
+\eql{\label{eq-lasso-lagr-ip-cs}\tag{$\Pp_\la(y)$}
+	x_\la \in \uargmin{x \in \RR^Q} \frac{1}{2\la} \norm{y-Ax}^2 + \norm{x}_1, 
+} 
+so that the reconstructed image is $f_\la = \Psi x_\la$. We also sometimes consider the constraint problem
+\eql{\label{eq-lasso-lagr-constr-cs}\tag{$\Pp^\epsilon(y)$}
+	x_\epsilon \in \uargmin{\norm{Ax-y} \leq \epsilon} \norm{x}_1, 
+} 
+where, for the sake of simplicity, we set $\epsilon=\norm{w}$ (which we assume is known). From a mathematical point of view, these problem are equivalent in the sense that there exists a bijection between $\la$ and $\epsilon$ which links it solution. But in practice, this bijection is not explicitly known and depends on $y$.  
+
+Here, it is important to remember that $A$ is drawn from a random matrix ensemble. For an arbitrary $\Psi$, it is hard to analyze this random distribution. If $\Psi$ is orthogonal, and the distribution of the columns of $\Phi$ are invariant by rotation (which is the case if the entries are i.i.d. Gaussian), then $A$ has the same distribution as $\Phi$. In the following, we thus directly models the distribution of $A$ and assumes it has some nice property (typically it is close to being Gaussian i.i.d.). 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Dual Certificate Theory and Non-Uniform Guarantees}
+\label{sec-cs-certif}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Random Projection of Polytopes}
+
+When there is no noise, $w=0$ a way to tackle the problem is to use the caracterization of solutions of $(\Pp^0(Ax_0))=(\Pp_0(Ax_0))$ given in Section~\ref{sec-polytope-proj}. According to Proposition~\ref{prop-polytope-proj}, identifiable vectors with sparsity $\norm{x_0}_0=s$ corresponds to $s$-dimensional faces of the $\ell^1$ balls $B_1$ which are mapped to face of the projected polytope $AB_1$. This leads to a combinatorial problems to count the number of face of random polytope. Donoho and Tanner were able to perform a sharp analysis of this problem. They showed the existence of two regimes, using two functions $C_A, C_M$ so that, with high probability (i.e. a probability converging exponentially fast to $1$ with $(n,p)$) on the matrix $A$
+\begin{rs}
+	\item All $x_0$ so that $\norm{x_0}_0 \leq C_A(P/N)P$ are identifiable.
+	\item Most $x_0$ so that $\norm{x_0}_0 \leq C_M(P/N)P$ are identifiable.
+\end{rs}
+For instance, they show that $C_A(1/4)=0.065$ and $C_M(1/4)=0.25$. 
+%
+This analysis can be shown to be sharp in high dimension, i.e. when $\norm{x_0}_0 > C_M(P/N)P$, then $x_0$ is not identifiable with high probability (this corresponds to a phase transition phenomena). 
+%
+For large dimensions $(N,P)$, the scaling given by $C_M$ describe very well what one observe in practice. For $P=N/4$ (compression of a factor $4$), one retrieve in practice all vector with sparsity smaller than $P/N$. 
+%
+The fonction $C_M$ can be computed numerically, and it can be shown to have a logarithmic grows $C_M(r) \sim \log(r)$ for small $r$. This suggests that for high compression regime, one recovers with $\ell^1$ minimization almost all vector with a sparsity $\norm{x_0}_0$ proportional (up to log factor) to the number of measurements $P$. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Gaussian Width}
+
+For Gaussian matrices (or at least rotation invariant distributions).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dual Certificates}
+
+In order to analyze recovery performance, one can looks not only for $\ell^2$ stability ($\norm{x_\la-x_0} \sim \norm{w}$) but also that $x_\la$ has the same support as $x_0$ when $\norm{w}$ is small. As detailed in Section~\ref{sec-sparsistency}, this requires to  ensure that the pre-certificate $\eta_F$ defined in~\eqref{eq-minnorm-certif} is non-degenerated, i.e.
+\eql{\label{eq-cond-fuchs}
+	\norm{\eta_F}_\infty \leq 1 
+	\qwhereq 
+	\eta_F = A^* A_I (A_I^*A_I)^{-1} \sign(x_{0,I}).
+}
+Figure~\ref{fig-certif-cs} suggests that this should be the case if $P$ is large enough with respect to $\norm{x_0}$. This theorem backup this observation.
+
+
+%%%%%%
+\paragraph{Coherence-based analysis.}
+
+We first perform a crude analysis using the so-called coherence of the matrix $A=(a_j)_{j=1}^N$ where the $a_j \in \RR^P$ are the columns of $A$, which we assume to be normalized $\norm{a_j}=1$
+\eql{
+	\mu \eqdef = \umax{0 \leq i \neq j } |\dotp{a_i}{a_j}| = \norm{A^*A-\Id_N}_\infty
+}
+where $\norm{C}_\infty=\max_{i,j} |C_{i,j}|$.
+%
+The coherence is $0$ for an orthogonal matrix, and is always larger than $1$, $\mu \in [0,1]$. 
+%
+The smaller the coherence, the better conditioned the inverse problem $Ax=y$ is, and the more likely is the certificate $\eta_F$ to be non-degenerate, as shown by the following proposition.
+
+\begin{prop}\label{prop-bound-coh}
+	One has, denoting $s=\norm{x_0}_0=|I|$ where $I=\supp(x_0)$, for $\mu < \frac{1}{s-1}$, 
+	\eql{\label{eq-coh-bound}
+		\norm{\eta_{F,I^c}}_\infty \leq \frac{ s\mu }{ 1-(s-1)\mu }.
+	}
+	In particular, if $s < \frac{1}{2}\pa{ 1+\frac{1}{\mu} }$, $\norm{\eta_{F,I^c}}_\infty < 1$ and one can thus apply the 
+	recovery Theorem~\ref{thm-support-stable}. 
+\end{prop}
+\begin{proof}
+	We recall that the $\ell^\infty$ operator norm (see Remark~\ref{rem-operator-norm}) is
+	\eq{
+		\norm{B}_\infty = \umax{i} \sum_j |B_{i,j}|.
+	}
+	We denote $C=A^*A$. One has
+	\eq{
+		\norm{A_{I^c}^*A_I}_\infty = \umax{j \in I^c} \sum_{i \in I} C_{i,j} \leq s \mu
+		\qandq
+		 \norm{  \Id_s - A_I^*A_I }_\infty = \umax{j \in I} \sum_{i \in I, i \neq j} C_{i,j} \leq (s-1) \mu
+	}
+	One also has 
+	\begin{align*}
+		\norm{(A_I^*A_I)^{-1}}_\infty &= \norm{( (\Id_s - A_I^*A_I) - \Id_s)^{-1}}_\infty
+		= \norm{ \sum_{k \geq 0} (\Id_s - A_I^*A_I)^k }_\infty \\
+		&\leq \sum_{k \geq 0} \norm{  \Id_s - A_I^*A_I }_\infty^k \leq \sum_{k \geq 0} ((s-1) \mu)^k = \frac{1}{1 - (s-1)\mu}
+	\end{align*}
+	which is legit because the matrix series indeed converge since $(s-1)\mu<1$.
+	%
+	Using these two bounds, one has
+	\eq{
+		\norm{\eta_{F,I^c}}_\infty = 
+		\norm{A_{I^c}^* A_I (A_I^*A_I)^{-1} \sign(x_{0,I})}_\infty
+		\leq 
+		\norm{A_{I^c}^* A_I}_\infty 
+		\norm{(A_I^*A_I)^{-1}}_\infty 
+		\norm{\sign(x_{0,I})}_\infty 
+		\leq 
+		(s \mu) \times \frac{1}{1 - (s-1)\mu} \times 1.
+	}
+	%
+	One has 
+	\eq{
+		\frac{ s\mu }{ 1-(s-1)\mu } \quad\Longleftrightarrow\quad
+		2s\mu < 1+\mu
+	}
+	which gives the last statement.
+\end{proof}
+
+One can show that one always has
+\eql{\label{eq-bound-cohe-mat}
+	\mu \geq \sqrt{\frac{N-P}{P(N-1)}}.
+}
+For Gaussian matrix $A \in \RR^{P \times N}$, one has for large $(N,P) \rightarrow +\infty$
+\eq{
+	\mu \sim \sqrt{ \log(PN) / P }
+}
+which shows that Gaussian matrix are close to being optimal for the bound~\eqref{eq-bound-cohe-mat} if $N \gg P$.
+%
+Applying Proposition~\ref{prop-bound-coh} thus shows that $\ell^1$ regularization is able to recover with a stable support vector with less than $s \sim O(\sqrt{P})$ (ignoring log terms) non-zero coefficients. In face, we will show now that it does much better and recover a proportional number $s \sim O(P)$. This is because the coherence bound~\eqref{eq-coh-bound} is very pessimistic.
+
+%%%%%%
+\paragraph{Randomized analysis of the Fuchs certificate.}
+
+We consider here a class of sufficiently ``random'' matrices. 
+
+\begin{defn}[sub-Gaussian random matrix]
+A random matrix $\sqrt{P} A$ is said to be sub-Gaussian if its entries are independent such that $\EE(A_{i,j})=0$ (zero mean) $\EE(A_{i,j}^2)=1/P$ and 
+\eq{
+	\PP(|\sqrt{P} A_{i,j}| \geq t) \leq \be e^{-\kappa t^2}. 
+}
+Note that its entries does not needs to be identically distributed, but the sub-Gaussiannity parameter $(\be,\kappa)$ should not depend on $(i,j)$. 
+%
+Note also the presence of the normalization factor $\sqrt{P}$, which is here to ensure $\EE(\norm{a_j}^2)=1$ where $a_j$ are the columns of $A$.
+\end{defn}
+
+\begin{thm}
+	For a given $x_0 \in \RR^N$, denoting $s=\norm{x_0}_0$, and assuming $A$ is sub-Gaussian, then provided that
+	\eq{
+		P \geq 2 s \log(N)
+	}
+	condition~\eqref{eq-cond-fuchs} holds with probability 
+	\eq{
+		1 - ??
+	} 
+	so that $x_\la$ has the same support and sign as $x_0$ when $(\norm{w}, \norm{w}/\la)$ is small enough.
+\end{thm}
+
+Note that the constant $c$ depends only on the sub-Gaussiannity parameter $(\be,\kappa)$. 
+
+This is a non-uniform recovery garantee, in the sense that one first choose a vector $x_0$, \text{then} draws the matrix $A$, and the recovery results holds with high probabilty.
+%
+In contrast blabla
+
+
+\begin{figure}
+\centering
+%%
+\begin{tabular}{@{}c@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{cs/phase/phase-transition-1}&
+\includegraphics[width=.28\linewidth]{cs/phase/phase-transition-2}&
+\includegraphics[width=.35\linewidth]{cs/phase/phase-transition-crit}
+\end{tabular}
+%%
+\caption{\label{fig-phase-trans}
+Phase transition. For the figure on the right shows probability as function of sparsity that certain criteria hold true, 
+blue: w-ERC,  black: ERC, green $|\eta_F| \leq 1$, red: identifiability. 
+}
+\end{figure}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -33,15 +255,45 @@ The RIP constant $\de_s$ of a matrix $\Phi \in \RR^{P \times N}$ is defined as
 }
 
 
+The following theorem states that for a sub-Gaussian random matrix, these RIP constant grows slowly with $s$.
+
+
+%
+Typical example of sub-Gaussian random matrix are Gaussian or Bernoulli matrices. 
+%
+Let us stress that, although this is an abuse of notation, here we assume that $A$ is a random matrix, and not a deterministic one as previously considered. 
+
+\begin{thm}
+	If $A$ is a sub-Gaussian random matrix, then it satisfies $\de_s \leq 1$ provided
+	\eql{
+		P \geq C \de^{-2} s \ln(eN/s)
+		\text{ with probability }
+		1 - 2e^{ -\de^2 \frac{m}{2C} }.
+	}
+\end{thm}
+
+
+
+\begin{figure}
+\centering
+%%
+\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
+\includegraphics[width=.25\linewidth]{cs/rip-const/delta-k}&\includegraphics[width=.55\linewidth]{cs/rip-const/eigen-distrib}
+\end{tabular}
+%%
+\caption{\label{fig-rip-const}
+Left: evolution of lower bounds $\hat \de_k$ on the RIP constant. Right: empirical distribution of singular values of Gaussian matrices.
+}
+\end{figure}
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{RIP implies stable recovery}
 
 
 RIP implies dual certificate guarantees.
-
-
-
 
 In the following, we fixe a vector $x \in \RR^N$ and denote $y=\Phi x + w$ the measurement, with $\norm{w} \leq \epsilon$. We denote $x_s \in \RR^N$ the best $s$-term approximation of $x$, obtained by only keeping the $s$ largest coefficients in magnitude from $x$ and setting the others to 0.
 

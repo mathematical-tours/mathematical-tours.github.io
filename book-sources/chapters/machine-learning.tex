@@ -5,21 +5,20 @@
 
 % Refs \cite{rosasco2017notes,friedman2001elements,murphy2012machine}
 
+Un-supervised learning.
+
+Supervised learning : regression (continuous label) and classification (discrete labels).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Supervised vs Unsupervised Learning}
+\section{Unsupervised Learning}
 
 TOOD: describe the general settings and problems. 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{PCA, Nearest-Neighbors Classification and Clustering}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Dimenionality Reduction and PCA}
+\subsection{Dimensionality Reduction and PCA}
 
 We detail Principal Component Analysis (dimentionality reduction), supervised classification using nearest neighbors
 and unsupervised clustering using $k$-means.
@@ -83,56 +82,7 @@ One can do a similar display in 3-D.
 % saveas(gcf,[rep 'points-3d.png']);
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Supervised Learning: Nearest Neighbor Classification}
 
-Probably the simplest method for supervised classification is Nearest
-Neighbor ($R$-NN), where $R$ is a parameter indexing the number of neighbor.
-Increasing $R$ is important to cope with noise and obtain smoother
-decision boundary, and hence better generalization performance.
-
-The class predicted for a point $x$ is the one which is the most
-represented among the $R$ points $(x_i)_i$ which are the closed to
-$x$.
-
-
-The data needs to be split into training and testing.
-
-One then compute Euclidean distance between some $x$ 
-and all other $x_{1,j}$ in the training set. 
-%
-Then sort the distance and generate the list of sorted classes $ y_\sigma = (y_{\si(i)})_i$. This
-generate an indexing $\si$ (a permutation of $\{1,\ldots,n\}$) such that 
-\eq{
- \norm{x-x_{\si(1)}} \leq \norm{x-x_{\si(2)}} \leq \ldots \leq \norm{x-x_{\si(n)}}. 
-}
-
-
-For a given $R$, one can compute the histogram of class apparition
-\eq{
- h_\ell \eqdef \frac{1}{R} \enscond{ i }{ \si(i) \in \{1,\ldots,R\} }
-  = \sharp \si^{-1}( \{1,\ldots,R\} ). 
-}
-The decision class for $x$ is then the maximum of the histogram
-\eq{
- c(x) \eqdef \uargmax{\ell} h_\ell 
-}
-
-One can display the histogram $(h_\ell)_\ell$ of repartition of class indexes as $R$ grows.
-% 
-Then perform the NN classification for all the points in the test set, and for varying $R$.
-And show how the classification score $S$ (number of correctly classified points)
-evolves with $R$.
-
-% saveas(gcf,[rep 'hist-classif.eps'], 'epsc');
-% saveas(gcf,[rep 'hist-classif-score.eps'], 'epsc');
-
-
-One can also display, as a function of the position in 2-D PCA space, the class output by 
-the $R$-NN method when applied in 2-D.
-
-
-% saveas(gcf,[rep 'classif-vizu.eps'], 'epsc');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -187,15 +137,27 @@ It is possible to implement better initialization strategies such as farthest po
 
 
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Linear Regression and Kernel Methods}
+\section{Regression}
 
 We now study linear regression method, and its non-linear variant using kernelization.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Supervised Learning}
+
+General idea: empirical risk minimization. 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Linear Regression}
+
+
+Supervised learning with linear model is an inverse problem with a random linear operator. For the theoretical analysis, -this linear operator is intended to grow in size (more row) and thus the natural setting is to form the normal equation (introduce the covariance).
 
 We test the method on the Boston house prices dataset, consisting in $n=506$ samples with
 features $x_i \in \RR^p$ in dimension $p=13$. The goal is to predict the price value
@@ -300,18 +262,79 @@ and hence can be computed by solving a linear system
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Logistic Classification}
+\section{Classification}
 
-We now detail the logistic classification method (for 2 classes and
-multi-classes).
+We now detail two popular classification methods.
 
-Note thatlLogisitic classification is actually called ``logistic
-regression'' in the literature, but it is in fact a classification method.
+
+NN is mostly for low dimensional problems.
+
+Logistic for high dimensions.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Nearest Neighbor Classification}
+
+Probably the simplest method for supervised classification is Nearest
+Neighbor ($R$-NN), where $R$ is a parameter indexing the number of neighbor.
+Increasing $R$ is important to cope with noise and obtain smoother
+decision boundary, and hence better generalization performance.
+
+The class predicted for a point $x$ is the one which is the most
+represented among the $R$ points $(x_i)_i$ which are the closed to
+$x$.
+
+
+The data needs to be split into training and testing.
+
+One then compute Euclidean distance between some $x$ 
+and all other $x_{1,j}$ in the training set. 
+%
+Then sort the distance and generate the list of sorted classes $ y_\sigma = (y_{\si(i)})_i$. This
+generate an indexing $\si$ (a permutation of $\{1,\ldots,n\}$) such that 
+\eq{
+ \norm{x-x_{\si(1)}} \leq \norm{x-x_{\si(2)}} \leq \ldots \leq \norm{x-x_{\si(n)}}. 
+}
+
+
+For a given $R$, one can compute the histogram of class apparition
+\eq{
+ h_\ell \eqdef \frac{1}{R} \enscond{ i }{ \si(i) \in \{1,\ldots,R\} }
+  = \sharp \si^{-1}( \{1,\ldots,R\} ). 
+}
+The decision class for $x$ is then the maximum of the histogram
+\eq{
+ c(x) \eqdef \uargmax{\ell} h_\ell 
+}
+
+One can display the histogram $(h_\ell)_\ell$ of repartition of class indexes as $R$ grows.
+% 
+Then perform the NN classification for all the points in the test set, and for varying $R$.
+And show how the classification score $S$ (number of correctly classified points)
+evolves with $R$.
+
+% saveas(gcf,[rep 'hist-classif.eps'], 'epsc');
+% saveas(gcf,[rep 'hist-classif-score.eps'], 'epsc');
+
+
+One can also display, as a function of the position in 2-D PCA space, the class output by 
+the $R$-NN method when applied in 2-D.
+
+
+% saveas(gcf,[rep 'classif-vizu.eps'], 'epsc');
+
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Two Classes Logistic Classification}
+
+
+
+The logistic classification method (for 2 classes and
+multi-classes). Note that Logisitic classification is actually called ``logistic
+regression'' in the literature, but it is in fact a classification method.
 
 Logistic classification is, with support vector machine (SVM), the baseline
 method to perform classification. Its main advantage over SVM is that is

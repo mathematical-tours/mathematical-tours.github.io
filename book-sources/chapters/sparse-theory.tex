@@ -5,11 +5,14 @@
 
 We now apply the basics elements of convex analysis from the previous chapter to perform a theoretical analysis of the properties of the Lasso, in particular its performances to recover sparse vectors.
 
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Existence and Uniqueness}
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,6 +41,82 @@ Since $A$ might have a kernel and $\norm{\cdot}_1$ is not strongly convex, it mi
 %
 If $y \in \Im(A)$, the constraint set of~\eqref{eq-lasso-constr} is non-empty, and it also has solutions, which might fail to be unique.
 
+
+
+\begin{figure}
+\centering
+%%
+\begin{tabular}{@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s3}&
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s6}\\
+$s=3$  & $s=6$ \\
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s13}&
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s25}\\
+$s=13$  & $s=25$ 
+\end{tabular}
+%%
+\caption{\label{fig-homotopy}
+Display of the evolution $\la \mapsto x_\la$ of the solutions of~\eqref{eq-lasso-lagr}.
+}
+\end{figure}
+
+Figure~\ref{fig-homotopy} gives the intuition of the theory that will be developed in this chapter, regarding the exact or approximated recovery of sparse vectors $x_0$, and the need for a careful selection of the $\la$ parameter.
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Polytope Projection for the Constraint Problem}
+\label{sec-polytope-proj}
+
+The following proposition gives a geometric description of those vectors which are recovered by $\ell^1$ minimization when there is no noise. 
+
+\begin{prop}\label{prop-polytope-proj}
+	We denote $B \eqdef \enscond{x \in \RR^N}{\norm{x}_1 \leq 1}$. Then
+	\eql{\label{eq-polytop-ident} 
+		x_0 \text{ is a solution to } \Pp_0(Ax_0)
+		\quad\Longleftrightarrow\quad
+		A \frac{x_0}{\norm{x_0}_1} \in \partial (AB)
+	} 
+	where ``$\partial$'' denoted the boundary and $AB=\enscond{Ax}{x\in B}$.
+\end{prop}
+\begin{proof}
+	We first prove $``\Rightarrow''$. We suppose that $x_0$ is not a solution, and aim at showing that $A \frac{x_0}{\norm{x_0}_1} \in \text{int}(AB_\rho)$. Since it is not a solution, there exists $z$ such that $Ax_0=Az$ and $\norm{z}_1 = (1-\de)\norm{x_0}_1$ with $\de>0$. Then for any displacement $h=A\epsilon \in \Im(A)$, one has $Ax_0+h=A(z+\epsilon)$ and
+	\eq{
+		\norm{z+\epsilon}_1 \leq \norm{z}_1 + \norm{\Phi^+ h} \leq (1-\de) \norm{x_0}_1 + \norm{\Phi^+}_{1,1} \norm{h}_1 < \frac{\de}{\norm{A^+}_{1,1}}\norm{x_0}.
+	}
+	This means that choosing $\norm{h}_1 < \frac{\de}{\norm{A^+}_{1,1}} \norm{x_0}_1$ implies that $A \frac{x_0}{\norm{x_0}_1} \in \text{int}(AB)$.
+	
+	We now prove ``$\Leftarrow$''. We suppose that $A \frac{x_0}{\norm{x_0}_1} \in \text{int}(AB)$. Then there exists $z$ such that $Ax_0=(1-\de) Az$ and $\norm{z}_1 < \norm{x_0}_1$. This implies $\norm{(1-\de)z}_1 < \norm{x_0}_1$ so that $(1-\de)z$ is better than $x_0$ which is thus not a solution. 
+\end{proof}
+
+This results state that ``friendly'' identifiable vectors (those recovered by $\ell^1$) are those who gets projected by $A$ on the boundary of the polytope $\norm{x_0}_1 A B$. Intuitively, if $P$ is small in comparison to $N$, then this projected polytope is small, and most vector will failed to be reconstructed by solving $\ell^1$ minimization. This also suggests why using random projections as in Chapter~\ref{chap-cs}, because somehow they results in a low distortion embedding of the $\ell^1$ ball from $\RR^N$ to $\RR^P$.
+
+Note that if $x_0$ is identifiable, so is $\la x_0$ for $\rho x_0$ for $\rho>0$, and in fact, since the recovery condition only depends on the geometry of the faces of $B$, the obtained condition~\eqref{eq-polytop-ident} only depends on $\sign(x_0)$. 
+%
+We denote $\Aa : y \mapsto x^\star$ the map from $y$ to a solution of~\eqref{eq-lasso-constr}, which we assume is unique for simplicity of exposition.
+%
+Condition~\eqref{eq-polytop-ident} thus shows that $A$ and $\Aa$ are inverse bijection on a family of cones $\Cc_s = \enscond{x}{\sign(x)=s}$ and $A\Cc_s$ for certain ``friendly'' sign patterns $s$. These cones $A\Cc_s$ form a partition of the image space $\RR^P$. Assuming for simplicity that the columns $(a_j)_j$ of $A$ have unit norm, for $P=3$, the interaction of these $A\Cc_s$ with the unit sphere of $\RR^3$ for a so-called Delaunay triangulation of the sphere (this construction extends to higher dimension by replacing triangle by simplexes), see also Figure~\ref{fig-delaunay}. Such Delaunay triangulation is characterized by the empty spherical cap property (each circumcircle associated to a triangle should not contains any columns vector $a_j$ of the matrix).
+%
+Figure~\ref{fig-polytopes} illustrate these conclusions in $\RR^2$ and $\RR^3$. 
+
+
+\begin{figure}
+\centering
+%%
+\begin{tabular}{@{}c@{}c@{\hspace{3mm}}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/polytopes/polytopes-32-1}&
+\includegraphics[width=.35\linewidth]{sparse-theory/polytopes/polytopes-32-2}&
+\includegraphics[width=.25\linewidth]{sparse-theory/polytopes/polytopes-3d}\\
+$A\in \RR^{2\times 3}$& $A\in \RR^{2\times 3}$ & $A\in \RR^{3\times N}$
+\end{tabular}
+%%
+\caption{\label{fig-polytopes}
+Display of the action of the linear map $A$ on the $\ell^1$ ball $B$, and of the inverse non-linear map $\Aa$ defined by the solution of~\eqref{eq-lasso-constr}. 
+}
+\end{figure}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Optimality Conditions}
 
@@ -45,7 +124,7 @@ In the following, given an index set $I \subset \{1,\ldots,N\}$, denoting $A=(a_
 
 The following proposition rephrases the first order optimality conditions in a handy way. 
 
-\begin{prop}
+\begin{prop}\label{prop-first-order-lagr}
 	$x_\la$ is a solution to~\eqref{eq-lasso-lagr} for $\la>0$ if and only if
 	\eq{
 		\eta_{\la,I} = \sign(x_{\la,I})
@@ -53,10 +132,8 @@ The following proposition rephrases the first order optimality conditions in a h
 		\norm{\eta_{\la,I^c}} \leq \la
 	}
 	where we define
-	\eq{
-		I\eqdef \supp(x_\la) \eqdef \enscond{i}{ x_{\la,i} \neq 0 }, 
-	}
 	\eql{\label{eq-defn-eta-lamb}
+		I\eqdef \supp(x_\la) \eqdef \enscond{i}{ x_{\la,i} \neq 0 }, 
 		\qandq	\eta_\la \eqdef \frac{1}{\la}A^*(y-Ax_\la).
 	}
 \end{prop}
@@ -70,7 +147,7 @@ Thus $x_\la$ is solution to~\eqref{eq-lasso-lagr} if and only if $0 \in \partial
 
 The following proposition studies the limit case $\la=0$ and introduces the crucial concept of ``dual certificates'', which are the Lagrange multipliers of the constraint $\Ll_y$.
 
-\begin{prop}
+\begin{prop}\label{prop-first-order-constr}
 	$x^\star$ being a solution to~\eqref{eq-lasso-constr} is equivalent to having $Ax^\star=y$ and that
 	\eql{\label{eq-defn-dual-certif}
 		\exists \eta \in \Dd_0(y,x^\star) \eqdef \Im(A^*) \cap \partial \norm{\cdot}_1(x^\star).
@@ -96,21 +173,58 @@ Although it looks like the definition of $\Dd_0(y,x^\star)$ depends on the choic
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Uniqueness}
 
-
-The following proposition shows that the Lasso selects a set of linearly independent regressor. 
+The following proposition shows that the Lasso selects a set of linearly independent regressors (columns of $A$). This is why this method is also often called ``basis pursuit''. 
 
 \begin{prop}
-	There is always a solution $x_\la$ to~\eqref{eq-lasso-lagr} with $I=\supp(x_\la)$ such that $\ker(A_I)=\{0\}$
+	For $\la \geq 0$, there is always a solution $x^\star$ to~\eqref{eq-lasso-lagr} with $I=\supp(x^\star)$ such that $\ker(A_I)=\{0\}$
 \end{prop}
 \begin{proof}
-TODO.
+	Let $x$ be a solution and denote $I=\supp(x)$.
+	%
+	If $\ker(A_I) \neq \{0\}$, one selects $h_I \in \ker(A_I)$ and define for $t \in \RR$ the vector $x_t \eqdef x+th$.
+	We denote $t_0$ the smallest $|t|$ such that $\sign(x_t) \neq \sign(x)$, i.e. $\supp(x_t)$ is strictly included in $I$.
+	%
+	For $t<t_0$, since $Ax_t=Ax$ and $\sign(x_t)=\sign(x)$, $x_t$ still satisfies the same first order condition as $x_0$, and one can apply  either Proposition~\ref{prop-first-order-constr} (for $\la=0$) or Proposition~\ref{prop-first-order-lagr} (for $\la>0$), so that $x_t$ is a solution of~\eqref{eq-lasso-lagr}.
+	%
+	Since the minimized function are lower semi continuous, $x_t \rightarrow x_{t_0}$ is still a solution.
+	%
+	If $\ker(A_{J}) \neq \{0\}$ with $J=\supp(x_{t_0})$, one is over, otherwise one can iterate this argument on $x_{t_0}$ in place of $x$ and have a  sequence of supports which is strictly decaying in size, so it must terminate. 
 \end{proof}
 
+This results in particular that if columns of $A_I$ are not independent, then the solution of~\eqref{eq-lasso-lagr} is necessarily non-unique. 
+
 Assuming that $x_\la$ is a solution such that $\ker(A_I)=\{0\}$, then from~\eqref{eq-lasso-lagr},  one obtains the following implicit expression for the solution
-\eq{
+\eql{\label{eq-local-shape-lasso}
 	x_{\la,I} = A_I^+ y - \la (A_I^*A_I)^{-1} \sign(x_{\la,I}).
 }
 This expression can be understood as a form of generalized soft thresholding (one retrieve the soft thresholding when $A=\Id_N$). 
+
+The following useful lemma shows that while solutions $x_\la$ to~\eqref{eq-lasso-lagr} are not necessarily unique, the associated ``predictor'' (i.e. denoised version of $y$) $Ax_\la$ is however always uniquely defined.    
+%
+Note that according to~\eqref{eq-local-shape-lasso}, one has 
+\eql{\label{eq-local-shape-lasso}
+	\Phi x_{\la} = \Proj_{\Im(A_I)} y - \la A_I (A_I^*A_I)^{-1} \sign(x_{\la,I}).
+}
+so up to a $O(\la)$ bias, this predictor is an orthogonal projection on a low dimensional subspace indexed by $I$. 
+
+
+\begin{lem}\label{lem-unique-predict}
+	For $\la \geq 0$, if $(x_1,x_2)$ are solution to~\eqref{eq-lasso-lagr}, then $Ax_1=Ax_2$. 
+\end{lem}
+\begin{proof}
+	For $\la=0$, this is trivial because $Ax_1=Ax_2=y$. Otherwise, let us assume $Ax_1 \neq Ax_2$. Then for $x=(x_1+x_2)/2$, one has
+	\eq{
+		\norm{x}_1 \leq \frac{ \norm{x_1}_1 + \norm{x_2}_2 }{2}
+		\qandq
+		\norm{Ax-y}^2 < \frac{ \norm{Ax_1-y}^2 + \norm{Ax_2-y}^2 }{2}		
+	}
+	where the second inequality follows from the strict convexity of the square. This shows that
+	\eq{
+		\frac{1}{2\la}\norm{Ax-y}^2 +\norm{x}_1 <
+		\frac{1}{2\la}\norm{Ax_1-y}^2 +\norm{x_1}_1, 
+	}
+	which is a contradiction to the optimality of $x_1$. 
+\end{proof}
 
 
 \begin{prop}\label{sec-prop-uniquness-lagr}
@@ -122,11 +236,28 @@ This expression can be understood as a form of generalized soft thresholding (on
 	}
 	If $\ker(A_{J})=\{0\}$ then $x_\la$ is the unique solution of~\eqref{eq-lasso-lagr}.
 \end{prop}
+\begin{proof}
+	If $\tilde x_\la$ is also a minimizer, then by Lemma~\ref{lem-unique-predict}, 
+	$Ax_\la=A\tilde x_\la$, so that in particular they share the same dual certificate
+	\eq{
+		\eta_\la = \frac{1}{\la}A^*(y-Ax_\la) = \frac{1}{\la}A^*(y-A\tilde x_\la).
+	}
+	The first order condition, Proposition~\ref{prop-first-order-lagr}, shows that necessarily 
+	$\supp(x_\la) \subset J$ and $\supp(\tilde x_\la) \subset J$.
+	%
+	Since $A_J x_{\la,J} = A_J \tilde x_{\la,J}$, and since $\ker(A_J)=\{0\}$, one has 
+	$x_{\la,J}=\tilde x_{\la,J}$, and thus $x_\la=\tilde x_\la$ because of their supports are included in $J$.
+\end{proof}
 
 \begin{prop}\label{sec-prop-uniquness-constr}
  	Let $x^\star$ be a solution to~\eqref{eq-lasso-constr}. If there exists $\eta \in \Dd_0(y,x^\star)$ such that 
 	$\ker(A_{J})=\{0\}$ where $J \eqdef \sat(\eta)$ then $x^\star$ is the unique solution of~\eqref{eq-lasso-constr}.
 \end{prop}
+\begin{proof}
+	The proof is the same as for Proposition~\ref{sec-prop-uniquness-lagr}, replacing $\eta_\la$ by $\eta$. 
+\end{proof}
+
+These propositions can be used to show that if $A$ is drawn according to a distribution having a density over $\RR^{p \times n}$, then with probability $1$ on the matrix $A$, the solution to~\eqref{eq-lasso-lagr} is unique. Note that this results is not true if $A$ is non random but $y$ is.
 
 
 
@@ -154,7 +285,7 @@ We now related the first order conditions and ``dual certificate'' introduced ab
 	}
 	where we denoted $I=\supp(x^\star)$, 
 	%
-	and furthemore, for $\la>0$, 
+	and furthermore, for $\la>0$, 
 	\eq{
 		p^\star = \frac{y-A x^\star}{\la}.
 	}
@@ -419,6 +550,7 @@ On contrary, the non-linear source condition only requires that $\eta$ to be in 
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Sparsistency}
+\label{sec-sparsistency}
 
 Theorem~\ref{thm-linrate-l1} is abstract in the sense that it rely on hypotheses which are hard to check.
 %
@@ -427,18 +559,27 @@ The crux of the problem, to be able to apply this theorem, is to be able to ``co
 We now give a powerful ``recipe'' which -- when it works -- not only give a sufficient condition for linear rate, but also provides ``support stability''.
 
 
-There are several ways to detail this construction. One way is to consider, for any solution $x_\la$ of $(\Pp_\la(y))$, 
+For any solution $x_\la$ of $(\Pp_\la(y))$, as already done in~\eqref{eq-defn-eta-lamb}, we define the (unique, independent of the chosen solution) dual certificate 
 \eq{
 	\eta_\la \eqdef A^* p_\la
 	\qwhereq
 	p_\la \eqdef \frac{y - A x_\la}{\la}.
 }
-Assuming $y = A x_0$ where $x_0$ is a solution to $(\Pp_\la(y=A x_0))$, one can show that 
-\eql{\label{eq-minnorm-certif}
-	p_\la \rightarrow p_0 \eqdef
-	\uargmin{p \in \RR^P} \enscond{\norm{p}}{ A^* p \in \Dd_0(y,x_0) }.
-}
-The vector $\eta_0 \eqdef A^* p_0$ is called the ``minimum norm certificate''. 
+The following proposition shows that $p_\la$ converge to a very specific dual certificate of the constrained problem, which we coined ``minimal norm'' certificate. 
+
+\begin{prop}
+	If $y = A x_0$ where $x_0$ is a solution to $(\Pp_\la(y=A x_0))$, one has
+	\eql{\label{eq-minnorm-certif}
+		p_\la \rightarrow p_0 \eqdef
+		\uargmin{p \in \RR^P} \enscond{\norm{p}}{ A^* p \in \Dd_0(y,x_0) }.
+	}
+	The vector $\eta_0 \eqdef A^* p_0$ is called the ``minimum norm certificate''. 
+\end{prop}
+\begin{proof}
+	This follows from the fact that $p_\la$ is the unique solution to~\eqref{eq-dual-lasso} and then applying the same proof as the one done in Proposition~\ref{prop-gamma-conv-regul} to study the small $\la$ limit of penalized problems. 
+\end{proof}
+
+This proposition shows that, while dual certificate $\Dd_0(y,x_0)$ for $\la=0$ are non-unique, taking the limit as $\la\rightarrow 0$ singles-out a specific one, which is of paramount importance to study stability of the support when the noise and $\la$ are small. 
 
 A major difficulty in computing~\eqref{eq-minnorm-certif} is that it should satisfy the non-linear constraint $\norm{\eta_0}_\infty$. One thus can ``simplify'' this definition by removing this $\ell^\infty$ constraint and define the so-called  ``minimum norm certificate''
 \eql{\label{eq-minnorm-certif}
@@ -447,6 +588,8 @@ A major difficulty in computing~\eqref{eq-minnorm-certif} is that it should sati
 	p_F \eqdef
 	\uargmin{p \in \RR^P} \enscond{\norm{p}}{ A_I^* p = \sign(x_{0,I}) }.
 }
+The notation ``$\eta_F$'' refers to the ``Fuchs'' certificate, which we named in honour of J-J. Fuchs who first used it to study $\ell^1$ minimization. 
+
 We insists that $p_F$ is not necessarily a valid certificate (hence the naming ``pre-certificate'') since one does not have in general $\norm{\eta_F}_\infty \leq 1$. 
 %
 The vector $p_F$ is a least square solution to the linear system $A_I^* p = \sign(x_{0,I})$, and it can thus be compute in closed form using the pseudo-inverse $p_F=A_I^{*,+} \sign(x_{0,I})$ (see Proposition~\eqref{prop-pseudo-inv}). In case $\ker(A_I)=\{0\}$, one has the simple formula
@@ -467,7 +610,20 @@ The condition $\norm{\eta_F}_\infty \leq 1$ implies that $x_0$ is solution to~\e
 % 
 The following theorem shows that if one strengthen this condition to impose a non-degeneracy on $\eta_F$, then one has linear rate with a stable support in the small noise regime.
 
-\begin{rem}[Operator norm]
+Before proceeding to the proof, let us note that the constraint $\norm{\eta_F}_\infty \leq 1$ corresponds to the definition of the spherical Delaunay triangulation, as highlighted by Figure~\ref{fig-delaunay}. This remark was made to us by Charles Dossal.
+
+
+\begin{figure}
+\centering
+%%
+\includegraphics[width=.35\linewidth]{sparse-theory/polytopes/delaunay}
+%%
+\caption{\label{fig-delaunay}
+Vusualization of the condition that $\norm{\eta_F}_\infty \leq 1$ as a spherical Delaunay triangulation constraint that all Delaunay spherical caps indexes by identifiable vector should be empty of $(\pm a_i)_i$. 
+}
+\end{figure}
+
+\begin{rem}[Operator norm]\label{rem-operator-norm}
 In the proof, we use the $\ell^p-\ell^q$ matrix operator norm, which is defined as
 \eq{
 	\norm{B}_{p,q} \eqdef \max \enscond{ \norm{B u}_q }{ \norm{u}_p \leq 1 }.
@@ -556,9 +712,11 @@ For $p=2$, $\norm{B}_2$ is the maximum singular value, and one has
 	% A_{I^c}^* ( A_I A_I^+ - \Id ) = A_{I^c}^* A_I (A_I^*A_I)^{-1} A_I^* - A_{I^c}^*
 \end{proof}
 
+It is important to realize that Theorem~\ref{thm-support-stable} operates in a ``small noise'' regime, i.e. $\norm{w}$ (and hence $\la$) needs to be small enough for the support to be identifiable (otherwise small amplitude comment of $x_0$ will be killed by the regularization). In contrast, Theorem~\ref{thm-linrate-l1} is ``global'' and holds for any noise level $\norm{w}$. The price to pay is that one has no controls about the support (and one does not even knows whether $x_\la$ is unique) and than the constant involved are more pessimistic. 
+
 A nice feature of this proof is that it gives access to explicit constant, involving the three key parameter $K,L,S$, which controls:
 \begin{rs}
-	\item $K$ accounts for the continioning of the operator on the support $I$ ;
+	\item $K$ accounts for the conditionning of the operator on the support $I$ ;
 	\item $L$ accounts for the worse correlation between atoms inside and outside the support ; 
 	\item $S$ accounts for how much the certificates $\eta_F$ is non-degenerate.
 \end{rs}
@@ -567,12 +725,35 @@ The constant on $\norm{A^* w}/\la$ and on $\la$ are given by~\eqref{eq-critrion-
 	\norm{x_0-x_{\la}}_\infty \leq \pa{ 1 + \frac{KL+1}{S} } K \de.
 } 
 
+The crux of the analysis of the performance (in term of support stability) of $\ell^1$ regularization is to be able to say wether, for some class of signal $x_0$ of interest, $\eta_F$ is a valid certificate, i.e. $\norm{\eta_F}_\infty \leq 1$. 
+%
+Figure~\ref{fig-certif-cs} displays numerically what one obtains when $A$ is random. One see that $\eta_F$ is non-degenerate when $P$ is large enough. Section~\ref{sec-cs-certif} performs a mathematical analysis of this phenomena. 
+
+
+
+\begin{figure}
+\centering
+%%
+\begin{tabular}{@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-64}&
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-32}\\
+$P=4$ & $P=8$ \\
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-16}&
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-8}\\
+$P=16$ & $P=32$
+\end{tabular}
+%%
+\caption{\label{fig-certif-cs}
+Display of certificate $\eta_F$ for a $A \in \RR^{p \times n}$, $n=64$, with independent Gaussian entries. 
+}
+\end{figure}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Sparse Deconvolution Case Study}
 
-Chapter~\ref{} studies the particular case where $A$ is random, in which case it is possible to make very precise statement about wether $\eta_F$ is a valid certificate.
+Chapter~\ref{chap-cs} studies the particular case where $A$ is random, in which case it is possible to make very precise statement about wether $\eta_F$ is a valid certificate.
 
 Another interesting case study, which shows the limitation of this approach, is the case of super-resolution. To simplify the analysis, we assume ``continuous measurement'', and replace the measurement space $\RR^P$ by functions $L^2(\RR^d)$ (for simplicity, we treat here $d=1$). The measurements reads
 \eq{
@@ -586,8 +767,6 @@ In this case, this forward model correspond to convolution of measures supported
 	\qwhereq
 	m_{z,x} \eqdef \sum_{i=1}^N x_i \de_{z_i}. 
 }
-
-The dual pre-certificate $\eta_F(t)$ is thus a function defined on $\RR$. 
 
 We denote the ``continuous'' covariance
 \eq{
@@ -629,8 +808,26 @@ where $\partial_2\Cc$ is the derivative of $\Cc$ with respect to the second vari
 %
 The associated continuous pre-certificate is $\tilde\eta_V=\bar\psi \star p_V$, and $\eta_V$ is a sampling on the grid of $\tilde\eta_V$.
 %
-Figure~\ref{}  shows that this pre-certificate $\eta_V$ is much better behaved than $\eta_F$. If $\norm{\eta_V}_\infty \leq 1$, one can apply~\eqref{thm-linrate-l1} and thus obtain a linear convergence rate with respect to the $\ell^2$ norm on the grid. But for very fine grid, since one is interested in sparse solution, the $\ell^2$ norm becomes meaningless (because the $L^2$ norm is not defined on measures). 
+Figure~\ref{fig-certif-cs}  shows that this pre-certificate $\eta_V$ is much better behaved than $\eta_F$. If $\norm{\eta_V}_\infty \leq 1$, one can apply~\eqref{thm-linrate-l1} and thus obtain a linear convergence rate with respect to the $\ell^2$ norm on the grid. But for very fine grid, since one is interested in sparse solution, the $\ell^2$ norm becomes meaningless (because the $L^2$ norm is not defined on measures). 
 %
 Since $\eta_V$ is different from $\eta_F$, one cannot directly applies Theorem~\ref{thm-support-stable}: the support is not stable on discrete grids, which is a fundamental property of super-resolution problems (as opposed to compressed sensing problems).
 %
 The way to recover interesting results is to use and analyze methods without grids. Indeed, after removing the grid, one can show that $\eta_V$ becomes the minimum norm certificate (and is the limit of $\eta_\la$). 
+
+
+
+
+\begin{figure}
+\centering
+%%
+\begin{tabular}{@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/certif-convol/etaV-N3-d40}&
+\includegraphics[width=.35\linewidth]{sparse-theory/certif-convol/etaV-N3-d50}\\
+\includegraphics[width=.35\linewidth]{sparse-theory/certif-convol/etaV-N3-d60}&
+\includegraphics[width=.35\linewidth]{sparse-theory/certif-convol/etaV-N3-d80}
+\end{tabular}
+%%
+\caption{\label{fig-certif-cs}
+Display of ``continuous'' certificate $\eta_F$ and $\eta_V$ for $A$ being a convolution operator. 
+}
+\end{figure}

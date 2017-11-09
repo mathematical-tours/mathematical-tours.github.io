@@ -46,13 +46,27 @@ A convex set $\Om \subset \Hh$ is such that
 }
 A convex function is such that 
 \eql{\label{eq-convex-defn}
-	\foralls (x,y,t) \in \Hh^2 \times [0,1], \quad f( (1-t)x+ty ) \leq (1-t)f(x)+t f(y)
+	\foralls (x,y,t) \in \Hh^2 \times [0,1], \quad f( (1-t)x+ty ) \leq (1-t)f(x) + t f(y)
 }
 and this is equivalent to its epigraph $\enscond{(x,r) \in \Hh \times \RR}{r \geq f(x)}$ being a convex set. Note that here we use $\leq$ as a comparison over $\bar\RR$. 
 %
 The function $f$ is strictly convex if equality in~\eqref{eq-convex-defn} only holds for $t \in \{0,1\}$.
 %
 A set $\Om$ being convex is equivalent to $\iota_{\Cc}$ being a convex function.
+
+
+
+\begin{figure}
+\centering
+%%
+\includegraphics[width=.6\linewidth]{convexity/convex-examples}
+%%
+\caption{\label{fig-convex-examples}
+Convexity and strict convexity for function and sets.}
+\end{figure}
+
+
+
 
 In the remaining part of this chapter, we consider convex function $f$ which are proper, i.e. such that $\dom(f) \neq \emptyset$, and that should be lower-semi-continuous (lsc), i.e. such that for all $x \in \Hh$, 
 \eq{
@@ -89,19 +103,23 @@ Note that if the function $f$ is in $\Ga_0(\Hh)$, then the set of minimizer $\ar
 
 The sub-differential at $x$ of such a $f$ is defined as
 \eq{
-	\partial f(x) \eqdef \enscond{u \in \Hh^*}{ \forall y, f(y) \geq f(x) + \dotp{u}{z-x} }.
+	\partial f(x) \eqdef \enscond{u \in \Hh^*}{ \forall y, f(y) \geq f(x) + \dotp{u}{y-x} }.
 }
 We denote here $\Hh^* = \RR^N$ the set of ``dual'' vector. Although in finite dimensional Euclidean space, this distinction is not needed, it helps to distinguish primal from dual vectors, and recall that the duality pairing implicitly used depends on the choice of an inner product.
 %
 The sub-differential $\partial f(x)$ is thus the set of ``slopes'' $u$ of tangent affine planes $f(x) + \dotp{u}{z-x}$ that fits bellow the graph of $f$. 
 
+
+\wrapf{convexity/subdifferential}{The subdifferential}
 Note that $f$ being differentiable at $x$ is equivalent to the sub-differential being reduced to a singleton (equal to the gradient vector)
 \eq{
 	\partial f(x) = \{ \nabla f(x) \}. 
 }
 Informally, the ``size'' of $\partial f(x)$ controls how smooth $f$ is at $x$.
 
-One checks that $\partial f(x) \subset \Hh^*$ is a closed convex set.
+Note that one can have $\partial f(x) = \emptyset$, for instance if $x \notin \dom(f)$. Note also that one can still have $x \in \dom(f)$ and $\partial f(x) = \emptyset$, for instance take $f(x)=-\sqrt{1-x^2} + \iota_{[-1,1]}(x)$ at $x=\pm 1$. 
+
+Since $\partial f(x) \subset \Hh^*$ is an intersection of half space, it is a closed convex set.
 %  and it is non-empty if and only if $x \in \dom(f)$.
 %
 The operator $\partial f : \Hh \mapsto 2^{\Hh^*}$ is thus ``set-valued'', and we often denote this as $\partial f : \Hh \hookrightarrow \Hh^*$.
@@ -130,13 +148,40 @@ A prototypical example is the absolute value $f(x)=|\cdot|$, and writing conveni
 		{[-1,1]} \qifq x=0.
 	}
 }
-The sud-differential of an indicator function is a convex cone, the so-called normal cone to the constraint
-\eq{
-	\partial \iota_\Cc(x) = \Nn_\Cc(x) \eqdef \enscond{ y-x }{ \foralls z \in \Cc, \dotp{z-x}{y-x} \leq 0 }.
-}
-For an affine space $\Cc = a+\Vv$ where $\Vv \subset \Hh$ is a linear space, then $\Nn_\Cc(x)=\Vv^\bot$ is the usual orthogonal for linear spaces. If $x \in \int(\Cc)$ is in the interior of $\Cc$, then $\Nn_\Cc(x)=\RR^N$.  
 
-\todo{sub-differential of an indicator}
+\begin{figure}
+\centering
+%%
+\includegraphics[width=.6\linewidth]{convexity/subdiff-l1}
+%%
+\caption{\label{fig-subdiff-l1}
+Subdifferential of the absolute value and a piecewise affine convex function.}
+\end{figure}
+
+
+
+
+
+
+
+%%%
+\paragraph{First Order Conditions.}
+
+The subdifferential is crucial for this simple but extremely important proposition.
+
+\begin{prop}
+	$x^\star$ is a minimizer of $f$ is and only if $0 \in \partial f(x^\star)$.
+\end{prop}
+\begin{proof}
+	One has
+	\eq{
+		x^\star \in \argmin f
+		\quad\Leftrightarrow\quad
+		\pa{ \forall y, f(x^\star) \leq f(y) + \dotp{0}{x^\star-y} }
+		\quad\Leftrightarrow\quad
+		0 \in \partial f(x^\star).
+	}
+\end{proof}
 
 %%%
 \paragraph{Sub-differential calculus.}
@@ -178,6 +223,40 @@ The only simple case is composition with linear functions, which preserves conve
 }
 
 
+%%%
+\paragraph{Normal cone.}
+
+
+The sud-differential of an indicator function is a convex cone, the so-called normal cone to the constraint
+\eq{
+	\foralls x \in \Cc, \quad \partial \iota_\Cc(x) = \Nn_\Cc(x) \eqdef \enscond{ v }{ \foralls z \in \Cc, \dotp{z-x}{v} \leq 0 }.
+}
+Note that for $x \notin \Cc$, $\partial  \iota_\Cc(x) = \emptyset$.
+%
+For an affine space $\Cc = a+\Vv$ where $\Vv \subset \Hh$ is a linear space, then $\Nn_\Cc(x)=\Vv^\bot$ is the usual orthogonal for linear spaces. If $x \in \inter(\Cc)$ is in the interior of $\Cc$, then $\Nn_\Cc(x)=\{0\}$. In some sense, the more non-regular the boundary of $\Cc$ is at $x$, the larger is the normal cone. 
+
+
+
+
+
+
+\wrapf{convexity/normal-cone}{Normal cones}
+The normal cone is a way to express first order condition for constrained problem
+\eq{
+	\umin{x \in \Cc} f(x)
+}
+which reads, if $f$ is continuous
+\eq{
+	0 \in \partial f(x) + \partial \iota_{\Cc}(x)
+	\quad\Leftrightarrow\quad
+	\exists \xi \in \partial f(x), - \xi \in \Nn_\Cc(x)
+	\quad\Leftrightarrow\quad
+	\partial f(x) \cap (-\Nn_\Cc(x)) \neq \emptyset.
+}
+If $f$ is differentiable, it reads $-\nabla f(x) \in \Nn_\Cc(x)$.
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -206,22 +285,36 @@ The following exposition can be generalized to $\dom(f)$ being arbitrary, but th
 
 Note that it is possible to generalized the previous Lagrange duality results by replacing ``$x \geq 0$'' by ``$X \succeq 0$'' where $X$ is a matrix (and in fact even more generally using convex cones). 
 
+We use the following fact
+\eq{
+	\umax{u \in \RR^P} \dotp{r}{u} = \choice{
+		0 \qifq r=0, \\
+		+\infty \qifq r \neq 0, 
+	}
+	\qandq
+	\umax{v \in \RR_+^Q} \dotp{s}{v} = \choice{
+		0 \qifq s \leq 0, \\
+		+\infty \text{ otherwise}, 
+	}
+}
+to encode the constraints $r=Ax-y=0$ and $s=g(x) \leq 0$.
+
 One can represent the constraints appearing in~\eqref{eq-lagrange-primal} conveniently using a maximization over so-called Lagrange multipliers
 \eq{
-	p^\star = \umin{x} \umax{u \in \RR^P, v \in \RR_-^Q } \Ll(x,u,v) \eqdef f(x) + \dotp{Ax-y}{u} + \dotp{g(x)}{v} .
+	p^\star = \umin{x} \umax{u \in \RR^P, v \in \RR_+^Q } \Ll(x,u,v) \eqdef f(x) + \dotp{Ax-y}{u} + \dotp{g(x)}{v} .
 }
 
 It is tempting to inverse the inf and the sup, and study 
 \begin{align}\label{eq-lagrange-dual}
-	d^\star = \umax{(u,v) \in \RR^P \times \RR_+^Q } F(u,v) &\eqdef \umin{x}  f(x) + \dotp{Ax-y}{u} + \dotp{g(x)}{v}	
+	d^\star = \umax{(u,v) \in \RR^P \times \RR_+^Q } F(u,v) &\eqdef \umin{x}  f(x) + \dotp{Ax-y}{u} + \dotp{g(x)}{v}.
 \end{align}
-One remark that $F$ is a concave function (as being the minimum of linear forms), and this ``dual'' problem is thus a maximization of a concave function. 
+One remarks that $F$ is a concave function (as being the minimum of linear forms), and this ``dual'' problem is thus a maximization of a concave function. 
 
 
 The following proposition is the so-called weak duality, which assert that values of the dual problems always lower bounds values of the primal one
 
 \begin{prop}
-	One always have, for all $(u,v) \in \RR^P \times \RR_+^Q$, % for $x$ such that $Ax=y, g(x) \leq 0$ and 
+	One always has, for all $(u,v) \in \RR^P \times \RR_+^Q$, % for $x$ such that $Ax=y, g(x) \leq 0$ and 
 	\eq{
 		F(u,v) \leq p^\star \qarrq d^\star \leq p^\star.
 	}
@@ -233,7 +326,7 @@ The following proposition is the so-called weak duality, which assert that value
 	}
 \end{proof}
 
-The following fundamental theorem, more difficult to prove give a sufficient condition (so-called qualification of the constraints) such that one actually has equality.
+The following fundamental theorem, more difficult to prove, gives a sufficient condition (so-called qualification of the constraints) such that one actually has equality.
 
 \begin{thm}\label{thm-strong-duality}
 	If 
@@ -261,7 +354,7 @@ These three conditions are often referred to as ``Karush-Kuhn-Tucker'' (KKT) con
 
 
 The last condition $u_i^\star g_i(x^\star) = 0$ (so called ``complementary slackness'') states that if $g_i(x^\star)<0$ (the constraints is not saturated) then $u_i=0$, and also that if $u_i>0$ then $g_i(x^\star)=0$.
-%
+
 Note that it is possible to weaken the hypotheses of this theorem, for the linear constraints of the form $g_i(x) = \dotp{x}{h_i} - c_i \leq 0$, by replacing the $g_i(x_0)<0$ by the weaker condition $\dotp{x_0}{h_i} \leq c_i$.
 
 One can generalize this theorem to the setting where $\dom(f)$ is not equal to $\RR^N$ (i.e. it is not continuous, and thus integrates extra constraint beside the $\leq$). In this case, one has to add the extra constraint $x_0 \in \relint(\dom(f))$.
@@ -281,7 +374,7 @@ For each $u$, the optimal $x$ satisfies $x-z+A^*u$, i.e. $x=z-A^*u$, so that
 }
 Weak duality states $p^\star \geq F(u)$ for any $u$, and $p^\star = F(u^\star)$ where the optimal $u^\star$ satisfies $AA^*u = Az-y$. If $y \in \Im(A)$, then such a $u^\star$ exists and can be chosen as $u^\star = u=(AA^*)^{-1} (Az -y)$, and the (unique) primal solution reads 
 \eql{\label{eq-proj-aff}
-	x^\star = \Proj_{A\cdot=y}(z) (Id-A^+A)z - A^+y.
+	x^\star = \Proj_{A\cdot=y}(z) (\Id-A^+A)z - A^+y.
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -375,7 +468,7 @@ This relation between Hessian can be seen as implying the exchange of strong con
 
 This results suggests a way to smooth any function $f$. Instead of doing a convolution, one can use the infimal convolution
 \eq{
-	(f \otimes g)(x) \eqdef \sup{ y+y'=x } f'(y) + g(y').
+	(f \otimes g)(x) \eqdef \usup{ y+y'=x } f(y) + g(y').
 }
 One can check that if $(f,g)$ are convex, so is $f \otimes g$, and that the Legendre transform actually exchanges sum and inf-convolution
 \eq{
@@ -388,6 +481,16 @@ The Moreau-Yosida regularization of $f$ is corresponds to a $\mu$-strict-convexi
 	f_\mu \eqdef f \otimes (\frac{1}{2\mu}\norm{\cdot}^2) = ( f^* + \frac{\mu}{2}\norm{\cdot}^2 )^*.
 }
 Since $f^* + \frac{\mu}{2}\norm{\cdot}^2$ is at least $\mu$-strongly convex, then $f_\mu$ as a $1/\mu$-Lipchitz gradient.
+
+As an example, the Moreau-Yosida regularization of the absolute value reads
+\eq{
+	(|\cdot|_\mu)(x) = 
+	\choice{
+		\frac{1}{2\mu}x^2 \qifq |x| \leq \mu, \\
+		|x|-\frac{\mu}{2} \qifq |x|>\mu.
+	}
+}
+This should be compared with the regularization $\sqrt{x^2+\mu^2}$ (which is above the curve) that we used previously. \todo{add drawing}
 
 
 
@@ -453,8 +556,8 @@ The primal-dual relations~\eqref{eq-primal-dual} are the first order condition a
 \eq{
 	0 \in 
 	\begin{pmatrix}
-		\partial f & -A^* \\
-		A & \partial g^*
+		\partial f & A^* \\
+		-A & \partial g^*
 	\end{pmatrix}
 	\begin{pmatrix}
 		x^\star \\
