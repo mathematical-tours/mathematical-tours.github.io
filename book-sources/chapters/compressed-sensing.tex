@@ -91,18 +91,83 @@ When there is no noise, $w=0$ a way to tackle the problem is to use the caracter
 	\item All $x_0$ so that $\norm{x_0}_0 \leq C_A(P/N)P$ are identifiable.
 	\item Most $x_0$ so that $\norm{x_0}_0 \leq C_M(P/N)P$ are identifiable.
 \end{rs}
-For instance, they show that $C_A(1/4)=0.065$ and $C_M(1/4)=0.25$. 
+For instance, they show that $C_A(1/4)=0.065$ and $C_M(1/4)=0.25$. Figure~\ref{fig-phase-trans} illustrates numerically these two phase transitions. 
 %
 This analysis can be shown to be sharp in high dimension, i.e. when $\norm{x_0}_0 > C_M(P/N)P$, then $x_0$ is not identifiable with high probability (this corresponds to a phase transition phenomena). 
 %
 For large dimensions $(N,P)$, the scaling given by $C_M$ describe very well what one observe in practice. For $P=N/4$ (compression of a factor $4$), one retrieve in practice all vector with sparsity smaller than $P/N$. 
 %
-The fonction $C_M$ can be computed numerically, and it can be shown to have a logarithmic grows $C_M(r) \sim \log(r)$ for small $r$. This suggests that for high compression regime, one recovers with $\ell^1$ minimization almost all vector with a sparsity $\norm{x_0}_0$ proportional (up to log factor) to the number of measurements $P$. 
+The function $C_M$ can be computed numerically, and it can be shown to have a logarithmic grows $C_M(r) \sim \log(r)$ for small $r$. This suggests that for high compression regime, one recovers with $\ell^1$ minimization almost all vector with a sparsity $\norm{x_0}_0$ proportional (up to log factor) to the number of measurements $P$. 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Gaussian Width}
+\subsection{Random Matrices}
+\label{sec-random-matrix}
 
-For Gaussian matrices (or at least rotation invariant distributions).
+The analysis of the performance $\ell^1$ minimization to solve compressed sensing problem is made possible because of the very precise understanding of the distribution of the singular values of certain random ensemble let us illustrate this in the Gaussian case, which is the simplest, and is very illustrative. 
+
+An important part of the recovery proof relies on controlling the correlation matrix $A_I^*A_I$ of selected columns, and even more importantly, its inverse $(A_I A_I)^{-1}$. Such a matrix $B=A_I$ is of size $(P,s)$ and is also drawn from the Gaussian ensemble. 
+%
+Fixing $s$ and letting $P \rightarrow +\infty$, one has thanks to the low of large numbers $B^*B \rightarrow \Id_s$ almost surely. This is however not a very realistic setting, since in general, one hope to have $s$ almost equal, up to log factor, to $P$.
+
+%%%
+\paragraph{Linear growth $P = s/\be$. }
+
+A quite extreme setting is when $s$ grows proportionally to $P$, and impose $s/P = \be$. 
+%
+In this case, the eigenvalues of $B^*B$ are, for large $p$, essentially contained in the interval $[\la_-,\la_+]$
+where $\la_\pm=(1 \pm \sqrt{\be})^2$, $\be \eqdef p/s$, in the sense that the probability distribution of eigenvalues converges (in the weak sense of measures) toward the Marcenko-Pastur law
+\eq{
+	\foralls (u,v) \in \RR_+^2, \quad
+		\PP( \text{eig}(B^\top B) \in [u,v] ) \overset{p \rightarrow +\infty}{\longrightarrow} \int_u^v f_\be(\la) \d \la
+}
+where one fix the ratio $\be=s/P$, and the Marcenko-Pastur law is
+\eq{
+	f_\be(\la) \eqdef \frac{1}{2\pi\be \la} \sqrt{ (\la-\la_-)_+(\la_+-\la) } 1_{[\la_-,\la_+]}(\la).
+}
+Figure~\eqref{fig-marcenko-pastur} illustrates this convergence. 
+
+\begin{figure}
+\centering
+%%
+\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
+\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-2}&
+\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-4}\\
+$\be=1/2$ & $\be=1/4$ \\
+\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-10}&
+\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-50}\\
+$\be=1/10$ & $\be=1/50$ 
+\end{tabular}
+%%
+\caption{\label{fig-marcenko-pastur}
+Illustration of the convergence toward the Marcenko-Pastur law.
+}
+\end{figure}
+
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.5\linewidth]{cs/marcenko-pastur/mp-laws.eps}
+%%
+\caption{\label{fig-marcenko-pastur}
+Display of the Marcenko-Pastur distribution $f_\be$ for various $\be$.
+}
+\end{figure}
+
+
+%%%
+\paragraph{Super-linear grows $P = s \log(\ldots)$. }
+
+In order to have a better concentration of the singular values of $A_I^* A_I$ around $1$, one needs to have a slightly super-linear growth of $P$ with $s$. In this setting one has that $A_I^* A_I$. In order to derive non-asymptotic (i.e. with explicit constants) results, one can use a celebrated concentration inequality due to Talagrand, which assert that one has a fast concentration of this randomized covariance $A_I^* A_I$ toward its expectation $\Id_s$.
+\eql{\label{eq-talagrand}
+	\PP\pa{ \norm{ A_I^* A_I - \Id_s }_{\text{op}} \geq t + \sqrt{\frac{s}{P}} } \leq e^{ -\frac{t^2s}{2} }. 
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\subsection{Gaussian Width}
+
+% For Gaussian matrices (or at least rotation invariant distributions).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Dual Certificates}
@@ -176,6 +241,8 @@ The smaller the coherence, the better conditioned the inverse problem $Ax=y$ is,
 	which gives the last statement.
 \end{proof}
 
+Note that this proof actually shows that if  $s < \frac{1}{2}\pa{ 1+\frac{1}{\mu} }$, all certificate $\eta_F$ are valid, for any sign pattern $\sign(x_0)$. This actually implies a much stronger stability in the sense that whatever the noise $w$ (which might not be small), the support of $x_\la$ is included (not necessarily equal) in the one of $x_0$.
+
 One can show that one always has
 \eql{\label{eq-bound-cohe-mat}
 	\mu \geq \sqrt{\frac{N-P}{P(N-1)}}.
@@ -195,7 +262,7 @@ We consider here a class of sufficiently ``random'' matrices.
 
 \begin{defn}[sub-Gaussian random matrix]
 A random matrix $\sqrt{P} A$ is said to be sub-Gaussian if its entries are independent such that $\EE(A_{i,j})=0$ (zero mean) $\EE(A_{i,j}^2)=1/P$ and 
-\eq{
+\eq{\label{eq-sub-gaussian}
 	\PP(|\sqrt{P} A_{i,j}| \geq t) \leq \be e^{-\kappa t^2}. 
 }
 Note that its entries does not needs to be identically distributed, but the sub-Gaussiannity parameter $(\be,\kappa)$ should not depend on $(i,j)$. 
@@ -203,23 +270,64 @@ Note that its entries does not needs to be identically distributed, but the sub-
 Note also the presence of the normalization factor $\sqrt{P}$, which is here to ensure $\EE(\norm{a_j}^2)=1$ where $a_j$ are the columns of $A$.
 \end{defn}
 
-\begin{thm}
-	For a given $x_0 \in \RR^N$, denoting $s=\norm{x_0}_0$, and assuming $A$ is sub-Gaussian, then provided that
+Typical example of sub-Gaussian random matrix are Gaussian or Bernoulli matrices. 
+
+
+\begin{thm}\label{thm-cs-etaf}
+	For a given $x_0 \in \RR^N$, denoting $s=\norm{x_0}_0$, and assuming $A$ is sub-Gaussian, then for for any $0 < \epsilon < 1$ provided that
 	\eq{
-		P \geq 2 s \log(N)
+		P \geq \frac{4c}{1-\de} s \log(2N/\epsilon)
+		\qwhereq
+		\de^2 \eqdef \frac{C}{4c} \pa{ \frac{7}{\log(2N/\epsilon)}+\frac{2}{s} }
 	}
-	condition~\eqref{eq-cond-fuchs} holds with probability 
-	\eq{
-		1 - ??
-	} 
+	condition~\eqref{eq-cond-fuchs} holds with probability $1-\epsilon$, 
 	so that $x_\la$ has the same support and sign as $x_0$ when $(\norm{w}, \norm{w}/\la)$ is small enough.
+	% 
+	The constant $C,c$, $C=\frac{2}{3\tilde c}$ where $\tilde c \eqdef \frac{\kappa^2}{4\be+2\kappa}$ only depends on the sub-Gaussianity parameter $(\be,\kappa)$ appearing~\eqref{eq-sub-gaussian}, and for Gaussian or Benoulli matrices, $c=1/2$.
 \end{thm}
 
-Note that the constant $c$ depends only on the sub-Gaussiannity parameter $(\be,\kappa)$. 
+\begin{proof}
+	We only give the main insight for the proof. Its crux relies on the fact that $\norm{A_{I^c}^* p_F}_\infty \leq 1$ reads
+	\eq{
+		\umax{j \notin I} |\dotp{a_j}{p_F}| \leq 1
+	}
+	where $p_F = A_I^{*+} s_{0,I}$ is \textit{independent} from the vectors $(a_j)_{j \notin I}$ it is correlated against. 
+	%
+	This allows one to check this condition by first controlling $\norm{p_F}$ and then making as if $p_F$ was a fixed deterministic vector. 
+	%
+	Noticing 
+	\eq{
+		\norm{p_F}^2 = \dotp{ A_I (A_I^*A_I)^{-1} s_{0,I} }{ A_I (A_I^*A_I)^{-1} s_{0,I} }
+		= \dotp{(A_I^*A_I)^{-1} s_{0,I}}{s_{0,I}}, 
+	}
+	the heuristic reasoning is that, following what we said in Section~\eqref{sec-random-matrix}, if $P$ grows slightly (logarithmically) faster than $s$, $A_I^*A_I$ is close to $\Id_s$ (see Talagrand inequality ~\eqref{eq-talagrand}), so that 
+	\eql{\label{eq-estimate-pf-norm}
+		\norm{p_F}^2 \sim \norm{s_{0,I}}^2 = s
+	}
+	For a \textit{fixed} $p_F$, one has that $\dotp{a_j}{p_F}$ is Gaussian distributed with variance $\norm{p_F}^2/P$, and 
+	we use the well known fact (already encountered for denoising using thresholding) that the maximum of $P-s$ such vectors concentrates just bellow the universal threshold $\norm{p_F}\sqrt{2 \log(N-s)/P}$. Using the estimate~\eqref{eq-estimate-pf-norm}, one sees that $\norm{p_F}_\infty \leq 1$ is implied by $2\log(N)s/P \leq 1$, which gives the sharp scaling $P \geq 2\log(N) s$. 
+	
+	In order to get robustness to noise, one needs to impose that $\norm{A_{I^c}^* p_F} < 1$, which can be achieve by using a slightly stronger scaling  $P \geq 2(1+\de)\log(N) s$ for a small $\de$.
+	
+	One can actually make this reasoning very precise, because quite surprisingly, it turns out that $ps/\norm{p_F}^2$ is actually distributed according to a $\chi^2$ variable with $P-s+1$ degree of freedom (i.e. the sum of $P-s+1$ squares of Gaussian variables). Since one has a very good understanding of the clustering of such a $\chi^2$ variable around its means, one can thus show that $\norm{p_F} \leq (1-\de) \sqrt{s}$ with high precision for arbitrary small $\de>0$.
+\end{proof}
 
-This is a non-uniform recovery garantee, in the sense that one first choose a vector $x_0$, \text{then} draws the matrix $A$, and the recovery results holds with high probabilty.
-%
-In contrast blabla
+
+\begin{figure}
+\centering
+%%
+\includegraphics[width=.6\linewidth]{cs/max-gaussian/max-gaussian}
+%%
+\caption{\label{fig-max-gaussian}
+Graphical display of how the maximum of $N$ i.i.d. gaussians concentrates tightly just bellow the $\sqrt{2\log(N)}$ dashed curve. 
+}
+\end{figure}
+ 
+For $(N,s) \rightarrow +\infty$, one has $\de \rightarrow 0$, so that informally, the scaling is 
+\eql{\label{eq-etaf-gaussiancase}
+	P \geq 2s \log(2N/\epsilon).
+}
+This theorem states a non-uniform recovery guarantee, in the sense that one first choose a vector $x_0$, \text{then} draws the matrix $A$, and the recovery results holds with high probability. This should be contrasted with the RIP theory developed in Section~\ref{sec-rip} which provides stronger uniform guarantees.
 
 
 \begin{figure}
@@ -232,7 +340,7 @@ In contrast blabla
 \end{tabular}
 %%
 \caption{\label{fig-phase-trans}
-Phase transition. For the figure on the right shows probability as function of sparsity that certain criteria hold true, 
+Phase transitions. For the figure on the right shows probability as function of sparsity that certain criteria hold true, 
 blue: w-ERC,  black: ERC, green $|\eta_F| \leq 1$, red: identifiability. 
 }
 \end{figure}
@@ -243,6 +351,7 @@ blue: w-ERC,  black: ERC, green $|\eta_F| \leq 1$, red: identifiability.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{RIP Theory for Uniform Guarantees}
+\label{sec-rip}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{RIP Constants}
@@ -254,31 +363,12 @@ The RIP constant $\de_s$ of a matrix $\Phi \in \RR^{P \times N}$ is defined as
 	(1-\de_{s}) \norm{z}^2 \leq \norm{\Phi z}^2 \leq (1+\de_{s}) \norm{z}^2 
 }
 
-
-The following theorem states that for a sub-Gaussian random matrix, these RIP constant grows slowly with $s$.
-
-
-%
-Typical example of sub-Gaussian random matrix are Gaussian or Bernoulli matrices. 
-%
-Let us stress that, although this is an abuse of notation, here we assume that $A$ is a random matrix, and not a deterministic one as previously considered. 
-
-\begin{thm}
-	If $A$ is a sub-Gaussian random matrix, then it satisfies $\de_s \leq 1$ provided
-	\eql{
-		P \geq C \de^{-2} s \ln(eN/s)
-		\text{ with probability }
-		1 - 2e^{ -\de^2 \frac{m}{2C} }.
-	}
-\end{thm}
-
-
-
 \begin{figure}
 \centering
 %%
 \begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
-\includegraphics[width=.25\linewidth]{cs/rip-const/delta-k}&\includegraphics[width=.55\linewidth]{cs/rip-const/eigen-distrib}
+\includegraphics[width=.25\linewidth]{cs/rip-const/delta-k}&
+\includegraphics[width=.55\linewidth]{cs/rip-const/eigen-distrib}
 \end{tabular}
 %%
 \caption{\label{fig-rip-const}
@@ -286,16 +376,31 @@ Left: evolution of lower bounds $\hat \de_k$ on the RIP constant. Right: empiric
 }
 \end{figure}
 
+The following theorem states that for a sub-Gaussian random matrix, these RIP constant grows slowly with $s$.
+%
+Let us stress that, although this is an abuse of notation, here we assume that $A$ is a random matrix, and not a deterministic one as previously considered. 
+
+\begin{thm}\label{thm-rip-random}
+	If $A$ is a sub-Gaussian random matrix, then provided
+	\eql{
+		P \geq C \de^{-2} s \ln(eN/s)
+	}
+	it satisfies $\de_s \leq 1$ with probability $1 - 2e^{ -\de^2 \frac{m}{2C} }$, where $C$ only depends on the sub-Gaussianity parameters appearing in~\eqref{eq-sub-gaussian}.
+\end{thm}
+
+
+We do not prove this Theorem, and simply give the main intuition. 
+%
+The proof of this theorem relies on results regarding the distribution of the singular values of Gaussian matrices. Indeed, the RIP condition~\eqref{eq-rip} is equivalent to having the bound $\text{eig}( A_I^* A_I ) \subset [1-\de_s,1+\de_s]$ for all Gaussian matrices $A_I$ extracted from $A$. 
+%
+In the Gaussian case (actually this holds for any random matrix with i.i.d. entries and unit covariance), one has a very good understanding of the distribution of the singular values of covariance matrices $B^*B \in \RR^{s \times s}$ of a Gaussian matrix $B$ of size $(P,s)$, $B \sim \texttt{randn}(P,s)/\sqrt{P}$, as detailed in Section~\ref{sec-random-matrix}.  In particular, using Talagrand concentration inequality~\eqref{eq-talagrand}, one obtains the desired controls over the $\de_s$ constants. 
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{RIP implies stable recovery}
 
-
-RIP implies dual certificate guarantees.
-
-In the following, we fixe a vector $x \in \RR^N$ and denote $y=\Phi x + w$ the measurement, with $\norm{w} \leq \epsilon$. We denote $x_s \in \RR^N$ the best $s$-term approximation of $x$, obtained by only keeping the $s$ largest coefficients in magnitude from $x$ and setting the others to 0.
+In the following, we fixe a vector $x \in \RR^N$ and denote $y=\Phi x + w$ the measurement, with $\norm{w} \leq \epsilon$. We denote $\bar x_s \in \RR^N$ the best $s$-term approximation of $x$, obtained by only keeping the $s$ largest coefficients in magnitude from $x$ and setting the others to 0.
 
 We consider a solution $x^\star$ of
 \eq{
@@ -306,15 +411,44 @@ This note recall the proof from~\cite{candes-cras} of the following theorem
 \begin{thm}[\cite{candes-cras}]\label{thm-rip}
 	If $\de_{2s} \leq \sqrt{2}-1$ then there exists $C_0, C_1$ such that
 	\eq{
-		\normu{x^\star-x} \leq \frac{C_0}{\sqrt{s}}\norm{x_s-x} + C_1 \epsilon.
+		\normu{x^\star-x_0} \leq \frac{C_0}{\sqrt{s}}\norm{\bar x_s-x_0} + C_1 \epsilon.
 	}
 \end{thm}
 
-The remaining of this section is devoted to proving this theorem.
+Putting together Theorems~\ref{thm-rip-random} and~\ref{thm-rip} gives the following recovery guarantee.
+
+\begin{thm}\label{thm-rip-final}
+	If $A$ is a sub-Gaussian random matrix, then provided
+	\eql{\label{eq-thm-rip-final}
+		P \geq C \de^{-2} s \ln(eN/s)		
+	}
+	with probability $1 - 2e^{ -\de^2 \frac{P}{2C} }$ on the draw of $A$, one has that for every $s$-sparse signal, 
+	\eq{
+		\normu{x^\star-x_0} \leq \frac{C_0}{\sqrt{s}}\norm{x_s-x_0} + C_1 \epsilon.
+	}
+	In particular, if $\norm{w}=0$ and $x_0$ is $s$-sparse, setting $\epsilon=0$, one has $x^\star=x_0$.
+\end{thm}
+
+This theorem provides a uniform recovery guarantee, in the sense that it means
+\eq{
+	\PP( \foralls s-\text{sparse } x_0, x^\star=x_0 ) \text{ goes fast to 1 when } P \rightarrow +\infty. 
+}
+In contrast, theorem~\ref{thm-cs-etaf} proves a weaker non-uniform guarantee, in the sense that it means
+\eq{
+	\foralls s-\text{sparse } x_0,  \PP( x^\star=x_0 ) \text{ goes fast to 1 when } P \rightarrow +\infty. 
+}
+
+The recovery performance analysis based on RIP constants proves a better scaling in term of log-factors. This is because the analysis using $\eta_F$ does not only imply stable recovery, it also provides stability of the support (sparsistency). Note however that the constants involved in the RIP analysis are very large (of the order of a few hundreds, as highlighted by Figure~\ref{fig-rip-const}, left, and by Figure~\ref{fig-phase-trans}, right), while the constant appearing in~\eqref{eq-etaf-gaussiancase} are small and known to be sharp.
+
+Also, one can show that having small enough RIP constant implies the existence of a valid dual certificate (but this certificate is not necessarily $\eta_F$).
+
+The remaining of this section is devoted to proving Theorem~\ref{thm-rip}.
 
 %%
 \paragraph{Notations.}
 
+We denote $x$ in place of $x_0$ and $x_s$ in place of $\bar x_s$.
+%
 We denote in the following $h = x^\star - x$ and denote $T_0$ the largest $s$ coefficients of $x$ in magnitude (so that $x_s=x_{T_0}$), $T_1$ the $s$ largest coefficients of $h_{T_0^c}$, $T_2$ the following $s$ largest coefficients of  $h_{T_0^c}$ and so on. We denote $T = T_0 \cup T_1$ which is an index set of size $2s$.
 
 
@@ -516,14 +650,39 @@ One has
 \end{align*}
 which proves the theorem.
 
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Gaussian Matrices RIP}
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Fourier sampling RIP}
 
+A practical issue is that doing hardware implementing random operators $A$ is very difficult, specially if this operator is ``fully'' random, i.e. if its entries are i.i.d. A more practical option is to use structured sampling operator, which are in some sense ``less random''. A possibility is to consider a random sub-sampling of orthogonal projection of the signal in some ortho-basis $\Xi = (\xi_\om)_{\om=1}^N$ of $\RR^N$, so that
+\eql{\label{eq-random-subsample}
+	A x \eqdef ( \dotp{x}{\xi_\om} )_{\om \in \Om} \in \RR^P
+}  
+where $\Om \subset \{1,\ldots,N\}$ is drawn uniformly at random among all sets of size $P$.
+%
+The following theorem ensure that such an operator satisfies the RIP properties for large $s$ (proportional to $P$ up to log factors) is the atomes $\phi_\om$ are ``spread enough'', i.e. have a small magnitude, as measured by
+\eq{
+	\rho(\Xi) \eqdef \sqrt{N} \umax{1 \leq \om \leq N} \norm{\xi_\om}_\infty.
+}
+
+\begin{thm}[Rudelson-Vershinyn]\label{thm-cs-subsample}
+	For any $0<c<1$, there exists $C$, such that provided that 
+	\eql{\label{eq-scaling-cs-subsample}
+		P \geq C \rho(\Xi)^2 s \log(N)^4
+	}
+	with high probability on $\Om$, then $A$ defined as in~\eqref{eq-random-subsample} satisfies $\de_{2s} \leq c$.
+\end{thm}
+
+One always has $1 \leq \rho(\Xi)^2 \leq N$.
+%
+The worse case is $\xi_\om$ to be Sirac atoms (i.e. $\Xi=\Id_N$), having $\rho(\Xi)^2=N$, in which case $P$ needs to be as large as $N$. 
+%
+In sharp contrast, optimal sampling bases are for instance Fourier atoms $\xi_\om = (e^{\frac{2\imath\pi}{N}\om n} )_{n=1}^N \in \CC^N$, for which $\rho(\Xi)=1$ (it is also possible to consider a Hadamard basis for instance). In this case, up to log-factors, the scaling~\eqref{eq-scaling-cs-subsample} is similar to the one for sub-Gaussian matrices~\eqref{eq-thm-rip-final}.
+
+Theorem~\ref{thm-cs-subsample} deals with cases where the data $x_0$ to recover is sparse in the Dirac basis. If the data $f_0$ is sparse in another basis $\Psi=(\psi_m)_{m=1}^N$, one can do a change of variable $x = \Psi^* f$ ($x$ being the coefficients of $f$ in the basis $\Psi$), in which case $\rho(\Xi)$ appearing in~\eqref{eq-scaling-cs-subsample} should be replaced by the mutual coherence between the sampling and the sparsity bases
+\eq{
+	\rho(\Psi^*\Xi) \eqdef \sqrt{N} \umax{1 \leq \om,m \leq N} |\dotp{\psi_m}{\xi_\om}|.
+}
+Good recovery performances are thus reached by (sampling,sparsity) pairs which are incoherent. The (Fourier,Dirac) pair is maximally incoherent. In contrast, Wavelet and Fourier are highly coherent. There exists explicit construction of ``noiselets'' bases which are almost maximally incoherent with wavelets. 
+%
+Note however that in contrast to Gaussian matrices, these structured measurement matrices are not universal, in the sense that there compressed sensing recovery performances depend on the sparsity basis $\Psi$ which is used. 
 
