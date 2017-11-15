@@ -32,13 +32,11 @@ Chapters Available as Individual PDFs
 - [Convex Analysis](book-sources/chapters-pdf/convex-analysis.pdf)
 - [Theory of Sparse Regularization](book-sources/chapters-pdf/sparse-theory.pdf)
 - [Convex Optimization](book-sources/chapters-pdf/convex-optim.pdf)
-
-
+- [Compressed Sensing](book-sources/chapters-pdf/compressed-sensing.pdf)
+- [Machine Learning](book-sources/chapters-pdf/machine-learning.pdf)
 
 Chapters Soon Available
 ----------------
 
-- [Compressed Sensing](book-sources/chapters-pdf/compressed-sensing.pdf)
-- [Machine Learning](book-sources/chapters-pdf/machine-learning.pdf)
 - [Deep-Learning](book-sources/chapters-pdf/deep-learning.pdf)
 - [Optimal Transport](book-sources/chapters-pdf/optimal-transport.pdf)
