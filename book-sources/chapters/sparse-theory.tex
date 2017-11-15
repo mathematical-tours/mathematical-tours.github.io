@@ -73,7 +73,7 @@ Figure~\ref{fig-homotopy} gives the intuition of the theory that will be develop
 The following proposition gives a geometric description of those vectors which are recovered by $\ell^1$ minimization when there is no noise. 
 
 \begin{prop}\label{prop-polytope-proj}
-	We denote $B \eqdef \enscond{x \in \RR^N}{\norm{x}_1 \leq 1}$. Then
+	We denote $B \eqdef \enscond{x \in \RR^N}{\norm{x}_1 \leq 1}$. Then, assuming $\Im(A)=\RR^P$, 
 	\eql{\label{eq-polytop-ident} 
 		x_0 \text{ is a solution to } \Pp_0(Ax_0)
 		\quad\Longleftrightarrow\quad
@@ -81,13 +81,24 @@ The following proposition gives a geometric description of those vectors which a
 	} 
 	where ``$\partial$'' denoted the boundary and $AB=\enscond{Ax}{x\in B}$.
 \end{prop}
+
 \begin{proof}
-	We first prove $``\Rightarrow''$. We suppose that $x_0$ is not a solution, and aim at showing that $A \frac{x_0}{\norm{x_0}_1} \in \text{int}(AB_\rho)$. Since it is not a solution, there exists $z$ such that $Ax_0=Az$ and $\norm{z}_1 = (1-\de)\norm{x_0}_1$ with $\de>0$. Then for any displacement $h=A\epsilon \in \Im(A)$, one has $Ax_0+h=A(z+\epsilon)$ and
+	We first prove $``\Rightarrow''$. We suppose that $x_0$ is not a solution, and aim at showing that $A \frac{x_0}{\norm{x_0}_1} \in \text{int}(AB_\rho)$. Since it is not a solution, there exists $z$ such that $Ax_0=Az$ and $\norm{z}_1 = (1-\de)\norm{x_0}_1$ with $\de>0$. Then for any displacement $h=A\epsilon \in \Im(A)$, where one can impose $\epsilon \in \ker(A)^\bot$, i.e. $\epsilon=A^+h$, one has $Ax_0+h=A(z+\epsilon)$ and
 	\eq{
 		\norm{z+\epsilon}_1 \leq \norm{z}_1 + \norm{\Phi^+ h} \leq (1-\de) \norm{x_0}_1 + \norm{\Phi^+}_{1,1} \norm{h}_1 < \frac{\de}{\norm{A^+}_{1,1}}\norm{x_0}.
 	}
 	This means that choosing $\norm{h}_1 < \frac{\de}{\norm{A^+}_{1,1}} \norm{x_0}_1$ implies that $A \frac{x_0}{\norm{x_0}_1} \in \text{int}(AB)$.
 	
+\begin{figure}
+\centering
+%%
+\includegraphics[width=.6\linewidth]{sparse-theory/proofs/polytope-proof-1}
+%%
+\caption{\label{fig-polytope-proof}
+Graphical display of the proof for the polytope analysis of $\ell^1$ exact recovery.
+}
+\end{figure}
+
 	We now prove ``$\Leftarrow$''. We suppose that $A \frac{x_0}{\norm{x_0}_1} \in \text{int}(AB)$. Then there exists $z$ such that $Ax_0=(1-\de) Az$ and $\norm{z}_1 < \norm{x_0}_1$. This implies $\norm{(1-\de)z}_1 < \norm{x_0}_1$ so that $(1-\de)z$ is better than $x_0$ which is thus not a solution. 
 \end{proof}
 
@@ -145,6 +156,8 @@ Since~\eqref{eq-lasso-lagr} involves a sum of a smooth and a continuous function
 Thus $x_\la$ is solution to~\eqref{eq-lasso-lagr} if and only if $0 \in \partial f_\la(x_\la)$, which gives the desired result. 
 \end{proof}
 
+Note that one has in particular that $\supp(x_\la) \subset \sat(\eta_\la)$.
+
 The following proposition studies the limit case $\la=0$ and introduces the crucial concept of ``dual certificates'', which are the Lagrange multipliers of the constraint $\Ll_y$.
 
 \begin{prop}\label{prop-first-order-constr}
@@ -160,6 +173,8 @@ Since~\eqref{eq-lasso-constr} involves a sum with a continuous function, one can
 }
 If $x \in \Ll_y$, then $\partial \iota_{\Ll_y}(x)$ is the linear space orthogonal to $\Ll_y$, i.e. $\ker(A)^\bot=\Im(A^*)$. 
 \end{proof}
+
+Note that one has in particular that $\supp(x^\star) \subset \sat(\eta)$ for any valid vector $\eta\in \Dd_0(y,x^\star)$.
 
 Writing $I=\supp(x^\star)$, one thus has
 \eq{
@@ -178,9 +193,10 @@ The following proposition shows that the Lasso selects a set of linearly indepen
 \begin{prop}
 	For $\la \geq 0$, there is always a solution $x^\star$ to~\eqref{eq-lasso-lagr} with $I=\supp(x^\star)$ such that $\ker(A_I)=\{0\}$
 \end{prop}
+
 \begin{proof}
 	Let $x$ be a solution and denote $I=\supp(x)$.
-	%
+	%	
 	If $\ker(A_I) \neq \{0\}$, one selects $h_I \in \ker(A_I)$ and define for $t \in \RR$ the vector $x_t \eqdef x+th$.
 	We denote $t_0$ the smallest $|t|$ such that $\sign(x_t) \neq \sign(x)$, i.e. $\supp(x_t)$ is strictly included in $I$.
 	%
@@ -191,6 +207,8 @@ The following proposition shows that the Lasso selects a set of linearly indepen
 	If $\ker(A_{J}) \neq \{0\}$ with $J=\supp(x_{t_0})$, one is over, otherwise one can iterate this argument on $x_{t_0}$ in place of $x$ and have a  sequence of supports which is strictly decaying in size, so it must terminate. 
 \end{proof}
 
+\wrapf{sparse-theory/proofs/injectivity}{Trajectory $(x_t)_t$.}
+%
 This results in particular that if columns of $A_I$ are not independent, then the solution of~\eqref{eq-lasso-lagr} is necessarily non-unique. 
 
 Assuming that $x_\la$ is a solution such that $\ker(A_I)=\{0\}$, then from~\eqref{eq-lasso-lagr},  one obtains the following implicit expression for the solution
@@ -228,7 +246,7 @@ so up to a $O(\la)$ bias, this predictor is an orthogonal projection on a low di
 
 
 \begin{prop}\label{sec-prop-uniquness-lagr}
- 	Let $x_\la$ be a solution to~\eqref{eq-lasso-lagr} and denote $\eta_\la \eqdef \frac{1}{\la}A^*(y-A x_\la)$.
+ 	For $\la>0$, let $x_\la$ be a solution to~\eqref{eq-lasso-lagr} and denote $\eta_\la \eqdef \frac{1}{\la}A^*(y-A x_\la)$.
 	%
 	We define the ``extended support'' as 
 	\eq{
@@ -357,6 +375,16 @@ Here we consider the case of a general regularization of the form
 }
 for a convex regularizer $J$.
 
+\begin{figure}
+\centering
+%%
+\includegraphics[width=.6\linewidth]{sparse-theory/proofs/bregman}
+%%
+\caption{\label{fig-bregman}
+Visualization of Bregman divergences.
+}
+\end{figure}
+
 For any $\eta \in \partial J(x_0)$, we define the associated Bregman divergence as
 \eq{
 	D_\eta(x|x_0) \eqdef J(x)-J(x_0)-\dotp{\eta}{x-x_0}.
@@ -377,9 +405,9 @@ If $J(x) = \sum_i x_i (\log(x_i)-1) + \iota_{\RR^+}(x_i)$ is the entropy, then
 }
 is the so-called Kulback-Leibler divergence on $\RR_+^N$. 
 
-The following proposition, which is due to Burger-Osher, state a linear rate in term of this Bregman divergence.
+The following theorem, which is due to Burger-Osher, state a linear rate in term of this Bregman divergence.
 
-\begin{prop}
+\begin{thm}\label{thm-bregman-rates}
 	If there exists 
 	\eql{\label{eq-sourcecond-J}
 		\eta  = A^* p \in \Im(A^*) \cap \partial J(x_0), 
@@ -392,7 +420,7 @@ The following proposition, which is due to Burger-Osher, state a linear rate in 
 	\eql{\label{eq-predict-source}
 		\norm{Ax_\la-y} \leq \norm{w} + (\sqrt{2}+1) \norm{p} \la.
 	}
-\end{prop}
+\end{thm}
 \begin{proof}
 	The optimality of $x_\la$ for~\eqref{eq-lagr-J} implies
 	\eq{
@@ -447,6 +475,8 @@ So simply being a solution of the constraint noiseless problem thus implies a li
 
 The issue with the control~\eqref{eq-bregman-rate} of the error in term of Bregman divergence is that it is not ``distance-like'' for regularizers $J$ which are not strictly convex. This is in particular the case for the $\ell^1$ norm $J=\norm{\cdot}_1$ which we now study. 
 
+	\wrapf{sparse-theory/proofs/bregman-l1}{Controlling Bregman divergence with the $\ell^1$ norm when $\eta$ is not saturating.}
+	
 The following fundamental lemma shows however that this Bregman divergence for $\ell^1$ behave like a distance (and in fact controls the $\ell^1$ norm) on the indexes where $\eta$ does not saturate. 
 
 \begin{lem}
@@ -457,7 +487,8 @@ The following fundamental lemma shows however that this Bregman divergence for $
 \end{lem}
 
 \begin{proof}
-	Note that $x_{0,J^c}=0$ since $\supp(x_0) \subset \sat(\eta)$ by definition of the sub-differential of the $\ell^1$ norm. 
+Note that $x_{0,J^c}=0$ since $\supp(x_0) \subset \sat(\eta)$ by definition of the sub-differential of the $\ell^1$ norm. 
+%
 	Since the $\ell^1$ norm is separable, each term in the sum defining $D_\eta(x|x_0)$ is positive, hence
 	\begin{align*}
 		D_\eta(x|x_0) &= \sum_i |x_i|-|x_{0,i}|- \eta_i ( x_{i}-x_{0,i} ) 
@@ -612,7 +643,6 @@ The following theorem shows that if one strengthen this condition to impose a no
 
 Before proceeding to the proof, let us note that the constraint $\norm{\eta_F}_\infty \leq 1$ corresponds to the definition of the spherical Delaunay triangulation, as highlighted by Figure~\ref{fig-delaunay}. This remark was made to us by Charles Dossal.
 
-
 \begin{figure}
 \centering
 %%
@@ -650,7 +680,7 @@ For $p=2$, $\norm{B}_2$ is the maximum singular value, and one has
 	\eql{\label{eq-explicit-lownoise}
 		x_{\la,I} = x_{0,I} + A_I^+ w - \la (A_I^*A_I)^{-1} \sign(x_{0,I}^\star).
 	}
-	In particular, $\norm{x_\la-x_0} = O(\norm{w})$.
+	In particular, $\norm{x_\la-x_0} = O(\norm{A^* w}_\infty) = O(\norm{w})$.
 \end{thm}
 
 \begin{proof}
@@ -664,7 +694,7 @@ For $p=2$, $\norm{B}_2$ is the maximum singular value, and one has
 	and $\hat x_{I^c}=0$. The goal is to show that $\hat x$ is indeed the unique solution of~\eqref{eq-lasso-lagr}. 
 	
 	
-	\noindent\textit{Step 1.}  The first step is to show sign consistency, i.e. that $\sign(\hat x)=s$. This is true if $\norm{x_{0,I}-\hat x_I}_\infty < T$, and is thus implies by
+	\noindent\textit{Step 1.}  The first step is to show sign consistency, i.e. that $\sign(\hat x)=s$. This is true if $\norm{x_{0,I}-\hat x_I}_\infty < T$, and is thus implied by
 	\eql{\label{eq-supp-stab-proof-1}
 		\norm{x_{0,I}-\hat x_I}_\infty \leq K \norm{A_I^* w}_\infty + K \la < T
 		\qwhereq
@@ -689,6 +719,8 @@ For $p=2$, $\norm{B}_2$ is the maximum singular value, and one has
 		S \eqdef 1-\norm{\eta_{F,I^c}}_\infty >0
 	}
 	where we denoted $L \eqdef \norm{A_{I^c}^* A_I}_\infty$, and also we used the hypothesis $\norm{\eta_{F,I^c}}_\infty<1$. 
+
+
 	
 	\noindent\textit{Conclusion.}  Putting~\eqref{eq-supp-stab-proof-1} and~\eqref{eq-supp-stab-proof-2} together shows that $\hat x$ is the unique solution if $(\la,w)$ are such that the two linear inequations are satisfies 
 	\eq{
@@ -698,6 +730,8 @@ For $p=2$, $\norm{B}_2$ is the maximum singular value, and one has
 				R \de - S \la <0
 		}
 	}
+	
+	
 	This region $\Rr$ is trianglular-shaped, and includes the following ``smaller'' simpler triangle
 	\eql{\label{eq-critrion-sign-stability}
 		\tilde\Rr = \enscond{
@@ -712,6 +746,8 @@ For $p=2$, $\norm{B}_2$ is the maximum singular value, and one has
 	% A_{I^c}^* ( A_I A_I^+ - \Id ) = A_{I^c}^* A_I (A_I^*A_I)^{-1} A_I^* - A_{I^c}^*
 \end{proof}
 
+	\wrapf{sparse-theory/proofs/recov-zone}{Zone in the $(\la,\de)$ where sign consistency occurs.}
+	
 It is important to realize that Theorem~\ref{thm-support-stable} operates in a ``small noise'' regime, i.e. $\norm{w}$ (and hence $\la$) needs to be small enough for the support to be identifiable (otherwise small amplitude comment of $x_0$ will be killed by the regularization). In contrast, Theorem~\ref{thm-linrate-l1} is ``global'' and holds for any noise level $\norm{w}$. The price to pay is that one has no controls about the support (and one does not even knows whether $x_\la$ is unique) and than the constant involved are more pessimistic. 
 
 A nice feature of this proof is that it gives access to explicit constant, involving the three key parameter $K,L,S$, which controls:
@@ -755,35 +791,71 @@ Display of certificate $\eta_F$ for a $A \in \RR^{p \times n}$, $n=64$, with ind
 
 Chapter~\ref{chap-cs} studies the particular case where $A$ is random, in which case it is possible to make very precise statement about wether $\eta_F$ is a valid certificate.
 
-Another interesting case study, which shows the limitation of this approach, is the case of super-resolution. To simplify the analysis, we assume ``continuous measurement'', and replace the measurement space $\RR^P$ by functions $L^2(\RR^d)$ (for simplicity, we treat here $d=1$). The measurements reads
-\eq{
-	A x = \sum_{i=1}^N x_i a_i(\cdot) \in L^2(\RR)
-}
-where the $a_i : \RR \rightarrow \RR$ are smooth functions. A typical example is the deconvolution problem, where $a_i=\phi(\cdot-z_i)$ where $\phi : \RR \rightarrow \RR$ is the smoothing kernel and $(z_i)_{i=1}^N$ is a discretization grid, and for simplicity we assume $x_i=i/N \in [0,1]$.
+Another interesting case study, which shows the limitation of this approach, is the case of ``super-resolution''. It corresponds to inverse problems where the columns $(a_i)_i$ of $A$ are highly correlated, since typically they are obtained by sampling a smooth kernel.
 
-In this case, this forward model correspond to convolution of measures supported on the grid
+We thus consider the case where $a_i=\phi(z_i)$ where the $(z_i)_i \subset \XX$ is  a sampling grid of a domain $\XX$ and $\phi : \XX \rightarrow \Hh$ is a smooth map. One has 
 \eq{
-	A x = \phi \star m_{z,x}
-	\qwhereq
-	m_{z,x} \eqdef \sum_{i=1}^N x_i \de_{z_i}. 
+	A x = \sum_i x_i \phi(z_i).
+}
+Since we seek for sparse $x$, one can view $x$ as representing the weights of a discrete measure $m_{x} \eqdef \sum_{i=1}^N x_i \de_{z_i}$ where the dirac masses are constraint to be on the sampling grid.
+
+
+The matrix $A$ is a discretized version of an infinite dimensional operator mapping Radon measures to vectors of observations $\Aa : m \in \Mm(\XX) \mapsto y = \Aa m \in \Hh$
+\eq{
+	\Aa(m) \eqdef \int_\XX \phi(x) \d m(x).
+}
+Indeed, one has for discrete measure $\Aa(m_x)=A x$. 
+
+A typical example is when using $\Hh=L^2(\XX)$ with $\XX=\RR^d$ or $\XX=\TT^d$ and $\phi(z) = \tilde\phi(z-\cdot)$, which corresponds to a convolution
+\eq{
+	(\Aa m)(z) = \int \tilde\phi(z-x) \d m(x) = (\tilde \phi \star m)(z).
+}
+Note that here $\Hh$ is infinite dimensional, and to get finite dimensional observations, it suffices to sample the output and consider $\phi(z) = ( \phi(z-r_j) )_{j=1}^P$ (note that the observation grid $r \in \XX^P$ can be different from the recovery grid $z \in \XX^N$).
+
+
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.7\linewidth]{sparse-theory/proofs/spikes}
+\caption{\label{fig-spikes}
+Convolution operator. 
+}
+\end{figure}
+
+
+
+Another example, actually very much related, is when using $\phi(z)=(e^{\imath k z})_{k=-f_c}^{f_c}$ on $\XX=\TT$, so that $\Aa$ corresponds to computing the $f_c$ low-frequencies of the Fourier transform of the measure
+\eq{
+	\Aa(m) = \pa{ \int_\TT e^{\imath k x} \d m(x) }_{k=-f_c}^{f_c}.
+}
+The operator $\Aa^*\Aa$ is a convolution against an ideal low pass (Dirichlet) kernel. By weighting the Fourier coefficients, one can this way model any low pass filtering on the torus.
+
+Yet another interesting example on $\XX=\RR^+$ is the Laplace transform
+\eq{
+	\Aa(m) = z \mapsto \int_{\RR^+} e^{-x z} \d m(x).
 }
 
-We denote the ``continuous'' covariance
+We denote the ``continuous'' covariance as
 \eq{
-	\Cc(z,z') \eqdef \dotp{\phi(\cdot-z)}{\phi(\cdot-z')}_{L^2(\RR)} = \int_\RR \phi(t-z) \phi(t-z) \d t = (\phi\star \bar\phi)(z-z')
+	\foralls (z,z') \in \XX^2, \quad
+	\Cc(z,z') \eqdef \dotp{\phi(z)}{\phi(z')}_{\Hh}.
 }
-where $\bar\phi(t)=\phi(-t)$, so that the discrete covariance is $C=(\Cc(z_i,z_i')))_{(i,i')} \in \RR^{N \times N}$ and $C_{I,I}=(\Cc(z_i,z_i')))_{(i,i') \in I^2} \in \RR^{I \times I}$.
+Note that this $\Cc$ is the kernel associated to the operator $\Aa^* \Aa$. 
+%
+The discrete covariance, defined on the computational grid is $C=(\Cc(z_i,z_i')))_{(i,i')} \in \RR^{N \times N}$, while its restriction to some support set $I$ is $C_{I,I}=(\Cc(z_i,z_i')))_{(i,i') \in I^2} \in \RR^{I \times I}$.
 
 Using~\eqref{eq-eta-f-cov}, one sees that $\eta_F$ is obtained as a sampling on the grid of a ``continuous' ' certificate $\tilde\eta_F$
 \eq{
-	\eta_F = ( \tilde\eta_F(z_i) )_{i=1} \in \RR^N, 
+	\eta_F = ( \tilde\eta_F(z_i) )_{i=1}^N \in \RR^N, 
 }
 \eql{\label{eq-etaf-cont}
 	\qwhereq \tilde\eta_F(x) = \sum_{i \in I} b_i \Cc(x,z_i) \qwhereq b_I = C_{I,I}^{-1} \sign(x_{0,I}), 
 }
 so that $\eta_F$ is a linear combination of $I$ basis functions $(\Cc(x,z_i))_{i \in I}$. 
 
-The question is wether $\norm{\eta_F}_{\ell^\infty} \leq 1$. If the gris is fine enough, i.e. $N$ large enough, this can only hold if $\norm{\tilde\eta_F}_{L^\infty} \leq 1$. The major issue is that $\tilde\eta_F$ is only constrained by construction to interpolate $\sign(x_{0,i})$ are points $z_{0,i}$ for $i \in I$. So nothing prevents $\tilde\eta_F$ to go outside $[-1,1]$ around each interpolation point. Figure~\ref{} illustrates this fact. 
+The question is wether $\norm{\eta_F}_{\ell^\infty} \leq 1$. If the gris is fine enough, i.e. $N$ large enough, this can only hold if $\norm{\tilde\eta_F}_{L^\infty} \leq 1$. The major issue is that $\tilde\eta_F$ is only constrained by construction to interpolate $\sign(x_{0,i})$ are points $z_{0,i}$ for $i \in I$. So nothing prevents $\tilde\eta_F$ to go outside $[-1,1]$ around each interpolation point. Figure~\ref{fig-certif-convol} illustrates this fact. 
+
 
 In order to guarantee this property of ``local'' non-degeneracy around the support, one has to impose on the certificate the additional constraint $\eta'(z_i)=0$ for $i \in I$. This leads to consider a minimum pre-certificate with vanishing derivatives 
 \eql{\label{eq-minnorm-certif}
@@ -827,7 +899,7 @@ The way to recover interesting results is to use and analyze methods without gri
 \includegraphics[width=.35\linewidth]{sparse-theory/certif-convol/etaV-N3-d80}
 \end{tabular}
 %%
-\caption{\label{fig-certif-cs}
+\caption{\label{fig-certif-convol}
 Display of ``continuous'' certificate $\eta_F$ and $\eta_V$ for $A$ being a convolution operator. 
 }
 \end{figure}
