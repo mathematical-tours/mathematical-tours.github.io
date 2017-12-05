@@ -67,7 +67,7 @@ Right: image $f_0^\star = \Psi x^\star$ reconstructed from observation $y \in \R
 
 In order to reconstruct an approximation of the (unknown) image $f_0$, following Section~\ref{sec-sparse-ip}, we assume it is sparse in some dictionary $\Psi$. Denoting $A \eqdef \Psi \Phi \in \RR^{P \times N}$, this leads us to consider the usual $\ell^1$ regularized poblem~\eqref{eq-lasso-lagr-ip}
 \eql{\label{eq-lasso-lagr-ip-cs}\tag{$\Pp_\la(y)$}
-	x_\la \in \uargmin{x \in \RR^Q} \frac{1}{2\la} \norm{y-Ax}^2 + \norm{x}_1, 
+	x_\la \in \uargmin{x \in \RR^N} \frac{1}{2\la} \norm{y-Ax}^2 + \norm{x}_1, 
 } 
 so that the reconstructed image is $f_\la = \Psi x_\la$. We also sometimes consider the constraint problem
 \eql{\label{eq-lasso-lagr-constr-cs}\tag{$\Pp^\epsilon(y)$}
@@ -116,7 +116,7 @@ Fixing $s$ and letting $P \rightarrow +\infty$, one has thanks to the low of lar
 A quite extreme setting is when $s$ grows proportionally to $P$, and impose $s/P = \be$. 
 %
 In this case, the eigenvalues of $B^*B$ are, for large $p$, essentially contained in the interval $[\la_-,\la_+]$
-where $\la_\pm=(1 \pm \sqrt{\be})^2$, $\be \eqdef p/s$, in the sense that the probability distribution of eigenvalues converges (in the weak sense of measures) toward the Marcenko-Pastur law
+where $\la_\pm=(1 \pm \sqrt{\be})^2$, $\be \eqdef s/p$, in the sense that the probability distribution of eigenvalues converges (in the weak sense of measures) toward the Marcenko-Pastur law
 \eq{
 	\foralls (u,v) \in \RR_+^2, \quad
 		\PP( \text{eig}(B^\top B) \in [u,v] ) \overset{p \rightarrow +\infty}{\longrightarrow} \int_u^v f_\be(\la) \d \la
@@ -186,18 +186,20 @@ Figure~\ref{fig-certif-cs} suggests that this should be the case if $P$ is large
 
 We first perform a crude analysis using the so-called coherence of the matrix $A=(a_j)_{j=1}^N$ where the $a_j \in \RR^P$ are the columns of $A$, which we assume to be normalized $\norm{a_j}=1$
 \eql{
-	\mu \eqdef = \umax{0 \leq i \neq j } |\dotp{a_i}{a_j}| = \norm{A^*A-\Id_N}_\infty
+	\mu \eqdef = \umax{i \neq j } |\dotp{a_i}{a_j}| = \norm{A^*A-\Id_N}_\infty
 }
 where $\norm{C}_\infty=\max_{i,j} |C_{i,j}|$.
 %
-The coherence is $0$ for an orthogonal matrix, and is always larger than $1$, $\mu \in [0,1]$. 
+The coherence is $0$ for an orthogonal matrix, and is always smaller than $1$, $\mu \in [0,1]$. 
 %
 The smaller the coherence, the better conditioned the inverse problem $Ax=y$ is, and the more likely is the certificate $\eta_F$ to be non-degenerate, as shown by the following proposition.
 
 \begin{prop}\label{prop-bound-coh}
 	One has, denoting $s=\norm{x_0}_0=|I|$ where $I=\supp(x_0)$, for $\mu < \frac{1}{s-1}$, 
 	\eql{\label{eq-coh-bound}
-		\norm{\eta_{F,I^c}}_\infty \leq \frac{ s\mu }{ 1-(s-1)\mu }.
+		\norm{\eta_{F,I^c}}_\infty \leq \frac{ s\mu }{ 1-(s-1)\mu }
+		\qandq
+		\norm{p_F}^2 \leq \frac{s}{1-(s-1)\mu}.
 	}
 	In particular, if $s < \frac{1}{2}\pa{ 1+\frac{1}{\mu} }$, $\norm{\eta_{F,I^c}}_\infty < 1$ and one can thus apply the 
 	recovery Theorem~\ref{thm-support-stable}. 
@@ -239,14 +241,21 @@ The smaller the coherence, the better conditioned the inverse problem $Ax=y$ is,
 		2s\mu < 1+\mu
 	}
 	which gives the last statement.
+	%
+	One also has
+	\eq{
+		\norm{p_F}^2 = \dotp{(A_I^*A_I)^{-1}s_I}{s_I} \leq \norm{(A_I^*A_I)^{-1}}_\infty \norm{s}_1 \leq \frac{s}{1 - (s-1)\mu}
+	}
 \end{proof}
 
 Note that this proof actually shows that if  $s < \frac{1}{2}\pa{ 1+\frac{1}{\mu} }$, all certificate $\eta_F$ are valid, for any sign pattern $\sign(x_0)$. This actually implies a much stronger stability in the sense that whatever the noise $w$ (which might not be small), the support of $x_\la$ is included (not necessarily equal) in the one of $x_0$.
 
 One can show that one always has
 \eql{\label{eq-bound-cohe-mat}
-	\mu \geq \sqrt{\frac{N-P}{P(N-1)}}.
+	\mu \geq \sqrt{\frac{N-P}{P(N-1)}}
 }
+which is equivalent to $1/\sqrt{P}$ for $N \gg P$.
+%
 For Gaussian matrix $A \in \RR^{P \times N}$, one has for large $(N,P) \rightarrow +\infty$
 \eq{
 	\mu \sim \sqrt{ \log(PN) / P }
@@ -285,6 +294,8 @@ Typical example of sub-Gaussian random matrix are Gaussian or Bernoulli matrices
 	% 
 	The constant $C,c$, $C=\frac{2}{3\tilde c}$ where $\tilde c \eqdef \frac{\kappa^2}{4\be+2\kappa}$ only depends on the sub-Gaussianity parameter $(\be,\kappa)$ appearing~\eqref{eq-sub-gaussian}, and for Gaussian or Benoulli matrices, $c=1/2$.
 \end{thm}
+
+For a Gaussian matrix, the scaling is that one should have $P \geq (2+\de) s \log(N)$ with a high probability. 
 
 \begin{proof}
 	We only give the main insight for the proof. Its crux relies on the fact that $\norm{A_{I^c}^* p_F}_\infty \leq 1$ reads
@@ -358,38 +369,76 @@ blue: w-ERC,  black: ERC, green $|\eta_F| \leq 1$, red: identifiability.
 \label{sec-rip}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{RIP Constants}
+\subsection{Restricted Isometry Constants}
 
-The RIP constant $\de_s$ of a matrix $\Phi \in \RR^{P \times N}$ is defined as
+The Restricted Isometry constant $\de_s$ of a matrix $A \in \RR^{P \times N}$ is defined as
 \eql{\label{eq-rip}
 	\foralls z \in \RR^N, \quad
 	\normz{z} \leq s \qarrq
-	(1-\de_{s}) \norm{z}^2 \leq \norm{\Phi z}^2 \leq (1+\de_{s}) \norm{z}^2 
+	(1-\de_{s}) \norm{z}^2 \leq \norm{A z}^2 \leq (1+\de_{s}) \norm{z}^2, 
 }
+and one usually chose the smallest $\de_s$ so that these relation hold.
+
+A related concept is the $(s,s')$ restricted orthogonality constant $\th_{s,s'}$, which is such that for all $(x,x')$ with $\norm{x}_0 \leq s$, $\norm{x'}_0 \leq s'$ and disjoint support , one has
+\eq{
+	|\dotp{A x}{A x'}| \leq \th_{s,s'} \norm{x} \norm{x'}
+}
+The following lemma shows that RI and RO constants are tightly related.
+
+\begin{lem}\label{lemma-rip-roc}
+	One has
+	\eq{
+		\th_{s,s'} \leq \de_{s+s'} \leq \th_{s,s'} + \max(\de_s,\de_{s'}). 
+	}
+\end{lem}
+\begin{proof}
+	We prove the first inequality (which is the most important). 
+	%
+	We prove that if $z$ and $z'$ have disjoints supports and $\norm{z} \leq s$ and $\normz{z'} \leq s$, 
+	\eq{
+		|\dotp{A z}{A z'}| \leq \de_{2s} \norm{z}\norm{z'}.
+	}	
+	Using the RIP \eqref{eq-rip} since $z \pm z'$ has support of size $s+s'$ and the fact that $\norm{z \pm z'}^2 = \norm{z}^2 + \norm{z'}^2$, one has
+	\eq{
+		(1-\de_{s+s'}) \pa{ \norm{z}^2 + \norm{z'}^2 } 
+		\leq \norm{A z \pm A z'}^2 \leq
+		(1+\de_{s+s'}) \pa{ \norm{z}^2 + \norm{z'}^2 } .
+	}
+	One thus has using the parallelogram equality 
+	\eq{
+		|\dotp{A z}{A z'}| =
+		\frac{1}{4}
+		| \norm{A z + A z'}^2 - \norm{A z - A z'}^2 |
+		\leq
+		\de_{s+s'} \norm{z}\norm{z'}.
+	}
+\end{proof}
+
 
 \begin{figure}
 \centering
 %%
-\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
-\includegraphics[width=.25\linewidth]{cs/rip-const/delta-k}&
-\includegraphics[width=.55\linewidth]{cs/rip-const/eigen-distrib}
-\end{tabular}
+%\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
+\includegraphics[width=.35\linewidth]{cs/rip-const/delta-k}
+%\includegraphics[width=.55\linewidth]{cs/rip-const/eigen-distrib}
+%\end{tabular}
 %%
 \caption{\label{fig-rip-const}
-Left: evolution of lower bounds $\hat \de_k$ on the RIP constant. Right: empirical distribution of singular values of Gaussian matrices.
+Left: evolution of lower bounds $\hat \de_k$ on the RIP constant. 
+% Right: empirical distribution of singular values of Gaussian matrices.
 }
 \end{figure}
 
-The following theorem states that for a sub-Gaussian random matrix, these RIP constant grows slowly with $s$.
+The following theorem states that for a sub-Gaussian random matrix, these RIP constants grow slowly with $s$.
 %
 Let us stress that, although this is an abuse of notation, here we assume that $A$ is a random matrix, and not a deterministic one as previously considered. 
 
 \begin{thm}\label{thm-rip-random}
 	If $A$ is a sub-Gaussian random matrix, then provided
 	\eql{
-		P \geq C \de^{-2} s \ln(eN/s)
+		P \geq C \de^{-2} s \log(eN/s)
 	}
-	it satisfies $\de_s \leq 1$ with probability $1 - 2e^{ -\de^2 \frac{m}{2C} }$, where $C$ only depends on the sub-Gaussianity parameters appearing in~\eqref{eq-sub-gaussian}.
+	it satisfies $\de_s \leq \de$ with probability $1 - 2e^{ -\de^2 \frac{m}{2C} }$, where $C$ only depends on the sub-Gaussianity parameters appearing in~\eqref{eq-sub-gaussian}.
 \end{thm}
 
 
@@ -398,40 +447,188 @@ We do not prove this Theorem, and simply give the main intuition.
 The proof of this theorem relies on results regarding the distribution of the singular values of Gaussian matrices. Indeed, the RIP condition~\eqref{eq-rip} is equivalent to having the bound $\text{eig}( A_I^* A_I ) \subset [1-\de_s,1+\de_s]$ for all Gaussian matrices $A_I$ extracted from $A$. 
 %
 In the Gaussian case (actually this holds for any random matrix with i.i.d. entries and unit covariance), one has a very good understanding of the distribution of the singular values of covariance matrices $B^*B \in \RR^{s \times s}$ of a Gaussian matrix $B$ of size $(P,s)$, $B \sim \texttt{randn}(P,s)/\sqrt{P}$, as detailed in Section~\ref{sec-random-matrix}.  In particular, using Talagrand concentration inequality~\eqref{eq-talagrand}, one obtains the desired controls over the $\de_s$ constants. 
+%
+The intuition is that, if we assume that $s/P=\be$ is constant and $P$ is large, then one has that the eigenvalue of $A_I^*A_I$, and for instance its smaller one should be of the order of $2\sqrt{s/P}-s/P$, so that $\de_s$ should be a function of $s/P$, and hence $P$ should scale proportionally to the $s$. The log term comes from the exponential number of such matrix to control, and one need to use a non-asymptotic lower bound in place of the Marcenko-Pastur asymptotic law. 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RIP implies dual certificates}
+
+The following theorem ensures that having small enough restricted isometry constant implies the existence of a valid dual certificates. This means that one can apply Theorem~\ref{thm-linrate-l1}, which in turn ensures that one has a stable recovery of sparse signals.
+
+\begin{thm}\label{thm-rip-dualcertif}
+	If $\de_s + \th_{s,s} + \th_{s,2s} < 1$, then for any $x_0$ with $\norm{x_0} \leq s$, there exists $\eta \in \Dd_0(A x_0,x_0)$, i.e. $\eta \in \Im(A^*) \cap \partial\norm{x_0}_1$. More precisely, one has, denoting $I=\supp(x_0)$, $\eta_I = \sign(x_{0,I})$ and
+	\eq{
+		\norm{\eta_{I^c}}_\infty \leq \frac{\th_{s,s}}{1-\de_s-\de_{s,2s}} < 1
+		\qandq
+		\norm{p} \leq \frac{\de_{s,s}}{ 1-\de_s-\th_{s,2s} } \frac{\sqrt{s}}{\sqrt{1-\de_s}}. 
+	}	  
+\end{thm}
+
+Note that thanks to Lemma~\ref{lemma-rip-roc}, condition 
+\eq{
+	\de_s + \th_{s,s} + \th_{s,2s} \leq \de_s+\de_{2s}+\de_{3s} \leq 3 \de_{3s} 
+} 
+so that condition $\de_s + \th_{s,s} + \th_{s,2s} < 1$ is implied by $\de_{3s}<1/3$. It is furthermore possible to refine the proof of this theorem to obtain alternative (often much sharper) sufficient condition such as $\de_{2d} \leq \sqrt{2}-1$. 
+%
+These sufficient conditions involving RI constants are often called ``Restricted Isometry Properties'' (RIP). 
+%
+As we will illustrate next, however, the constant involved on the sufficient sparsity to guarantee that such uniform RIP conditions holds are large, of the order of a few hundred.
+
+To prove this theorem, it is not enough to directly consider the pre-certificate $\eta_F$ defined in~\eqref{eq-cond-fuchs}. Indeed, using such a certificate leads to slightly suboptimal log-factors in the asymptotic. The proof strategy, developed by Candes and Tao (in ``Decoding with Linear Programming'') consists in iteratively ``improving'' this certificate by removing a vector interpolating the largest $s$ entries outside $I$. 
+%
+In order to study $\eta_F$ and to perform the improvement, it is crucial the behavior of least square solution of interpolation problems using random matrices.
+
+\begin{lem}\label{lemma-rip-eta}
+	We assume $\de_s < 1$.	
+	%
+	Let $c \in \RR^n$ with $\norm{c}_0 \leq s$ and $\supp(c)=J$. 
+	%
+	Let $\eta=A^* p$ be the least square solution of $\eta_J=A_J^*p=c_J$, i.e. 
+	\eq{
+		p \eqdef A_J^{*,+} c_J = A_J (A_J^*A_J)^{-1} c_J
+	}
+	(note that $A_J$ is full rank because $\de_s<1$). Then, denoting $K \subset J^c$ the $s'$ largest entries in magnitude of $\eta_{J^c}$, one has
+	\eq{
+		\norm{\eta_{(J \cup K)^c}}_\infty \leq \frac{\th_{s,s'} \norm{c}}{(1-\de_s) \sqrt{s}}
+		\qandq
+		\norm{\eta_K} \leq \frac{\th_{s,s'} \norm{c}}{1-\de_s}
+		\qandq
+		\norm{p} \leq \frac{\norm{c}}{\sqrt{1-\de_s}}  
+	}
+\end{lem}
+\begin{proof}
+	Since $|J|\leq s$, one has that $\la_{\min}(A_J^*A_J) \geq 1-\de_s$ and hence 
+	\eq{
+		\norm{(A_JA_J^*)^{-1}} \leq \frac{1}{1-\de_s}
+	}
+%		\qandq
+%		\norm{A_J^{+,*}} = \norm{A_J (A_JA_J^*)^{-1}} \leq \frac{\sqrt{1+\de_s}}{1-\de_s}.
+%	}
+	One has
+	\eq{
+		\norm{p}^2 = \dotp{A_J (A_J^*A_J)^{-1} c_J}{A_J (A_J^*A_J)^{-1} c_J}  =
+			\dotp{(A_J^*A_J)^{-1} c_J}{c_j} \leq \frac{\norm{c}^2}{ 1-\de_s }.
+	}
+%	This last inequality shows that $\norm{p} \leq \frac{\sqrt{1+\de_s}}{1-\de_s} \norm{c}$. 
+	%
+	Let $L$ be any set with $L \cap J = \emptyset$ and $|L| \leq s'$. 
+	One has
+	\eq{
+		\norm{\eta_L}^2 = 
+		|\dotp{\eta_L}{\eta_L}| = |\dotp{A_J (A_J^*A_J)^{-1} c_J}{A_L \eta_L}| \leq \th_{s,s'} \norm{(A_J^*A_J)^{-1} c_J} \norm{\eta_L}
+			\leq \frac{\th_{s,s'}}{1-\de_s} \norm{c_J} \norm{\eta_L}.
+	}
+	so that this gives 
+	\eql{\label{eq-proof-lemma-rip-eta-1}
+		\norm{\eta_L} \leq \frac{\th_{s,s'}}{1-\de_s} \norm{c_J}.
+	}
+	Let us denote $\bar K = \enscond{ k \in J^c }{ |\eta_k|>T }$ where $T \eqdef \frac{\th_{s,s'}}{(1-\de_s)\sqrt{s'}} \norm{c_J}$. One necessarily has $|\bar K| \leq s'$, otherwise one would have, taking $K \subset \bar K$ the $s'$ largest entries (in fact any $s'$ entries) 
+	\eq{
+		\norm{\eta_K} > \sqrt{s' T^2} = \frac{\th_{s,s'}}{1-\de_s} \norm{c_J}
+	}
+	which contradicts~\eqref{eq-proof-lemma-rip-eta-1}. This shows that the entries in $\eta_{J^c}$ after the rank $s'$ are smaller than $T$.
+\end{proof}
+
+We can now prove the Theorem~\ref{thm-rip-dualcertif}.
+
+\begin{proof}
+	We denote $I_0=\supp(x_0)$. We first consider $\eta_1=\eta_F$, $p_1=p_F$, and we use~\eqref{lemma-rip-eta} with $c_I=\si_I \eqdef \sign(x_{0,I})$, $J=I$, $s'=s$, to control this first pre-certificate. This lemma defines a second set $I_1$ (denoted $K$ in the lemma) which are the $s$ largest entries of $\eta_{1,I_1^c}$, with
+	\eq{
+		I_0 \cap I_1 = \emptyset, \quad
+		|I_1| \leq s, \quad
+		\eta_{1,I_0}=s_I, \quad 
+		\norm{\eta_{1,(I_0 \cup I_1)^c}}_\infty \leq \frac{\th_{s,s}}{1-\de_s}, \quad
+		\norm{\eta_{I_1}} \leq \frac{\th_{s,s} \sqrt{s}}{1-\de_s}, \quad
+		\norm{p_1} \leq \frac{\sqrt{s}}{\sqrt{1-\de_s}}. 
+	}
+	%
+	Now we proceed recursively. Having defined the vectors $(\eta_1=A^*p_1,\ldots,\eta_n=A^*p_n)$ with associated sets $(I_1,\ldots,I_n)$, we define $\eta_{n+1}=A^* p_{n+1}$ and $I_{n+1}$ by applying~\eqref{lemma-rip-eta} to $J=I_0 \cup I_n$ with $c=(0_{I_0},\eta_{n,I_n})$ (and thus $(2s,s)$ in place of $(s,s')$), which hence satisfy
+	\eq{
+		I_{n+1} \cap (I_0 \cup I_{n}) = \emptyset, \quad
+		|I_{n+1}| \leq s, \quad
+		\eta_{n+1,I_0 \cup I_n} = (0_{I_0},\eta_{n,I_n}), \qandq
+	}
+	\eql{\label{eq-proof-rip-dualcertif-1}
+		\norm{\eta_{n+1,(I_0 \cup I_n \cup I_{n+1})^c}}_\infty \leq \frac{\th_{s,s}}{1-\de_s} 
+			Q^n, \quad
+		\norm{\eta_{n+1,I_{n+1}}} \leq \frac{\th_{s,s} \sqrt{s}}{1-\de_s} Q^n,
+	}
+	where we denoted $Q \eqdef \frac{\th_{s,2s}}{1-\de_s}$, 
+	and we have
+	\eq{
+		\norm{p_{n+1}} \leq \frac{ \norm{\eta_{n,I_n}} }{ \sqrt{1-\de_s} } 
+		\leq
+			\frac{1}{\sqrt{1-\de_s}} \frac{\th_{s,s} \sqrt{s}}{1-\de_s} Q^{n-1}.	
+	} 
+	%
+	Since $\de_s+\th_{s,s} < 1$, one has that $Q<1$, and thus setting
+	\eq{
+		p = \sum_{n=1}^{+\infty} (-1)^{n-1} p_n
+		\qandq
+		\eta = A^*p
+	}
+	defines a convergent series.
+	%
+	By construction, since $\eta_{1,I}=\si$ and $\eta_{n,I}=0$ for $n>1$, one has $\eta_I=\si_I$, thus this vector interpolates the sign vector $\si$.
+	%
+	Now consider $j \in I^c$ and define $E_j \eqdef \enscond{n \geq 1}{ j \in I_n } = \{n_1 \leq n_2 \leq n_3 \leq \ldots\}$. Since $I_n \cap I_{n+1} = \emptyset$, necessary $n_{k+1} \geq n_k+2$ ($j$ cannot belong to two consecutive $I_n$). 
+	%
+	Furthermore, if $n \in E_j \Leftrightarrow j \in I_n$, then by construction
+	\eq{
+		\eta_{n,j} = \eta_{n+1,j}
+	}
+	so that these two consecutive terms cancels out in the sum defining $\eta$ \todo{make a drawing}, which in turn can thus be written in the form
+	\eq{
+		\eta = \sum_{n \in H} (-1)^{n-1} \eta_n.
+	}
+	The index set $H$ is composed of $n \notin E_j$ such that $n-1 \notin E_j$ (because otherwise one could cancel $\eta_n$ from the sum). 
+	%
+	So this means that for $n \in H$, one has $j \notin (I_0 \cup I_n \cup I_{n+1})$, thus applying the property~\eqref{eq-proof-rip-dualcertif-1}, one has
+	\eq{
+		\foralls n \in H, \quad |\eta_{j,n}| \leq \frac{\th_{s,s}}{1-\de_s} 
+			Q^{n-1}, 
+	}
+	so that 
+	\eq{
+		|\eta_j| \leq \sum_{n \in H} |\eta_{j,n}| \leq \sum_{n=1}^{+\infty} \frac{\th_{s,s}}{1-\de_s}  Q^{n-1}
+		= \frac{\th_{s,s}}{1-\de_s} \frac{1}{1- \th_{s,2s}(1-\de_s)^{-1} }
+		= \frac{\th_{s,s}}{ 1-\de_s-\th_{s,2s} }.
+	}
+	Note that one also has the bound
+	\eq{
+		\norm{p} \leq \sum_n \norm{p_n} \leq \sum_n \frac{1}{\sqrt{1-\de_s}} \frac{\th_{s,s} \sqrt{s}}{1-\de_s} Q^{n-1}
+		= \frac{\de_{s,s}}{ 1-\de_s-\th_{s,2s} } \frac{\sqrt{s}}{\sqrt{1-\de_s}}.
+		% O( \sum_n Q^n \sqrt{s} ) = O(\sqrt{s}).
+	}
+\end{proof}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{RIP implies stable recovery}
 
-In the following, we fixe a vector $x \in \RR^N$ and denote $y=\Phi x + w$ the measurement, with $\norm{w} \leq \epsilon$. We denote $\bar x_s \in \RR^N$ the best $s$-term approximation of $x$, obtained by only keeping the $s$ largest coefficients in magnitude from $x$ and setting the others to 0.
 
-We consider a solution $x^\star$ of
-\eq{
-	\umin{\norm{\Phi \tilde x - y} \leq \epsilon} \normu{\tilde x}. 	
-}
-This note recall the proof from~\cite{candes-cras} of the following theorem
-
-\begin{thm}[\cite{candes-cras}]\label{thm-rip}
-	If $\de_{2s} \leq \sqrt{2}-1$ then there exists $C_0, C_1$ such that
-	\eq{
-		\normu{x^\star-x_0} \leq \frac{C_0}{\sqrt{s}}\norm{\bar x_s-x_0} + C_1 \epsilon.
-	}
-\end{thm}
-
-Putting together Theorems~\ref{thm-rip-random} and~\ref{thm-rip} gives the following recovery guarantee.
+Putting together Theorems~\ref{thm-rip-random} and~\ref{thm-rip}, and using the general inverse prolem stability theorem~\ref{}, one obtains the following recovery guarantee.
 
 \begin{thm}\label{thm-rip-final}
-	If $A$ is a sub-Gaussian random matrix, then provided
+	If $A$ is a sub-Gaussian random matrix, then there exists constants $(C,C')$ such that provided 
 	\eql{\label{eq-thm-rip-final}
-		P \geq C \de^{-2} s \ln(eN/s)		
+		P \geq C s \log(N/s)		
 	}
-	with probability $1 - 2e^{ -\de^2 \frac{P}{2C} }$ on the draw of $A$, one has that for every $s$-sparse signal, 
+	with probability $1 - 2e^{ -C' P}$ on the draw of $A$, one has that for every $s$-sparse signal $x_0$, 
 	\eq{
-		\normu{x^\star-x_0} \leq \frac{C_0}{\sqrt{s}}\norm{x_s-x_0} + C_1 \epsilon.
+		\norm{x_\la-x_0} = O(\norm{w})
 	}
-	In particular, if $\norm{w}=0$ and $x_0$ is $s$-sparse, setting $\epsilon=0$, one has $x^\star=x_0$.
+	where $x_\la$ is the unique solution of~\eqref{eq-lasso-lagr-ip} with measurements $y=A x_0 + w$ when choosing $\la \sim \norm{w}$.
+	%
+%	In particular, if $\norm{w}=0$ and $x_0$ is $s$-sparse, setting $\la=0$, one has $x^\star=x_0$.
 \end{thm}
+
+It is possible to extend this theorem when $x_0$ is not exactly $s$-sparse but only approximately. Defining $x_{0,s}$ the best $s$-term approximation, the easiest way to go is to write $y=A x_{0,s}+\tilde w$ where $\tilde w=w+A(x_0-x_{0,s})$ and applying the previous result to obtain
+\eq{
+	\norm{x_\la-x_{0,s}} = O(\norm{w} + \norm{A}\norm{x_0-x_{0,s}}). 
+}
+It is possible to obtain better scaling in term of the non-linear approximation error $\norm{x_0-x_{0,s}}$ by doing a more careful proof.
+
 
 This theorem provides a uniform recovery guarantee, in the sense that it means
 \eq{
@@ -446,213 +643,10 @@ The recovery performance analysis based on RIP constants proves a better scaling
 
 Also, one can show that having small enough RIP constant implies the existence of a valid dual certificate (but this certificate is not necessarily $\eta_F$).
 
-The remaining of this section is devoted to proving Theorem~\ref{thm-rip}.
-
-%%
-\paragraph{Notations.}
-
-We denote $x$ in place of $x_0$ and $x_s$ in place of $\bar x_s$.
-%
-We denote in the following $h = x^\star - x$ and denote $T_0$ the largest $s$ coefficients of $x$ in magnitude (so that $x_s=x_{T_0}$), $T_1$ the $s$ largest coefficients of $h_{T_0^c}$, $T_2$ the following $s$ largest coefficients of  $h_{T_0^c}$ and so on. We denote $T = T_0 \cup T_1$ which is an index set of size $2s$.
 
 
-\begin{lem}\label{lemma-1}
-	One has
-	\eq{
-		\sum_{j \geq 2} \norm{h_{T_j}} \leq \frac{1}{\sqrt{s}} \normu{h_{T_0^c}}
-	}
-\end{lem}
-\begin{proof}
-	By the definition of $T_j$ for $j \geq 2$, one has, for all $j \geq 2$
-	\eq{
-		\foralls i \in T_{j-1}, \quad
-		\normi{h_{T_j}} \leq h_i, 
-	}
-	and hence
-	\eq{
-		\normi{h_{T_j}} \leq \frac{1}{s}\normu{h_{T_{j-1}}}.
-	}
-	This proves that
-	\eq{
-		\norm{h_{T_j}} \leq \sqrt{s} \normi{h_{T_j}} \leq \frac{1}{\sqrt{s}}\normu{h_{T_{j-1}}}
-	}
-	and thus 
-	\eq{
-		\sum_{j \geq 2} \norm{h_{T_j}} \leq \frac{1}{\sqrt{s}} 
-		\sum_{j \geq 1} \normu{h_{T_j}} = \frac{1}{\sqrt{s}}  \normu{h_{T_0^c}}.
-	}
-\end{proof}
-
-%%
-\begin{lem}\label{lemma-2}
-	One has 
-	\eq{
-		\normu{h_{T_0^c}} \leq \normu{h_{T_0}} + 2 \normu{x_{T_0^c}}
-	}	
-\end{lem}
-\begin{proof}
-	One has
-	\begin{align*}
-		\normu{x}
-		& \geq \norm{x+h}
-			& \text{because $x^\star$ is a minimizer} \\
-		& = \normu{(x+h)_{T_0}} + \normu{(x+h)_{T_0^c}}
-		  	& \\ 
-		& \geq \normu{x_{T_0}} - \normu{h_{T_0}}
-		+ \normu{h_{T_0^c}} - \normu{x_{T_0^c}}
-			&\text{using the triangular inequality.}
-	\end{align*}
-	Decomposing the left hand size $\normu{x}=\normu{x_{T_0}} + \normu{x_{T_0^c}}$, 
-	one obtains the result.
-\end{proof}
-
-%%
-\begin{lem}\label{lemma-3}
-	If $z$ and $z'$ have disjoints supports and $\norm{z} \leq s$ and $\normz{z'} \leq s$, 
-	\eq{
-		|\dotp{\Phi z}{\Phi z'}| \leq \de_{2s} \norm{z}\norm{z'}.
-	}	
-\end{lem}
-\begin{proof}
-	Using the RIP \eqref{eq-rip} since $z \pm z'$ has support of size $2s$ and the fact that $\norm{z \pm z'}^2 = \norm{z}^2 + \norm{z'}^2$, one has
-	\eq{
-		(1-\de_{2s}) \pa{ \norm{z}^2 + \norm{z'}^2 } 
-		\leq \norm{\Phi z \pm \Phi z'}^2 \leq
-		(1+\de_{2s}) \pa{ \norm{z}^2 + \norm{z'}^2 } .
-	}
-	One thus has using the parallelogram equality
-	\eq{
-		|\dotp{\Phi z}{\Phi z'}| =
-		\frac{1}{4}
-		| \norm{\Phi z + \Phi z'}^2 - \norm{\Phi z - \Phi z'}^2 |^2
-		\leq
-		\de_{2s} \norm{z}\norm{z'}.
-	}
-\end{proof}
-
-Theorem \ref{thm-rip} requires bounding $\norm{h}$. We bound separately $\norm{h_T}$ and $\norm{h_{T^c}}$.
-
-%%
-\paragraph{Part 1: bounding $\norm{h_T}$.}
-
-One has
-\begin{align*}
-	\norm{h_{T^c}} 
-			& = \norm{\sum_{j \geq 2} h_{T_j}} \leq \sum_{j \geq 2} \norm{ h_{T_j} }
-				& \text{using the triangular inequality} \\
-			&\leq \frac{1}{\sqrt{s}} \normu{h_{T_0^c}}
-				& \text{using Lemma \ref{lemma-1}}\\
-			&\leq \frac{1}{\sqrt{s}} \normu{h_{T_0}} + \frac{2}{\sqrt{s}}\normu{x_{T_0^c}}
-				&  \text{using Lemma \ref{lemma-2}}\\
-			&\leq \frac{1}{\sqrt{s}} \normu{h_{T_0}} + 2 e_0
-				& \text{denoting } e_0 = \frac{1}{\sqrt{s}}\normu{x_{T_0^c}} \\
-			& \leq  \norm{h_{T_0}} + 2 e_0
-				& \text{ using Cauchy-Schwartz}\\
-			& \leq  \norm{h_{T}} + 2 e_0 
-				& \text{because } T_0 \subset T.
-\end{align*}
-The final bound reads
-\eql{\label{eq-5}
-	\norm{ h_{T^c} } \leq \norm{h_{T}} + 2 e_0.
-}
 
 
-%%
-\paragraph{Part 2: bounding $\norm{h_{T^c}}$.}
-
-One has 
-\begin{align*}
-	\norm{h_{T}}^2 
-		&\leq \frac{1}{1-\de_{2s}} \norm{ \Phi h_T }^2 & \text{using the RIP~\eqref{eq-rip}} \\
-		& = \frac{A - B}{1-\de_{2s}} & \text{using } \Phi h_T = \Phi h - \sum_{j \geq 2} \Phi h_{T_j},
-\end{align*}
-where we have introduced 
-\eq{
-		A = \dotp{\Phi h_T}{\Phi h}
-		\qandq
-		B = \dotp{\Phi h_T}{ \sum_{j \geq 2 } \Phi h_{T_j} }	.
-}
-
-One has  
-\begin{align*}
-	|A|  & \leq \norm{\Phi h_T} \norm{\Phi h} 
-			& \text{using Cauchy-Schwartz} \\
-		 & \leq \sqrt{1+\de_{2s}} \norm{h_T} \norm{\Phi h}
-		 	& \text{using the RIP~\eqref{eq-rip}} \\
-		& \leq  \sqrt{1+\de_{2s}} \norm{h_T} 2 \epsilon 
-		 & \text{using }  \norm{\Phi h} \leq \norm{\Phi x - y} + \norm{\Phi x^\star - y} \leq 2 \epsilon 
-\end{align*}
-The final bound reads
-\eql{\label{eq-2}
-	|A| \leq 2 \epsilon  \sqrt{1+\de_{2s}} \norm{h_T} 
-}
-
-One has 
-\begin{align*}
-	|B| &\leq |\dotp{\Phi h_{T_0}}{\sum_{j \geq 2} \Phi h_{T_j}}| + 
-			 |\dotp{\Phi h_{T_1}}{\sum_{j \geq 2} \Phi h_{T_j}}|
-			& \text{using the triangular inequality} \\
-		& \leq \sum_{j \geq 2} |\dotp{\Phi h_{T_0}}{\Phi h_{T_j}}| + |\dotp{\Phi h_{T_0}}{\Phi h_{T_j}}| 
-			& \text{using the triangular inequality} \\
-		& \leq \sum_{j \geq 2} \de_{2s} \norm{h_{T_0}} \norm{h_{T_j}} + \de_{2s} \norm{h_{T_1}} \norm{h_{T_j}}
-			& \text{using Lemma \ref{lemma-3}} \\
-		& =  \de_{2s} (\norm{h_{T_0}} + \norm{h_{T_1}}) \sum_{j \geq 2} \norm{h_{T_j}}
-			& \\
-		& \leq \de_{2s} \sqrt{2} \norm{h_{T}} \sum_{j \geq 2} \norm{h_{T_j}} 
-			& \text{$T_0$ and $T_1$ are disjoints} \\
-		& \leq \frac{\sqrt{2} \de_{2s}}{\sqrt{s}} \norm{h_T} \normu{h_{T_0^c}}
-			& \text{using Lemma \ref{lemma-1}}
-\end{align*}
-The final bound reads
-\eql{\label{eq-3}
-	|B| \leq \frac{\sqrt{2} \de_{2s}}{\sqrt{s}} \norm{h_T} \normu{h_{T_0^c}}.
-}
-
-Putting together \eqref{eq-2} and \eqref{eq-3} one obtains
-\eq{
-	\norm{h_{T}}^2 \leq \frac{\norm{h_{T}}}{ 1-\de_{2s} } \pa{
-		\sqrt{1+\de_{2s}} 2 \epsilon  + \frac{2}{\sqrt{s}} \de_{2s} \normu{ h_{T_0^c} }
-	}
-}
-thus
-\begin{align*}
-	\norm{h_{T}} 
-	&\leq \al \epsilon + \frac{\rho}{\sqrt{s}} \normu{h_{T_0^c}}
-		&\text{denoting}
-		\choice{
-			\al = 2 \frac{\sqrt{1+\de_{2s}}}{1-\de_{2s}}, \\
-			\rho = \frac{\sqrt{2} \de_{2s}}{1-\de_{2s}}.
-		}\\
-	& \leq \al \epsilon + \frac{\rho}{\sqrt{s}} \normu{h_{T_0}}
-			+ \frac{2 \rho}{\sqrt{s}} \normu{x_{T_0^c}} 
-		& \text{using Lemma \ref{lemma-2}} \\
-	& \leq \al \epsilon + \rho \norm{h_{T_0}} + 2 \rho e_0 
-		& \text{using Cauchy-Schwartz}		\\
-	& \leq \al \epsilon + \rho \norm{h_T} + 2 \rho e_0
-		& \text{because } T_0 \subset T.
-\end{align*}
-
-Note that since $\de_{2s} < \sqrt{2}-1$, one has $\rho < 1$.
-This implies 
-\eql{\label{eq-4}
-	\norm{h_{T}} \leq
-	\frac{\al}{1-\rho} \epsilon + \frac{2\rho}{1-\rho} e_0.
-}
-
-
-%%
-\paragraph{Conclusion.}
-
-One has
-\begin{align*}
-	\norm{h} &\leq \norm{h_T} + \norm{h_{T^c}} 
-		& \text{using the triangular inequality} \\
-	&\leq 2 \norm{h_T} + 2e_0 
-		& \text{using \eqref{eq-5}} \\
-	&\leq \frac{2\al}{1-\rho} \epsilon + 2\frac{1+\rho}{1-\rho} e_0
-		& \text{using \eqref{eq-4}}
-\end{align*}
-which proves the theorem.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Fourier sampling RIP}

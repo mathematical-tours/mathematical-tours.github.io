@@ -5,7 +5,9 @@
 
 % Refs \cite{rosasco2017notes,friedman2001elements,murphy2012machine}
 
-This chapter gives a rapid overview of the main concepts in machine learning. The goal is not to be exhaustive, but to highlight representative problems and insist on the distinction between unsupervised (vizualization and clustering) and supervised (regression and classification) setups. We also shed light on the tight connexions between machine learning and inverse problems. 
+This chapter gives a rapid overview of the main concepts in machine learning. The goal is not to be exhaustive, but to highlight representative problems and insist on the distinction between unsupervised (vizualization and clustering) and supervised (regression and classification) setups. We also shed light on the tight connexions between machine learning and inverse problems.
+
+While imaging science problems are generally concern with processing a single data (e.g. an image), machine learning problem is rather concern with analysing large collection of data. The focus (goal and performance measures) is thus radically different, but quite surprisingly, it uses very similar tools and algorithm (in particular linear models and convex optimization). 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -33,10 +35,10 @@ The empirical mean is defined as
 } 
 and  covariance
 \eql{\label{eq-emp-cov}
- 	\hat C \eqdef \frac{1}{n} \sum_{i=1}^n (x_i-m) (x_i-m)^* \in \RR^{p \times p}. 
+ 	\hat C \eqdef \frac{1}{n} \sum_{i=1}^n (x_i-\hat m) (x_i-\hat m)^* \in \RR^{p \times p}. 
 }
-Denoting $\tilde X \eqdef X - 1_p \hat m*$, one has $\hat C=\tilde X^*
-\tilde X$. 
+Denoting $\tilde X \eqdef X - 1_p \hat m^*$, one has $\hat C=\tilde X^*
+\tilde X/n$. 
 
 Note that if the points $(x_i)_i$ are modelled as i.i.d. variables, and denoting $\xp$ one of these random variables, one has, using the law of large numbers, the almost sure convergence as $n \rightarrow +\infty$
 \eql{\label{eq-cov-approx}
@@ -68,11 +70,11 @@ Empirical covariance of the data and its associated singular values.
 \wrapf{ml/variance}{PCA main axes capture variance}
 The PCA ortho-basis, already introduced in Section~\ref{prop-svd}, corresponds to the right singular vectors of the centred data matrix, as defined using the (reduced) SVD decomposition
 \eq{
- 	\tilde X = U \diag(\si) V  
+ 	\tilde X = U \diag(\si) V^*
 }
 where $U \in \RR^{n \times r}$ and $V \in \RR^{p \times r}$, and where $r=\rank(\tilde X) \leq \min(n,p)$. 
 %
-We denote $V=(v_k)_{k=1}^r$ the orthogonal columns, $v_k \in \RR^p$. The intuition is that they are the main axes of ``gravity'' of the point cloud  $(x_i)_i$ in $\RR^p$.
+We denote $V=(v_k)_{k=1}^r$ the orthogonal columns (which forms a orthogonal system of eigenvectors of $\hat C$), $v_k \in \RR^p$. The intuition is that they are the main axes of ``gravity'' of the point cloud  $(x_i)_i$ in $\RR^p$.
 %
 We assume the singular values are ordered, $\si_1 \geq \ldots \geq \si_r$, so that the first singular values capture most of the variance of the data. 
 
@@ -178,7 +180,7 @@ Quite surprisingly, there exists a randomized seeding strategy which can be show
 	\foralls i \in \{1,\ldots,n\}, \quad 
 	\pi^{(\ell)}_i \eqdef \frac{ d_i^2 }{ \sum_{j=1}^n d_j^{2} }
 	\qwhereq
-	d_j \eqdef \min_{1 \leq r \leq \ell-1} \norm{x_i-c_r}^{2}.
+	d_j \eqdef \min_{1 \leq r \leq \ell-1} \norm{x_i-c_r}.
 }
 This means that points which are located far away from the preciously seeded centers are more likely to be picked. 
 
@@ -263,11 +265,11 @@ To highlight the dependency of $\hat f$ on $n$, we occasionally write $\hat f_n$
 
 When doing a mathematically analysis, one usually assumes that $(x_i,y_i)$ are drawn from a distribution $\pi$ on $\Xx \times \Yy$, and the large $n$ limit defines the ideal estimator
 \eql{\label{eq-consistency-estim}
-	\bar f \in \uargmin{f \in \Ff_n} \int_{\Xx \times \Yy} \loss(f(x),y) \d\pi(x,y) = \EE_{(\xp,\yp) \sim \pi}(\loss(f(\xp),\yp).
+	\bar f \in \uargmin{f \in \Ff_\infty} \int_{\Xx \times \Yy} \loss(f(x),y) \d\pi(x,y) = \EE_{(\xp,\yp) \sim \pi}(\loss(f(\xp),\yp).
 }
 Intuitively, one should have $\hat f_n \rightarrow \bar f$ as $n \rightarrow +\infty$, which can be captured in expectation of the prediction error over the samples $(x_i,y_i)_i$, i.e.
 \eq{
-	E_n \eqdef \EE( \tilde\loss(\hat f_n(\xp),f(\xp)) ) \longrightarrow 0.
+	E_n \eqdef \EE( \tilde\loss(\hat f_n(\xp),\bar f(\xp)) ) \longrightarrow 0.
 }
 One should be careful that here the expectation is over both $\xp$ (distributed according to the marginal $\pi_\Xx$ of $\pi$ on $\Xx$), and also the $n$ i.i.d. pairs $(x_i,y_i) \sim \pi$ used to define $\hat f_n$ (so a better notation should rather be $(\xp_i,\yp_i)_i$.
 %
@@ -275,7 +277,7 @@ Here $\bar\loss$ is some loss function on $\Yy$ (one can use $\bar\loss=\loss$ f
 One can also study convergence in probability, i.e. 
 \eq{
 	\foralls \epsilon>0, \quad
-	E_{\epsilon,n} \eqdef \PP( \tilde\loss(\hat f_n(\xp),f(\xp)) > \epsilon ) \rightarrow 0.
+	E_{\epsilon,n} \eqdef \PP( \tilde\loss(\hat f_n(\xp),\bar f(\xp)) > \epsilon ) \rightarrow 0.
 }
 If this holds, then one says that the estimation method is consistent (in expectation or in probability). 
 %
@@ -313,13 +315,18 @@ In this parametric approach, one could be interested in also studying how close 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Testing Set and Cross-validation}
 
-In practice, $E_n$ or $E_{\epsilon,n}$ are ideal quantities which cannot be accessed. One thus rather ressorts to a second set of data $(\bar x_j,\bar y_j)_{j=1}^{\bar n}$, called ``testing set''. From a modelling perspective, this set should also be distributed i.i.d. according to $\pi$. The validation (or testing) risk is then
+It is not possible to access $E_n$ or $E_{\epsilon,n}$ because the optimal $\bar f$ is unknown. 
+%
+In order to tune some parameters of the methods (for instance the regularization parameter $\la$), one rather wants to minimize the risk $\EE(L(\hat f(\xp),\yp))$, but this one should not be approximated using the training samples $(x_i,y_i)_i$.
+
+%
+One thus rather ressorts to a second set of data $(\bar x_j,\bar y_j)_{j=1}^{\bar n}$, called ``testing set''. From a modelling perspective, this set should also be distributed i.i.d. according to $\pi$. The validation (or testing) risk is then
 \eql{\label{eq-valid-risk}
-	R_{\bar n} = \frac{1}{\bar n} \sum_{j=1}^{\bar n} \loss(\hat f(\bar x_j),\bar y_j).
+	R_{\bar n} = \frac{1}{\bar n} \sum_{j=1}^{\bar n} \loss(\hat f(\bar x_j),\bar y_j)
 }
+which converges to $\EE(L(\hat f(\xp),\yp))$ for large $\bar n$.
+%
 Minimizing $R_{\bar n}$ to setup to some meta-parameter of the method (for instance the regularization parameter $\la_n$) is called ``cross validation'' in the literature.
-
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -339,6 +346,8 @@ If $\Yy$ is continuous (the typical example being $\Yy=\RR$), then this problem 
 \label{sec-linear-models}
 
 We now specialize the empirical risk minimization approach to regression problems, and even more specifically, we consider $\Yy=\RR$ and use a quadratic loss $\loss(y,y')=\frac{1}{2}|y-y'|^2$.
+
+Note that non-linear regression can be achieved using approximation in dictionary (e.g. polynomial interpolation), and this is equivalent to using lifting to a higher dimensional space, and is also equivalent to kernelization technics studied in Section~\ref{sec-kernel-methods}. 
 
 %%%
 \paragraph{Least square and conditional expectation.}
@@ -396,9 +405,9 @@ As $n \rightarrow 0$, under weak condition on $\pi$, one has with the law of lar
 \eql{\label{eq-empirical-conver}
 	\hat C \rightarrow C \eqdef \EE(\xp^* \xp)
 	\qandq
-	\hat u \rightarrow C \eqdef \EE(\yp \xp).
+	\hat u \rightarrow u \eqdef \EE(\yp \xp).
 }
-When considering $\la_n \rightarrow 0$, in some cases, one can shows that in the limit $n \rightarrow +\infty$ (under some additional condition on the decay), one retrieves the following ideal parameter 
+When considering $\la_n \rightarrow 0$, in some cases, one can shows that in the limit $n \rightarrow +\infty$, one retrieves the following ideal parameter 
 \eq{
 	\bar \be \in \uargmin{\be} \enscond{ J(\be) }{ C\be=u }.
 }
@@ -411,7 +420,7 @@ The major, and in fact only difference between machine learning and inverse prob
 	\qandq
 	\EE(\norm{\hat u-u}) \sim \frac{1}{\sqrt{n}}, 
 }
-under mild moments assumption on $\pi$. Typically one should impose having bounded third order moments $\EE(\yp^4)<+\infty$, $\EE(\norm{\xp}^4<+\infty$. Note that, although we use here linear estimator, one does not need to assume a ``linear'' relation of the form $\yp=\dotp{\xp}{\be} + w$ with a noise $w$ independent from $\xp$, but rather hope to do ``as best as possible'', i.e. estimate a linear model as close as possible to $\bar\be$. 
+under the assumption that $\EE(\yp^4)<+\infty$, $\EE(\norm{\xp}^4)<+\infty$ so ensure that one can use the central limit theorem on $\xp^2$ and $\xp\yp$. Note that, although we use here linear estimator, one does not need to assume a ``linear'' relation of the form $\yp=\dotp{\xp}{\be} + w$ with a noise $w$ independent from $\xp$, but rather hope to do ``as best as possible'', i.e. estimate a linear model as close as possible to $\bar\be$. 
 
 The general take home message is that it is possible to generalize Theorems~\ref{thm-sublin-quad}, \ref{thm-bregman-rates} and~\ref{thm-linrate-l1} to cope with the noise on the covariance matrix to obtain prediction convergence rates of the form 
 \eq{
@@ -445,7 +454,7 @@ Note that thanks to the Woodbury formula, this estimator can also be re-written 
 }
 If $n \gg p$ (which is the usual setup in machine learning), then~\eqref{eq-linest-woodbury} is preferable. In some cases however (in particular when using RKHS technics), it makes sense to consider very large $p$ (even infinite dimensional), so that~\eqref{eq-linest-std} must be used. 
 
-If $n \la_n \rightarrow 0$, then using~\eqref{eq-empirical-conver}, one has the convergence in expectation and probability
+If $\la_n \rightarrow 0$, then using~\eqref{eq-empirical-conver}, one has the convergence in expectation and probability
 \eq{
 	\hat\be \rightarrow \bar\be = C^{+} u. 
 }
@@ -467,78 +476,6 @@ Theorems~\ref{thm-sublin-quad} and~\ref{thm-bregman-rates} can be extended to th
 
 It is important to note that, since $\bar\be = C^{+} u$, the source condition~\eqref{eq-sc-stat} is always satisfied. What trully matters here is that the rate~\eqref{eq-rate-estim} does not depend on the dimension $p$ of the features, but rather only on $\rho$, which can be much smaller. This theoretical analysis actually works perfectly fine in infinite dimension $p=\infty$ (which is the setup considered when dealing with RKHS bellow). 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Kernelized Ridge Regression}
-
-In order to perform non-linear and non-parametric regression, it is
-possible to use kernelization. It is non-parametric in the sense that the number of
-parameters grows with the number $n$ of samples (while for the initial
-linear  method, the number of parameters is $p$). This allows in particular to
-generate estimators of arbitrary complexity. 
-
-Given a kernel $\kappa(x,z) \in \RR$ defined for $(x,z) \in \RR^p \times \RR^p$,
-a kernelized method replaces the linear approximation functional $f(x,\be) =
-\dotp{x}{\be}$ by a sum of kernel centred on the samples 
-\eql{\label{eq-kernelized-function}
-	 f(x,\al) \eqdef \sum_{i=1}^n \al_i \kappa(x_i,x), 
-}
-where $\al \in \RR^n$ is the unknown vector of weights to find. Note that now, the dimension of the parameter is $n$ and not $p$, so it is data-dependent.
-%
-When using the linear kernel $\kappa(x,y)=\dotp{x}{y}$, one retrieves the previously studied linear method. 
-
-\begin{figure}
-\centering
-\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
-\includegraphics[width=.19\linewidth]{ml/regression/scatter-2d}&
-\includegraphics[width=.19\linewidth]{ml/regression/kernel-2}&
-\includegraphics[width=.19\linewidth]{ml/regression/kernel-3}&
-\includegraphics[width=.19\linewidth]{ml/regression/kernel-4}&
-\includegraphics[width=.19\linewidth]{ml/regression/kernel-5}\\
-& $\si=0.1$ & $\si=0.5$ & $\si=1$ & $\si=5$
-\end{tabular}
-\caption{\label{fig-kernel}
-Regression using a Gaussian kernel.
-}
-\end{figure}
-
-
-The gaussian kernel is the most well known and used kernel
-\eq{
-	 \kappa(x,y) \eqdef e^{-\frac{\norm{x-y}^2}{2\sigma^2}} . 
-}
-The bandwidth parameter $\si>0$ is crucial and controls the locality of
-the model. It is typically tuned through cross validation.  
-
-Once evaluated on grid points, the kernel define a matrix
-\eql{\label{eq-def-kernel-sampled}
-	 \hat K = (\kappa(x_i,x_j))_{i,j=1}^n \in \RR^{n \times n}.  
-}
-Valid kernels are those that give rise to positive symmetric matrices
-$\hat K$. The linear and Gaussian kernels are valid kernel functions. Other
-popular kernels include the polynomial kernel $\dotp{x}{y}^a$ for $a
-\geq 1$ and the Laplacian kernel $\exp(-\norm{x-y}/\si)$.
-
-The weights $\al \in \RR^n $ are then computed as solutions of
-\eql{\label{eq-min-rkhs}
-	 \umin{\al} \norm{\hat K \al-y}^2 + \la_n \dotp{\hat K \al}{\al}  
-}
-and hence can be computed by solving a linear system
-\eq{
-	 \hat \al = (\hat K+\la_n \Id_n)^{-1} y.
-}
-Figure~\eqref{fig-kernel} displays the function $f(\cdot,\al)$ for a varying bandwidth $\si$ for the Gaussian kernel.
-
-This minimization~\eqref{eq-min-rkhs} can be related to an infinite dimensional optimization
-problem where one minimizes directly over the function $f$. This
-is shown to be equivalent to the above finite dimensional optimization problem
-thanks to the theory of RKHS.
-%
-Indeed, note that one has, when evaluating the prediction function at the samples locations, 
-\eq{
-	(f(x_i,\hat \al))_{i=1}^n = \hat K (\hat K+\la_n \Id_n)^{-1} y, 
-}
-which matches exactly~\eqref{eq-linest-woodbury} when using $\hat K$ in place of $\hat C$. This is inline with the theory of RKHS, which shows that this kernelized ridge regression (and actually a large class of optimization problems) corresponds to doing to a classical regression in a (possibly infinite dimensional) lifted space $x \in \RR^p \mapsto \phi(x) \in \Hh$ so that $\kappa(x,x')=\dotp{\phi(x)}{\phi(x')}_\Hh$. But one does not needs to explicitly apply this lifting $\phi$, because only the matrices $\hat K$ are involved in the actual computation (this idea being often referred to as the ``kernel trick''). 
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -556,6 +493,7 @@ Note that the nearest neighbors approach, while popular for classification could
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Nearest Neighbors Classification}
+\label{sec-nn-classif}
 
 Probably the simplest method for supervised classification is $R$ nearest neighbors ($R$-NN), where $R$ is a parameter indexing the number of neighbors. Increasing $R$ is important to cope with noise and obtain smoother decision boundaries, and hence better generalization performances. It should typically decreases as the number of training samples $n$ increases.
 %
@@ -644,8 +582,6 @@ Intuitively, $\be/\norm{\be}$ controls the separating hyperplane direction, whil
 }
 \end{figure}
 
-
-
 Note that $f(x,\be)$ can be interpreted as a single layer perceptron with a logistic (sigmoid) rectifying unit, more details on this in Chapter~\ref{c-deep-learning}. 
 
 Since the $(x_i,y_i)$ are modelled as i.i.d. variables, it makes sense to define $\hat \be$ from the observation using a maximum likelihood, assuming that each $y_i$ conditioned on $x_i$ is a Bernoulli variable with associated probability $(p_i,1-p_i)$ with $p_i=f(x_i,\be)$. The probability of observing $y_i \in \{0,1\}$ is thus, denoting $s_i=\dotp{x_i}{\be}$
@@ -673,7 +609,7 @@ Some algebraic manipulations shows that this is equivalent to an ERM-type form~\
 		 E(\be)  = \frac{1}{n} \sum_{i=1}^n \loss(\dotp{x_i}{\be},y_i)  
 }
 where the logistic loss reads
-\eq{
+\eql{\label{eq-logistic-loss}
 	 \loss( s,y ) \eqdef \log( 1+\exp(-sy) ). 
 }
 Problem~\eqref{eq-logistic-optim} is a smooth convex minimization. If $X$ is injective, $E$ is also strictly convex, hence it has a single global minimum.
@@ -719,67 +655,6 @@ One can display the data overlaid on top of the classification probability, this
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Kernelized Logistic Classification}
-
-Logistic classification tries to separate the classes using
-a linear separating hyperplane $\enscond{x}{\dotp{\be}{x}=0}$. 
-
-In order to generate a non-linear decision boundary, one can replace the
-parametric linear model by a non-linear non-parametric model, thanks to
-kernelization. It is non-parametric in the sense that the number of
-parameters grows with the number $n$ of samples (while for the basic
-method, the number of parameter is $p$). This allows in particular to
-generate decision boundaries of arbitrary complexity.
-%
-The downside is that the numerical complexity of the method grows
-(at least) quadratically with $n$.
-
-The good news however is that thanks to the theory of reproducing kernel Hilbert spaces
-(RKHS), one can still compute this non-linear decision
-function using (almost) the same numerical algorithm.
-
-Similarly to~\eqref{eq-kernelized-function}, given a kernel $\kappa(x,z) \in \RR$ defined for $(x,z) \in \RR^p \times \RR^p$,
-the kernelized method replaces, as in~\eqref{eq-kernelized-function}, the linear decision functional $f(x) =
-\dotp{x}{\be}$ by a sum $f(x,\al)$ of kernels centred on the samples
-\eq{
-	 f(x,\al) = \sum_{i=1}^n \al_i \kappa(x_i,x) 
-}
-where $\al \in \RR^n$ is the unknown vector of weights to find.
-
-\begin{figure}
-\centering
-\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
-\includegraphics[width=.35\linewidth]{ml/classif/classes-kernel}&
-\includegraphics[width=.25\linewidth]{ml/classif/classes-kernel-result}
-\end{tabular}
-\caption{\label{fig-classes-kernel}
-Non-linear classification using a Gaussian kernel.
-}
-\end{figure}
-
-
-The kernelized Logistic minimization reads
-\eq{
-	 \umin{\al \in \RR^n} \Ff(\al) \eqdef \Loss(\hat K \al,y)
-}
-where $\hat K$ is the sampled kernel~\eqref{eq-def-kernel-sampled}.
-%
-One can then use a gradient descent to minimize $\Ff(\al)$.
-
-Once this optimal $\al$ has been found, class probabilities at a point
-$x$ are obtained as
-\eq{
-	 (\th(f(x,\al)), 1-\th(f(x,\al)) 
-}
-where $f(\cdot,\al)$ is defined in~\eqref{eq-kernelized-function}.
-
-Note that it is of course possible to add a regularization to this problem
-\eq{
-	 \umin{\al} \Loss(\hat K \al,y) + \la R(\al), 
-}
-where for instance $R=\norm{\cdot}_2^2$ or $R=\norm{\cdot}_1$.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Multi-Classes Logistic Classification}
@@ -819,7 +694,7 @@ and LSE is the log-sum-exp operator
 \eq{
 	 \text{LSE}(S) = \log\pa{ \sum_\ell \exp(S_{i,\ell}) } \in \RR^n. 
 }
-Note that in the case of $k=2$ classes $\Yy=\{-1,1\}$, this model can be shown to be equivalent to the two-classes logistic classifications methods exposed in Section~\eqref{sec-two-class-logit}, since the solution vector satisfies $\be_1=-\be_2$ (so it is computationally more efficient to only consider a single vector as we did).
+Note that in the case of $k=2$ classes $\Yy=\{-1,1\}$, this model can be shown to be equivalent to the two-classes logistic classifications methods exposed in Section~\eqref{sec-two-class-logit}, with a solution vector being equal to $\be_1-\be_2$ (so it is computationally more efficient to only consider a single vector as we did).
 
 The computation of the LSE operator is
 unstable for large value of $S_{i,\ell}$ (numerical overflow, producing NaN), but this can be
@@ -879,5 +754,171 @@ Left: probability $h(x)_\ell$ of belonging to each of the 9 first classes (displ
 Right: colors reflect probability $h(x)$ of belonging to classes.
 }
 \end{figure}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Kernel Methods}
+\label{sec-kernel-methods}
+
+Linear methods are parametric and cannot generate complex regression or decision functions. The linearity assumption is often too restrictive and in some case the geometry of the input functions or classes is not well capture by these models.  In many cases (e.g. for text data) the input data is not even in a linear space, so one cannot even apply these model.
+
+Kernel method is a simple yet surprisingly powerful remedy for these issues. By lifting the features to a high dimensional embedding space, it allows to generate non-linear decision and regression functions, but still re-use the machinery (linear system solvers or convex  optimization algorithm) of linear models. Also, by the use of the so-called ``kernel-trick'', the computation cost does not depends on the dimension of the embedding space, but of the number $n$ of points. It is the perfect example of so-called ``non-parametric'' methods, where the number of degrees of freedom (number of variables involved when fitting the model) grows with the number of samples. This is often desirable when one wants the precisions of the result to improve with $n$, and also to mathematically model the data using ``continuous''  models (e.g. functional spaces such as Sobolev).
+
+The general rule of thumb is that any machine learning algorithm which only makes use of inner products (and not directly of the features $x_i$ themselves) can be ``kernelized'' to obtain a non-parametric algorithm. This is for instance the case for linear and nearest neighbor regression, SVM classification, logistic classification and PCA dimensionality reduction. We first explain the general machinery, and instantiate this in two representative setup (ridge regression, nearest-neighbor regression and logistic classification)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Reproducing Kernel Hilbert Space}
+
+We consider a general lifting $\phi : x \in \RR^p \rightarrow \bar x = \phi(x) \in \Hh$ where $\Hh$ is a Hilbert space. We denote $\bar X = ( \bar x_i^* \eqdef \phi(x_i)^* )_{i=1}^n$ the ``matrix'' where each row is a lifted feature $\phi(x_i)$. For instance, if $\Hh=\RR^{\bar p}$ is finite dimensional, one can view this as a matrix $\bar X \in \RR^{n \times \bar p}$, but the rows of the matrix can be infinite dimensional vectors.
+
+The following proposition is the crux of the RKHS approaches. When using a regularization which is a squared Euclidean norm, $\norm{\cdot}_\Hh^2$, it states that the solutions actually belongs to a data-driven linear sub-space of dimension $n$. Although the proof is straightforward, its implications are very profound, since it leads to tractable algorithms even when using an infinite dimensional lifting space $\Hh$. as we elaborate next. It is often called the ``representer'' theorem in RKHS theory. 
+
+\begin{prop}
+	The solution $\be^\star \in \Hh$ of
+	\eql{\label{eq-kernel-generic}
+		\umin{\be \in \Hh} \Loss(\bar X \be,y) + \frac{\la}{2} \norm{\be}_\Hh^2
+	}
+	is unique and can be written as
+	\eql{\label{eq-rkhs-representer}
+		\be = \bar X^* q^\star = \sum_i q_i^\star \phi(x_i) \in \Hh
+	}
+	where $q \in \RR^N$ is a solution of
+	\eql{\label{eq-rkhs-variational}
+		\umin{q \in \RR^N} \Loss(K p,y) + \frac{\la}{2} \dotp{K q}{q}_{\RR^n}
+	}
+	where we defined 
+	\eq{
+		K \eqdef  \bar X^* \bar X = ( \dotp{\phi(x_i)}{\phi(x_j)}_\Hh )_{i,j=1}^n \in \RR^{n \times n}.
+	}
+\end{prop}
+
+\begin{proof}
+	The first order condition of~\eqref{eq-kernel-generic} reads
+	\eq{
+		0 \in \bar X^* \partial \Loss(\bar X^* \be^\star,y) + \la \be^\star = 0
+	}
+	i.e. there exists $u^\star \in \partial \Loss(\bar X^* \be^\star,y)$ such that 
+	\eq{
+		\be^\star = -\frac{1}{\la} \bar X^* u^\star \in \Im(\bar X^*)
+	}
+	which is the desired result. 
+\end{proof} 
+
+Equation~\eqref{eq-rkhs-representer} expresses the fact that the solution only lives in the $n$ dimensional space spanned by the lifted observed points $\phi(x_i)$.
+%
+A crucial by product of this results is that all the computations as well as the prediction procedure can be expressed using the so-called kernel $\kappa : \Xx \times \Xx \rightarrow \RR$ associated to $\phi$
+\eq{
+	\foralls (x,x') \in \Xx^2, \quad \kappa(x,x') \eqdef \dotp{\phi(x')}{\phi(x')}_\Hh.
+}
+Indeed, one has $K = (\kappa(x_i,x_j))_{i,j}$ and the prediction operator, as a function of $x$ and not $\phi(x)$ (which makes it non-linear) is a weighted sum of kernel functions centered at the $x_i$
+\eql{\label{eq-kernel-interp}
+	\dotp{\bar x}{\be^\star}_\Hh = \sum_{i=1}^n p_i^\star \dotp{\phi(x)}{\phi(x_i)}_\Hh = \sum_{i=1}^n p_i^\star \kappa(x_i,x).
+}
+This means that one actually never needs to manipulate quantities in $\Hh$ (which can be infinite dimensional).
+
+But more importantly, one can reverse the process, and instead of starting from a lifting $\phi$, directly consider a kernel $\kappa(x,x')$. This is actually the way this is done in practice, since it is easier to design kernel and think in term of their geometrical properties (for instance, one can sum kernels). In order for this to make sense, the kernel needs to be positive definite, i.e. one should have that $(\kappa(x_i,x_j))_{i,j}$ should be symmetric positive definite for any choice of sampling points $(x_i)_i$. This can be shown to be equivalent to the existence of a lifting function $\phi$ generating the kernel.
+%
+Note that such a kernel can be defined on arbitrary space (not necessarily Euclidean). 
+
+
+When using the linear kernel $\kappa(x,y)=\dotp{x}{y}$, one retrieves the linear models studied in the previous section, and the lifting is trivial $\phi(x)=x$.
+%
+A family of popular kernels are polynomial ones,  $\kappa(x,x') = (\dotp{x}{y}+c)^a$ for $a
+\in \NN^*$ and $c>0$, which corresponds to a lifting in finite dimension. For instance, for $a=2$ and $p=2$, one has a lifting in dimension $6$
+\eq{
+	\kappa(x,x') = \pa{ x_1 x_1' + x_1 x_1' + c}^2 = \dotp{\phi(x)}{\phi(x')}
+	\qwhereq
+	\phi(x)=(x_1^2,x_2^2,\sqrt{2}x_1x_2,\sqrt{2c}x_1,\sqrt{2c}x_2,c)^* \in \RR^6.	
+}
+
+In Euclidean spaces, the gaussian kernel is the most well known and used kernel
+\eql{\label{eq-gauss-kernel}
+	 \kappa(x,y) \eqdef e^{-\frac{\norm{x-y}^2}{2\sigma^2}} . 
+}
+The bandwidth parameter $\si>0$ is crucial and controls the locality of
+the model. It is typically tuned through cross validation. It corresponds to an infinite dimensional lifting $x \mapsto e^{-\frac{\norm{x-\cdot}^2}{2(\sigma/2)^2}} \in L^2(\RR^p)$.
+%
+Another related popular kernel is the Laplacian kernel $\exp(-\norm{x-y}/\si)$.
+%
+More generally, when considering translation invariant kernels $\kappa(x,x') = k(x-x')$ on $\RR^p$, being positive definite is equivalent to $\hat k(\om)>0$ where $\hat k$ is the Fourier transform, and the associated lifting is obtained by considering $\hat h=\sqrt{\hat \kappa}$ and $\phi(x)=h(x-\cdot) \in L^2(\RR^p)$. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Examples of Kernelized Algorithms}
+
+We illustrate this general machinery by applying it to three typical problems. 
+
+%%
+\paragraph{Kernelized ridge regression.}
+
+The simplest instantiation of this kernelization approach is when using the square loss $L(y,y')=\frac{1}{2}|y-y'|^2$, which is the ridge regression problem studied in Section~\ref{sec-linear-models}. The obtain regression model~\eqref{eq-kernel-interp} corresponds to approximating the data using a weighted sum of data-centered kernel function $\kappa(x_i,\cdot)$. When using a Gaussian kernel~\eqref{eq-gauss-kernel}, the bandwidth $\si$ controls the smoothness of the approximation. This is illustrated in Figure~\ref{fig-kernel}. 
+
+
+\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+\includegraphics[width=.19\linewidth]{ml/regression/scatter-2d}&
+\includegraphics[width=.19\linewidth]{ml/regression/kernel-2}&
+\includegraphics[width=.19\linewidth]{ml/regression/kernel-3}&
+\includegraphics[width=.19\linewidth]{ml/regression/kernel-4}&
+\includegraphics[width=.19\linewidth]{ml/regression/kernel-5}\\
+& $\si=0.1$ & $\si=0.5$ & $\si=1$ & $\si=5$
+\end{tabular}
+\caption{\label{fig-kernel}
+Regression using a Gaussian kernel.
+}
+\end{figure}
+
+
+In this special case of a square loss, one can solve in closed form~\eqref{eq-rkhs-variational} by solving a $n \times n$ linear system
+\eq{
+	q^\star = (K K+\la K)^{-1} K y =  (K+\la \Id_N)^{-1} y
+}
+This expression matches exactly~\eqref{eq-linest-woodbury} when using $K$ in place of $\hat C$
+
+%%%
+\paragraph{Kernelized logistic classification.}
+
+Logistic classification tries to separate the classes using a linear separating hyperplane $\enscond{x}{\dotp{\be}{x}=0}$. 
+%
+In order to generate a non-linear decision boundary, one can replace the parametric linear model by a non-linear non-parametric model, thanks to kernelization.  This allows in particular to generate decision boundaries of arbitrary complexity.
+
+In the two class problem, as detailed in Section~\ref{sec-two-class-logit}, one solves~\eqref{eq-rkhs-variational} using the logistic loss~\eqref{eq-logistic-loss}. This can be for instance achieved by a gradient descent method.
+%
+Once the solution $q^\star$ is obtained, the probability of $x$ belonging to the first class is then
+\eq{
+	\th( \sum_{i=1}^n q_i^\star \kappa(x_i,x) ).
+} 
+Figure~\ref{fig-classes-kernel} illustrate such a non-linear decision function on a simple 2-D problem.
+
+
+\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
+\includegraphics[width=.35\linewidth]{ml/classif/classes-kernel}&
+\includegraphics[width=.25\linewidth]{ml/classif/classes-kernel-result}
+\end{tabular}
+\caption{\label{fig-classes-kernel}
+Non-linear classification using a Gaussian kernel.
+}
+\end{figure}
+
+
+%%
+\paragraph{Kernelized nearest-neihbors. }
+
+It is also possible to extend nearest neighbor classification (as detailed in Section~\ref{sec-nn-classif}) and regression over a lifted space by making use only of kernel evaluation, simply noticing that
+\eq{
+	\norm{\phi(x_i)-\phi(x_j)}_\Hh^2 = \kappa(x_i,x_i)+\kappa(x_j,x_j) - 2 \kappa(x_i,x_j).	
+}
+
+
+%%
+\paragraph{Kernel on strings. }
+
+\todo{write me}
 
 
