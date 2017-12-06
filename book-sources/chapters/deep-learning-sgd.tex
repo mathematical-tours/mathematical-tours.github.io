@@ -1,0 +1,335 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Stochastic Optimization}
+\label{sec-stochastic-optim}
+
+We detail some important stochastic Gradient Descent methods, which enable to perform optimization in the setting where the number of samples $n$ is large and even infinite. 
+
+% We set the classes indexes to be $\{-1,+1\}$, and remove empty features, normalize $X$. $n$ is the number of samples, $p$ is the dimensionality of the features,
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Minimizing Sums and Expectation}
+
+A large class of functionals in machine learning can be expressed as minimizing large sums of the form
+\eql{\label{eq-min-sums}
+	\umin{\be \in \RR^p} \Ee(\be) \eqdef \frac{1}{n} \sum_{i=1}^n \Ee_i(\be)
+}
+or even expectations of the form
+\eql{\label{eq-min-int}
+	\umin{\be \in \RR^p}  \Ee(\be) \eqdef \EE_{\zp \sim \pi}( \Ee(\be,\zp) ) = \int_{\Zz} \Ee(\be,z) \d\pi(z).
+}
+Problem~\eqref{eq-min-sums} can be seen as a special case of~\eqref{eq-min-int}, when using a discrete empirical uniform measure $\pi = \sum_{i=1}^n \de_i$ and setting $\Ee(x,i)=\Ee_i(x)$. One can also viewed~\eqref{eq-min-sums} as a discretized ``empirical'' version of~\eqref{eq-min-int} when drawing $(z_i)_i$ i.i.d. according to $\zp$ and defining $\Ee_i(x)=\Ee(x,z_i)$. In this setup,~\eqref{eq-min-sums} converges to~\eqref{eq-min-int} as $n \rightarrow +\infty$.
+
+A typical example of such a class of problems is empirical risk minimization (here without regularization $J=0$ for simplicity)~\eqref{eq-erm-param} and its expectation version~\eqref{eq-consistency-param}, where in these cases
+\eql{\label{eq-stochastic-erm}
+	\Ee_i(\be) = \loss(f(x_i,\be),y_i)
+	\qandq
+	\Ee_i(\be,z) = \loss(f(x,\be),y)
+}
+for $z=(x,y) \in \Zz = (\Xx=\RR^p) \times (\Yy=\RR^q)$ (typically $q=1$). 
+%
+We illustrate bellow the methods on binary logistic classification, where
+\eql{\label{eq-stoch-logistic}
+	\loss(s,y ) \eqdef \log( 1+\exp(-sy) ) \qandq f(x,\be) = \dotp{x}{\be}, 
+}
+see Section~\ref{sec-two-class-logit} for details. But this extends to arbitrary parametric models, and in particular deep neural networks as detailed in Section~\ref{sec-deepnet-discr}. 
+
+While some algorithms (in particular batch gradient descent) are specific to finite sums~\eqref{eq-min-sums}, the stochastic methods we detail next work verbatim (with the same convergence guarantees) in the expectation case~\eqref{eq-min-int}. For the sake of simplicity, we however do the exposition for the finite sums case, which is sufficient in the vast majority of cases. But one should keep in mind that $n$ can be arbitrarily large, so it is not acceptable in this setting to use algorithms whose complexity per iteration depend on $n$.
+
+The general idea underlying stochastic optimization methods is \textit{not} to have faster algorithms with respect to traditional optimization schemes such as those detailed in Chapter~\ref{chap-conv-duality}. In almost all cases, if $n$ is not too large so that one afford the price of doing a few non-stochastic iterations, then deterministic methods are faster. But if $n$ is so large that one cannot do even a single deterministic iteration, then stochastic methods allow one to have a fine grained scheme by breaking the cost of determinstic iterations in smaller chunks. Another advantage is that they are quite easy to parallelize. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Batch Gradient Descent (BGD)}
+
+The usual deterministic (batch) gradient descent (BGD) is studied in details in Section~\ref{eq-general-pbm}. Its iterations read
+\eq{
+	\iit{\be} = \it{\be} - \tau_\ell \nabla \Ee(\it{\be})
+}
+and the step size should be chosen as $0 < \tau_{\min} < \tau_\ell < \tau_{\max} \eqdef 2/L$ where $L$ is the Lipschitz constant of the gradient $\nabla \Ee$. In particular, in this determinstic setting, this step size should not go to zero and this ensures quite fast convergence (even linear rates if $\Ee$ is strongly convex).
+
+The computation of the gradient in our setting reads
+\eql{\label{eq-full-grad}
+	\nabla \Ee(\be) = \frac{1}{n} \sum_{i=1}^n \nabla \Ee_i(\be)
+}
+so it typically has complexity $O(np)$ if computing $\nabla \Ee_i$ has linear complexity in $p$.
+
+In the ERM setting~\eqref{eq-stochastic-erm}, the gradient reads 
+\eql{\label{eq-grad-formula}
+	\nabla \Ee_i(\be) = [\partial f(x_i,\be)]^\top ( \nabla \loss( f(x_i,\be),y_i ) ),
+}
+where $\partial f(x,\be) \in \RR^{q \times p}$ is the Jacobian of the mapping $\be \in \RR^p \mapsto f(x,\be) \in \RR^q$, while
+$\nabla \loss( y,y' ) \in \RR^q$ is the gradient with respect to the first variable, i.e. the gradient of the map $y \in \RR^q \mapsto \loss(y,y') \in \RR$.
+
+In the case of a linear model such as~\eqref{eq-stoch-logistic}, this gradient computation simply reads
+\eq{
+	\nabla \Ee_i(\be) = \loss'( \dotp{x_i}{\be}, y_i ) ) x_i 
+}
+where $\loss'$ is the differential of $\loss$ with respect to the first variable. For the logistic loss, it is simply 
+\eq{
+	\loss'(s,y) = -s \frac{e^{-sy}}{ 1+e^{-sy} }.
+}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.6\linewidth]{ml/sgd/error-bgd-1} \\
+$\Ee(\it{\be})$ \\
+\includegraphics[width=.6\linewidth]{ml/sgd/error-bgd-2} \\
+$\log_{10}(\Ee(\it{\be})-\Ee(\be^\star))$ 
+\caption{\label{fig-bgd}
+Evolution of the error of the BGD for logistic classification.
+}
+\end{figure}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Stochastic Gradient Descent (SGD)}
+
+\wrapf{ml/sgd/unbiased-grad}{Unbiased gradient estimate}
+For very large $n$, computing the full gradient $\nabla \Ee$ as in~\eqref{eq-full-grad} is prohibitive.  
+%
+The idea of SGD is to trade this exact full gradient by an inexact proxy using a single functional $\Ee_{i}$ where $i$ is drawn uniformly at random. The main idea that makes this work is that this sampling scheme provides an unbiased estimate of the gradient, in the sense that
+\eql{\label{eq-unbiased-grad}
+	\EE_{\ip}{ \nabla \Ee_{\ip}(\be) } = \nabla \Ee(\be)
+}
+where $\ip$ is a random variable distributed uniformly in $\{1,\ldots,n\}$.
+
+\wrapf{ml/sgd/sgd-schematic}{Schematic view of SGD iterates}
+Starting from some $\be^{(0)}$,the iterations of stochastic gradient descent (SGD) read
+\eq{
+	\iit{\be} = \it{\be} - \tau_\ell \nabla \Ee_{i(\ell)}(\it{\be})
+}
+where, for each iteration index $\ell$, $i(\ell)$
+is drawn uniformly at random in $\{1,\ldots,n\}$. 
+%
+It is important that the iterates $\iit{\be}$ are thus random vectors, and the theoretical analysis of the method thus studies wether this sequence of random vectors converges (in expectation or in probability for instance) toward a deterministic vector (minimizing $\Ee$), and at which speed. 
+
+Note that each step of a batch gradient descent has complexity $O(np)$,
+while a step of SGD only has complexity $O(p)$. SGD is thus
+advantageous when $n$ is very large, and one cannot afford to do
+several passes through the data. In some situation, SGD can provide
+accurate results even with $\ell \ll n$, exploiting redundancy between
+the samples.
+
+A crucial question is the choice of step size schedule $\tau_\ell$. It
+must tends to 0 in order to cancel the noise induced on the gradient by
+the stochastic sampling. But it should not go too fast to zero in order
+for the method to keep converging. 
+
+
+A typical schedule that ensures both properties is to have asymptotically $\tau_\ell \sim \ell^{-1}$ for
+$\ell\rightarrow +\infty$. We thus propose to use 
+\eql{\label{eq-stepsize-sgd}
+	\tau_\ell \eqdef \frac{\tau_0}{1 + \ell/\ell_0}
+}
+where $\ell_0$ indicates roughly the number of iterations serving as a
+``warmup'' phase.
+
+Figure~\ref{fig-sgd-traject} shows a simple 1-D example to minimize $\Ee_1(\be)+\Ee_2(\be)$ for $\be \in \RR$ and $\Ee_1(\be)=(\be-1)^2$ and $\Ee_2(\be)=(\be+1)^2$. One can see how the density of the distribution of $\it{\be}$ progressively clusters around the minimizer $\be^\star=0$. Here the distribution of $\be^{(0)}$ is uniform on $[-1/2,1/2]$.
+
+\begin{figure}
+\centering
+\includegraphics[width=.49\linewidth]{ml/sgd/sgd-histo} 
+\includegraphics[width=.49\linewidth]{ml/sgd/sgd-trajectory}
+\caption{\label{fig-sgd-traject}
+Display of a large number of trajectories $\ell \mapsto \it{\be} \in \RR$ generated by several runs of SGD. On the top row, each curve is a trajectory, and the bottom row displays the corresponding density.
+}
+\end{figure}
+
+
+The following theorem shows the convergence in expectration with a $1/\sqrt{\ell}$ rate on the objective.
+
+\begin{thm}\label{thm-conv-sgd}
+We assume $\Ee$ is $\mu$-strongly convex as defined in~\eqref{eq-strong-conv} (i.e. $\Id_{N \times N}  \preceq \partial^2  \Ee(\be)$ if $\Ee$ is $\Cc^2$), and is such that $\norm{\nabla \Ee_i(x)}^2 \leq C^2$. 
+For the step size choice $\tau_\ell = \frac{1}{\mu (\ell+1)}$, one has
+\eql{\label{eq-rate-sgd}
+	\EE( \norm{\it{\be}-\be^\star}^2 ) \leq \frac{ R }{\ell+1}
+	\qwhereq
+	 R = \max( \norm{\be^{(0)} - \be^\star}, C^2/\mu^2 ), 
+}
+where $\EE$ indicates an expectation with respect to the i.i.d.
+sampling performed at each iteration.
+\end{thm}
+
+\begin{proof}
+	By strong convexity, one has
+	\begin{align*}
+		\Ee(\be^\star) - \Ee(\it{\be}) &\geq \dotp{ \nabla\Ee(\it{\be}) }{ \be^\star-\it{\be} } + \frac{\mu}{2}\norm{\it{\be}-\be^\star}^2 \\
+		\Ee(\it{\be}) - \Ee(\be^\star) &\geq \dotp{ \nabla\Ee(\be^\star) }{ \it{\be} - \be^\star } + \frac{\mu}{2}\norm{\it{\be}-\be^\star}^2.
+	\end{align*}
+	Summing these two inequalities and using $\nabla\Ee(\be^\star)=0$ leads to
+	\eql{\label{eq-sgd-proof-1}
+		\dotp{ \nabla\Ee(\it{\be}) - \nabla\Ee(\be^\star) }{ \it{\be} - \be^\star }
+		=
+		\dotp{ \nabla\Ee(\it{\be})  }{ \it{\be} - \be^\star }
+		\geq \mu \norm{\it{\be}-\be^\star}^2.
+	}
+	Considering only the expectation with respect to the ransom sample of $i(\ell) \sim \ip_\ell$, one has
+	\begin{align*}
+		\EE_{\ip_\ell}( \norm{\iit{\be}-\be^\star}^2 )
+		&= 
+		\EE_{\ip_\ell}( \norm{\it{\be} - \tau_\ell \nabla \Ee_{\ip_\ell}(\it{\be}) -\be^\star}^2 ) \\
+		&= 
+		\norm{\it{\be} - \be^\star}^2 + 2\tau_\ell \dotp{ \EE_{\ip_\ell}(\nabla \Ee_{\ip_\ell}(\it{\be})) }{ \be^\star - \it{\be}  } + 
+			\tau_\ell^2  \EE_{\ip_\ell}( \norm{\nabla \Ee_{\ip_\ell}(\it{\be})}^2 ) \\
+		&\leq
+		\norm{\it{\be} - \be^\star}^2 + 2\tau_\ell \dotp{ \nabla \Ee(\it{\be})) }{ \be^\star - \it{\be}  } + \tau_\ell^2 C^2 \\
+	\end{align*}
+	where we used the fact~\eqref{eq-unbiased-grad} that the gradient is unbiased. 
+	%
+	Taking now the full expectation with respect to all the other previous iterates, and using~\eqref{eq-sgd-proof-1} one obtains
+	\eql{\label{eq-sgd-proof-2}
+		\EE( \norm{\iit{\be}-\be^\star}^2 ) \leq \EE( \norm{\it{\be} - \be^\star}^2 ) - 2 \mu \tau_\ell \EE( \norm{\it{\be} - \be^\star}^2 ) + \tau_\ell^2 C^2
+		= (1-2 \mu \tau_\ell)  \EE( \norm{\it{\be} - \be^\star}^2 ) + \tau_\ell^2 C^2.
+	}
+	We show by recursion that the bound~\eqref{eq-rate-sgd} holds. We denote $\epsilon_\ell \eqdef \EE( \norm{\be^{(\ell)}-\be^\star}^2 )$.
+	%
+	Indeed, for $\ell=0$, this it is true that 
+	\eq{
+		\epsilon_0 \leq \frac{ \max( \norm{\be^{(0)} - \be^\star}, C^2/\mu^2 ) }{1} = \frac{R}{1}.
+	}
+	We now assume that $\epsilon_\ell \leq \frac{R}{\ell+1}$. Using~\eqref{eq-sgd-proof-2} in the case of $\tau_\ell = \frac{1}{\mu (\ell+1)}$, one has, denoting $m=\ell+1$
+	\begin{align*}
+		\epsilon_{\ell+1} &\leq (1-2 \mu \tau_\ell) \epsilon_\ell + \tau_\ell^2 C^2 = 
+			\pa{1-\frac{2}{m}} \epsilon_\ell + \frac{C^2}{(\mu m)^2}  \\  
+			&\leq
+			\pa{1-\frac{2}{m}} \frac{R}{m} + \frac{R}{m^2}  = 
+			\pa{ \frac{1}{m}-\frac{1}{m^2} } R
+			= 
+			\frac{m-1}{m^2} R
+			= 
+			\frac{m^2-1}{m^2}\frac{1}{m+1} R
+			\leq
+			\frac{R}{m+1}
+	\end{align*}
+\end{proof}
+
+A weakness of SGD (as well as the SGA scheme studied next) is that it only weakly benefit from strong convexity of $\Ee$. This is in sharp contrast with BGD, which enjoy a fast linear rate for strongly convex functionals, see Theorem~\ref{thm-gradsec-non-strong-conv}.
+
+Figure~\ref{fig-sgd} displays the evolution of the energy $\Ee(\it{\be})$. 
+It overlays on top (black dashed curve) the convergence of the batch gradient descent, with a careful scaling of the 
+number of iteration to account for the fact that the complexity of a batch iteration is $n$ times larger. 
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.6\linewidth]{ml/sgd/error-sgd-1} \\
+$\Ee(\it{\be})$ \\
+\includegraphics[width=.6\linewidth]{ml/sgd/error-sgd-2} \\
+$\log_{10}(\Ee(\it{\be})-\Ee(\be^\star))$ 
+\caption{\label{fig-sgd}
+Evolution of the error of the SGD for logistic classification (dashed line shows BGD).
+}
+\end{figure}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Stochastic Gradient Descent with Averaging (SGA)}
+\label{sec-sga}
+
+Stochastic gradient descent is slow because of the fast decay of
+$\tau_\ell$ toward zero.
+%
+To improve somehow the convergence speed, it is possible to average the past
+iterate, i.e. run a ``classical" SGD on auxiliary variables $( \it{\tilde\be})_\ell$
+\eq{
+	 \iit{\tilde\be} = \it{\tilde\be} - \tau_\ell \nabla \Ee_{i(\ell)}(\it{\tilde\be})
+}
+and output as estimated weight vector the Cesaro average
+\eq{
+	\it{\be} \eqdef \frac{1}{\ell} \sum_{k=1}^\ell \it{\tilde\be}.
+}
+This defines the Stochastic Gradient Descent with Averaging (SGA)
+algorithm.
+
+Note that it is possible to avoid explicitly storing all the iterates by simply
+updating a running average as follow
+\eq{
+	\iit{\be} = \frac{1}{\ell} \it{\tilde\be} +  \frac{\ell-1}{\ell} \it{\be}. 
+}
+
+
+In this case, a typical choice of decay is rather of the form 
+\eq{
+	\tau_\ell \eqdef \frac{\tau_0}{1 + \sqrt{\ell/\ell_0}}.
+}
+Notice that the step size now goes much slower to 0, at rate $\ell^{-1/2}$.
+
+
+Typically, because the averaging stabilizes the iterates, the choice of
+$(\ell_0,\tau_0)$ is less important than for SGD. 
+
+% <https://arxiv.org/pdf/1303.6149.pdf 
+
+Bach proves that for logistic classification, 
+it leads to a faster convergence (the constant involved are
+smaller) than SGD, since 
+on contrast to SGD, SGA is adaptive to the local strong convexity of $E$.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Stochastic Averaged Gradient Descent (SAG)}
+
+% https://arxiv.org/pdf/1309.2388
+For problem size $n$ where the dataset (of size $n \times p$) can
+fully fit into memory, it is possible to further improve the SGA method
+by bookkeeping the previous gradients. This gives rise to the 
+Stochastic Averaged Gradient Descent (SAG) algorithm.
+
+We store all the previously computed gradients in $(G^i)_{i=1}^n$,
+which necessitates $O(n \times p)$ memory. 
+The iterates are defined by using a proxy $g$ for the batch gradient,
+which is progressively enhanced during the iterates.
+
+The algorithm reads
+\eq{
+	h \leftarrow \nabla \Ee_{i(\ell)}(\it{\tilde\be}),
+}
+\eq{
+	g  \leftarrow g - G^{i(\ell)} + h,  
+}
+\eq{
+	G^{i(\ell)} \leftarrow h, 
+}
+\eq{
+	\iit{\be} = \it{\be} - \tau g. 
+}
+Note that in contrast to SGD and SGA, this method uses a fixed step
+size $\tau$. Similarly to the BGD, in order to ensure convergence, 
+the step size $\tau$ should be of the order of $1/L$
+where $L$ is the Lipschitz constant of $\Ee$.
+
+This algorithm improves over SGA and SGD
+since it has a convergence rate of $O(1/\ell)$ as does BGD. 
+Furthermore, in the presence of strong convexity (for instance when $X$ is
+injective for logistic classification), it has a linear convergence rate, 
+i.e. 
+ \eq{
+	\EE( \Ee(\it{\be}) ) - \Ee(\be^\star) = O\pa{ \rho^\ell },
+}
+for some $0 < \rho < 1$. 
+
+Note that this improvement over SGD and SGA is made possible only because
+SAG explicitly uses the fact that $n$ is finite (while SGD and SGA can
+be extended to infinite $n$ and more general minimization of
+expectations~\eqref{eq-min-int}).
+
+Figure~\ref{fig-bgd} shows a comparison of SGD, SGA and SAG.
+
+\begin{figure}
+\centering
+\includegraphics[width=.6\linewidth]{ml/sgd/sg-comparison}
+\caption{\label{fig-bgd}
+Evolution of $\log_{10}(\Ee(\it{\be})-\Ee(\be^\star))$ for SGD, SGA and SAG.
+}
+\end{figure}
+
+
+
