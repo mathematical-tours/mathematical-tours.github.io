@@ -34,9 +34,5 @@ Chapters Available as Individual PDFs
 - [Convex Optimization](book-sources/chapters-pdf/convex-optim.pdf)
 - [Compressed Sensing](book-sources/chapters-pdf/compressed-sensing.pdf)
 - [Machine Learning](book-sources/chapters-pdf/machine-learning.pdf)
-
-Chapters Soon Available
-----------------
-
 - [Deep-Learning](book-sources/chapters-pdf/deep-learning.pdf)
 - [Optimal Transport](book-sources/chapters-pdf/optimal-transport.pdf)
