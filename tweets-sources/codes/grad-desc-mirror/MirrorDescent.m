@@ -1,7 +1,7 @@
 %%
 % Mirror descent
 
-rep = 'results/';
+rep = '../results/mirror-descent/';
 [~,~] = mkdir(rep);
 
 bregmode = 'kl';
@@ -16,7 +16,7 @@ fname = 'linear';
 fname = 'quadratic';
 
 switch fname
-    case 'quadratic'        
+    case 'quadratic'
         f = @(u,v)(u.^2+v.^2)/2;
         Gradf = @(x)x;
     case 'linear'
@@ -39,14 +39,14 @@ breglist = {'kl' 'sqrt' 'log' 'eucl'};
 
 tau = .05;
 niter = round(100/tau);
-    
+
 for it = 1:length(bregmode)
-    
+
     bregmode = breglist{it};
-    
+
     [R,Ri,phi] = load_bregman(bregmode);
-    
-    
+
+
     x = [.95 .55]';
     Z = [];
     for i=1:niter
@@ -54,11 +54,11 @@ for it = 1:length(bregmode)
         x = Ri( R(x) - tau*Gradf(x) );
         x = max(x,0);
     end
-    
-    
+
+
     plot(Z(1,:),Z(2,:), '-', 'LineWidth', 2, 'MarkerSize', 23, 'color', col{it});
     axis off; axis equal;
-    
+
 end
 
 
@@ -84,5 +84,3 @@ a(W<=0)=NaN;
 b = KL( repmat(p(:)', [n*n 1]), [U(:) V(:) W(:)] );
 b = reshape(b, [n n]);
 b(W<=0)=NaN;
-
-
