@@ -8,8 +8,8 @@ rep = 'results/';
 a = 2;
 
 gmode = 'large';
-gmode = 'low';
 gmode = 'search';
+gmode = 'low';
 niter = 10;
 
 

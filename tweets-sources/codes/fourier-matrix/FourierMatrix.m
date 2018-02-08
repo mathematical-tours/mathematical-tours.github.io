@@ -20,9 +20,10 @@ A = @(X)abs(X)/max(abs(X(:)));
 Rainb = @(X)cat( 3, Q(T(X)).*A(X), Q(T(X)+1/3).*A(X), Q(T(X)+2/3).*A(X) );
 
 % real save
-mysaveR = @(X,name)imwrite(resc(ups(X)), [rep name '.png'], 'png');
+mysave = @(X,name)imwrite(X, [rep name '.png'], 'png');
+mysaveR = @(X,name)mysave(resc(ups(X)), name);
 % complex save
-mysaveC = @(X,name)imwrite(Rainb(ups(X)), [rep name '.png'], 'png');
+mysaveC = @(X,name)mysave(Rainb(ups(X)), name);
 
 % Fourier
 F = @(n)exp(2i*pi/n*(0:n-1)'*(0:n-1));
@@ -41,7 +42,7 @@ mysaveC(diag(r), 'convol-diag');
 
 %%
 % Fourier matrix factorization
-n = 8;
+n = 16;
 % even/odd intersertion
 I = full(sparse(1:2:n,1:n/2,ones(n/2,1),n,n) + ...
      sparse(2:2:n,n/2+1:n,ones(n/2,1),n,n));
@@ -54,9 +55,15 @@ EO = [eye(n/2),eye(n/2); eye(n/2),-eye(n/2)];
 % factorizationhhk
 F1 = I * FF * D * EO;
 
+Dr0 = Rainb(D);
+Dr = ones(n,n,3)/2;
+for i=1:3
+    Dr(:,:,i) = Dr(:,:,i)-diag(diag(Dr(:,:,i))) + diag(diag(Dr0(:,:,i)));
+end
+
 
 mysaveR(I, 'factor-I');
-mysaveR(D, 'factor-D');
+mysave(ups(Dr), 'factor-D');
 mysaveR(EO, 'factor-EO');
 
 
