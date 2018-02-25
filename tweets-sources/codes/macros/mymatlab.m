@@ -47,3 +47,7 @@ contour(t,t,R',linspace(0,1,r), 'k');
 colormap(parula(r-1));
 caxis([0 1]);
 axis image; axis off;
+
+% piecewise constant upsampling
+S = @(k,p)floor(1:1/k:p+1-1/k);
+Upsc = @(x,k)x(S(k,size(x,1)),S(k,size(x,2)));
