@@ -48,6 +48,12 @@ colormap(parula(r-1));
 caxis([0 1]);
 axis image; axis off;
 
+% smooth a bit an image
+sm = @(f)( f + f([2:end 1],:) + f([end 1:end-1],:) + f(:,[2:end 1]) + f(:,[end 1:end-1]) )/5;
+for k=1:4
+    psi0 = sm(psi0);
+end
+
 % piecewise constant upsampling
 S = @(k,p)floor(1:1/k:p+1-1/k);
 Upsc = @(x,k)x(S(k,size(x,1)),S(k,size(x,2)));

@@ -3,29 +3,22 @@
 
 % https://en.wikipedia.org/wiki/Joukowsky_transform
 
-rep = 'results/';
+rep = '../results/conformal/';
 [~,~] = mkdir(rep);
 
 % # grids
-n = 20;
+n = 19;
 % sampling on grid
-p = 600;
+p = 601;
 
 a = 1.5; b = 1.5;
 
 % pas ok
-x = [linspace(1e-4,a,n/2)];
-y = linspace(1e-4,b,p);
+x = linspace(-1,1,n);
+y = linspace(-1,1,p);
 [Y,X] = meshgrid(y,x); X = X'; Y = Y';
 G = X+1i*Y;
-x = [linspace(1e-4,a,n/2)];
-y = linspace(-b,-1e-4,p);
-[Y,X] = meshgrid(y,x); X = X'; Y = Y';
-G = [G X+1i*Y];
 
-% ok
-x = [linspace(-b,-1e-4,n/2) linspace(1e-4,b,n/2)];
-y = linspace(1e-4,a,p);
 [Y,X] = meshgrid(y,x); X = X'; Y = Y';
 H = Y+1i*X;
 
@@ -35,9 +28,35 @@ clf; hold on;
 plot(G, 'r', 'LineWidth', lw);
 plot(H, 'b', 'LineWidth', lw);
 axis tight; axis equal; box on;
+axis off;
 set(gca, 'FontSize', fs);
 saveas(gcf, [rep 'grid.eps'], 'epsc');
 
+name = 'poly';
+
+switch name
+    case 'square'
+        f = @(z)z.^2;
+    case 'cube'
+        f = @(z)z.^3;
+    case 'exp'
+        f = @(z)exp(z);
+    case 'poly'
+        f = @(z)log(z);
+    case 'inv'
+        f = @(z)1./(z+1.3) + 1./(z-1.6);
+end
+
+clf; hold on;
+plot(f(G), 'r', 'LineWidth', lw);
+plot(f(H), 'b', 'LineWidth', lw);
+axis tight; axis equal; box on;
+set(gca, 'FontSize', fs);
+axis off;
+saveas(gcf, [rep name '.eps'], 'epsc');
+
+
+return;
 %%
 % Past a disk
 
