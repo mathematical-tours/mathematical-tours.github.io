@@ -17,7 +17,7 @@ function h = plot_mesh(vertex,face,options)
 %
 %   See also: mesh_previewer.
 %
-%   Copyright (c) 2004 Gabriel Peyré
+%   Copyright (c) 2004 Gabriel Peyr?
 
 
 if nargin<2
@@ -177,7 +177,7 @@ end
 cameramenu;
 set_view(name, view_param);
 shading(shading_type);
-camlight; %% BUG WITH PYTHON
+% camlight; %% BUG WITH PYTHON
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

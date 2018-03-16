@@ -18,6 +18,10 @@ Cov = @(X)Xm(X)'*Xm(X);
 dotp = @(x,y)sum(x(:).*y(:));
 rescale = @(x)(x-min(x(:)))/(max(x(:))-min(x(:)));
 
+% figure docked by default
+set(0,'DefaultFigureWindowStyle','docked')
+% figure naming
+figure('NumberTitle', 'off', 'Name', 'toto')
 
 % stabilized log-sum-exp and soft max
 max2 = @(S)repmat(max(S,[],2), [1 size(S,2)]);
