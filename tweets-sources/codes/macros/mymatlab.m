@@ -1,7 +1,7 @@
 % create gifs
 % Use znum2str() for consistent numbering
-% Use AutoCrop(rep, 'interp-') to crop the image generated using saveas
-% Use % convert interp-*.png interp.gif to generate the gif using imagemagik
+AutoCrop(rep, 'interp-'); %=  to crop the image generated using saveas
+% > convert interp-*.png interp.gif % generate the gif using imagemagik
 
 % create save repertory
 addpath('../toolbox/');
@@ -83,3 +83,16 @@ clf; scatter3( c(:,1), c(:,2), c(:,3),s, c, 'filled' );
 
 % histogram equalization
 [fS,I] = sort(f(:)); f(I) = linspace(0,1,length(f(:)));
+
+% display colors isosurface F, levelset T, color R
+clf;
+p = patch( isosurface( x,x,x,F, T ) );
+isonormals( x,x,x,F,p );
+isocolors(x,x,x,R(:,:,:,1),R(:,:,:,2),R(:,:,:,3),p);
+p.FaceColor = 'interp';
+p.EdgeColor = 'none';
+box on; axis on; set(gca, 'XTick', [], 'YTick', [], 'ZTick', []);
+axis equal; axis([0 1 0 1 0 1]);
+lighting gouraud;
+view(3);
+camlight; drawnow;
