@@ -1,4 +1,8 @@
-function AutoCrop(rep,name)
+function AutoCrop(rep,name, numdisp)
+
+if nargin<3
+    numdisp = 1;
+end
 
 % Special cropping of images
 
@@ -6,7 +10,8 @@ basename = [rep name]; % 'interp-'
 U = dir([basename '*.png']);
 
 % load first image
-f = imread([rep U(1).name]);
+
+f = imread([rep U(numdisp).name]);
 clf; hold on;
 imagesc(f); axis image; axis off;
 [a,b] = ginput(2);

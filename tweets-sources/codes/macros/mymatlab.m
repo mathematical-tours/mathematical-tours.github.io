@@ -2,6 +2,7 @@
 % Use znum2str() for consistent numbering
 AutoCrop(rep, 'interp-'); %=  to crop the image generated using saveas
 % > convert interp-*.png interp.gif % generate the gif using imagemagik
+% > convert -delay 1x3 interp-*.png interp.gif % 3x slower
 
 % create save repertory
 addpath('../toolbox/');
@@ -96,3 +97,7 @@ axis equal; axis([0 1 0 1 0 1]);
 lighting gouraud;
 view(3);
 camlight; drawnow;
+
+% extract a level set as a planar curve
+[C,h] = contour(I,[.5,.5]);
+m = C(2,1);  c = C(:,2:m+1); c = c(1,:)'+1i*c(2,:)';

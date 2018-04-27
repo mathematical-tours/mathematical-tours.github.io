@@ -63,7 +63,7 @@ end
 cnt = cnt+1;
 
 % create gifs
-% AutoCrop(rep, ['anim-1-'])
+% AutoCrop(rep, ['anim-' num2str(cnt) '-'])
 % Use % convert interp-*.png interp.gif to generate the gif using imagemagik
 
 

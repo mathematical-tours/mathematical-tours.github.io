@@ -1,15 +1,17 @@
 %%
 % Displays the bassin of attraction of Newton method on the complex plane.
 
-rep = 'results/';
-[~,~] = mkdir(rep);
+
+addpath('../toolbox/');
+rep = MkResRep();
 
 if not(exist('q'))
-    q = 3;
+    q = 3; % order of the polynomial
 end
 if not(exist('theta'))
-    theta = 1.4;
-    rho = 1;
+    theta = 1.4; rho = 1;
+    % basic newton
+    rho = 0;
 end
 
 f  = @(z)z.^q-1;
@@ -17,7 +19,7 @@ Df = @(z)q*z.^(q-1);
 a = 1.5;
 R = exp(2i*pi/q*(0:q-1)');
 
-tau = 0;
+tau = 0; % avergaging
 Newton = @(z)z - ( 1 - rho*exp(1i*theta) ) * f(z)./Df(z);
 Phi = @(z)(1-tau)*Newton(z)+tau*z;
 
@@ -57,7 +59,6 @@ for k=1:length(R)
 end
 % imwrite(C1, [rep 'newton-fractal-' num2str(q) '.png'], 'png');
 imwrite(C1, [rep 'newton-fractal-' num2str(q) '-rho' num2str(rho) '.png'], 'png');
-
 
 
 clf; hold on;
