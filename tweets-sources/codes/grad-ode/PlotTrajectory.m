@@ -1,4 +1,4 @@
-function PlotTrajectory(x,y, lw)
+function PlotTrajectory(x,y, lw, c0, c1)
 
 if nargin<3
     lw = 2;
@@ -9,7 +9,7 @@ L = sqrt(L); L = [0; cumsum(L(:))];
 L = L/L(end);
 
 for i=1:n-1
-    plot(x(i:i+1),y(i:i+1), '-', 'LineWidth', lw, 'color', [L(i) 0 1-L(i)]);
+	plot(x(i:i+1),y(i:i+1), '-', 'LineWidth', lw, 'color', (1-L(i))*c0 + L(i)*c1);
 end
 
 end

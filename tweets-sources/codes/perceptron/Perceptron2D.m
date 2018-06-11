@@ -1,5 +1,5 @@
 %%
-% Test for approximation of 1D function using a perceptron with a single
+% Test for approximation of 2-D function using a perceptron with a single
 % hidden layer.
 
 addpath('../toolbox/');

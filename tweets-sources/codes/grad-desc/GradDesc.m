@@ -1,6 +1,9 @@
 %%
 % Test for gradient descent of a simple 2D function.
 
+
+
+
 n = 200;
 xt = linspace(-.3,1.5,n);
 yt = linspace(-.3,1.5,n);
@@ -17,11 +20,9 @@ contour(xt,yt,F', u, 'k');
 colormap parula(256);
 axis equal; box on;
 
-
-
 % initial point
 x = 1.2; y = 0.8;
-niter = 100;
+niter = 70;
 U = []; V = [];
 F1 = [];
 tau = 1e-4;

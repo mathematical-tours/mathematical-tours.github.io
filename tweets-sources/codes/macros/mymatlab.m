@@ -101,3 +101,22 @@ camlight; drawnow;
 % extract a level set as a planar curve
 [C,h] = contour(I,[.5,.5]);
 m = C(2,1);  c = C(:,2:m+1); c = c(1,:)'+1i*c(2,:)';
+
+% colormap interpolating between two colors (here a color and white)
+m = linspace(0,1,r+1)';
+CM = m*[s 0 1-s] + (1-m)*[1 1 1];
+
+% display an image using a masking region
+imAlpha = ones(n); imAlpha(F>vmax) = 0; % Generate the mask
+imagesc(t,t,F', 'AlphaData', imAlpha);
+
+% store images at a fixed rate
+q = 70; %#display frames
+ndisp = round(linspace(1,niter,q)); k = 1; 
+for i=1:niter
+    if i==ndisp(k)
+        % ...
+        k = k+1;
+    end
+    % ...
+end

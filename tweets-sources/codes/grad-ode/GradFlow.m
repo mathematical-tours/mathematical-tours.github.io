@@ -1,8 +1,9 @@
 %%
 % Display gradient flow
 
-rep = '../results/grad-flow/';
-[~,~] = mkdir(rep);
+
+addpath('../toolbox/');
+rep = MkResRep();
 
 rho = 0.15;
 peak =  @(x,y)3*(1-x).^2.*exp(-(x.^2) - (y+1).^2) ...
@@ -43,6 +44,7 @@ m = 200; % #particules
 P0 = rand(m,1,2)*2*b-b;
 %
 q = 15;
+q = 9;
 m = q*q;
 t1 = linspace(-b,b,q); 
 [Y1,X1] = meshgrid(t1,t1);
@@ -51,24 +53,39 @@ P0 = reshape( [X1(:),Y1(:)], [m 1 2] );
 
 
 tau = .01;
-P = P0;
 niter = 200;
+
+tau = .025;
+niter = 80;
+%
+P = P0;
 for i=1:niter
     g = peakg(P(:,end,1), P(:,end,2));
+    % normalize
+    g = g ./ repmat(sqrt(sum(g.^2,3)), [1 1 2]);
+    %
     P(:,end+1,:) = P(:,end,:) - tau*g;    
 end
 
-clf; hold on;
-imagesc(t,t,R');
-contour(t,t,R',linspace(u,v,r), 'k');
-colormap(parula(r-1));
-caxis([u v]);
-axis image; axis off;
-% display trajectories
-% plot(P(:,:,1)', P(:,:,2)', 'k');
-for i=1:m
-    PlotTrajectory( P(i,:,1), P(i,:,2) );
-end
-axis([-a a -a a]); axis equal;
-saveas(gcf, [rep 'flow.png']);
 
+for k=1:niter
+    c = (k-1)/niter;
+    % display
+    clf; hold on;
+    imagesc(t,t,R');
+    contour(t,t,R',linspace(u,v,r), 'k');
+    colormap(parula(r-1));
+    caxis([u v]);
+    axis image; axis off;
+    % display trajectories
+    lw = 1;
+    for i=1:m
+        PlotTrajectory( P(i,1:k,1), P(i,1:k,2), lw, [0 0 1], [c 0 1-c] );
+    end
+    plot( P(:,k,1), P(:,k,2), '.', 'color', [c 0 1-c], 'MarkerSize', 25);
+    axis equal;
+    axis([-a a -a a]); 
+    saveas(gcf, [rep 'flow-' znum2str(k,2) '.png']);
+end
+
+% AutoCrop(rep, ['flow-']); 
