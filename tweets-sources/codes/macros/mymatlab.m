@@ -64,7 +64,8 @@ axis image; axis off;
 
 % gaussian blur
 t = [0:n/2,-n/2+1:-1]';
-G = @(s)exp(-t.^2/(2*s^2)); G = @(s)G(s)*G(s)';
+normalize = @(x)x/sum(x(:));
+G = @(s)normalize(exp(-t.^2/(2*s^2))); G = @(s)G(s)*G(s)';
 fconv = @(x,y)real( ifft2( fft2(x).*fft2(y) ) );
 GFilt = @(f,s)fconv(f, G(s));
 
@@ -84,6 +85,12 @@ clf; scatter3( c(:,1), c(:,2), c(:,3),s, c, 'filled' );
 
 % histogram equalization
 [fS,I] = sort(f(:)); f(I) = linspace(0,1,length(f(:)));
+
+% display bar diagram with colorr
+clf;
+bar(fd, 'EdgeColor', [t 0 1-t], 'FaceColor', [t 0 1-t]);
+axis([.5 m+.5 0 vmax*1.05]);
+
 
 % display colors isosurface F, levelset T, color R
 clf;
@@ -112,7 +119,7 @@ imagesc(t,t,F', 'AlphaData', imAlpha);
 
 % store images at a fixed rate
 q = 70; %#display frames
-ndisp = round(linspace(1,niter,q)); k = 1; 
+ndisp = round(linspace(1,niter,q)); k = 1;
 for i=1:niter
     if i==ndisp(k)
         % ...

@@ -1,4 +1,4 @@
-addpath('./toolbox/');
+addpath('../toolbox/');
 rep = MkResRep('approx');
 
 J = 7;

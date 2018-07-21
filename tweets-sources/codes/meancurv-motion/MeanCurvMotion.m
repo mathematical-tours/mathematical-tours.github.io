@@ -1,14 +1,15 @@
 %%
 % Mean Curvature motion evolution.
 
-rep = '../results/meancurv-motion/';
-[~,~] = mkdir(rep);
-SetAR = @(ar)set(gca, 'PlotBoxAspectRatio', [1 ar 1], 'FontSize', 20);
-
+addpath('../toolbox/');
 if not(exist('test'))
     test = 0;
 end
 test = test+1;
+rep = MkResRep(num2str(test));
+
+SetAR = @(ar)set(gca, 'PlotBoxAspectRatio', [1 ar 1], 'FontSize', 20);
+
 
 % click and play
 if 1 % not(exist('gamma0'))
@@ -54,21 +55,25 @@ Tmax = 4 / 100;
 niter = round(Tmax/dt);
 
 gamma = gamma1;
-displist = round(linspace(1,niter,20));
+q = 70; % frames
+displist = round(linspace(1,niter,q));
 k = 1;
-clf; hold on;
 for i=1:niter
     gamma = resample( gamma + dt * normalC(gamma) );
     if i==displist(k)
         t = (k-1)/(length(displist)-1);
         % display
+        clf; hold on;
         h = plot(gamma([1:end 1]), 'r', 'color', [t 0 1-t], 'LineWidth', 2);
         if i==1 || i==niter
             set(h, 'LineWidth', 2);
         end
-        k = k+1;
+        axis('equal'); axis([-1 1 -1 1]); axis('off');
         drawnow;
-        axis('tight');  axis('off');
+        saveas(gcf, [rep 'mcm-' znum2str(k,2) '.png'], 'png');
+        k = k+1;
     end
 end
-saveas(gcf, [rep 'mcm-' num2str(test) '.eps'], 'epsc');
+
+
+% AutoCrop(rep, 'mcm-');
