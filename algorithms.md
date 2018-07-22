@@ -19,7 +19,7 @@ Coding and information theory
 
 - 1895: [TDMA](https://en.wikipedia.org/wiki/Time-division_multiple_access) (Guglielmo Marconi)
 - 1941: [CDMA](https://en.wikipedia.org/wiki/Code-division_multiple_access) (Hedy Lamarr, George Antheil)
-- 1967: [Viterbi](https://en.wikipedia.org/wiki/Viterbi_algorithm)
+- 1967: [Viterbi](https://en.wikipedia.org/wiki/Viterbi_algorithm) (Andrew Viterbi)
 - 1976: [Arithmetic coding](https://en.wikipedia.org/wiki/Arithmetic_coding) (Jorma Rissanen)
 - 1977: [Lempel–Ziv–Markov](https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Markov_chain_algorithm) (Abraham Lempel, Jacob Ziv)
 - 1978: [Diffie Hellman key exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange) (Ralph Merkle)
@@ -32,7 +32,7 @@ Coding and information theory
 Arithmetic
 ----------------
 
-- 300 BC: [Euclid GCD](https://en.wikipedia.org/wiki/Euclidean_algorithm)
+- 300 BC: [Euclid GCD](https://en.wikipedia.org/wiki/Euclidean_algorithm) (Euclid)
 - 600 AD: [Chinese Remainder algorithm](https://en.wikipedia.org/wiki/Chinese_remainder_theorem) (Aryabhata)
 - 1956: [Gröbner basis](https://en.wikipedia.org/wiki/Buchberger%27s_algorithm) (Bruno Buchberger)
 - 1982:  [LLL](https://en.wikipedia.org/wiki/Lenstra%E2%80%93Lenstra%E2%80%93Lov%C3%A1sz_lattice_basis_reduction_algorithm) (Arjen Lenstra, Hendrik Lenstra, László Lovász)
@@ -127,7 +127,7 @@ Statistics and Machine Learning
 - 1995: [Kernel trick for SVM](https://en.wikipedia.org/wiki/Support_vector_machine) (Corinna Cortes, Vladimir Vapnik)
 - 1996: [Lasso](https://en.wikipedia.org/wiki/Lasso_(statistics)) (Robert Tibshirani)
 - 1997: [Long short-term memory](https://en.wikipedia.org/wiki/Long_short-term_memory) (Sepp Hochreiter, Jürgen Schmidhuber)
-- 2012: [Dropout](https://en.wikipedia.org/wiki/Dropout_(neural_networks)) (Hinton, Geoffrey et al)
+- 2012: [Dropout](https://en.wikipedia.org/wiki/Dropout_(neural_networks)) (Geoffrey Hinton et al)
 - 2014: [Generative adversarial networks](https://en.wikipedia.org/wiki/Generative_adversarial_network) (Ian Goodfellow)
 
 Probability
