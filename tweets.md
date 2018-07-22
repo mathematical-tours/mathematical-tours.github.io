@@ -17,4 +17,4 @@ You can find the tweets figures here:
 - [Probability](tweets-sources/tweets-probability.pdf)
 - [Signal and image](tweets-sources/tweets-signal-image.pdf)
 
-You can also find here [a compilation of algorithms](algorithms/).
+You can also find here [a compilation of algorithms](../algorithms/).
