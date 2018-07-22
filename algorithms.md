@@ -14,7 +14,7 @@ Disclaimers:
 - The classification is rather arbitrary, since many algorithms belong to several classes.
 
 
-Coding and information theory
+Coding and Information Theory
 ----------------
 
 - 1895: [TDMA](https://en.wikipedia.org/wiki/Time-division_multiple_access) (Guglielmo Marconi)
@@ -26,7 +26,7 @@ Coding and information theory
 - 1978: [RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) (Ron Rivest, Adi Shamir, Leonard Adleman)
 - 1985: [Elliptic-curve cryptography](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) (Neal Koblitz, Victor Mille)
 - 1991: [Turbo code](https://en.wikipedia.org/wiki/Turbo_code) (Claude Berrou)
-- 1994: [Shors Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm) (Peter Shor)
+- 1994: [Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm) (Peter Shor)
 - 1996: [Lattice based cryptography](https://en.wikipedia.org/wiki/Lattice-based_cryptography) (Miklós Ajtai)
 
 Arithmetic
@@ -38,7 +38,7 @@ Arithmetic
 - 1982:  [LLL](https://en.wikipedia.org/wiki/Lenstra%E2%80%93Lenstra%E2%80%93Lov%C3%A1sz_lattice_basis_reduction_algorithm) (Arjen Lenstra, Hendrik Lenstra, László Lovász)
 - 2002: [AKS primality test](https://en.wikipedia.org/wiki/AKS_primality_test) (Manindra Agrawal, Neeraj Kayal,  Nitin Saxena)
 
-Computer science and Graphs
+Computer Science and Graphs
 ----------------
 
 - 1953: [Hashing](https://en.wikipedia.org/wiki/Hash_function#Origins_of_the_term) (Hans Peter Luhn)
@@ -52,7 +52,7 @@ Computer science and Graphs
 - 1999: [Locality sensitive hashing](https://en.wikipedia.org/wiki/Locality-sensitive_hashing) (Piotr Indyk)
 - 2000: [Dancing links](https://en.wikipedia.org/wiki/Dancing_Links) (Donald Knuth)
 
-Numerical analysis
+Numerical Analysis
 ----------------
 
 - 1669: [Newton’s Method](https://en.wikipedia.org/wiki/Newton%27s_method) (Isaac Newton)
@@ -86,7 +86,7 @@ ODEs and PDEs
 - 1990: [Symplectic integration](https://en.wikipedia.org/wiki/Symplectic_integrator) (Haruo Yoshida)
 - 1996: [Fast marching method](https://en.wikipedia.org/wiki/Fast_marching_method) (James Sethian)
 
-Graphics and geometry
+Graphics and Geometry
 ----------------
 
 - 1960: [B-Splines](https://fr.wikipedia.org/wiki/B-spline) (Pierre Bezier, Paul de Faget de Casteljau)
@@ -100,7 +100,7 @@ Graphics and geometry
 - 1996: [Progressive meshes](https://en.wikipedia.org/wiki/Progressive_meshes) (Hugues Hoppe)
 
 
-Signal/image
+Signal and Image
 ----------------
 
 - 1964: [Mathematical morphology](https://en.wikipedia.org/wiki/Mathematical_morphology) (Georges Matheron, Jean Serra)
@@ -142,7 +142,7 @@ Probability
 - 1984: [Gibbs sampling](https://en.wikipedia.org/wiki/Gibbs_sampling) (Stuart and Donald Geman)
 - 1985: [Reservoir sampling](https://en.wikipedia.org/wiki/Reservoir_sampling) (Jeffrey Vitter)
 - 1987: [Hamiltonian Monte Carlo](https://en.wikipedia.org/wiki/Hamiltonian_Monte_Carlo) (Simon Duane)
-- 1996: [particle filter](https://en.wikipedia.org/wiki/Particle_filter) (Pierre Del Moral)
+- 1996: [Particle filter](https://en.wikipedia.org/wiki/Particle_filter) (Pierre Del Moral)
 - 1996: [Coupling from the past](https://en.wikipedia.org/wiki/Coupling_from_the_past) (James Propp, David Wilson)
 - 2012: [Tamed Euler method](https://arxiv.org/abs/0912.2609) (Martin Hutzenthaler)
 
