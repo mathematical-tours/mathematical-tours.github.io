@@ -16,3 +16,5 @@ You can find the tweets figures here:
 - [Optimal Transport](tweets-sources/tweets-ot.pdf)
 - [Probability](tweets-sources/tweets-probability.pdf)
 - [Signal and image](tweets-sources/tweets-signal-image.pdf)
+
+You can also find here [a compilation of algorithms](algorithms/).
