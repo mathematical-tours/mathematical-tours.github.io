@@ -2,7 +2,7 @@
 layout: page
 title: "Algorithms"
 description: "just a list"
-header-img: "img/birds.jpg"
+header-img: "img/people.jpg"
 ---
 
 This page is a compilation of the list of top algorithms [tweeted here](https://twitter.com/gabrielpeyre/status/1020186591694909440).
