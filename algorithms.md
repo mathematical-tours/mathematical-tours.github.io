@@ -19,7 +19,9 @@ Coding and Information Theory
 
 - 1895: [TDMA](https://en.wikipedia.org/wiki/Time-division_multiple_access) (Guglielmo Marconi)
 - 1941: [CDMA](https://en.wikipedia.org/wiki/Code-division_multiple_access) (Hedy Lamarr, George Antheil)
+- 1948: [Information theory](https://en.wikipedia.org/wiki/Coding_theory) (Claude Shannon)
 - 1950: [Hamming codes](https://en.wikipedia.org/wiki/Hamming_code) (Richard Hamming)
+- 1952: [Huffman coding](https://en.wikipedia.org/wiki/Huffman_coding) (David Huffman)
 - 1955: [Convolutional codes](https://en.wikipedia.org/wiki/Convolutional_code) (Peter Elias)
 - 1960: [Reed-Solomon codes](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction) (Irving Reed, Gustave Solomon)
 - 1960: [Low-density parity check codes](https://en.wikipedia.org/wiki/Low-density_parity-check_code) (Robert Gallager)
@@ -37,7 +39,6 @@ Coding and Information Theory
 - 1996: [Lattice based cryptography](https://en.wikipedia.org/wiki/Lattice-based_cryptography) (Miklós Ajtai)
 - 2000: [JPEG2K](https://en.wikipedia.org/wiki/JPEG_2000) (David Taubman)
 - 2002: [Polar codes](https://en.wikipedia.org/wiki/Polar_code_(coding_theory)) (Norbert Stolte, Erdal Arıkan)
-
 
 
 
@@ -71,7 +72,6 @@ Computer Science and Graphs
 Numerical Analysis, ODEs and PDEs
 ----------------
 
-- 1669: [Newton’s Method](https://en.wikipedia.org/wiki/Newton%27s_method) (Isaac Newton)
 - 1814: [Gauss quadrature](https://en.wikipedia.org/wiki/Gaussian_quadrature) (Carl Friedrich Gauss)
 - 1895: [Runge Kutta](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) (Carl David Tolme Runge, Martin Wilhelm Kutta)
 - 1911: [Richardson extrapolation](https://en.wikipedia.org/wiki/Richardson_extrapolation) (Lewis Fry Richardson)
@@ -170,6 +170,7 @@ Probability
 Optimization
 ----------------
 
+- 1669: [Newton’s Method](https://en.wikipedia.org/wiki/Newton%27s_method) (Isaac Newton)
 - 1847: [Steepest descent](https://en.wikipedia.org/wiki/Method_of_steepest_descent) (Augustin-Louis Cauchy)
 - 1939: [Linear programming](https://en.wikipedia.org/wiki/Linear_programming) (Leonid Kantorovich)
 - 1944: [Levenberg-Marquardt](https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) ( Kenneth Levenberg, Donald Marquardt)
@@ -181,15 +182,20 @@ Optimization
 - 1962: [Gale-Shapley](https://en.wikipedia.org/wiki/Stable_marriage_problem) (David Gale, Lloyd Shapley)
 - 1964: [Powell's method](https://en.wikipedia.org/wiki/Powell%27s_method) (Michael Powell)
 - 1965: [Nelder–Mead method](https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method) (John Nelder, Roger Mead)
+- 1967: [Bregman iterative projections](https://en.wikipedia.org/wiki/Bregman_method) (Lev Bregman)
 - 1970: [Proximal point algorithm](https://en.wikipedia.org/wiki/Proximal_gradient_method) (Tyrrell Rockafellar)
 - 1970: [Reverse mode automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation) (Seppo Linnainmaa)
 - 1970: [BFGS](https://en.wikipedia.org/wiki/Broyden%E2%80%93Fletcher%E2%80%93Goldfarb%E2%80%93Shanno_algorithm) (Charles George Broyden, Roger Fletcher, Donald Goldfarb and David Shanno)
 - 1973: [Genetic algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (Ingo Rechenberg, Hans-Paul Schwefel)
+- 1975: [Alternating direction method of multipliers](https://en.wikipedia.org/wiki/Augmented_Lagrangian_method) (R. Glowinski, A. Marrocco, D. Gabay, B. Mercier)
 - 1979: [Mirror descent](https://www2.isye.gatech.edu/~nemirovs/COLT2012Tut.pdf) (Arkadi Nemirovski)
 - 1979: [Auctions](Auction algorithm) (Dimitri Bertsekas)
+- 1979: [Forward-Backward](https://en.wikipedia.org/wiki/Proximal_gradient_method) (Pierre-Louis Lions, Bertrand Mercier)
+- 1979: [Douglas-Rachford](https://arxiv.org/abs/1604.04603) (Pierre-Louis Lions, Bertrand Mercier)
 - 1983: [Fast gradient method](https://ci.nii.ac.jp/naid/10029946121/) (Yurii Nesterov)
 - 1983: [Simulated Annealing](https://en.wikipedia.org/wiki/Simulated_annealing) (Scott Kirkpatrick)
 - 1984: [Interior point method](https://en.wikipedia.org/wiki/Interior-point_method) (Narendra Karmarkar)
 - 1984: [Espresso minimization algorithm](https://en.wikipedia.org/wiki/Espresso_heuristic_logic_minimizer) (Robert Brayton)
+- 1986: [Dykstra](https://en.wikipedia.org/wiki/Dykstra%27s_projection_algorithm) (Richard Dykstra)
 - 1995: [alphaBB for global optimization](https://en.wikipedia.org/wiki/%CE%91%CE%92%CE%92) (Ioannis Androulakis)
 - 1996: [Conflict driven clause learning](https://en.wikipedia.org/wiki/Conflict-Driven_Clause_Learning) (Marques-Silva and Sakallah)
