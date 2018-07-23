@@ -28,11 +28,17 @@ Coding and Information Theory
 - 1977: [Lempel–Ziv–Markov](https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Markov_chain_algorithm) (Abraham Lempel, Jacob Ziv)
 - 1978: [Diffie Hellman key exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange) (Ralph Merkle)
 - 1978: [RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) (Ron Rivest, Adi Shamir, Leonard Adleman)
+- 1979: [Block Truncation Coding](https://en.wikipedia.org/wiki/Block_Truncation_Coding) (Edward J. Delp, O.R. Mitchel)
 - 1985: [Elliptic-curve cryptography](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography) (Neal Koblitz, Victor Mille)
 - 1991: [Turbo code](https://en.wikipedia.org/wiki/Turbo_code) (Claude Berrou)
+- 1993: [Embedded Zerotrees of Wavelet transforms](https://en.wikipedia.org/wiki/Embedded_Zerotrees_of_Wavelet_transforms) (J. Shapiro)
 - 1994: [Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm) (Peter Shor)
+- 1996: [Set partitioning in hierarchical trees](https://en.wikipedia.org/wiki/Set_partitioning_in_hierarchical_trees) (Amir Said, William Pearlman)
 - 1996: [Lattice based cryptography](https://en.wikipedia.org/wiki/Lattice-based_cryptography) (Miklós Ajtai)
+- 2000: [JPEG2K](https://en.wikipedia.org/wiki/JPEG_2000) (David Taubman)
 - 2002: [Polar codes](https://en.wikipedia.org/wiki/Polar_code_(coding_theory)) (Norbert Stolte, Erdal Arıkan)
+
+
 
 
 Arithmetic
@@ -164,6 +170,7 @@ Probability
 Optimization
 ----------------
 
+- 1847: [Steepest descent](https://en.wikipedia.org/wiki/Method_of_steepest_descent) (Augustin-Louis Cauchy)
 - 1939: [Linear programming](https://en.wikipedia.org/wiki/Linear_programming) (Leonid Kantorovich)
 - 1944: [Levenberg-Marquardt](https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) ( Kenneth Levenberg, Donald Marquardt)
 - 1947: [Simplex](https://en.wikipedia.org/wiki/Simplex_algorithm) (George Dantzig)
