@@ -19,6 +19,10 @@ Coding and Information Theory
 
 - 1895: [TDMA](https://en.wikipedia.org/wiki/Time-division_multiple_access) (Guglielmo Marconi)
 - 1941: [CDMA](https://en.wikipedia.org/wiki/Code-division_multiple_access) (Hedy Lamarr, George Antheil)
+- 1950: [Hamming codes](https://en.wikipedia.org/wiki/Hamming_code) (Richard Hamming)
+- 1955: [Convolutional codes](https://en.wikipedia.org/wiki/Convolutional_code) (Peter Elias)
+- 1960: [Reed-Solomon codes](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction) (Irving Reed, Gustave Solomon)
+- 1960: [Low-density parity check codes](https://en.wikipedia.org/wiki/Low-density_parity-check_code) (Robert Gallager)
 - 1967: [Viterbi](https://en.wikipedia.org/wiki/Viterbi_algorithm) (Andrew Viterbi)
 - 1976: [Arithmetic coding](https://en.wikipedia.org/wiki/Arithmetic_coding) (Jorma Rissanen)
 - 1977: [Lempel–Ziv–Markov](https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Markov_chain_algorithm) (Abraham Lempel, Jacob Ziv)
@@ -28,6 +32,8 @@ Coding and Information Theory
 - 1991: [Turbo code](https://en.wikipedia.org/wiki/Turbo_code) (Claude Berrou)
 - 1994: [Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm) (Peter Shor)
 - 1996: [Lattice based cryptography](https://en.wikipedia.org/wiki/Lattice-based_cryptography) (Miklós Ajtai)
+- 2002: [Polar codes](https://en.wikipedia.org/wiki/Polar_code_(coding_theory)) (Norbert Stolte, Erdal Arıkan)
+
 
 Arithmetic
 ----------------
@@ -42,15 +48,19 @@ Computer Science and Graphs
 ----------------
 
 - 1953: [Hashing](https://en.wikipedia.org/wiki/Hash_function#Origins_of_the_term) (Hans Peter Luhn)
+- 1953: [Katz Centrality](https://en.wikipedia.org/wiki/Katz_centrality) (Leo Katz)
 - 1954: [Dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) (Richard Bellman)
 - 1956: [Dijkstra](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) (Edsger Dijkstra)
 - 1959: [Quicksort](https://en.wikipedia.org/wiki/Quicksort) (Tony Hoare)
+- 1962: [Floyd–Warshall all pairs shortest path](https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm) (Robert Floyd, Stephen Warshall)
 - 1963: [Planar graph embedding](https://en.wikipedia.org/wiki/Tutte_embedding) (William Tutte)
 - 1970: [Knuth-Morris-Pratt string search](https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm) (Donald Knuth, Vaughan Pratt, James H. Morris)
 - 1970: [Needleman-Wunsch dynamic programming](https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm) (Saul Needleman, Christian Wunsch)
-- 1972: [Tarjan's algorithm](https://fr.wikipedia.org/wiki/Algorithme_de_Tarjan) (Robert Tarjan)
+- 1972: [Tarjan stronly connected components](https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm) (Robert Tarjan)
 - 1999: [Locality sensitive hashing](https://en.wikipedia.org/wiki/Locality-sensitive_hashing) (Piotr Indyk)
 - 2000: [Dancing links](https://en.wikipedia.org/wiki/Dancing_Links) (Donald Knuth)
+
+
 
 Numerical Analysis, ODEs and PDEs
 ----------------
@@ -61,18 +71,18 @@ Numerical Analysis, ODEs and PDEs
 - 1911: [Richardson extrapolation](https://en.wikipedia.org/wiki/Richardson_extrapolation) (Lewis Fry Richardson)
 - 1928: [Finite differences](https://en.wikipedia.org/wiki/Finite_difference) (Richard Courant, Kurt Friedrichs, Hans Lewy)
 - 1943: [Finite elements](https://en.wikipedia.org/wiki/Finite_element_method) (Richard Courant)
+- 1959: [Finite volume method](https://en.wikipedia.org/wiki/Finite_volume_method) (Sergei Godunov)
 - 1971: [Spectral methods](https://en.wikipedia.org/wiki/Spectral_method) (Steve Orszag, David Gottlieb)
 - 1976: [Multigrid method](https://en.wikipedia.org/wiki/Multigrid_method) (Achi Brandt, Wolfgang Hackbusch)
 - 1987: [Fast Multipole Method](https://en.wikipedia.org/wiki/Fast_multipole_method) (Vladimir Rokhlin, Leslie Greengard)
 - 1990: [Symplectic integration](https://en.wikipedia.org/wiki/Symplectic_integrator) (Haruo Yoshida)
 - 1996: [Fast marching method](https://en.wikipedia.org/wiki/Fast_marching_method) (James Sethian)
 
-
 Matrices
 ----------------
 
 - 1795: [Least-squares fitting](https://en.wikipedia.org/wiki/Least_squares) (Carl Friedrich Gauss, Adrien-Marie Legendre)
-- 1952: [Conjugate gradient and Lanczos iterations](https://en.wikipedia.org/wiki/Conjugate_gradient_method) (Cornelius Lanczos, Magnus Hestenes, Eduard Stiefel)
+- 1952: [Conjugate gradient](https://en.wikipedia.org/wiki/Conjugate_gradient_method) (Cornelius Lanczos, Magnus Hestenes, Eduard Stiefel)
 - 1961: [QR algorithm](https://en.wikipedia.org/wiki/QR_algorithm) (V. N. Kublanovskaya, J. G. F. Francis)
 - 1964: [Sinkhorn](https://en.wikipedia.org/wiki/Sinkhorn%27s_theorem) (Richard Sinkhorn)
 - 1965: [Golub-Reinsch SVD](https://en.wikipedia.org/wiki/Singular-value_decomposition) (Gene Golub)
@@ -82,12 +92,12 @@ Matrices
 - 1990: [Coppersmith-Winograd](https://en.wikipedia.org/wiki/Coppersmith%E2%80%93Winograd_algorithm) (Don Coppersmith, Shmuel Winograd)
 - 1996: [PageRank](https://en.wikipedia.org/wiki/PageRank) (Larry Page, Sergey Brin)
 
-
 Graphics and Geometry
 ----------------
 
 - 1960: [B-Splines](https://fr.wikipedia.org/wiki/B-spline) (Pierre Bezier, Paul de Faget de Casteljau)
 - 1971: [de Boor's algorithm](https://en.wikipedia.org/wiki/De_Boor%27s_algorithm) (Carl de Boor)
+- 1976: [Floyd–Steinberg dithering](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering) (Robert Floyd, Louis Steinberg)
 - 1978: [Catmull–Clark Subdivision Surfaces](https://en.wikipedia.org/wiki/Catmull%E2%80%93Clark_subdivision_surface) (Edwin Catmull, Jim Clark)
 - 1981: [Bowyer–Watson Delaunay triangulation](https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm) (Adrian Bowyer, David Watson)
 - 1983: [Perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) (Ken Perlin)
@@ -95,7 +105,6 @@ Graphics and Geometry
 - 1988: [Semi-discrete optimal transport](https://link.springer.com/article/10.1007/BF01396762) (V. I. Oliker and L. D. Prussner)
 - 1987: [Marching cubes](https://fr.wikipedia.org/wiki/Marching_cubes) (William Lorensen, Harvey Cline)
 - 1996: [Progressive meshes](https://en.wikipedia.org/wiki/Progressive_meshes) (Hugues Hoppe)
-
 
 Signal and Image
 ----------------
@@ -113,19 +122,28 @@ Statistics and Machine Learning
 ----------------
 
 - 1901: [Principal component analysis](https://en.wikipedia.org/wiki/Principal_component_analysis) (Karl Pearson)
+- 1912: [Maximum likelihood estimation](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation) (Ronald Fisher)
+- 1943: [Ridge regression](https://en.wikipedia.org/wiki/Tikhonov_regularization) (Andrey Tikhonov)
+- 1956: [Kernel density estimation](https://en.wikipedia.org/wiki/Kernel_density_estimation) (Emanuel Parzen, Murray Rosenblatt)
 - 1957: [K-means / Lloyd-max](https://fr.wikipedia.org/wiki/Algorithme_de_Lloyd-Max) (Stuart Lloyd)
 - 1958: [Logistic regression](https://en.wikipedia.org/wiki/Logistic_regression) (David Cox)
+- 1960: [Empirical risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization) (Vladimir Vapnik)
+- 1962: [k-nearest neighbor](https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm) (George Sebestyen)
 - 1963: [Support vector machine](https://en.wikipedia.org/wiki/Support_vector_machine) (Vladimir Vapnik)
 - 1968: [K-fold cross validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) (John Tukey)
 - 1982: [Recurrent neural network](https://en.wikipedia.org/wiki/Recurrent_neural_network) (John Hopfield)
 - 1984: [Approximate Bayesian Computation](https://en.wikipedia.org/wiki/Approximate_Bayesian_computation) (Peter Diggle, Richard Gratton)
+- 1984: [Probably approximately correct learning](https://en.wikipedia.org/wiki/Probably_approximately_correct_learning) (Leslie Valiant)
+- 1990: [Boosting](https://en.wikipedia.org/wiki/Boosting_(machine_learning)) (Robert Schapire)
 - 1990: [Convolutional neural network](https://en.wikipedia.org/wiki/Convolutional_neural_network) (Yann LeCun)
 - 1995: [Random forests](https://en.wikipedia.org/wiki/Random_forest) (Leo Breiman)
 - 1995: [Kernel trick for SVM](https://en.wikipedia.org/wiki/Support_vector_machine) (Corinna Cortes, Vladimir Vapnik)
 - 1996: [Lasso](https://en.wikipedia.org/wiki/Lasso_(statistics)) (Robert Tibshirani)
 - 1997: [Long short-term memory](https://en.wikipedia.org/wiki/Long_short-term_memory) (Sepp Hochreiter, Jürgen Schmidhuber)
+- 2001: [Aggregating algorithm](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1751-5823.2001.tb00457.x) (Volodya Vovk)
 - 2012: [Dropout](https://en.wikipedia.org/wiki/Dropout_(neural_networks)) (Geoffrey Hinton et al)
 - 2014: [Generative adversarial networks](https://en.wikipedia.org/wiki/Generative_adversarial_network) (Ian Goodfellow)
+
 
 Probability
 ----------------
@@ -139,7 +157,7 @@ Probability
 - 1984: [Gibbs sampling](https://en.wikipedia.org/wiki/Gibbs_sampling) (Stuart and Donald Geman)
 - 1985: [Reservoir sampling](https://en.wikipedia.org/wiki/Reservoir_sampling) (Jeffrey Vitter)
 - 1987: [Hamiltonian Monte Carlo](https://en.wikipedia.org/wiki/Hamiltonian_Monte_Carlo) (Simon Duane)
-- 1996: [Particle filter](https://en.wikipedia.org/wiki/Particle_filter) (Pierre Del Moral)
+- 1996: [Particle filter](https://en.wikipedia.org/wiki/Particle_filter) (Neil Gordon, David Salmond, Adrian Smith)
 - 1996: [Coupling from the past](https://en.wikipedia.org/wiki/Coupling_from_the_past) (James Propp, David Wilson)
 - 2012: [Tamed Euler method](https://arxiv.org/abs/0912.2609) (Martin Hutzenthaler)
 
@@ -147,16 +165,20 @@ Optimization
 ----------------
 
 - 1939: [Linear programming](https://en.wikipedia.org/wiki/Linear_programming) (Leonid Kantorovich)
+- 1944: [Levenberg-Marquardt](https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) ( Kenneth Levenberg, Donald Marquardt)
 - 1947: [Simplex](https://en.wikipedia.org/wiki/Simplex_algorithm) (George Dantzig)
-- 1952: [Stochastic gradient descent](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) (Herbert Robbins, Sutton Monro)
+- 1952: [Stochastic gradient descent](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) (Herbert Robbins, Sutton Monro, Jacob Wolfowitz, Jack Kiefer)
 - 1956: [Frank-Wolfe](https://en.wikipedia.org/wiki/Frank%E2%80%93Wolfe_algorithm) (Marguerite Frank, Philip Wolfe)
+- 1956: [Ford-Fulkerson](https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm) (L. R. Ford, D. R. Fulkerson)
 - 1957: [Hungarian](https://en.wikipedia.org/wiki/Hungarian_algorithm) (Harold Kuhn, James Munkres)
 - 1962: [Gale-Shapley](https://en.wikipedia.org/wiki/Stable_marriage_problem) (David Gale, Lloyd Shapley)
 - 1964: [Powell's method](https://en.wikipedia.org/wiki/Powell%27s_method) (Michael Powell)
+- 1965: [Nelder–Mead method](https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method) (John Nelder, Roger Mead)
 - 1970: [Proximal point algorithm](https://en.wikipedia.org/wiki/Proximal_gradient_method) (Tyrrell Rockafellar)
 - 1970: [Reverse mode automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation) (Seppo innainmaa)
 - 1970: [BFGS](https://en.wikipedia.org/wiki/Broyden%E2%80%93Fletcher%E2%80%93Goldfarb%E2%80%93Shanno_algorithm) (Charles George Broyden, Roger Fletcher, Donald Goldfarb and David Shanno)
-- 1973: [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (Ingo Rechenberg, Hans-Paul Schwefel)
+- 1973: [Genetic algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (Ingo Rechenberg, Hans-Paul Schwefel)
+- 1979: [Mirror descent](https://www2.isye.gatech.edu/~nemirovs/COLT2012Tut.pdf) (Arkadi Nemirovski)
 - 1979: [Auctions](Auction algorithm) (Dimitri Bertsekas)
 - 1983: [Fast gradient method](https://ci.nii.ac.jp/naid/10029946121/) (Yurri Nesterov)
 - 1983: [Simulated Annealing](https://en.wikipedia.org/wiki/Simulated_annealing) (Scott Kirkpatrick)
