@@ -187,7 +187,7 @@ Optimization
 - 1973: [Genetic algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (Ingo Rechenberg, Hans-Paul Schwefel)
 - 1979: [Mirror descent](https://www2.isye.gatech.edu/~nemirovs/COLT2012Tut.pdf) (Arkadi Nemirovski)
 - 1979: [Auctions](Auction algorithm) (Dimitri Bertsekas)
-- 1983: [Fast gradient method](https://ci.nii.ac.jp/naid/10029946121/) (Yurri Nesterov)
+- 1983: [Fast gradient method](https://ci.nii.ac.jp/naid/10029946121/) (Yurii Nesterov)
 - 1983: [Simulated Annealing](https://en.wikipedia.org/wiki/Simulated_annealing) (Scott Kirkpatrick)
 - 1984: [Interior point method](https://en.wikipedia.org/wiki/Interior-point_method) (Narendra Karmarkar)
 - 1984: [Espresso minimization algorithm](https://en.wikipedia.org/wiki/Espresso_heuristic_logic_minimizer) (Robert Brayton)
