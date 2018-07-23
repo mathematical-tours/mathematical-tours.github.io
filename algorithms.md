@@ -52,14 +52,20 @@ Computer Science and Graphs
 - 1999: [Locality sensitive hashing](https://en.wikipedia.org/wiki/Locality-sensitive_hashing) (Piotr Indyk)
 - 2000: [Dancing links](https://en.wikipedia.org/wiki/Dancing_Links) (Donald Knuth)
 
-Numerical Analysis
+Numerical Analysis, ODEs and PDEs
 ----------------
 
 - 1669: [Newton’s Method](https://en.wikipedia.org/wiki/Newton%27s_method) (Isaac Newton)
 - 1814: [Gauss quadrature](https://en.wikipedia.org/wiki/Gaussian_quadrature) (Carl Friedrich Gauss)
+- 1895: [Runge Kutta](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) (Carl David Tolme Runge, Martin Wilhelm Kutta)
 - 1911: [Richardson extrapolation](https://en.wikipedia.org/wiki/Richardson_extrapolation) (Lewis Fry Richardson)
+- 1928: [Finite differences](https://en.wikipedia.org/wiki/Finite_difference) (Richard Courant, Kurt Friedrichs, Hans Lewy)
 - 1943: [Finite elements](https://en.wikipedia.org/wiki/Finite_element_method) (Richard Courant)
+- 1971: [Spectral methods](https://en.wikipedia.org/wiki/Spectral_method) (Steve Orszag, David Gottlieb)
+- 1976: [Multigrid method](https://en.wikipedia.org/wiki/Multigrid_method) (Achi Brandt, Wolfgang Hackbusch)
 - 1987: [Fast Multipole Method](https://en.wikipedia.org/wiki/Fast_multipole_method) (Vladimir Rokhlin, Leslie Greengard)
+- 1990: [Symplectic integration](https://en.wikipedia.org/wiki/Symplectic_integrator) (Haruo Yoshida)
+- 1996: [Fast marching method](https://en.wikipedia.org/wiki/Fast_marching_method) (James Sethian)
 
 
 Matrices
@@ -76,15 +82,6 @@ Matrices
 - 1990: [Coppersmith-Winograd](https://en.wikipedia.org/wiki/Coppersmith%E2%80%93Winograd_algorithm) (Don Coppersmith, Shmuel Winograd)
 - 1996: [PageRank](https://en.wikipedia.org/wiki/PageRank) (Larry Page, Sergey Brin)
 
-ODEs and PDEs
-----------------
-
-- 1895: [Runge Kutta](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) (Carl David Tolme Runge, Martin Wilhelm Kutta)
-- 1928: [Finite differences](https://en.wikipedia.org/wiki/Finite_difference) (Richard Courant, Kurt Friedrichs, Hans Lewy)
-- 1971: [Spectral methods](https://en.wikipedia.org/wiki/Spectral_method) (Steve Orszag, David Gottlieb)
-- 1976: [Multigrid method](https://en.wikipedia.org/wiki/Multigrid_method) (Achi Brandt, Wolfgang Hackbusch)
-- 1990: [Symplectic integration](https://en.wikipedia.org/wiki/Symplectic_integrator) (Haruo Yoshida)
-- 1996: [Fast marching method](https://en.wikipedia.org/wiki/Fast_marching_method) (James Sethian)
 
 Graphics and Geometry
 ----------------
