@@ -73,7 +73,7 @@ Matrices
 - 1969: [Strassen](https://en.wikipedia.org/wiki/Strassen_algorithm) (Volker Strassen)
 - 1977: [Incomplete LU factorization](https://en.wikipedia.org/wiki/Incomplete_LU_factorization) (Henk van der Vorst)
 - 1986: [GMRES/BiCGSTAB](https://en.wikipedia.org/wiki/Krylov_subspace) (Youcef Saad, Henk van der Vorst)
-- 1990: [Coppersmith-Winograd](https://en.wikipedia.org/wiki/Coppersmith%E2%80%93Winograd_algorithm) ( Don Coppersmith, Shmuel Winograd)
+- 1990: [Coppersmith-Winograd](https://en.wikipedia.org/wiki/Coppersmith%E2%80%93Winograd_algorithm) (Don Coppersmith, Shmuel Winograd)
 - 1996: [PageRank](https://en.wikipedia.org/wiki/PageRank) (Larry Page, Sergey Brin)
 
 ODEs and PDEs
