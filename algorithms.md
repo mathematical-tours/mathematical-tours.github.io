@@ -182,7 +182,7 @@ Optimization
 - 1964: [Powell's method](https://en.wikipedia.org/wiki/Powell%27s_method) (Michael Powell)
 - 1965: [Nelder–Mead method](https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method) (John Nelder, Roger Mead)
 - 1970: [Proximal point algorithm](https://en.wikipedia.org/wiki/Proximal_gradient_method) (Tyrrell Rockafellar)
-- 1970: [Reverse mode automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation) (Seppo innainmaa)
+- 1970: [Reverse mode automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation) (Seppo Linnainmaa)
 - 1970: [BFGS](https://en.wikipedia.org/wiki/Broyden%E2%80%93Fletcher%E2%80%93Goldfarb%E2%80%93Shanno_algorithm) (Charles George Broyden, Roger Fletcher, Donald Goldfarb and David Shanno)
 - 1973: [Genetic algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (Ingo Rechenberg, Hans-Paul Schwefel)
 - 1979: [Mirror descent](https://www2.isye.gatech.edu/~nemirovs/COLT2012Tut.pdf) (Arkadi Nemirovski)
