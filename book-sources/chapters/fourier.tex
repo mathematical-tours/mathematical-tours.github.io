@@ -5,7 +5,11 @@
 
 The main references for this chapter is \cite{mallat2008wavelet}.
 %
-The Fourier transforms offers a perfect blend of analysis (solution of PDEs, approximation of functions), algebra (characters of groups, representation theory) and computer science (the FFT). This chapter offers a glimpse of all these different facets. 
+The Fourier transforms offers a perfect blend of analysis (solution of PDEs, approximation of functions), algebra (characters of groups, representation theory) and computer science (the FFT). 
+%
+It is the basics of signal processing because it allows to compute efficiently and study theoretically convolution operator, which are the shift-invariant operators. 
+%
+This chapter offers a glimpse of all these different facets. 
 
 \newcommand{\piN}{\frac{2\imath\pi}{N}}
 
@@ -17,7 +21,9 @@ The Fourier transforms offers a perfect blend of analysis (solution of PDEs, app
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Hilbertian bases.}
 
-An Hilbert space $(\Hh,\dotp{\cdot}{\cdot})$ is complete. If it is separable, it can be equipped with an Hilbertian orthogonal basis $(\phi_n)_{n \in \NN}$, which means that one can expand any $f \in \Hh$ as
+A large class of method in data sciences (including for instance most signal processing tasks, but also data pre-processing for machine learning) operate by first projecting the input data on some basis. A particularly simple instance of this is when the basis is orthogonal, since in this case one has a simple reconstruction formula and conservation of energy, which is crucial to do a theoretical analysis. We explain this in a general Hilbert space, which can be for instance $\Hh = L^2([0,1]^d)$ when dealing with continuous signal, or $\Hh=\RR^N$ for discrete signal.  
+
+An (complex) Hilbert space $(\Hh,\dotp{\cdot}{\cdot})$ is complete, where $\dotp{\cdot}{\cdot}$ is an hermitian inner product (i.e. $\dotp{f}{g}$ is the conjugate of $\dotp{g}{f}$). If it is separable, it can be equipped with an Hilbertian orthogonal basis $(\phi_n)_{n \in \NN}$, which means that one can expand any $f \in \Hh$ as
 \eq{
 	f = \sum_{n} \dotp{f}{\phi_n} \phi_n 
 }
@@ -26,19 +32,15 @@ where the convergence is in the sense of $\norm{f}^2 \eqdef \dotp{f}{f}$, i.e. $
 	\norm{f}^2 = \sum_n \dotp{f}{\phi_n}^2.
 }
 
-A way to construct such an ortho-basis is using Gram-Schmidt orthogonalization procedure. On $L^2([0,1])$ equipped with the usual inner product, orthogonalization of monomials defines the Legendre polynomials. On $L^2(\RR)$ equipped with a Gaussian measure, this leads to functions of the form $P_n(x) e^{-x^2}$ where $P_n$ are Laguerre polynomials. Intuitively, orthogonality forces $\phi_n$ to have $n$ ``oscillations'', e.g. orthogonal polynomials have exactly $n$ zeros. 
+A way to construct such an ortho-basis is using Gram-Schmidt orthogonalization procedure. On $L^2([0,1])$ equipped with the usual inner product, orthogonalization of monomials defines the Legendre polynomials. On $L^2(\RR)$ equipped with a Gaussian measure, this leads to functions of the form $P_n(x) e^{-x^2}$ where $P_n$ are Laguerre polynomials. Intuitively, orthogonality forces $\phi_n$ to have $n$ ``oscillations'', e.g. orthogonal polynomials have exactly $n$ zeros.
 
-Figure \ref{fig-fourier-wav}, left, shows examples of the real part of Fourier atoms.
+Another way (that we do not detail here) to construct orthogonal bases is to consider the eigenvectors of some symmetric operator. We will show bellow that Fourier bases can be obtained this way, by considering translation-invariant operators (convolutions). 
 
-\myfigure{
-	\image{orthobases}{.4}{atoms-fourier}
-	\image{orthobases}{.5}{atoms-wavelets}
-}{%
-	Left: 1D Fourier (real part), right: wavelet bases. %	
-}{fig-fourier-wav}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Fourier basis on $\RR/2\pi\ZZ$.}
+
+There is a flurry of different Fourier basis depending on the space on which it is defined. To get an orthogonal basis, it is important to consider compact spaces (otherwise one obtain a notion of Fourier transform, which is not a decomposition on a basis). 
 
 On $L^2(\TT)$ where $\TT=\RR/2\pi\ZZ$, equipped with $\dotp{f}{g} \eqdef \frac{1}{2\pi}\int_\TT f(x) \bar g(x) \d x$, one can use the Fourier basis 
 \eql{\label{eq-fourier-basis-1d}
@@ -53,6 +55,16 @@ One thus has
 	\hat f_n \eqdef \frac{1}{2\pi}\int_0^{2\pi} f(x) e^{-\imath n x} \d x, 
 }
 in $L^2(\TT)$ sense. Pointwise convergence is delicate, see Section~\ref{subsec-sampling}.
+
+Figure \ref{fig-fourier-wav}, left, shows examples of the real part of Fourier atoms.
+
+\myfigure{
+	\image{orthobases}{.4}{atoms-fourier}
+	\image{orthobases}{.5}{atoms-wavelets}
+}{%
+	Left: 1D Fourier (real part), right: wavelet bases. %	
+}{fig-fourier-wav}
+
 
 We recall that for $f \in L^1(\RR)$, its Fourier transform is defined as
 \eq{
@@ -136,6 +148,9 @@ For $(f,g) \in L^1(\XX)^2$ (so on $\XX=\TT$, also in any $L^p(\XX)$), one has
 	\Ff(f \star g) = \hat f \odot \hat g
 } 
 which means that $\Ff$ is a morphism of algebra. For instance if $\XX=\RR$, its range is included in the algebra of continuous functions with vanishing limits in $\pm\infty$.
+
+
+\texttt{Associated code: fourier/test\_denoising.m}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Translation Invariant Operators}
@@ -660,6 +675,9 @@ But of course these multiplications are not computed explicitly (one uses the FF
 }{fig-fourier-2d}
 
 
+\texttt{Associated code: coding/test\_fft2.m}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Shannon sampling theorem.}
 
@@ -873,20 +891,90 @@ Similarly, for $G=\RR/2\pi\ZZ$, one has $\hat G=\ZZ$, with orthonormal character
 %%%
 \paragraph{Non-commutative groups.}
  
-For non-commutative group, one also observe that $G$ is not isometric to $\hat G$. A typical example is the symmetric group $\Si_N$ of $N$ elements, where one can show that $\hat G = \{\Id,\epsilon\}$ where $\epsilon(\si) = (-1)^{q}$ is the signature, where $q$ is the number of permutations involved in a decomposition of $\si \in \Si_N$. 
+For non-commutative group, one also observes that $G$ is not isometric to $\hat G$. A typical example is the symmetric group $\Si_N$ of $N$ elements, where one can show that $\hat G = \{\Id,\epsilon\}$ where $\epsilon(\si) = (-1)^{q}$ is the signature, where $q$ is the number of permutations involved in a decomposition of $\si \in \Si_N$. 
 
-In order to study non-commutative groups, one has to replace morphisms $\chi : G \rightarrow \CC^*$ by morphisms $\rho : G \rightarrow \text{GL}(\CC^d)$ for some $d$, which are called ``representations'' of the group $G$. For $(g,g') \in G$ (denoting now multiplicatively the operation on $G$), one should thus have $\rho(gg')=\rho(g) \circ \rho(g')$. When $d=1$, identifying $\text{GL}(\CC) \sim \CC^*$, one retrieve the definition of characters. Note that if $\rho$ is a representation, then $\chi(g) \eqdef \tr(\rho(g))$, where $\tr$ is the trace, defines a character. 
+In order to study non-commutative groups, one has to replace morphisms $\chi : G \rightarrow \CC^*$ by morphisms $\rho : G \rightarrow \text{GL}(\CC^{n_\rho})$ for some $n_\rho$, which are called ``representations'' of the group $G$. For $(g,g') \in G$ (denoting now multiplicatively the operation on $G$), one should thus have $\rho(gg')=\rho(g) \circ \rho(g')$. When $n_\rho=1$, identifying $\text{GL}(\CC) \sim \CC^*$, one retrieve the definition of characters. Note that if $\rho$ is a representation, then $\chi(g) \eqdef \tr(\rho(g))$, where $\tr$ is the trace, defines a character. 
+
+If there is a subspace $V$ stable by all the $\rho(g)$, one can build $W$ such that $\RR^{n_\rho}=V+W$ which is also stable, thus reducing the study of $\rho$ to the study on a small space (matrices have a block diagonal form). It suffice to consider the inner product
+\eq{
+	\dotp{x}{y} \eqdef \sum_{g \in G} \dotp{\rho(g)x}{\rho(g)y}_{\RR^{n_\rho}}
+}
+and select the orthogonal $V^\bot$ for this product. Note that when using an ortho-basis of $\RR^{n_\rho}$ for this inner product, the matrices associated to the $\rho(g)$ are unitary.
 %
 In order to limit the set of such representations, one is only interested in ``elementary'' ones, which does not have invariant sub-spaces, and are called ``irreducible'' (otherwise one could create arbitrary large representation by stacking others in a block diagonal way). 
 %
-One can show that the dimensions of these irreducible representations sum to $N$ and that the entries of the matrices involved in these representation define an orthogonal basis of the space of functions $f : G \rightarrow \CC$, thus leading to a theory extending the one on commutative groups. In particular, this Fourier transform in some sense also diagonalizes convolutions over $G$
-\eq{
-	f \star h(a) \eqdef \sum_{bc=a} f(b) h(c).
-}
-%
+One also only consider these irreductible representation up to isomorphism, where two representation $(\rho,\rho')$ are said to be isomorphic if $\rho(g) = U^{-1} \rho(g) U$ where $U \in \text{GL}(\CC^d)$ is a change of basis. The set of all these representations up to isomomorphisms is called the dual group and denoted $\hat G$.
+
 For the symmetric group, there is an explicit description of the set of irreducible representations.  
+%
+For instance, for $G=\Sigma_3$, $|G|=6$, and there is two representation of dimension 1 (the identity and the signature, which are the caracters) and one representation of dimension 2, which is obtained by identifying $G$ with the isometric of the equilateral triangle in $\RR^2$, and the dimensions indeed satisfy $6 = |G| = \sum n_\rho^2 = 1+1+2^2$. 
+
+One can show that the dimensions $n_\rho$ of these irreducible representations $\rho \in \hat G$ satisfies $\sum_{\rho \in \hat G} n_\rho^2 = N$ and that the entries of the matrices involved in these representation define an orthogonal basis of the space of functions $f : G \rightarrow \CC$ (note however that this set of basis function is not canonical since it depends on a particular choice of basis for each representation up to isomorphism).
+%
+The associated Fourier transform of a function $f : G \rightarrow \Cc$ is defined as
+\eq{
+	\foralls \rho \in \hat G, \quad
+	\hat f(\rho) \eqdef \sum_{g \in G} f(g) \rho(g) \in \CC^{n_\rho \times n_\rho}.  
+}
+This corresponds to computing inner products with the aforementioned ortho-basis.
+%
+It is an invertible linear transform, whose invert is given next.
+
+\begin{prop}
+One has
+\eq{
+	\foralls g \in G, \quad
+	f(g) = \frac{1}{|G|} \sum_{\rho \in \hat G} n_\rho \tr( \hat f(\rho) \rho(g^{-1}) ). 
+}
+\end{prop}
+\begin{proof}
+The proof relies on the following formula, which states that for any $g \in G$
+\eq{
+	A_g \eqdef \sum_{\rho \in \hat G} n_\rho \tr( \rho(g) ) = \de_g
+}
+where $\de_g=0$ for $g \neq \Id_G$ and $\de_{\Id_G}=1$. We will not prove this formula, and refer to the book of Diaconis p.13 for a proof, which is based on the decomposition of the character of the so-called standard representation (which corresponds to permuting by the action of $G$ the canonical basis of $\RR^{|G|}$) on the set of characters, which are orthogonal. 
+%
+One then has 
+\begin{align*}
+	\frac{1}{|G|} \sum_{\rho \in \hat G} n_\rho \tr( \hat f(\rho) \rho(g^{-1}) ) 
+	&=  \frac{1}{|G|} \sum_{\rho \in \hat G} n_\rho \tr( \sum_u f(u) \rho(u) \rho(g^{-1}) ) \\
+	&=  \sum_u  f(u) \frac{1}{|G|}  \sum_{\rho \in \hat G} n_\rho \tr( \rho(u g^{-1}) )
+	=  \sum_u  f(u) G_{ug^{-1}} = f(g).
+\end{align*}
+\end{proof}
+
+
+
+
+
+One can define the convolution of two functions $f,h : G \rightarrow \CC$ as
+\eq{
+	(f \star h)(a) \eqdef \sum_{bc=a} f(b) h(c)
+}
+(beware that it is not commutative anymore). The Fourier transform diagonalize these convolution operators, has stated next.
+
+\begin{prop}
+Denoting $\Ff(f) = \hat f$
+\eq{
+	\Ff(f \star h)(\rho) = \hat f(\rho) \times \hat h(\rho)
+}
+where $\times$ is the matrix multiplication.
+\end{prop}
+\begin{proof}
+\eq{
+	\Ff(f \star h)(\rho) = \sum_x \sum_y f(y) h(y^{-1}x) \rho(y y^{-1} x) = \sum_x \sum_y f(y) \rho(y) h(y^{-1}x) \rho(y^{-1}x) 
+	= \sum_y f(y) \rho(y) \sum_z h(z) \rho(z)
+}
+where we made the change of variable $z=y^{-1}x$.
+\end{proof}
+
+
+For certain groups, there exists fast Fourier transforms to compute $\hat f$, an example being the permutation group, but the structure of these algorithm is much more involved than in the case $G=\ZZ/N\ZZ$. 
+
+This theory extends to compact group by considering a discrete but infinite set of representations. A typical example is to analyze signals defined on the rotation groups SO$(3)$, on which one can compute explicitly the representation using the basis of sphereical harmonics detailed in Section~\ref{sec-spherical-harm} bellow. In this case, one has a representation of dimension $2\ell+1$ for each frequency index $\ell$. 
  
- 
+%
+% It is possible to lift the 3-D sphere $\SS^2$ on the group SO$(3)$ since it operate transitively on the sphere, for instance defining for $f : \SS^2 \rightarrow \CC$ its lifted version $f_L(g) = f(g(o))$ where $o$ is any point on the sphere. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -917,6 +1005,7 @@ Similarly to~\eqref{eq-lapl-fourier} (which was for an unbounded domain), then o
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Spherical Harmonics}
+\label{sec-spherical-harm}
 
 \wrapf{2-fourier/spherical}{Spherical coordinates.}
 Of particular interest is the special case of the previous construction on the $(d-1)$-dimensional sphere $\SS^{d-1} = \enscond{x \in \RR^d}{\norm{x}_{\RR^d}=1}$.

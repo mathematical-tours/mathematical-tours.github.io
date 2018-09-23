@@ -63,6 +63,8 @@ plot(1:n*q, f1, 'b');
 plot(1:n*q, g1, 'r');
 axis tight; box on;
 
+return;
+
 %%
 % Compare with cubic splines
 
@@ -93,7 +95,7 @@ plot(a,b, 'r.', 'MarkerSize', 20);
 
 % just b-spline
 
-plot(x, eval_spline(3, x) );
+% plot(x, eval_spline(3, x) );
 
 
 

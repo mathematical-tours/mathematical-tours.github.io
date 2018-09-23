@@ -2,7 +2,7 @@
 % test for matrix multiplication
 
 a = [1 0 1]';  % 1+X^2
-b = [0 2 0 1]'; % 2X+X^4
+b = [0 2 0 1]'; % 2X+X^3
 
 % target size to avoid periodization
 d = length(a)+length(b)-1;

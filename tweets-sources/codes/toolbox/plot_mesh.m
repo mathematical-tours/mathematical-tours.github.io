@@ -28,8 +28,8 @@ options.null = 0;
 
 name            = getoptions(options, 'name', '');
 normal          = getoptions(options, 'normal', []);
-face_color      = getoptions(options, 'face_color', .7);
-edge_color      = getoptions(options, 'edge_color', 0);
+face_color      = getoptions(options, 'face_color', [.7 .7 .7]);
+edge_color      = getoptions(options, 'edge_color', [0 0 0]);
 normal_scaling  = getoptions(options, 'normal_scaling', .8);
 sanity_check    = getoptions(options, 'sanity_check', 1);
 view_param      = getoptions(options, 'view_param', []);
@@ -112,10 +112,10 @@ end
 if sanity_check && ( (size(face,2)~=3 && size(face,2)~=4) || (size(vertex,2)~=3 && size(vertex,2)~=2))
     error('face or vertex does not have correct format.');
 end
-if ~isfield(options, 'face_vertex_color') || isempty(options.face_vertex_color)
-    options.face_vertex_color = zeros(size(vertex,1),1);
-end
-face_vertex_color = options.face_vertex_color;
+% if ~isfield(options, 'face_vertex_color') || isempty(options.face_vertex_color)
+%     options.face_vertex_color = zeros(size(vertex,1),1);
+% end
+face_vertex_color = getoptions(options, 'face_vertex_color', []);
 
 
 if not(isempty(texture))
@@ -143,7 +143,7 @@ end
 
 shading_type = 'interp';
 if isempty(face_vertex_color)
-    h = patch('vertices',vertex,'faces',face,'facecolor',[face_color face_color face_color],'edgecolor',[edge_color edge_color edge_color]);
+    h = patch('vertices',vertex,'faces',face,'facecolor', face_color(:)','edgecolor',edge_color(:)');
 else
     nverts = size(vertex,1);
     % vertex_color = rand(nverts,1);

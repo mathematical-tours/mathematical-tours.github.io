@@ -7,12 +7,14 @@ AutoCrop(rep, 'interp-'); %=  to crop the image generated using saveas
 % create save repertory
 addpath('../toolbox/');
 rep = MkResRep();
+mysaveas = @(name,it)saveas(gcf, [rep name '-' znum2str(it,3) '.png']);
+
 % OLD
 rep = '../results/soft-max/';
 [~,~] = mkdir(rep);
 
-saveas(gcf, [rep name num2str(it) '.png'], 'png');
-imwrite(rescale(f), [rep name num2str(it) '.png']);
+saveas(gcf, [rep name znum2str(it,3) '.png'], 'png');
+imwrite(rescale(f), [rep name znum2str(it,3) '.png']);
 
 % rescale, quantized
 Quant = @(x,q)min(floor( rescale(x)*q  ), q-1);
@@ -41,17 +43,20 @@ SM = @(S)exp(S) ./ repmat( sum(exp(S),2), [1 size(S,2)]);
 SM = @(S)SM(S-max2(S));
 
 % click selection
-it = 0;
+x = []; y = [];
 clf; hold on;
 while true
-    axis([0 1 0 1]);
+    axis equal; axis([0 1 0 1]);
+    box on; set(gca, 'Xtick', [], 'Ytick', []);
     [a,b,button] = ginput(1);
     plot(a,b, '.', 'MarkerSize', 15);
     if button==3
         break;
     end
-    Z(end+1) = a+1i*b;
+    x(end+1) = a;
+    y(end+1) = b;
 end
+x = x(:); y = y(:);
 
 % display quantized colormap
 r = 15; % #levellines
@@ -61,6 +66,11 @@ contour(t,t,R',linspace(0,1,r), 'k');
 colormap(parula(r-1));
 caxis([0 1]);
 axis image; axis off;
+
+% turn gray scale image into color image
+CM = parula(256);
+I = 1+floor(rescale(D)*255);
+U = reshape(CM(I,:), [n n 3]);
 
 % gaussian blur
 t = [0:n/2,-n/2+1:-1]';
@@ -127,3 +137,10 @@ for i=1:niter
     end
     % ...
 end
+
+
+% resample a curve using a fixed number of points
+
+curvabs = @(c)[0;cumsum( 1e-5 + abs(c(1:end-1)-c(2:end)) )];
+resample1 = @(c,d,p)interp1(d/d(end),c,(0:p-1)'/p, 'linear');
+resample = @(c,p)resample1( [c;c(1)], curvabs( [c;c(1)] ),p );

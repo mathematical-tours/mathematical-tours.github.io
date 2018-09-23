@@ -20,7 +20,38 @@ D = distmat(X,Y); % D(xi,yj)
 % preference y->x
 [D2,A2] = sort(D, 1, 'ascend'); A2 = A2';
 
+I = -ones(n,1);
+J = -ones(n,1); % reverse permutation
 
+K = find(I<0);
+while not(isempty(K))
+    i = K(1); 
+    Di = D(i,:); 
+    % L = find(not(isinf(Di)));
+    [~,j] = min(Di); D(i,j) = +Inf; 
+    m = J(j);
+    dodraw = 1;
+    if m==-1
+        I(i) = j; J(j) = i; 
+    elseif D(i,j)<D(m,j)
+        I(i) = j; J(j) = i;
+        I(m) = -1; 
+    else
+        dodraw = -1;
+    end
+    % display
+    if dodraw     
+        f = find(I~=-1);
+        clf; hold on;
+        plot([X(1,f); Y(1,I(f))], [X(2,f); Y(2,I(f))], 'b-', 'LineWidth', 2);
+        plot(X(1,:), X(2,:), 'b.', 'MarkerSize', 25);
+        plot(Y(1,:), Y(2,:), 'r.', 'MarkerSize', 25);
+        axis equal; axis tight;
+        axis off;
+        drawnow;
+    end
+    K = find(I<0);
+end
 
 S = galeshapley(n, A1, A2); % Men->Women
 clf; hold on;
