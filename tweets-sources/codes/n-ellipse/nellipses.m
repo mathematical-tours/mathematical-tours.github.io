@@ -31,11 +31,14 @@ for i=1:size(Q,2)
     D = D + sqrt( (X-Q(1,i)).^2 + (Y-Q(2,i)).^2 );
 end
 
+D1 = rescale(D);
+r = 12;
 clf; hold on;
-imagesc(x,x,D);
-contour(x,x,D, 12, 'k', 'LineWidth', 2);
+imagesc(x,x,D1);
+contour(x,x,D1, linspace(0,1,r), 'k', 'LineWidth', 2);
 plot(Q(2,:), Q(1,:), 'r.', 'MarkerSize', 30);
 axis image; axis off;
-colormap parula(256);
+colormap( parula(r-1) );
+caxis([0 1]);
 saveas(gcf, [rep 'nellipse-' num2str(test) '.png']);
 test = test+1;

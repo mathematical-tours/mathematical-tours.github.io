@@ -1,11 +1,13 @@
 %%
 % Mean Curvature motion evolution.
 
-addpath('../toolbox/');
+
 if not(exist('test'))
     test = 0;
 end
 test = test+1;
+
+addpath('../toolbox/');
 rep = MkResRep(num2str(test));
 
 SetAR = @(ar)set(gca, 'PlotBoxAspectRatio', [1 ar 1], 'FontSize', 20);
@@ -51,24 +53,28 @@ normal = @(gamma)-1i*tangent(gamma);
 normalC = @(gamma)BwdDiff(tangent(gamma)) ./ abs( FwdDiff(gamma) );
 
 dt = 0.001 / 500;
-Tmax = 4 / 100;
+Tmax = 11 / 100;
 niter = round(Tmax/dt);
 
 gamma = gamma1;
-q = 70; % frames
+q = 60; % frames
 displist = round(linspace(1,niter,q));
 k = 1;
+Gamma = [];
 for i=1:niter
     gamma = resample( gamma + dt * normalC(gamma) );
     if i==displist(k)
-        t = (k-1)/(length(displist)-1);
-        % display
+        Gamma(:,end+1) = gamma;
+        % display light
         clf; hold on;
-        h = plot(gamma([1:end 1]), 'r', 'color', [t 0 1-t], 'LineWidth', 2);
-        if i==1 || i==niter
-            set(h, 'LineWidth', 2);
+        for s=1:k
+            t = (s-1)/(length(displist)-1);
+            plot(Gamma([1:end 1],s), 'r', 'color', .4*[t 0 1-t]+.6*[1 1 1], 'LineWidth', 1);
         end
-        axis('equal'); axis([-1 1 -1 1]); axis('off');
+        % display
+        t = (k-1)/(length(displist)-1);
+        plot(gamma([1:end 1]), 'r', 'color', [t 0 1-t], 'LineWidth', 2);
+        axis('equal'); axis tight; axis('off');
         drawnow;
         saveas(gcf, [rep 'mcm-' znum2str(k,2) '.png'], 'png');
         k = k+1;

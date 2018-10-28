@@ -91,6 +91,25 @@ Here, $\Om$ is a set of radial line for a scanner, and smooth curves (e.g. spira
 
 Other indirect application are obtained by electric or magnetic fields measurements of the brain activity (corresponding to MEG/EEG). Denoting $\Om \subset \RR^3$ the region around which measurements are performed (e.g. the head), in a crude approximation of these measurements, one can assume $\Phi f = \enscond{(\psi \star f)(x)}{x \in \partial \Om}$ where $\psi(x)$ is a kernel accounting for the decay of the electric or magnetic field, e.g. $\psi(x)=1/\norm{x}^2$. 
 
+
+
+%%%
+\paragraph{Regression for supervised learning.}
+
+While the focus of this chapter is on imaging science, a closely related problem is supervised learning using linear model. The typical notations associated to this problem are usually different, which causes confusion. This problem is detailed in Chapter~\ref{sec-regression}, which draws connection between regression and inverse problems. 
+%
+In statistical learning, one observes pairs $(x_i,y_i)_{i=1}^n$ of $n$ observation, where the features are $x_i \in \RR^p$. One seeks for a linear prediction model of the form $y_i = \dotp{\be}{x_i}$ where the unknown parameter is $\be \in \RR^p$. Storing all the $x_i$ as rows of a matrix $X \in \RR^{n \times p}$, supervised learning aims at approximately solving $X \be \approx y$. The problem is similar to the inverse problem $\Phi f=y$ where one performs the change of variable $\Phi \mapsto X$ and $f \mapsto \be$, with dimensions $(P,N) \rightarrow (n,p)$. 
+%
+In statistical learning, one does not assume some well specified model $y=\Phi f_0+w$, and the major difference is that the matrix $X$ is random, which add extra ``noise'' which needs to be controlled as $n \rightarrow +\infty$. The recovery is performed by the normalized ridge regression problem
+\eq{
+	\umin{\be} \frac{1}{2n}\norm{X \be-y}^2 + \la \norm{\be}^2
+}
+so that the natural change of variable should be $\frac{1}{n}X^*X \sim \Phi^*\Phi$ (empirical covariance) and $\frac{1}{n}X^*y \sim \Phi^*y$.
+%
+The law of large number shows that $\frac{1}{n}X^*X$ and $\frac{1}{n}X^*y$ are contaminated by a noise of amplitude $1/\sqrt{n}$, which plays the role of $\norm{w}$. 
+
+ 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,7 +129,7 @@ Let us start by the simple finite dimensional case $\Phi \in \RR^{P \times N}$ s
 In this case, the Singular Value Decomposition (SVD) is the key to analyze the operator very precisely, and to describe linear inversion process.  
 
 \begin{prop}[SVD]\label{prop-svd}
-	There exists $(U,V) \in \RR^{N \times R} \times \RR^{P \times R}$, where $R=\rank(\Phi)=\dim(\Im(\Phi))$, with $U^\top U=V^\top V=\Id_R$, i.e. having orthogonal columns $(u_m)_{m=1}^R \subset \RR^N, (v_m)_{m=1}^R \subset \RR^P$,  and $(\si_m)_{m=1}^R$ with $\si_m>0$, such that
+	There exists $(U,V) \in \RR^{P \times R} \times \RR^{N \times R}$, where $R=\rank(\Phi)=\dim(\Im(\Phi))$, with $U^\top U=V^\top V=\Id_R$, i.e. having orthogonal columns $(u_m)_{m=1}^R \subset \RR^N, (v_m)_{m=1}^R \subset \RR^P$,  and $(\si_m)_{m=1}^R$ with $\si_m>0$, such that
 	\eql{\label{eq-svd-expan}
 		\Phi = U\diag_m(\si_m) V^\top = \sum_{m=1}^R \si_m u_m v_m^\top.
 	}
@@ -125,7 +144,7 @@ In this case, the Singular Value Decomposition (SVD) is the key to analyze the o
 	One then verifies that 
 	\eq{
 		V^\top V = (\Si^{-1} U^\top \Phi)  (\Phi^\top U \Si^{-1}) = 
-			\Si^{-1} U^\top (U \Si^2 U^\top) U \Si^{-1} = \Id_P
+			\Si^{-1} U^\top (U \Si^2 U^\top) U \Si^{-1} = \Id_R
 		\qandq
 		U \Si V^\top = U \Si \Si^{-1} U^\top \Phi  = \Phi.
 	} 
@@ -159,7 +178,7 @@ Compact operators $\Phi$ can be shown to be equivalently defined as those for wh
 \eql{\label{eq-svd-operators}
  	\Phi = \sum_{m=1}^{+\infty} \si_m u_m v_m^\top
 }
-where $(\si_m)_m$ is a decaying sequence onverging to $0$, $\si_m \rightarrow 0$.
+where $(\si_m)_m$ is a decaying sequence converging to $0$, $\si_m \rightarrow 0$.
 %
 Here in~\eqref{eq-svd-operators} convergence holds in the operator norm, which is the algebra norm on linear operator inherited from those of $\Ss$ and $\Hh$
 \eq{
@@ -245,7 +264,7 @@ When there is noise, using formula~\eqref{eq-pseudo-inverse} is not acceptable, 
 	\qwhereq
 	f_0^+ \eqdef \Proj_{\ker(\Phi)^\bot}, 
 }
-so that the recovery error is $\norm{\Phi^+ y -f_0^+} = \norm{\Phi^+ w} \geq \norm{w}/\si_R$. The noise is thus amplified by the inverse $1/\si_R$ of the smallest amplitude non-zero singular values, which can be very large. In infinite dimension, one typically has $R=+\infty$, so that the inverse is actually not bounded (discontinuous). It is thus mendatory to replace $\Phi^+$ by a regularized approximate inverse, which should have the form 
+so that the recovery error is $\norm{\Phi^+ y -f_0^+} = \norm{\Phi^+ w}$. This quantity can be as larges as $\norm{w}/\si_R$ if $w \propto u_R$. The noise is thus amplified by the inverse $1/\si_R$ of the smallest amplitude non-zero singular values, which can be very large. In infinite dimension, one typically has $R=+\infty$, so that the inverse is actually not bounded (discontinuous). It is thus mendatory to replace $\Phi^+$ by a regularized approximate inverse, which should have the form 
 \eql{\label{eq-regul-pinv}
 	\Phi^+_\la = V \diag_m(\mu_\la(\si_m)) U^*
 } 
@@ -253,8 +272,9 @@ where $\mu_\la$, indexed by some parameter $\la>0$, is a regularization of the i
 \eq{
 	\mu_\la(\si) \leq C_\la < +\infty 
 	\qandq
-	\lim_{\la \rightarrow 0} \mu_\la(\si) = \frac{1}{\si}
+	\lim_{\la \rightarrow 0} \mu_\la(\si) = \frac{1}{\si}.
 }
+Figure~\ref{fig-bound-regul-variance}, left, shows a typical example of such a regularized inverse curve, obtained by thresholding.
 
 
 %%%%
@@ -268,28 +288,32 @@ where $J$ is some regularization functional which should at least be continuous 
 \eql{\label{eq-regul-normsq}
 	f_\la \eqdef \uargmin{f \in \Ss} \norm{y-\Phi f}_\Hh^2 + \la \norm{f}^2
 }
-which is indeed a special case of~\eqref{eq-regul-pinv} as we now prove.
+which is indeed a special case of~\eqref{eq-regul-pinv} as proved in Proposition~\ref{prop-var-regul-svd} bellow. In this case, the regularized solution is obtained by solving a linear system
+\eql{\label{eq-sol-quad-reg-svd}
+	f_\la = (\Phi^*\Phi + \la \Id_{P})^{-1} \Phi^* y.
+}
+This shows that $f_\la \in \Im(\Phi^*) = \ker(\Phi)^\bot$, and that it depends linearly on $y$. 
 
-\begin{prop}
+\begin{prop}\label{prop-var-regul-svd}
 	The solution of~\eqref{eq-regul-normsq} has the form $f_\la = \Phi^+_\la y$ as defined in~\eqref{eq-regul-pinv} for the specific choice of function
 	\eq{
 		\foralls \si \in \RR, \quad \mu_\la(\si) = \frac{\si}{\si^2+\la}.
 	}
 \end{prop} 
 \begin{proof}
-Problem~\eqref{eq-regul-normsq} can be conveniently rewritten in the basis of singular vectors as
-\eql{\label{eq-regul-inv-singul}
-	f_\la = \uargmin{f \in \Im(\Phi^*)} \sum_m  (\si_m \dotp{f}{v_m} - \dotp{y}{u_m})^2 + \la \dotp{f}{v_m}^2 + \la \norm{ \Proj_{\ker(\Phi)^\bot} f }^2.
-}
-This shows that necessarily $\Proj_{\ker(\Phi)^\bot} f_\la=0$, i.e. $f_\la \in \Im(\Phi^*)$. The minimization~\eqref{eq-regul-inv-singul} thus boils down to independent scalar minimization over each coordinate $f_m \eqdef \dotp{f}{v_m}$ and the first order condition reads
+Using expression~\eqref{eq-sol-quad-reg-svd} and plugging the SVD $\Phi = U \Si V^*$ leads to
 \eq{
-	\si_m ( \si_m f_m - y_m) + \la f_m = 0
-	\qwhereq
-	y_m \eqdef \dotp{y}{u_m}
+	\Phi_\la^+ = (V \Si^2 V^* + \la VV^*)^{-1} V \Si U^* = V^* (\Si^2 + \la)^{-1} \Si U^*
 }
-which shows the desired formula.
+which is the desired expression since $(\Si^2 + \la)^{-1} \Si = \diag(\mu_\la(\si_m))_m$.
 \end{proof}
 
+A special case is when $\Phi f = f \star h$ is a convolution operator. In this case, the regularized inverse is computed in $O(N \log(N))$ operation using the FFT as follow
+\eq{
+	\hat f_{\la,m} = \frac{\hat h_m^*}{|\hat h_m|^2 + \si^2} \hat y_m. 
+}
+
+Figure~\ref{fig-bound-regul-variance} contrast the regularization curve associated to quadratic regularization~\eqref{eq-sol-quad-reg-svd} (right) to the simpler thresholding curve (left). 
 
 The question is to understand how to choose $\la$ as a function of the noise level $\norm{w}_\Hh$ in order to guarantees that $f_\la \rightarrow f_0$ and furthermore establish convergence speed. One first needs to ensure at least $f_0=f_0^+$, which in turns requires that $f_0 \in \Im(\Phi^*)=\ker(\Phi)^\bot$. Indeed, an important drawback of linear recovery methods (such as quadratic regularization) is that necessarily $f_\la \in \Im(\Phi^*)=\ker(\Phi^\bot)$ so that no information can be recovered inside $\ker(\Phi)$. Non-linear methods must be used to achieve a ``super-resoltution'' effect and recover this missing information.
 
@@ -300,10 +324,13 @@ In order to ensure convergence speed, one quantify this condition and impose a s
 \eql{\label{eq-source-cond-init}
 	f_0 \in \Im( (\Phi^*\Phi)^\be ) = \Im( V \diag( \si_m^{2\be} ) V^* ).
 }
-This condition means that there should exists $z \in \Ss$ such that $f_0 = V \diag( \si_m^{2\be} ) V^* z$, i.e. $z =V \diag( \si_m^{-2\be} ) V^* f_0$. Denoting $\rho \eqdef \norm{z}$, we thus in fact impose the following constraint
+In some sense, the larger $\be$, the farther $f_0$ is away from $\ker(\Phi)$, and thus the inversion problem is ``easy''. 
+This condition means that there should exists $z \in \RR^P$ such that $f_0 = V \diag( \si_m^{2\be} ) V^* z$, i.e. $z =V \diag( \si_m^{-2\be} ) V^* f_0$. In order to control the strength of this source condition, we assume $\norm{z} \leq \rho$ where $\rho>0$. The source condition thus corresponds to the following constraint
 \eql{\label{eq-source-cond-quad}\tag{$S_{\be,\rho}$}
-	\sum_m \si_m^{-2\be} \dotp{f}{v_m}^2 \leq \rho^2 < +\infty. 
+	\sum_m \si_m^{-2\be} \dotp{f_0}{v_m}^2 \leq \rho^2 < +\infty. 
 }
+
+
 This is a Sobolev-type constraint, similar to those imposed in~\ref{eq-discr-sobol}. A prototypical example is for a low-pass filter $\Phi f = f \star h$ where $h$ as a slow polynomial-like decay of frequency, i.e. $|\hat h_m| \sim 1/m^{\al}$ for large $m$. In this case, since $v_m$ is the Fourier basis, the source condition~\eqref{eq-source-cond-quad} reads
 \eq{
 	\sum_m \norm{m}^{2\al\be} |\hat f_m|^2 \leq \rho^2 < +\infty, 
@@ -315,6 +342,9 @@ which is a Sobolev ball of radius $\rho$ and differential order $\al\be$.
 \paragraph{Sublinear convergence speed.}
 
 The following theorem shows that this source condition leads to a convergence speed of the regularization. 
+%
+Imposing a bound $\norm{w} \leq \de$ on the noise, the theoretical analysis of the inverse problem thus depends on the parameters $(\de,\rho,\be)$. Assuming $f_0 \in \ker(\Phi)^\bot$, the goal of the theoretical analysis corresponds to studying the speed of convergence of $f_\la$ toward $f_0$, when using $y=\Phi f_0+w$ as $\de \rightarrow 0$. This requires to decide how $\la$ should depends on $\de$.
+
 
 \begin{thm}\label{thm-sublin-quad}
 	Assuming the source condition~\eqref{eq-source-cond-quad} with $0 < \be \leq 2$, then the solution of~\eqref{eq-regul-normsq} for $\norm{w} \leq \de$ satisfies
@@ -329,9 +359,13 @@ The following theorem shows that this source condition leads to a convergence sp
 \end{thm}
 
 \begin{proof}
-	Because of the source condition, $f_0 \in \Im(\Phi^*)$. Denoting 
+	Because of the source condition, $f_0 \in \Im(\Phi^*)$. 
+	%
+	We decompose
 	\eq{
-		f_{\la}^0 \eqdef \Phi_\la^+ ( \Phi f_0 )
+		f_\la = \Phi_\la^+(\Phi f_0 + w) = f_\la^0 + \Phi_\la^+ w 
+		\qwhereq		
+		f_{\la}^0 \eqdef \Phi_\la^+ ( \Phi f_0 ), 
 	}
 	so that $f_\la = f_{\la}^0 + \Phi_\la^+ w$, one has for any regularized inverse of the form~\eqref{eq-regul-pinv} 
 	\eql{\label{eq-rate-tikhon}
@@ -349,7 +383,7 @@ The following theorem shows that this source condition leads to a convergence sp
 	\eq{
 		\norm{ f_\la - f_{\la}^0 }^2 =  \norm{ \Phi_\la^+ w }^2 = \sum_m \mu_\la(\si_m)^2 w_m^2 \leq C_\la^2 \norm{w}_\Hh^2.
 	}
-	The bias term is bounded as
+	The bias term is bounded as, since $\frac{f_{0,m}^2}{\si_m^{2\be}} = z_m^2$, 
 	\eql{\label{eq-proof-ip-quad-1}
 		\norm{ f_{\la}^0 - f_0 }^2 = \sum_m ( 1 - \mu_\la(\si_m) \si_m)^2 f_{0,m}^2 
 		= \sum_m \pa{ (1 - \mu_\la(\si_m) \si_m) \si_m^{\be} }^2  \frac{f_{0,m}^2}{\si_m^{2\be}}
@@ -359,19 +393,20 @@ The following theorem shows that this source condition leads to a convergence sp
 	\eql{\label{eq-proof-ip-quad-2}
 		\foralls \si\geq 0, \quad \abs{ (1 - \mu_\la(\si) \si ) \si^{\be} } \leq D_{\la,\be}.
 	}
+	Note that for $\be>2$, one has $D_{\la,\be}=+\infty$
 	Putting~\eqref{eq-proof-ip-quad-1} and~\eqref{eq-proof-ip-quad-2} together, one obtains
 	\eql{\label{eq-bound-global-quad}
 		\norm{f_\la - f_0} \leq C_\la \de + D_{\la,\be} \rho. 
 	}
 	In the case of the regularization~\eqref{eq-regul-normsq}, one has $\mu_\la(\si) = \frac{\si}{\si^2+\la}$, and
 	thus $( 1 - \mu_\la(\si) \si )\si^{\be} = \frac{\la \si^\be}{\si^2+\la}$. 
-	For $\be \leq 2$, one verifies (see Figure~\ref{fig-bound-regul}) that 
+	For $\be \leq 2$, one verifies (see Figure~\ref{fig-bound-regul-variance} and~\ref{fig-bound-regul}) that 
 	\eq{
 		C_\la = \frac{1}{2\sqrt{\la}}
 		\qandq
-		D_{\la,\be} = C_\be \la^{\frac{\be}{2}},  
+		D_{\la,\be} = c_\be \la^{\frac{\be}{2}},  
 	}
-	for some constant $C_\be$.
+	for some constant $c_\be$.
 	%
 	Equalizing the contributions of the two terms in~\eqref{eq-bound-global-quad} (a better constant would be reached by finding the best $\la$) leads to selecting $\frac{\de}{\sqrt{\la}} = \la^{\frac{\be}{2}} \rho$ i.e. $\la = (\de/\rho)^{\frac{2}{\be+1}}$. With this choice, 
 	\eq{
@@ -381,13 +416,21 @@ The following theorem shows that this source condition leads to a convergence sp
 \end{proof}
 
 
+
 \begin{figure}
 \centering
-\includegraphics[width=.35\linewidth]{inverse-problems/bound-regul-1} \quad
-\includegraphics[width=.35\linewidth]{inverse-problems/bound-regul-2}
+\includegraphics[width=.4\linewidth]{inverse-problems/bound-variance} 
+\caption{\label{fig-bound-regul-variance}
+Bounding $\mu_{\la}(\si) \leq C_\la = \frac{1}{2\sqrt{\la}}$.
+}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.6\linewidth]{inverse-problems/bound-bias} \quad
 \caption{\label{fig-bound-regul}
-Bounding $\mu_{\la}(\si) \leq C_\la = \frac{1}{2\sqrt{\la}}$ (left)  and 
-$\frac{\si^\be}{\la+\si^2} \leq D_{\la,\be}/\la$ (right). 
+Bounding $\la \frac{\si^\be}{\la+\si^2} \leq D_{\la,\be}$. 
 }
 \end{figure}
 
@@ -398,7 +441,11 @@ The rate~\eqref{eq-rate-tikhon} however suffers from a ``saturation'' effect, in
 \eq{
 	\norm{f_\la - f_0} = O( \rho^{\frac{1}{3}} \de^{\frac{2}{3}} ).
 }
-By choosing more alternative regularization functional $\mu_\la$ and choosing $\be$ large enough, one can show that it is possible to reach rate $\norm{f_\la - f_0} = O( \de^{1-\kappa} )$ for an arbitrary small $\kappa>0$, but one cannot reach a linear rate $\norm{f_\la - f_0}=O(\norm{w})$. Such rates are achievable using non-linear sparse $\ell^1$ regularizations as detailed in Chapter~\ref{chap-sparse-regul}. 
+By choosing more alternative regularization functional $\mu_\la$ and choosing $\be$ large enough, one can show that it is possible to reach rate $\norm{f_\la - f_0} = O( \de^{1-\kappa} )$ for an arbitrary small $\kappa>0$.
+%
+Figure~\ref{fig-bound-regul-variance} contrast the regularization curve associated to quadratic regularization~\eqref{eq-sol-quad-reg-svd} (right) to the simpler thresholding curve (left) which does not suffers from saturation. Quadratic regularization however is much simpler to implement because it does not need to compute an SVD, is defined using a variational optimization problem and is computable as the solution of a linear system. 
+%
+One cannot however reach a linear rate $\norm{f_\la - f_0}=O(\norm{w})$. Such rates are achievable using non-linear sparse $\ell^1$ regularizations as detailed in Chapter~\ref{chap-sparse-regul}. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

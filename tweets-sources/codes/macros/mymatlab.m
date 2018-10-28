@@ -144,3 +144,13 @@ end
 curvabs = @(c)[0;cumsum( 1e-5 + abs(c(1:end-1)-c(2:end)) )];
 resample1 = @(c,d,p)interp1(d/d(end),c,(0:p-1)'/p, 'linear');
 resample = @(c,p)resample1( [c;c(1)], curvabs( [c;c(1)] ),p );
+
+% reset color indexing
+ax = gca; ax.ColorOrderIndex = 1; % keep same color
+
+% increase number of total colors in matlab for plot
+co = distinguishable_colors(size(X,1));
+set(groot,'defaultAxesColorOrder',co);
+
+% Arrows
+quiver(X,Y,v(:,:,1), v(:,:,2), 'k');

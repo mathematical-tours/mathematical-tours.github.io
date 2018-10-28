@@ -13,25 +13,52 @@
 
 addpath('../toolbox/');
 
-rep = '../results/subdivision-curves/';
-[~,~] = mkdir(rep);
+addpath('../toolbox/');
+rep = MkResRep();
+
 
 ms = 20; lw = 1.5;
 myplot = @(f,c)plot(f([1:end 1]), c, 'LineWidth', lw, 'MarkerSize', ms);
 myaxis = @(rho)axis([-rho 1+rho -rho 1+rho], 'off');
 
-% input coarse
-f0 =    [0.11 0.18 0.26 0.36 0.59 0.64 0.80 0.89 0.58 0.22 0.18 0.30 0.58 0.43 0.42]' + ...
-   1i * [0.91 0.55 0.91 0.58 0.78 0.51 0.81 0.56 0.10 0.16 0.35 0.42 0.40 0.24 0.31]';
-f0 = rescale(real(f0),.01,.99) + 1i * rescale(imag(f0),.01,.99);
+
+
+
+%%
+% First we create a 2D closes polygon, which will be a cage used to perform
+% 2D shape deformation.
+
+clf; hold on;
+f0 = [];
+while true
+    axis equal; axis([0 1 0 1]);  % axis off;
+    [a,b,button] = ginput(1);  
+    if button==3
+        break;
+    end
+    plot(a,b, '.', 'MarkerSize', 25); 
+    f0(end+1) = a + 1i*b;
+    plot(f0, 'r', 'LineWidth', 2);
+end
+k = size(f0,2);
+plot(f0([1:end,1]), 'r', 'LineWidth', 2);
+f1 = [];
+for it=1:k
+    axis([0 1 0 1]); axis equal; axis off;
+    [a,b,button] = ginput(1);
+    plot(a,b, '*', 'MarkerSize', 25);   
+    f1(end+1) = a + 1i * b;
+end
+f0 = f0(:); f1 = f1(:);
+
 
 % basic step
 subdivide = @(f,h)cconvol( upsampling(f), h);
 
 % bi-cubic
-name = 'interpolating';
 name = 'quadratic';
 name = 'cubic';
+name = 'interpolating';
 switch name
     case 'cubic'
         h = [1 4 6 4 1]; % cubic B-spline
@@ -48,15 +75,31 @@ switch name
         h = h4pt(1/16);
 end
 
-
-Jmax = 4;
+q = 50;  % animation
+jlist = [1 2 5]; 
 f = f0;
-for j=0:Jmax
-    clf; hold on;
-	plot(f0([1:end 1]), 'r.--', 'LineWidth', 1.5, 'MarkerSize', 25);
-    plot(f([1:end 1]), 'k.-', 'LineWidth', 2, 'MarkerSize', 20);
-    myaxis(0.02);
-    saveas(gcf, [rep name '-' num2str(j) '.eps'], 'epsc');    
-    f = subdivide(f,h);
+for j=jlist
+    for it=1:q
+        t = (it-1)/(q-1);
+        ft = f0*(1-t) + f1*t;
+        
+        f = ft;
+        for isub=1:j
+            f = subdivide(f,h);
+        end
+        
+        st = '.-'; 
+        if j==jlist(end)
+           st = '-'; 
+        end
+        clf; hold on;
+        plot(ft([1:end 1]), '.-', 'Color', [1 1 1]*.5, 'LineWidth', 1, 'MarkerSize', 25);
+        plot(f([1:end 1]), st, 'Color', [t 0 1-t], 'LineWidth', 2, 'MarkerSize', 25);
+        axis equal; myaxis(0.02);
+        drawnow;
+        saveas(gcf, [rep name '-' num2str(j) '-' znum2str(it,2) '.png'], 'png');
+    end
 end
+
+AutoCrop(rep, name);
 

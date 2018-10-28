@@ -1,0 +1,657 @@
+% !TEX root = ../IntroImaging-FR.tex
+
+\chapter{Claude Shannon et la compression des données}
+\label{chap-shannon}
+
+\newcommand{\myfig}[3]{%
+\begin{figure}[h!]\centering
+#1
+\caption{\label{#2}#3}
+\end{figure}}
+
+\newcommand{\imgspace}{\hspace{2mm}}
+\newcommand{\tabDeux}[1]{%
+\begin{tabular}{@{}c@{\imgspace}c@{}}
+#1
+\end{tabular}}
+%
+\newcommand{\tabTrois}[1]{%
+\begin{tabular}{@{}c@{\imgspace}c@{\imgspace}c@{}}
+#1
+\end{tabular}}
+%
+\newcommand{\tabQuatre}[1]{%
+\begin{tabular}{@{}c@{\imgspace}c@{\imgspace}c@{\imgspace}c@{}}
+#1
+\end{tabular}}
+
+
+\newcommand{\BL}[1]{{\color{blue}{#1}}}
+\newcommand{\RE}[1]{{\color{red}{#1}}}
+\newcommand{\GR}[1]{{\color{magenta}{#1}}}
+\newcommand{\WH}[1]{{\color{white}{#1}}}
+\newcommand{\LG}[1]{{\color{lightgray}{#1}}}
+
+
+
+\newcommand{\mot}{\BL{v}}
+\newcommand{\Mot}{\BL{V}}
+\newcommand{\differ}{\GR{d}}
+\newcommand{\Differ}{\GR{D}}
+%
+\newcommand{\LongMoy}{\Ll}
+\newcommand{\LongTot}{\bar\Ll}
+
+
+\newcommand{\mylink}[1]{\footnote{\url{#1}}}
+
+
+
+%\newcommand{\myparagraph}[1]{\paragraph{#1.}}
+%\renewcommand{\myparagraph}[1]{\subsection{#1}}
+ 
+	L'immense majorité des données (texte, son, image, vidéo, etc.) sont stockées et manipulées sous forme numérique, c'est-à-dire à l'aide de nombres entiers qui sont convertis en une succession de bits (des $\RE{0}$ et des $\RE{1}$). La conversion depuis le monde analogique continu vers ces représentations numériques discrètes est décrite par la théorie élaborée par Claude Shannon (30 avril 1916--24 février 2001), le père fondateur de la théorie de l'information. L'impact de cette théorie sur notre société est absolument colossal. Pourtant son nom est quasi inconnu du grand public. Le centenaire de la naissance de Claude Shannon est donc une bonne excuse pour présenter l'\oe{}uvre d'un très grand scientifique.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Données numériques et codage}
+
+Dans le monde numérique qui nous entoure, toutes les données (images, films, sons, textes, etc.) sont codées informatiquement sous la forme d'une succession de $\RE{0}$ et des $\RE{1}$. Ce codage n'est pas limité au stockage sur des ordinateurs, il est aussi central pour les communications sur internet (envois de courriels, \guill{streaming} vidéo\mylink{https://fr.wikipedia.org/wiki/Streaming}, etc.) ainsi que pour des applications aussi diverses que les lecteurs de musique, les liseuses électroniques ou les téléphones portables.
+
+Cependant, les données (par exemple du texte, des sons, des images ou des vidéos) sont initialement représentées sous la forme d'une succession de \textit{symboles}, qui ne sont pas forcément des $\RE{0}$ ou des $\RE{1}$. Par exemple, pour le cas d'un texte, les symboles sont les lettres de l'alphabet. Pour les cas des images, il s'agit des valeurs des pixels. Il faut donc pouvoir convertir cette suite de symboles en une suite de $\RE{0}$ et de $\RE{1}$. Il faut également pouvoir le faire de façon économe, c'est-à-dire en utilisant la suite la plus courte possible. Ceci est crucial pour pouvoir stocker efficacement ces données sur un disque dur, où bien les transmettre rapidement sur le réseau internet. Cette problématique de \textit{compression} est devenue un enjeu majeur car les données stockées et transmises croissent de façon exponentielle.
+
+La théorie élaborée par Claude Shannon décrit les bases théoriques et algorithmiques de ce codage. Il a formalisé mathématiquement les trois étapes clés de la conversion depuis le monde analogique vers le monde numérique :
+
+\begin{itemize}
+\item[(i)] l'\textit{échantillonnage}\mylink{https://fr.wikipedia.org/wiki/échantillonnage_(signal)}, qui permet de passer de données continues à une succession de nombres ;
+%
+\item[(ii)] le \textit{codage}\mylink{https://fr.wikipedia.org/wiki/Compression_de_données} (on parle aussi de compression), qui permet de passer à une succession plus compacte de $\RE{0}$ et de $\RE{1}$ (on parle de code binaire) ;
+%
+\item[(iii)] le \textit{codage correcteur d'erreurs}\mylink{https://fr.wikipedia.org/wiki/Code_correcteur}, qui rend le code robuste aux erreurs et aux attaques.
+\end{itemize}
+
+Pour chacune de ces étapes, Claude Shannon a établi dans~\cite{Shannon1948,shannon1949}, sous des hypothèses précises sur les données et le canal de transmission, des \guill{bornes d'optimalité}. Ces bornes énoncent des limites de performance indépassables, quelle que soit la méthode utilisée. Par exemple, pour la phase de codage (ii), cette borne correspond à la taille théorique minimale des messages binaires permettant de coder l'information voulue. Dans la deuxième moitié du 20$^e$ siècle, des méthodes et des algorithmes de calculs efficaces ont été élaborés permettant d'atteindre les bornes de Shannon, débouchant au 21$^e$ siècle sur l'explosion de l'ère numérique. Cet article se concentre sur la partie (ii) et présente les bases de la compression des données telles que définies par Claude Shannon. Pour la partie (iii), on pourra par exemple consulter cet article d'images des mathématiques\mylink{http://images.math.cnrs.fr/Qui-est-ce}.
+
+Vous pourrez trouver à la fin de cet article un glossaire récapitulant les termes les plus importants.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Codage et décodage}
+
+Nous allons maintenant décrire et étudier la transformation (le codage) depuis la suite de symboles $\{\BL{0,1,2,3}\}$ vers un code binaire, c'est-à-dire une suite de $\RE{0}$ et de $\RE{1}$. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Exemple d'une image}
+
+Dans la suite de cet article, je vais illustrer mes propos à l'aide d'images en niveaux de gris. Une telle image est composée de pixels. Pour simplifier, nous allons considérer seulement des pixels avec 4 niveaux de gris :
+\begin{itemize}
+\item $\BL{0}$ : noir
+\item $\BL{1}$ : gris foncé,
+\item $\BL{2}$ : gris clair,
+\item $\BL{3}$ : blanc.
+\end{itemize}
+
+Cependant, tout ce qui va être décrit par la suite se généralise à un nombre arbitraire de niveaux de gris (en général, les images que l'on trouve sur internet ont 256 niveaux) et même aux images couleurs (que l'on peut décomposer en 3 images monochromes, les composantes rouge, vert et bleue).
+
+La figure~\ref{fig-image-zoom} montre un exemple d'une image avec 4 niveaux de gris, avec un zoom sur un sous-ensemble de $5 \times 5$ pixels.
+
+\myfig{
+\includegraphics[width=.6\linewidth]{codage/codage-pxl}
+}{fig-image-zoom}{Une image en niveaux de gris et un zoom sur un carré de $5 \times 5$ pixels.}
+
+
+Nous allons nous concentrer sur cet ensemble de 25 pixels (le reste de l'image se traite de la même façon). Si on met les unes à la suite des autres les 25 valeurs correspondantes, on obtient la suite suivante de symboles, qui sont des nombres entre $\BL{0}$ et $\BL{3}$
+$$
+	(\BL{0, 1, 3, 2, 0, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 1}).
+$$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Codage uniforme}
+
+L'étape de codage procède donc en  associant à chacun des symboles $\{\BL{0,1,2,3}\}$ un mot de code, qui est une suite de $\RE{0}$ et de $\RE{1}$.
+
+Une stratégie possible est d'utiliser le codage
+$$
+\BL{0} \mapsto \RE{00}, \quad
+\BL{1} \mapsto \RE{01}, \quad
+\BL{2} \mapsto \RE{10}, \quad
+\BL{3} \mapsto \RE{11}.
+$$
+Il s'agit d'un cas particulier de codage \textit{uniforme}, qui associe à chaque symbole un mot de code de longueur fixe (ici de longueur constante 2).
+
+Ainsi, la suite de symboles $(\BL{0, 1, 3})$ est codée comme
+$$
+	(\BL{0, 1, 3}) \overset{\text{codage}}{\longmapsto}
+	(\RE{00,01,11}) \overset{\text{regroupement}}{\longmapsto}
+	\RE{000111}.
+$$
+La suite complète des symboles correspondant à l'image de $5 \times 5$ pixels montrée plus haut
+donnera le code
+$$
+  \RE{00011110001110100110100101101010010110101001011001}.
+$$
+La longueur (c'est-à-dire le nombre de $\BL{0}$ et de $\BL{1}$) de la suite de $\BL{0}$ et de $\BL{1}$ utilisée pour coder un message se mesure en nombre de \textit{bits}. En utilisant le codage uniforme précédent, qui utilise 2 bits par symboles, comme l'on doit coder 25 symboles, on obtient une longueur
+$$
+	\mathcal{\bar L} = 25 \times 2 = 50 \text{ bits}
+$$
+Le \textit{bit} (\guill{binary digit}) est l'unité fondamentale de l'information, et a été introduite par John Tukey\mylink{https://fr.wikipedia.org/wiki/John_Tukey},  qui était un collaborateur de Claude Shannon.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Logarithme et codage uniforme}
+
+Si le nombre $N$ de symboles possibles (ici $N=4$) est une puissance de $2$, c'est à dire que $N=2^\ell$ (ici $N=4=2^2$ donc $\ell=2$), on peut toujours construire un tel code \textit{uniforme} où l'on associe à chaque symbole son écriture binaire. On a donné plus haut l'exemple du codage uniforme de $N=4$ symboles, et le cas de $N=8$ (donc $\ell=3$) symboles correspond au codage
+$$
+\BL{0} \mapsto \RE{000}, \quad
+\BL{1} \mapsto \RE{001}, \quad
+\BL{2} \mapsto \RE{010}, \quad
+\BL{3} \mapsto \RE{011},
+$$
+$$
+\BL{4} \mapsto \RE{100}, \quad
+\BL{5} \mapsto \RE{101}, \quad
+\BL{6} \mapsto \RE{110}, \quad
+\BL{7} \mapsto \RE{111}.
+$$
+
+Cette écriture binaire a une longueur $\ell$, que l'on appelle le logarithme en base de 2\mylink{https://fr.wikipedia.org/wiki/Logarithme_binaire} de $N$, ce que l'on note
+$$
+		N = 2^\ell \quad\Longleftrightarrow\quad \log_2(N) \eqdef \ell.
+$$
+La définition de $\log_2(x)$ s'étend aussi au cas où $x$ n'est pas une puissance de 2, en utilisant la définition $\log_2(x) \eqdef \ln(x)/\ln(2)$, où $\ln$ est le \textit{logarithme népérien}.
+%
+Dans ce cas, $\log_2(x)$ n'est pas un nombre entier. Pour un nombre réel strictement positif $x$, le logarithme vérifie
+$\log_2(1/x) = -\log_2(x)$, donc par exemple, on a $\log_2(1/4)=-\log_2(4)=2$.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Codage à longueur variable}
+
+Une question importante est de savoir si l'on peut faire mieux (c'est-à-dire utiliser moins de bits pour coder la même suite de symboles). On peut par exemple utiliser à la place d'un code uniforme, le codage suivant
+$$
+	\BL{0} \mapsto \RE{001}, \quad
+	\BL{1} \mapsto \RE{01}, \quad
+	\BL{2} \mapsto \RE{1}, \quad
+	\BL{3} \mapsto \RE{000}.
+$$
+Avec un tel codage, la suite de symboles $(\BL{0, 1, 3})$ est codée comme
+$$
+	(\BL{0, 1, 3}) \overset{\text{codage}}{\longmapsto}
+	(\RE{001,01,000}) \overset{\text{regroupement}}{\longmapsto}
+	\RE{00101000}.
+$$
+La suite complète des symboles correspondant à l'image de $5 \times 5$ pixels
+donnera le code
+$$
+  \RE{001010001001000110111010111101011110101101}.
+$$
+La longueur du code binaire obtenue est donc maintenant
+$$
+	\mathcal{\bar L} = 42 \text{ bits}
+$$
+Ceci montre qu'on peut donc faire mieux qu'avec un codage \textit{uniforme} en utilisant un codage \textit{variable}, qui associe à chaque symbole un code de longueur variable.
+
+On peut également définir le nombre de bits moyen par symbole $\mathcal{L}$, qui se calcule, ici pour une suite de 25 symboles, comme
+$$
+	\mathcal{L} \eqdef \frac{ \mathcal{\bar L} }{25} = \frac{42}{25} = 1.68 \text{ bits.}
+$$
+Par rapport à un codage uniforme, on voit que le nombre de bits moyen par symbole est passé de $\log_2(N)=2  \text{ bits}$ à $1.68 \text{ bits}$.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Codage préfixe et décodage}
+
+Ces codages, uniformes ou à longueur variable, seraient sans intérêt si l'on ne s'assurait pas que le message obtenu est \textit{décodable}, c'est-à-dire que l'on puisse retrouver la suite de symboles à l'origine d'un code binaire. Tous les codages ne permettent pas de faire ce chemin inverse.
+
+Pour les codages uniformes, comme le codage
+$$
+	\BL{0} \mapsto \RE{00}, \quad
+	\BL{1} \mapsto \RE{01}, \quad
+	\BL{2} \mapsto \RE{10}, \quad
+	\BL{3} \mapsto \RE{11}.
+$$
+il suffit de séparer la suite de bits en paquets de longueur $\log_2(N)$ (ici $N=4$ et $\log_2(N)=2$) et d'utiliser la table de codage en sens inverse.
+Ainsi, le code binaire $\RE{000111}$ est décodé comme
+$$
+	\RE{000111} \overset{\text{séparation}}{\longmapsto}
+	(\RE{00,01,11})  \overset{\text{décodage}}{\longmapsto}
+	(\BL{0, 1, 3}).
+$$
+
+Par contre, si l'on considère le codage
+$$
+	\BL{0} \mapsto \RE{0}, \quad
+	\BL{1} \mapsto \RE{10}, \quad
+	\BL{2} \mapsto \RE{110}, \quad
+	\BL{3} \mapsto \RE{101},
+$$
+alors la suite de bits $\RE{1010}$ peut être décodée de deux façons :
+$$
+	\RE{1010}
+	\overset{\text{séparation}}{\longmapsto}
+	(\RE{10, 10})
+	\overset{\text{décodage}}{\longmapsto}
+	(\BL{1, 1}),
+$$
+ou bien
+$$
+	\RE{1010}
+	\overset{\text{séparation}}{\longmapsto}
+	(\RE{101, 0})
+	\overset{\text{décodage}}{\longmapsto}
+	(\BL{3, 0}).
+$$
+Ceci signifie que cette suite peut être décodée soit comme la suite de symboles $(\BL{1, 1})$, soit comme la suite $(\BL{3, 0})$.
+On remarque que le mot de codage $\RE{10}$ utilisé pour coder $\BL{1}$ est le début du mot $\RE{101}$ utilisé pour coder $\BL{3}$.
+
+Pour être capable de faire le décodage de façon non ambiguë, il suffit qu'aucun mot du codage ne soit le début d'un autre mot. Lorsque cette condition est satisfaite, on parle de codage \textit{préfixe}\mylink{https://fr.wikipedia.org/wiki/Code_préfixe}, 
+et l'on peut donc effectuer progressivement le décodage.
+On vérifie facilement que c'est bien le cas du codage non uniforme déjà considéré précédemment
+$$
+	\BL{0} \mapsto \RE{001}, \quad
+	\BL{1} \mapsto \RE{01}, \quad
+	\BL{2} \mapsto \RE{1}, \quad
+	\BL{3} \mapsto \RE{000}.
+$$
+Le décodage progressif du message de 25 symboles des pixels de l'image est effectué ainsi :
+$$
+	\RE{001}\LG{010001001000110111010111101011110101101}
+		\longrightarrow  \text{ décode } \BL{0}
+$$
+$$
+	\WH{0}\BL{0}\WH{1}\RE{01}\LG{0001001000110111010111101011110101101}
+			\longrightarrow  \text{ décode } \BL{1}
+$$
+$$
+	\WH{0}\BL{0}\WH{1}\BL{1}\WH{0}\RE{000}\LG{1001000110111010111101011110101101}
+	\longrightarrow  \text{ décode } \BL{3}
+$$
+$$
+	\WH{0}\BL{0}\WH{1}\BL{1}\WH{0}\WH{0}\BL{3}\WH{0}\RE{1}\LG{001000110111010111101011110101101}
+		\longrightarrow  \text{ décode } \BL{2} \ldots
+$$
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Codes et arbres}
+\label{sec-arbres}
+
+Comme le montre la figure~\ref{fig-arbres}, en haut à  gauche, il est possible de placer l'ensemble des codes binaires de moins de $\ell$ bits dans un arbre de profondeur $\ell+1$. Les $2^\ell$ mots de longueur exactement $\ell$ occupent les feuilles, et les mots plus courts sont les n\oe{}uds intérieurs.
+
+\myfig{
+\tabTrois{
+\includegraphics[width=.45\linewidth]{arbres/codage-prefixe}&
+\includegraphics[width=.45\linewidth]{arbres/arbre-exemple}
+}
+}{fig-arbres}{Gauche: arbre complet de tous les codes de longueur 3 ; droite : exemple de codage préfixe.}
+
+Les codages préfixes sont alors représentés comme les feuilles des sous-arbres de cet arbre complet. La figure~\ref{fig-arbres}, en haut à droite, montre à quel sous-arbre correspond le code à longueur variable
+$$
+	\BL{0} \mapsto \RE{001}, \quad
+	\BL{1} \mapsto \RE{01}, \quad
+	\BL{2} \mapsto \RE{1}, \quad
+	\BL{3} \mapsto \RE{000}.
+$$
+
+Une fois que l'on a représenté un codage préfixe comme un sous-arbre binaire, l'algorithme de décodage est particulièrement simple à mettre en \oe{}uvre. Lorsque l'on commence le décodage, on se place à la racine, et on descend à chaque nouveau bit lu soit à gauche (pour un $\RE{0}$) soit à droite (pour un $\RE{1}$). Lorsque l'on atteint une feuille du sous-arbre, on émet alors le mot du code correspondant à cette feuille, et l'on redémarre à la racine. La figure précédente illustre le processus de décodage.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{La borne de Shannon}
+
+Après avoir décrit les techniques de codage, nous allons maintenant expliquer la théorie de Shannon, qui analyse la performance de ces techniques (c'est-à-dire le nombre de bits nécessaire au codage) en effectuant une modélisation aléatoire du message à coder (qui est composé d'une suite particulière de symboles).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Code de longueur minimale et modélisation aléatoire}
+
+L'utilisation d'un codage préfixe à longueur variable montre que l'on peut obtenir un nombre de bits moyen $\mathcal{L}$ plus faible que le nombre $\log_2(N)$ de bits obtenu par un code uniforme. La question fondamentale, à la fois sur un plan pratique et théorique, est donc de savoir si l'on peut \textit{trouver un codage préfixe donnant lieu à un nombre de bits moyen par symbole minimal}.
+
+Cette question est mal posée, car sa réponse dépend du message qu'il faudra coder, et ce message est en général inconnu a priori. Il faut donc un modèle pour décrire les messages possibles. L'idée fondamentale introduite par Claude Shannon est d'utiliser un modèle probabiliste : on ne sait pas quels messages on aura à coder, mais on suppose qu'on connaît la probabilité d'apparition des symboles composant ce message.
+
+Shannon suppose ainsi que les symboles qui composent le message modélisé sont tirés \textit{indépendamment}\mylink{https://fr.wikipedia.org/wiki/Indépendances_(probabilité)} 
+selon une variable aléatoire $\Mot$ (la source du message). Ceci signifie que les symboles composants le message modélisé sont  des variables aléatoires indépendantes ayant la même distribution que $\Mot$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fréquences empiriques}
+
+Afin d'appliquer ce modèle probabiliste à un message donné, on va faire comme si l'on tirait au sort chaque symbole l'un à la suite de l'autre selon des probabilités identiques aux fréquences que l'on observe (en moyenne) dans le cas étudié.
+
+Ceci signifie que l'on impose à la distribution de la source $\Mot$ d'être égale aux fréquences empiriques observées dans le message. Les fréquences empiriques $(p_{\BL{0}},p_{\BL{1}},p_{\BL{2}},p_{\BL{3}})$ sont les fréquences d'apparition des différents symboles $(\BL{0,1,2,3}).$ Pour la suite des 25 pixels de l'image en niveaux de gris
+$$
+	(\BL{0, 1, 3, 2, 0, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 1}), 
+$$
+la fréquence $p_{\BL{1}}$ est égale à $9/25$ car le symbole $\BL{1}$ apparaît $9$ fois et que l'on souhaite coder une suite de 25 symboles. La liste des fréquences empiriques pour cette suite de symboles est ainsi
+$$
+  	p_{\BL{0}} = \tfrac{2}{25}, \quad
+	p_{\BL{1}} = \tfrac{9}{25}, \quad
+	p_{\BL{2}} = \tfrac{12}{25}, \quad
+	p_{\BL{3}} = \tfrac{2}{25}.
+$$
+
+La modélisation aléatoire impose donc à la variable $\Mot$ d'avoir pour distribution de probabilité $(p_{\BL{0}},p_{\BL{1}},p_{\BL{2}},p_{\BL{3}})$, c'est-à-dire que la probabilité qu'un symbole du message modélisé (supposé généré par la source $\Mot$) soit égal à $\mot \in \{\BL{0,1,2,3}\}$ vaut $\mathbb{P}(\Mot=\mot) = p_{\mot}$.
+
+Ceci constitue un exemple important de modélisation, qui n'est bien sûr pas toujours pertinente mais permet d'analyser finement le problème. Par exemple, dans le cas d'une image, si un pixel est noir, le suivant a de fortes chances de l'être aussi, même si la fréquence globale du noir est faible. Ceci met en défaut l'hypothèse d'indépendance (la section \guill{Transformation de l'information} détaille cet exemple).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Entropie}
+
+Afin de répondre au problème de codage avec un nombre de bits moyen minimum, Shannon a introduit un objet mathématique fondamental : \textit{l'entropie}\mylink{https://fr.wikipedia.org/wiki/Entropie}.
+L'entropie a été inventée par Ludwig Boltzmann\mylink{https://fr.wikipedia.org/wiki/Ludwig_Boltzmann} 
+dans le cadre de la thermodynamique\mylink{https://fr.wikipedia.org/wiki/Entropie_(thermodynamique)} 
+et ce concept a été repris par Claude Shannon pour développer sa théorie de l'information.
+L'entropie de la distribution de la source $\Mot$ est définie par la formule
+$$
+	\mathcal{H}_\Mot \eqdef -\sum_{\mot=0}^{N-1} p_{\mot} \times \log_2(p_{\mot}).
+$$
+Cette formule signifie que l'on fait la somme, pour tous les symboles $\mot$ possibles, de la fréquence d'apparition $p_{\mot}$ du symbole $\mot$ multipliée par le logarithme $\log_2(p_{\mot})$ de cette fréquence, puis que l'on prend l'opposé (signe moins) du nombre obtenu.
+
+Comme le logarithme est une fonction croissante, et comme $\log_2(1)=0$, on a $\log_2(p_{\mot}) \leq 0$ car $p_{\mot} \leq 1$ (une probabilité est toujours plus petite que $1$). Le signe moins devant la formule définissant l'entropie assure que cette quantité est toujours positive.
+
+Dans notre cas, on a $N=4$ valeurs pour les symboles, et on utilise donc la formule
+$$
+	\mathcal{H}_\Mot \eqdef
+- p_{\BL{0}} \times \log_2(p_{\BL{0}})
+- p_{\BL{1}} \times \log_2(p_{\BL{1}})
+- p_{\BL{2}} \times \log_2(p_{\BL{2}})
+- p_{\BL{3}} \times \log_2(p_{\BL{3}}).
+$$
+Il est à noter que si jamais $p_{\mot}=0$, alors il faut utiliser la convention $p_{\mot} \times \log_2(p_{\mot}) = 0  \times\log_2(0)=0$. Cette convention signifie que l'on ne prend pas en compte les probabilités nulles (c'est-à-dire les événements impossibles) dans cette formule. De plus elle est cohérente avec la valeur limite de la fonction $x \mapsto x \ln(x)$ en $x=0$.
+
+
+
+Le but de l'entropie est de quantifier l'incertitude sur les suites de symboles possibles générées par la source $\Mot$. On peut montrer que l'entropie vérifie
+$$
+	0 \leq \mathcal{H}_\Mot \leq \log_2(N).
+$$
+Les deux valeurs extrêmes correspondent ainsi à des incertitudes respectivement minimale et maximale.
+
+\myfig{
+\tabQuatre{
+\includegraphics[width=.3\linewidth]{entropie/histo-1}&
+\includegraphics[width=.3\linewidth]{entropie/histo-3}&
+\includegraphics[width=.3\linewidth]{entropie/histo-sub}\\
+$\Hh_{\Mot}=0$ & $\Hh_{\Mot}=\log_2(2)=1$ &  $\Hh_{\Mot} = 1.62$
+}
+}{fig-histo-entropie}{Trois exemples de distributions de probabilité avec les entropies correspondantes.}
+
+
+\begin{itemize}
+	%%%%%%%%%%%%%%% %%%%%% %%%%%%%%%%%%%
+	\item \textbf{Entropie minimale.}
+%
+ L'entropie $\mathcal{H}_\Mot=0$ est minimale lorsque les fréquences $p_{\mot}$ sont toutes nulles sauf une.  La figure~\ref{fig-histo-entropie}, gauche, montre le cas où $p_{\BL{1}}=1$ et toutes les autres probabilités sont nulles.
+
+
+Dans ce cas, on a
+$$
+	\mathcal{H}_\Mot = - 0 \times \log_2(0) - 1 \times \log_2(1) - 0 \times \log_2(0)- 0 \times \log_2(0) = 0, 
+$$
+où l'on rappelle que $\log_2(1)=0$ et que, par convention, on a $0 \times \log_2(0) = 0$.
+Ceci correspond à la modélisation d'une suite constante de symboles, et la source génèrera par exemple avec probabilité 1 la suite suivante de 25 symboles
+$$
+		(\BL{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}).
+$$
+	%%%%%%%%%%%%%%% %%%%%% %%%%%%%%%%%%%
+	\item \textbf{Entropie maximale.}
+	%
+Au contraire, $\mathcal{H}_\Mot=\log_2(N)$ est maximale lorsque toutes les fréquences sont égales, $p_{\mot}=1/N$.
+Dans notre cas où $N=4$, on a en effet
+$$
+ \mathcal{H}_\Mot =
+ 		- \tfrac{1}{4} \times \log_2(\tfrac{1}{4})
+  	- \tfrac{1}{4} \times \log_2(\tfrac{1}{4})
+		- \tfrac{1}{4} \times \log_2(\tfrac{1}{4})
+		- \tfrac{1}{4} \times \log_2(\tfrac{1}{4})
+		= \log_2(4) = 2,
+$$
+où l'on a utilisé le fait que $\log_2(1/x)=-\log_2(x)$ et donc en particulier $\log_2(\frac{1}{4}) = -\log_2(4)$. La figure~\ref{fig-histo-entropie}, centre, suivante montre l'histogramme correspondant à ce cas.
+
+Cette situation correspond intuitivement à la modélisation d'une suite maximalement \textit{incertaine}.
+Voici par exemple deux suites de 25 symboles générés par une telle source $\Mot$
+$$
+  (\BL{2, 2, 1, 1, 3, 0, 3, 3, 3, 0, 1, 1, 2, 0, 2, 0, 2, 1, 3, 2, 0, 2, 2, 1, 3}),
+$$
+$$
+  (\BL{3, 3, 1, 2, 0, 0, 2, 2, 1, 3, 2, 2, 3, 3, 2, 0, 0, 3, 0, 1,  3, 0, 1, 1, 2}).
+$$
+
+	%%%%%%%%%%%%%%% %%%%%% %%%%%%%%%%%%%
+	\item \textbf{Entropie intermédiaire.}
+	%
+Les situations intermédiaires entre ces deux extrêmes correspondent à des entropies intermédiaires.
+Par exemple, on peut considérer la distribution des 25 pixels considérés au début de cet article, qui correspondent au message
+$$
+	(\BL{0, 1, 3, 2, 0, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 1}).
+$$
+Pour cette distribution, on rappelle que l'on a les probabilités
+$$
+  p_{\BL{0}} = \tfrac{2}{25}, \quad
+	p_{\BL{1}} = \tfrac{9}{25}, \quad
+	p_{\BL{2}} = \tfrac{12}{25}, \quad
+	p_{\BL{3}} = \tfrac{2}{25},
+$$
+la figure~\ref{fig-histo-entropie}, droite, montre l'histogramme correspondant à ces valeurs.
+
+
+L'entropie vaut alors
+$$
+	\mathcal{H}_\Mot =
+	  -\tfrac{2}{25} \times \log_2(\tfrac{2}{25})
+		-\tfrac{9}{25} \times \log_2(\tfrac{9}{25})
+		-\tfrac{12}{25}\times \log_2(\tfrac{12}{25})
+		-\tfrac{2}{25}\times \log_2(\tfrac{2}{25}) \approx 1.62,
+$$
+ce qui correspond bien une valeur \guill{intermédiaire} de l'entropie.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Nombre de bits moyen d'une source}
+
+Dans la suite, on note $c_{\mot}$ le code associé à un symbole $\mot$. On note $L(c_{\mot})$ la longueur (i.e. le nombre de bits) de chaque mot $c_{\mot}$ de code. Pour un codage uniforme, alors la longueur est constante $L(c_{\mot})=\log_2(N)$.
+Par contre, si l'on prend l'exemple du codage variable
+$$
+	\BL{0} \mapsto c_{\BL{0}} \eqdef \RE{001}, \quad
+	\BL{1} \mapsto c_{\BL{1}} \eqdef \RE{01}, \quad
+	\BL{2} \mapsto c_{\BL{2}} \eqdef \RE{1}, \quad
+	\BL{3} \mapsto c_{\BL{3}} \eqdef \RE{000},
+$$
+alors $L(c_{\BL{0}})=L(\RE{001})=3$.
+
+On remarque que l'on peut calculer le nombre de bit moyen $\mathcal{L}$ du codage d'un message à l'aide des fréquences empiriques comme suit :
+$$
+	\mathcal{L} = \sum_{\mot=0}^{N-1} p_{\mot} \times L(c_{\mot}).
+$$
+Cette formule signifie que l'on fait la somme, pour tous les symboles $\mot$ possibles, de la fréquence d'apparition $p_{\mot}$ du symbole multipliée par la longueur $L(c_{\mot})$ du mot de code $c_{\mot}$. Par exemple, dans notre cas, pour $N=4$, on a la formule
+$$
+	\mathcal{L} =
+		p_{\BL{0}} \times L(c_{\BL{0}}) +
+		p_{\BL{1}} \times L(c_{\BL{1}}) +
+		p_{\BL{2}} \times L(c_{\BL{2}}) +
+		p_{\BL{3}} \times L(c_{\BL{3}}).
+$$
+
+Dans le cadre de la modélisation aléatoire à l'aide d'une source $\Mot$, on va noter $\mathcal{L}_\Mot$ ce nombre de bit moyen, qui est associé à la source $\Mot$ ayant la distribution $(p_\mot)_{\mot}$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Borne de Shannon pour le codage}
+
+Claude Shannon a montré dans son article~\cite{Shannon1948} que l'entropie permettait de borner le nombre de bits moyen $\mathcal{L}_\Mot$ dans le cadre de ce modèle aléatoire. Il a en effet montré que pour tout codage préfixe, on a
+$$
+	\mathcal{H}_\Mot \leq \mathcal{L}_\Mot.
+$$
+Il s'agit d'une borne inférieure, qui dit qu'aucun codage préfixe ne peut faire mieux que cette borne.
+
+Ce résultat est fondamental, car il décrit une limite indépassable, quelle que soit la technique de codage préfixe utilisée. Sa preuve est trop difficile pour être exposée ici, elle utilise la représentation sous forme d'arbre détaillée plus haut à la section~\ref{sec-arbres}, on pourra regarder par exemple~\cite{mallat2009a-wav} pour obtenir tous les détails. Cette preuve montre qu'il faut dépenser en moyenne au moins $-\log_2(p_{\mot})$ bits (qui est, comme on l'a déjà vu, toujours un nombre positif) pour coder un symbole $\mot$ si l'on veut avoir un codage efficace. Les symboles les plus fréquents doivent nécessiter moins de bits, car $p_{\mot}$ est plus petit, donc la longueur optimale $-\log_2(p_{\mot})$ l'est également. Ceci qui est très naturel, comme on peut en particulier le voir pour les deux cas extrêmes :
+
+\begin{itemize}
+	%%%%%%%%%%%%%%% %%%%%% %%%%%%%%%%%%%
+	\item \textbf{Entropie minimale.}
+%
+Si $\mathcal{H}_\Mot = 0$, alors avec probabilité 1, la suite de symboles est composée d'un unique symbole. Dans ce cas de figure, l'utilisation d'un codage préfixe est très inefficace, car celui-ci doit utiliser au moins un bit par symbole i.e. $\mathcal{L}_\Mot \geq 1$, et donc un tel codage est loin d'atteindre la borne de Shannon.
+
+L'entropie étant nulle, la borne dit que l'on souhaiterait ne rien dépenser pour le codage. Ceci est logique, car il n'y a pas besoin de coder une telle suite (puisque c'est toujours la même). Des techniques de codage plus avancées (par exemple le codage arithmétiques\mylink{https://fr.wikipedia.org/wiki/Codage_arithmétique}~\cite{RissanenLangdon79}) 
+permettent de contourner ce problème et atteignent la borne de Shannon quand le nombre de symboles à coder tend vers l'infini.
+
+
+	%%%%%%%%%%%%%%% %%%%%% %%%%%%%%%%%%%
+	\item \textbf{Entropie maximale.}
+%
+Si $\mathcal{H}_\Mot = \log_2(N)$, alors tous les symboles sont équiprobables, donc on doit utiliser des mots de code de même longueur pour tous les symboles, ce qui est obtenu par un code uniforme. Comme on l'a vu plus haut, un tel code nécessite $\mathcal{L}_\Mot=\log_2(N)=\mathcal{H}_\Mot$ bits par symbole, et donc la borne inférieure de Shannon est atteinte dans ce cas.
+
+
+	%%%%%%%%%%%%%%% %%%%%% %%%%%%%%%%%%%
+	\item \textbf{Entropie intermédiaire.}
+%
+Pour le cas de la distribution des 25 pixels considérés au début de cet article, qui correspondent au message
+$$
+	(\BL{0, 1, 3, 2, 0, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 1}), 
+$$
+on rappelle que l'entropie et le nombre moyen de bits, qui ont déjà été calculés, valent respectivement
+$$
+	\mathcal{H}_\Mot \approx 1.62 \text{ bits}
+	\quad\text{et}\quad
+	\mathcal{L}_\Mot = 1.68 \text{ bits.}
+$$
+Ces valeurs sont bien en accord avec la borne de Shannon, et montrent que le codage préfixe utilisé permet d'être assez proche de cette borne.
+\end{itemize}
+
+On peut se demander si cette borne est précise, et s'il est possible de construire des codes atteignant la borne de Shannon dans tous les cas (et pas juste les deux cas extrêmes). Huffmann a proposé dans~\cite{Huffman52} une construction d'un codage \guill{optimal} (i.e. ayant la longueur moyenne $\mathcal{L}_\Mot$ minimale pour une source $\Mot$ donnée) à l'aide d'un algorithme élégant. La longueur moyenne obtenue par ce codage vérifie
+$$
+	\mathcal{H}_\Mot \leq \mathcal{L}_\Mot \leq \mathcal{H}_\Mot+1.
+$$
+Le fait que cette longueur moyenne puisse être potentiellement aussi grande que $\mathcal{H}_\Mot+1$ (et donc assez différente de la borne inférieure de Shannon $\mathcal{H}_\Mot$) provient du fait que la longueur $L(c_{\mot})$ d'un mot $c_{\mot}$ du code est un nombre entier, alors que la longueur optimale devrait être $-\log_2(p_{\mot})$, qui n'est pas en général un nombre entier. Pour pallier ce problème, il faut coder les symboles par groupes, ce qui peut être effectué de façon efficace à l'aide des 
+codages arithmétiques\mylink{https://fr.wikipedia.org/wiki/Codage_arithmétique}~\cite{RissanenLangdon79}, 
+qui atteignent la borne de Shannon lorsque l'on code une suite infinie de symboles.
+
+La théorie de Shannon permet donc de borner la longueur moyenne, ce qui donne une information importante sur la performance d'une méthode de codage pour une source donnée. Cette borne ne donne cependant pas d'information sur d'autres quantités statistiques potentiellement intéressantes, telles que la longueur maximale ou la longueur médiane.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Transformation de l'information}
+
+La borne de l'entropie précédente fait l'hypothèse que les symboles qui composent le message à coder sont générés de façon \textit{indépendante} par la source $\Mot$. Cette hypothèse permet une analyse mathématique simple du problème, mais elle est en général fausse pour des données complexes, comme par exemple pour l'image montrée à la figure suivante. En effet, on voit bien que la valeur d'un pixel n'est pas du tout indépendante de celles de ses voisins. Par exemple, il y a de grandes zones homogènes où la valeur des pixels est quasi-constante.
+
+
+Afin d'améliorer les performances de codage, et obtenir des méthodes de compression d'image efficaces, il est crucial de retransformer la suite de symboles, afin de réduire son entropie en exploitant les dépendances entre les pixels.
+Une transformation très simple permettant de le faire consiste à remplacer les valeurs des $P$ pixels $(\mot_i)_{i=1}^P$ par celles de leurs différences $(\differ_i \eqdef \mot_{i}-\mot_{i-1})_{i=1}^{P-1}$. En effet, dans une zone uniforme, les différences successives vont être nulles car les pixels ont la même valeur. La figure~\ref{fig-codage-differences} montre comment effectuer un tel calcul. Elle montre aussi que cette transformation est bijective, c'est-à-dire que l'on peut revenir aux valeurs d'origine $(\mot_i)_i$ en effectuant une sommation progressive des différences, c'est-à-dire en calculant
+$$
+	\mot_i = \mot_0 + \sum_{j=1}^{i} \differ_j.
+$$
+Afin de pouvoir faire cette inversion, il faut bien sûr avoir conservé la valeur $\mot_0$ du premier pixel. La bijectivité de la transformation
+$$
+	(\mot_0,\ldots,\mot_{P-1}) \longmapsto (\mot_0,\differ_1,\ldots,\differ_{P-1})
+$$
+est cruciale pour pouvoir faire le décodage et afficher l'image décodée.
+
+
+\myfig{
+\includegraphics[width=\linewidth]{differences/differences}
+}{fig-codage-differences}{Représentation par différences}
+
+
+Comme les pixels peuvent prendre les valeurs $\{\BL{0,1,2,3}\}$, les différences peuvent prendre quant à elles les valeurs $\{\GR{-3,\ldots,3}\}$. Elles peuvent en particulier être négatives (ce qui ne pose pas de problème particulier pour définir un codage). La figure suivante compare les histogrammes des pixels et des différences. On constate que l'histogramme des différences est beaucoup plus \guill{piqué} au voisinage de 0, ce qui est logique, car de nombreuses différences (correspondant aux zones homogènes) sont nulles ou petites. L'entropie $\mathcal{H}_\Differ$ de l'histogramme des différences (que l'on peut modéliser avec une source $\Differ$) est donc nettement plus faible que l'entropie $\mathcal{H}_\Mot$ des pixels.
+
+La figure~\ref{fig-entropie-differences} montre une comparaison des histogrammes des valeurs des pixels et des différences, calculés sur l'ensemble de l'image (et pas uniquement sur le sous-ensemble de 25 pixels initial).
+%
+Elle montre également l'arbre d'un codage préfixe optimal (calculé par l'algorithme de Huffman~\cite{Huffman52}) associé à l'histogramme des différences.
+
+\myfig{
+\tabTrois{
+\includegraphics[width=.3\linewidth]{differences/histo-pix}&
+\includegraphics[width=.3\linewidth]{differences/histo-diff}&
+\includegraphics[width=.2\linewidth]{differences/arbre-difference}\\
+$\Hh_{\Mot} \approx 1.54, \LongMoy \approx 1.67$ & $\Hh_{\Differ} \approx 0.61, \LongMoy \approx 1.16$ & Arbre de codage
+}
+}{fig-entropie-differences}{Comparaison des histogrammes des valeurs des pixels et des différences, et un arbre de codage de ces différences. }
+
+
+Cet arbre correspond au codage
+$$
+	\GR{-3} \mapsto \RE{010101},
+	\GR{-2} \mapsto \RE{01011},
+	\GR{-1} \mapsto \RE{011},
+	\GR{0} \mapsto \RE{1},
+	\GR{1} \mapsto \RE{00},
+	\GR{2} \mapsto \RE{0100},
+	\GR{3} \mapsto \RE{010100}.
+$$
+Ce codage a une longueur moyenne $\mathcal{L} \approx 1.16$ bits. Ce nombre moyen est bien conforme à la borne de l'entropie, et il est significativement plus petit que la longueur moyenne associée à l'histogramme des pixels (1.67 bits), qui est elle-même plus petite que la longueur moyenne associée à un codage uniforme ($\log_2(4)=2$ bits). Si l'on répercute ces longueurs au codage de la totalité de l'image de $256 \times 256$ en niveau de gris, on obtient ainsi les gains suivants, où 1 ko = 8 $\times$ 1024 bits est un \textit{kilo octet}.
+\eq{
+	\begin{tabular}{c}
+		Codage uniforme\\
+		16.3 ko
+	\end{tabular}
+	\quad\longrightarrow\quad
+	\begin{tabular}{c}
+		Codage des pixels\\
+		13.7 ko
+	\end{tabular}
+	\quad\longrightarrow\quad
+	\begin{tabular}{c}
+		Codage des différences\\
+		9.5 ko
+	\end{tabular}
+} 
+
+Les méthodes les plus performantes de compression d'image utilisent des transformations plus complexes, et exploitent de façon plus fine la régularité locale des images. C'est le cas de la méthode de compression JPEG-2000\mylink{https://fr.wikipedia.org/wiki/JPEG_2000}, qui est considérée comme la plus efficace à l'heure actuelle, et qui utilise la théorie des ondelettes\mylink{https://fr.wikipedia.org/wiki/Ondelette}, voir le livre~\cite{mallat2009a-wav} pour plus de détails. Il existe bien d'autres cas où la non-indépendance des symboles peut être utilisée pour améliorer les performances de codage. Un exemple important est celui de la suite des lettres composant un texte.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}
+
+La théorie mathématique initiée par Claude Shannon définit un cadre de pensée nécessaire à l'élaboration de techniques efficaces pour l'acquisition, le traitement, le stockage et la transmission des données sous forme numérique. Ce sont ces techniques qui ont révolutionné les communications et l'informatique durant la deuxième moitié du 20$^e$ siècle, et ont permis la croissance d'internet au début du 21$^e$ siècle. Sans les apports révolutionnaires de Shannon, vous ne pourriez pas partir en vacances avec votre bibliothèque entière dans votre liseuse électronique, et tous les épisodes de \textit{Game of Thrones} sur votre tablette!
+
+Pour obtenir plus de détails sur la théorie de l'information, on pourra consulter~\cite{CoverThomas}, pour son utilisation en traitement du signal et de l'image, on pourra regarder~\cite{mallat2009a-wav}.
+Les codes informatiques permettant de reproduire les figures de cet article sont disponibles en ligne\mylink{https://github.com/gpeyre/2016-shannon-theory}, et d'autres codes sont accessibles sur le site \url{www.numerical-tours.com}~\cite{2011-peyre-cise}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Glossaire}
+
+\newcommand{\gloss}[1]{\item \textbf{#1}}
+
+\begin{rs}
+\gloss{Pixel} : emplacement sur la grille carrée d'une image, parfois utilisé pour faire référence à la valeur associée.
+\gloss{Symbole} : élément $\mot$ d'un ensemble fini, par exemple $\{0,\ldots,N-1\}$.
+\gloss{Code} : succession de $0$ et de $1$ utilisé pour coder un symbole $\mot$.
+\gloss{Codage} : ensemble des correspondances entre les symboles $\mot$ et les codes associés, par exemple $\BL{2} \mapsto \RE{10}$. Fait aussi référence à l'action de remplacer une suite de symboles par un ensemble de bits.
+\gloss{Distribution empirique} : fréquence $p_{\mot}$ d'apparition des symboles $\mot$ dans les suites de symboles à coder.
+\gloss{Histogramme} : représentation graphique de la distribution empirique, pouvant aussi par extension désigner cette distribution.
+\gloss{Source} : variable aléatoire $\Mot$ modélisant les symboles, avec la distribution $\mathbb{P}(\Mot=\mot)=p_{\mot}$.
+\gloss{Entropie} : $\mathcal{H}_\Mot$ est un nombre positif associé à la source $\Mot$, et qui dépend de sa distribution de probabilité $(p_{\mot})_\mot$.
+\gloss{Nombre de bits moyen d'une suite :} $\mathcal{L}$ est associé au codage d'une suite de symboles.
+\gloss{Nombre de bits moyen de la source :} $\mathcal{L}_\Mot$ est associé au codage des symboles générés par $\Mot$.
+\end{rs}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Remerciements}
+
+Je remercie Marie-Noëlle Peyré, Gwenn Guichaoua, François Béguin, Gérard Grancher, Aurélien Djament et François Sauvageot pour leurs relectures attentives.
+
+L'image de la fleur est due à Maïtine Bergounioux. L'image de Shannon utilisée pour le logo de l'article est due à l'utilisateur telehistoriska du site flickr (sous license CC BY-NC 2.0).
+
+

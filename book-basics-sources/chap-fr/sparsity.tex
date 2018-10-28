@@ -1,0 +1,378 @@
+% !TEX root = ../IntroImaging-FR.tex
+
+
+\chapter{Parcimonie, problèmes inverses et échantillonnage compressé}
+\label{chap-sparsity}
+
+
+
+Les standards actuels pour compresser de la musique, de l'image ou de la vidéo (MP3, JPG ou MPEG) utilisent tous des méthodes issues de l'approximation non-linéaire. Ces méthodes calculent une approximation des données initiales à l'aide d'une combinaison linéaire d'un faible nombre de fonctions élémentaires (comme par exemple des sinusoïdes ou des ondelettes). 
+%
+Ces méthodes, initialement utilisées pour l'approximation, le débruitage ou la compression, ont été appliquées plus récemment à des problèmes plus difficiles, tels que l'augmentation de la résolution ou l'inversion d'opérateurs en imagerie médicale. Ces extensions nécessitent la résolution de problèmes d'optimisation de grande dimension, et sont le sujet d'une intense activité de recherche.
+%
+Une des dernières avancées dans ce domaine, l'échantillonnage compressé, utilise la théorie des matrices aléatoires afin d'obtenir des garanties théoriques pour la performance de ces techniques. L'échantillonnage compressé permet d'envisager sous un angle nouveau la théorie de l'échantillonnage et de la compression de Claude Shannon. La compressibilité des données autorise en effet d'effectuer simultanément l'échantillonnage et la compression des données. 
+
+Cet article présente les concepts mathématiques clés qui ont permis l'évolution depuis l'échantillonnage classique de Shannon vers l'échantillonnage compressé. La notion de décomposition parcimonieuse, qui permet de formaliser l'idée de compressibilité de l'information, en est le fil directeur.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{L'échantillonnage classique}
+\label{sec-echantillonnage}
+
+Dans le monde numérique, la plupart des données (son, image, vidéo, etc.) sont discrétisées afin de les stocker, les transmettre et les modifier. 
+%
+A partir d'un signal \textit{analogique}, qui est représenté par une fonction continue $s \mapsto \tilde f(s)$, l'appareil de mesure calcule un ensemble de $Q$ valeurs \textit{discrétisées} $f = (f_q)_{q=1}^Q \in \RR^Q$.
+%
+Ainsi, $Q$ est le nombre d'échantillons temporels pour un morceau audio ou bien le nombre de pixels pour une image. 
+%
+La figure~\ref{fig-samples} montre des exemples de données discrétisées.
+%
+Dans le cas d'une image, $\tilde f(s)$ représente la quantité de lumière arrivant en un point $s \in \RR^2$ du plan focal de l'appareil photo, et $f_q = \int_{c_q} \tilde f(s) \text{d} s$ est la quantité de lumière totale illuminant la surface $c_q$ d'un capteur CCD indexé par $q$. 
+%
+Pour simplifier, nous faisons ici l'hypothèse de données scalaires (par exemple un son mono,  une image ou une vidéo en niveaux de gris), mais les techniques décrites ici peuvent s'étendre au cas de données vectorielles (son stéréo, image couleur).
+
+
+\begin{figure}\centering
+\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
+\includegraphics[width=.45\linewidth]{discrete/signal} &
+\includegraphics[width=.45\linewidth]{discrete/image}
+\end{tabular}
+\caption{\label{fig-samples}Exemples d'un signal sonore (données 1D) et d'une image (données 2D) discrétisés.}
+\end{figure}
+
+
+C'est la théorie élaborée par Claude Shannon~\cite{Shannon1948} qui a posé les fondations de l'échantillonnage (l'utilisation d'un vecteur discret $f$ afin de représenter fidèlement une fonction continue $\tilde f$) mais également celles de la compression sans perte.
+%
+Nous allons voir comment les recherches actuelles ont permis de bâtir sur ces fondations des méthodes de compression avec pertes (i.e. avec un légère dégradation de la qualité), ainsi que de revisiter l'échantillonnage classique pour donner naissance à l'échantillonnage compressé. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Approximation non-linéaire et compression}
+
+
+%%%%%
+\paragraph{Approximation non-linéaire.}
+
+La dimension $Q$ de ces données est en général très grande (de l'ordre du million pour une image, du milliard pour une vidéo) et il est nécessaire de calculer une représentation plus économe afin de pouvoir stocker $f$ ou bien le transmettre sur un réseau. 
+%
+Toutes les méthodes de compression avec perte modernes (MP3, JPEG, MPEG, etc.) utilisent pour ce faire des décompositions parcimonieuses (c'est-à-dire composée de peu de coefficients non-nuls) dans un dictionnaire $\Psi = (\psi_n)_{n=1}^N$ composé d'atomes élémentaires $\psi_n \in \RR^Q$.
+%
+On recherche ainsi à approcher $f$ à l'aide d'une combinaison linéaire 
+\eq{
+	f \approx  \Psi x \eqdef \sum_{n=1}^N x_n \psi_n \in \RR^Q
+}
+où les $x = (x_n)_{n=1}^N \in \RR^N$ sont les coefficients que l'on va stocker où transmettre. Afin que cette représentation soit économe, et que le stockage prenne peu de place, il est nécessaire qu'un maximum de coefficients $x_n$ soient nuls, de sorte que l'on n'ait à stocker que les coefficients non nuls. Etant donné un budget $M>0$ de coefficients non-nuls, on cherche la meilleure combinaison possible afin d'approcher en norme $\ell^2$ les données de départ. On cherche ainsi à résoudre le problème d'optimisation
+\eql{\label{eq-pbm-approx}
+	x^\star \in \uargmin{x \in \RR^N} \enscond{  \norm{f - \Psi x}_2  }{ \norm{x}_0 \leq M }
+	\qouq
+	\norm{f}_2^2 \eqdef \sum_{q=1}^Q |f_q|^2.
+}
+Ici, on a noté $\norm{x}_0 \eqdef \sharp\enscond{n}{x_n \neq 0}$ le nombre de coefficients non-nuls de $x$, qui est une mesure de comptage que l'on appelle souvent par abus de langage la \guill{pseudo-norme} $\ell^0$ (qui n'est pas une norme !). Cet abus de langage sera expliqué à la section~\ref{sec-pb-inv}, voir en particulier la figure~\ref{fig-boules}.
+
+Le problème~\eqref{eq-pbm-approx} est en général impossible à résoudre : c'est un problème de nature combinatoire, qui, sans hypothèse supplémentaire sur $\Psi$, nécessite l'exploration de toutes les combinaisons de $M$ coefficients non-nuls. Il a été prouvé que ce problème est en effet NP-difficile~\cite{Natarajan95}. 
+
+
+
+
+
+%%%%%
+\paragraph{Approximation dans une base orthonormale.}
+
+Il y a cependant un cas de figure simple, qui est très utile pour la compression : c'est le cas où $\Psi$ est une base orthonormée de $\RR^Q$, c'est à dire que $Q=N$ et  
+\eq{
+	\dotp{\psi_n}{\psi_{n'}} = \choice{
+		1 \qsiq n = n', \\
+		0 \quad\text{sinon.}
+	}
+	\qouq
+	\dotp{f}{g} \eqdef \sum_{q=1}^Q f_q g_q.
+}
+Ce cas est celui que l'on rencontre le plus souvent pour la compression de données, et on peut citer par exemple les bases orthogonales de Fourier discrètes, de cosinus locaux (utilisés pour MP3, JPG et MPG) et d'ondelettes (utilisées pour JPEG2000), voir le livre~\cite{mallat2009a-wav}. 
+%
+Dans ce cas, on a l'identité de Parseval qui correspond à la décomposition de $f$ dans une base orthonormée
+\eql{\label{eq-expansion-bon}
+	f = \sum_{n=1}^N \dotp{f}{\psi_n} \psi_n 
+	\qetq
+	\norm{f - \Psi x}_2^2 = \sum_{n=1}^N | \dotp{f}{\psi_n} - x_n |^2.
+}
+Ces formules montrent que la solution de~\eqref{eq-pbm-approx} se calcule très simplement. 
+%
+En effet, pour minimiser $\norm{f - \Psi x}_2$, pour chaque $x_n$ non-nul, il convient de choisir $x_n = \dotp{f}{\psi_n}$. 
+%
+Et comme on se fixe un budget maximum de $M$ coefficients non nuls, il faut choisir les $M$ plus grands coefficients $|\dotp{f}{\psi_n}|$ dans la formule~\eqref{eq-expansion-bon}. Mathématiquement, si on note $|\dotp{f}{\psi_{n_1}}| \geq |\dotp{f}{\psi_{n_2}}| \geq \ldots$ un classement des coefficients par ordre décroissant, alors une solution $x^\star$ de~\eqref{eq-pbm-approx} est donnée par  
+\eql{\label{eq-formule-thresh}
+	x^\star_n = \choice{
+		\dotp{f}{\psi_{n}} \qsiq n \in \{n_1,\ldots,n_M\}, \\
+		0 \quad\text{sinon.}		
+	}
+}
+
+\newcommand{\myPic}[1]{\includegraphics[trim=50 50 30 30,clip,width=.24\linewidth]{approx/#1}}
+\begin{figure}\centering
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+\myPic{cameraman} &
+\myPic{cameraman-4} &
+\myPic{cameraman-8} &
+\myPic{cameraman-16} \\
+$f$ & 
+$\Psi x^\star, M=N/4$ & 
+$\Psi x^\star, M=N/8$ &  
+$\Psi x^\star, M=N/16$ 
+\end{tabular}
+\caption{\label{fig-approx}Exemples d'approximation $f \approx \Psi x^\star$ avec $M=\norm{x^\star}_0$ qui varie, pour une image $f \in \RR^N$ de $N=256^2$ pixels. }
+\end{figure}
+
+
+La figure~\ref{fig-approx} montre des approximations $f \approx \Psi x^\star$ ainsi calculées, avec un nombre $M = \norm{x^\star}_0$ variable de coefficients.
+%
+Ces approximations sont réalisées à l'aide d'une base orthogonale d'ondelettes $\Psi$, dite base de Daubechies 4, qui sont semblables aux fonctions utilisées dans le standard de compression d'image JPEG2000, et sont populaires car il existe un algorithme rapide pour calculer les produits scalaires $( \dotp{f}{\psi_{n}} )_n$ en un temps de calcul proportionnel à $Q$ (voir le livre~\cite[Chap. 7]{mallat2009a-wav} pour une description complète de la théorie et la pratique numérique des ondelettes). 
+%
+On peut voir que la qualité de l'image reconstruite $\Psi x^\star$ se dégrade lorsque $M$ diminue, mais on peut quand même réduire considérablement la quantité d'information à stocker (le taux de compression $M/Q$ est petit), tout en gardant une qualité visuelle acceptable. 
+%
+Cette observation fondamentale correspond au fait (observé en pratique) que les images usuelles sont très bien approchées par une combinaison linéaire \guill{parcimonieuse} de la forme $\Psi x^\star$ avec $\norm{x^\star}_0 \leq M$. 
+%
+Il est important de remarquer que, bien que le calcul de $\Psi x^\star$ à partir $x^\star$ est une formule \textit{linéaire}, le calcul de $x^\star$ à partir de $f$ est \textit{non-linéaire}, comme on peut le voir dans la formule~\eqref{eq-formule-thresh}. Le passage de $f$ à son approximation $\Psi x^\star$ est appelé une approximation non-linéaire.  
+%
+La justification théorique de cette observation est l'objet d'étude de la théorie de l'approximation non-linéaire, qui cherche à prouver que $\norm{f-\Psi x^\star}$ décroit rapidement lorsque $M$ augmente sous certaines hypothèses de régularité sur $f$, par exemple si on suppose que l'image est lisse par morceaux, voir~\cite[Chap. 9]{mallat2009a-wav}.
+
+% (maintenant bien compris mathématiquement et observé en pratique)
+
+
+Afin d'obtenir un réel algorithme de compression, il convient ensuite d'utiliser une technique permettant de convertir les $M$ coefficients $(x_{n_1},\ldots,x_{n_2})$ en écriture binaire et également de stocker les indices non-nuls $(n_1,\ldots,n_M)$. Ceci se fait simplement à l'aide de techniques issues de la théorie de l'information, en particulier les méthodes de codage entropique, voir~\cite[Chap. 10]{mallat2009a-wav}. 
+%
+% Cette technique d'approximation est également utile pour enlever du bruit dans des images, à la suite des travaux pionniers de Donoho et Jonhstone. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Problèmes inverses et parcimonie}
+\label{sec-pb-inv}
+
+%%%%%
+\paragraph{Problèmes inverses.}
+
+Avant de pouvoir stocker des données $f$, il est la plupart du temps nécessaire d'effectuer une étape préliminaire de restauration, qui consiste à améliorer la qualité des données à partir d'observations de basse qualité, c'est-à-dire de basse résolution, possiblement floues, entâchées d'erreurs et bruitées. Afin de prendre en compte toute la chaîne de formation des données, on modélise mathématiquement le processus d'acquisition sous la forme 
+\eql{\label{eq-fwd-model}
+	y = \Phi f + w \in \RR^P
+}
+où $y \in \RR^P$ sont les $P$ observations mesurées par l'appareil, $w \in \RR^P$ est un bruit de mesure (inconnu), $f \in \RR^Q$ est l'image (inconnue) que l'on souhaite récupérer, et $\Phi : \RR^Q \rightarrow \RR^P$ est un opérateur modélisant l'appareil d'acquisition, et que l'on suppose \textit{linéaire}. Ceci signifie que l'on peut considérer $\Phi$ comme étant une (gigantesque) matrice $\Phi \in \RR^{P \times Q}$.  Il est important de noter que la plupart du temps, on ne stocke jamais explicitement cette matrice $\Phi$, elle est manipulée de façon implicite à l'aide d'opérations rapides (convolution, masquage, etc.). 
+
+
+\begin{figure}\centering
+\begin{tabular}{@{}c@{\hspace{4mm}}c@{\hspace{4mm}}c@{}}
+\includegraphics[width=.25\linewidth]{operators/lena-original} &
+\includegraphics[width=.25\linewidth]{operators/lena-blurring} &
+\includegraphics[width=.25\linewidth]{operators/lena-inpainting} \\
+Image originale $f$ & $\Phi f$ (flou) & $\Phi f$ (masquage)  
+\end{tabular}
+\caption{Observations (sans bruit, $w=0$) $y=\Phi f$ dans le cas de la convolution ($\Phi f = \phi \star f$ est une convolution par un filtre passe-bas $\phi$) et des données manquantes ($\Phi=\diag(\mu_q)_{q=1}^Q$ est un opérateur de masquage).  \label{fig-exemple-ip} }
+\end{figure}
+
+
+
+Ce modèle, qui peut paraître assez restrictif (en particulier l'hypothèse de linéarité) permet de modéliser une quantité surprenante de situations que l'on rencontre en pratique. On peut par exemple citer : 
+\begin{itemize}
+	\item le débruitage : $\Phi = \Id_{\RR^Q}$, $P=Q$ et on est dans la situation (la plus simple) dans laquelle on ne cherche qu'à enlever le bruit $w$ ; 
+	 \item la déconvolution (voir figure~\eqref{fig-exemple-ip}, milieu) : $\Phi f = \phi \star f$ est une convolution par un filtre $\phi$ modélisant par exemple le flou d'un appareil photo (soit un flou de bougé, soit un flou dû à la mise au point) ; 
+	 \item les données manquantes (voir figure~\eqref{fig-exemple-ip}, droite) : $\Phi=\diag(\mu_q)_{q=1}^Q$ est un opérateur de masquage diagonal, tel que $\mu_q=1$ si la données indexée par $q$ (par exemple un pixel) est observée, et $\mu_q=0$ si la donnée est manquante ; 
+	 \item l'imagerie tomographique : $\Phi$ est un opérateur linéaire plus complexe, calculant des intégrales le long de lignes droites (la transformée de Radon), voir \cite[Sect. 2.4]{mallat2009a-wav}.
+\end{itemize}
+Il existe quantité d'autres exemples (en imagerie médicale, sismique, astrophysique, etc.), et à chaque fois, calculer une bonne approximation de $f$ à partir de $y$ est très difficile. En effet, à l'exception du cas \guill{facile} du débruitage (i.e. $\Phi=\Id_{\RR^Q}$), on ne peut pas utiliser la formule $\Phi^{-1} y = f + \Phi^{-1} w$, soit parce que $\Phi$ n'est pas inversible (par exemple pour les données manquantes), soit parce que $\Phi$ a des valeurs propres très petites (pour la déconvolution ou la tomographie), de sorte que $\Phi^{-1}w$ va être très grand, et donc $\Phi^{-1} y$ est une approximation très mauvaise de $f$.
+
+
+%%%%%
+\paragraph{Régularisation parcimonieuse.}
+
+Pour remédier à ce problème, il faut remplacer $\Phi^{-1}$ par une \guill{inverse} approchée qui prend en compte des hypothèses supplémentaires sur le signal $f$ que l'on cherche. Les méthodes récentes, qui donnent les meilleurs résultats sur des données complexes, utilisent une inverse approchée qui est non-linéaire. Ceci peut sembler contradictoire car $\Phi$ est linéaire, mais l'utilisation de méthodes non-linéaires est cruciale pour tirer parti d'hypothèses réalistes sur les données complexes telles que des images. 
+%
+En s'inspirant des techniques d'approximation et de compression discutées dans la section précédente, les méthodes actuelles cherchent à exploiter le fait que l'on peut bien approcher $f$ à l'aide d'une approximation parcimonieuse $\Psi x$ avec $\norm{x}_0 \leq M$. Etant donné un paramètre $M>0$, on va chercher à approcher $f$ par $f^\star = \Psi x^\star$ où $x^\star$ est une solution de 
+\eql{\label{eq-pbm-l0}
+	x^\star \in \uargmin{x \in \RR^N} \enscond{  \norm{y - \Phi \Psi x}_2  }{ \norm{x}_0 \leq M }
+}
+On voit que~\eqref{eq-pbm-l0} est quasi-identique à~\eqref{eq-pbm-approx}, sauf que l'on a remplacé $f \in \RR^Q$ (que l'on ne connaît pas) par $y\in \RR^P$, et que l'on a remplacé la matrice $\Psi \in \RR^{Q \times N}$ par le produit matriciel $\Phi \Psi \in \RR^{P \times N}$. Dans le cas particulier du débruitage, $\Phi=\Id_{\RR^Q}$, les problèmes~\eqref{eq-expansion-bon} et~\eqref{eq-pbm-l0} sont équivalents et ont la même solution, de sorte que l'approximation non-linéaire permet de résoudre le problème de débruitage.
+
+Dans le cas d'un opérateur $\Phi$ quelconque, le problème~\eqref{eq-pbm-l0} est cependant un problème d'optimisation extrêmement difficile à résoudre. En effet, même si $\Psi$ est une base orthonormée, en général (sauf dans le cas du débruitage $\Phi=\Id_{\RR^Q}$), la matrice $\Phi \Psi$ n'est pas orthogonale, de sorte que la formule~\eqref{eq-formule-thresh} n'est pas applicable, et~\eqref{eq-pbm-l0} est un problème de recherche combinatoire NP-difficile.
+
+
+%%%%%
+\paragraph{Régularisation $\ell^1$.}
+
+L'approximation des solutions du problème~\eqref{eq-pbm-l0} à l'aide de méthodes efficaces est un des sujets de recherche les plus actifs en traitement de données (et plus généralement en mathématiques appliquées, imagerie, statistique et apprentissage) de ces vingt dernières années. Il existe de nombreuses méthodes, parmi lesquelles les algorithmes gloutons (voir par exemple~\cite{MallatMP}) et les méthodes par relaxation convexe. Nous allons nous attarder principalement sur cette deuxième classe de méthodes. 
+%
+Une façon (heuristique) d'introduire ces techniques consiste à remplacer $\norm{\cdot}_0$ dans le problème~\eqref{eq-pbm-l0} par la fonction~${\norm{\cdot}_\al^\al}$, qui est définie, pour $\al>0$, par
+\eq{
+	\norm{x}_{\al}^\al \eqdef \sum_{n=1}^N |x_n|^\al.
+}
+La figure~\ref{fig-boules} montre dans le cas (irréaliste, mais bien pratique pour faire un dessin) de $N=2$ coefficients, les boules unités $B_\al \eqdef \enscond{x}{\norm{x}_\al \leq 1}$ associées à ces fonctionnelles $\norm{\cdot}_\al$. On peut ainsi voir que $B_\al$ \guill{tend} vers la \guill{boule} unité associée à la mesure de comptage $\norm{\cdot}_0$ à mesure que $\al$ tend vers $0$, c'est-à-dire que
+\eq{
+	B_\al \overset{\al \rightarrow 0}{\longrightarrow} B_0 \eqdef \enscond{ x \in [-1,1]^N }{ \norm{x}_0 \leq 1 },
+}
+la convergence de ces ensembles (que l'on visualise bien sur la figure) étant au sens par exemple de la distance de Hausdorff. 
+%
+La boule limite $B_0$ est constituée de vecteurs extrêmement parcimonieux, puisqu'ils sont composés d'une seule composante non-nulle.
+
+
+
+\begin{figure}\centering
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+\includegraphics[width=.19\linewidth]{balls/l0} &
+\includegraphics[width=.19\linewidth]{balls/l12} &
+\includegraphics[width=.19\linewidth]{balls/l1} &
+\includegraphics[width=.19\linewidth]{balls/l32} &
+\includegraphics[width=.19\linewidth]{balls/l2} \\
+$\al=0$ & $\al=1/2$ & $\al=1$ & $\al=3/2$ & $\al=2$
+\end{tabular}
+\caption{\label{fig-boules}Boules $B_\al$ pour différentes valeurs de $\al$. }
+\end{figure}
+
+
+On est alors amené à prendre en compte deux éléments contradictoires pour choisir une valeur de $\al$ :
+\begin{itemize}
+	\item Afin d'avoir une fonctionnelle privilégiant au maximum les vecteurs parcimonieux, on souhaite utiliser une valeur de $\al$ la plus faible possible pour remplacer $\norm{\cdot}_0$ par $\norm{\cdot}_\al$. 
+	\item Afin de pouvoir calculer la solution de~\eqref{eq-pbm-l0} avec $\norm{\cdot}_\al$ à la place de $\norm{\cdot}_0$, il est important que la fonctionnelle $\norm{\cdot}_\al$ soit \textit{convexe}. La convexité est en effet essentielle afin d'obtenir un problème qui ne soit pas NP-difficile et pouvoir bénéficier d'algorithmes rapides de calcul. Ces algorithmes trouvent une solution exacte $x^\star$ en temps polynomial ou bien convergent rapidement vers cette solution.
+\end{itemize}
+La contrainte de convexité de $\norm{\cdot}_\al$ impose que l'ensemble $B_\al$ soit convexe, ce qui, de façon équivalente, signifie que $\norm{\cdot}_\al$ doit être une \textit{norme}. Ceci impose que $\al \geq 1$. La prise en compte de ces deux contraintes mène ainsi naturellement au choix \guill{optimal} $\al=1$, de sorte que l'on va considérer le problème d'optimisation convexe (c'est-à-dire que l'on cherche à minimiser une fonction convexe sur un ensemble convexe)
+\eql{\label{eq-pbm-l1}
+	x^\star \in \uargmin{x \in \RR^N} \enscond{  \norm{y - \Phi \Psi x}_2  }{ \norm{x}_1 = \sum_{n=1}^N |x_n| \leq \tau }, 
+}
+de sorte que l'image calculée comme solution est $f^\star = \Psi x^\star$.
+%
+On peut noter que l'on a utilisé ici un paramètre $\tau > 0$ qui joue un rôle similaire au paramètre $M$ qui apparaît dans~\eqref{eq-pbm-l0}.
+%
+La question du choix de ce paramètre $\tau$ est cruciale. Si le bruit $w$ est petit, alors on souhaite que $\Phi f^\star = \Phi\Psi x^\star$ soit proche de $y$, et donc on va choisir $\tau$ grand. Au contraire, si le bruit $w$ est important, afin d'obtenir un effet de débruitage plus important, on va réduire la valeur de $\tau$. Le choix d'un $\tau$ \guill{optimal} est un problème de recherche difficile, et il n'existe pas de réponse \guill{universelle}, les stratégies existantes dépendent fortement de l'opérateur $\Phi$ ainsi que de la famille d'atomes~$\Psi$.
+
+Le problème~\eqref{eq-pbm-l1} a initialement été proposé par des ingénieurs dans les domaines de l'imagerie sismique (voir par exemple~\cite{santosa1986linear}), et il a été introduit conjointement en traitement du signal sous le nom \guill{basis pursuit}~\cite{chen1999atomi} et en statistique sous le nom \guill{Lasso}~\cite{tibshirani1996regre}. 
+
+
+\begin{figure}\centering
+\begin{tabular}{@{}c@{\hspace{4mm}}c@{\hspace{4mm}}c@{}}
+\includegraphics[width=.25\linewidth]{inpainting/lena-original}&
+\includegraphics[width=.25\linewidth]{inpainting/lena-observations}&
+\includegraphics[width=.25\linewidth]{inpainting/lena-reconstructed}\\
+$f$ original & Observations $y$ & Reconstruction $f^\star$
+\end{tabular}
+\caption{Exemples de reconstruction avec données manquantes, $\Phi=\diag(\mu_q)_{q=1}^Q$ avec $\mu_q \in \{0,1\}$ et un nombre de données observées $\sharp\enscond{q}{\mu_q=1}/Q = 10\%$.  \label{fig-inpainting} }
+\end{figure}
+
+Le problème~\eqref{eq-pbm-l1}, bien que convexe, reste un problème difficile à résoudre à cause de la non-différentiabilité de la norme ${\norm{\cdot}_1}$ et de la grande taille des données ($N$ est très grand). C'est le prix à payer pour obtenir des résultats de bonne qualité. Comme nous allons l'expliquer dans le paragraphe qui suit, c'est en effet la non-différentiabilité de ${\norm{\cdot}_1}$ qui permet d'obtenir de la parcimonie. Le développement d'algorithmes efficaces pour résoudre~\eqref{eq-pbm-l1} est un domaine de recherche très actif, et nous renvoyons à~\cite[section 6]{2014-vaiter-ps-review} pour un tour d'horizon de ces méthodes. La figure~\ref{fig-inpainting} montre un exemple d'interpolation de données manquantes réalisée en résolvant~\eqref{eq-pbm-l1} dans une famille $\Psi$ d'ondelettes invariantes par translation.
+
+
+%%%%
+\paragraph{De l'intuition à l'analyse théorique des performances.}
+
+
+La figure~\ref{fig-l1-vs-l2} montre intuitivement pourquoi la solution $x^\star$ calculée en remplaçant $\norm{\cdot}_0$ par $\norm{\cdot}_\al$ dans~\eqref{eq-pbm-l0} est meilleure (au sens qu'elle est plus parcimonieuse) si on choisit $\al=1$ (c'est-à-dire si on résout~\eqref{eq-pbm-l1}) que si on choisit $\al=2$ (une conclusion similaire est obtenue pour d'autres valeurs de $\al>1$). 
+% 
+La figure est fait dans le cas (très simple) de $N=2$ coefficients et $P=1$ observations. Le point crucial, qui rend la solution de~\eqref{eq-pbm-l1} parcimonieuse, est que la boule $B_1$ associée à la norme $\ell^1$ est \guill{pointue} de sorte que la solution $x^\star$ est située le long des axes. Ceci n'est pas le cas pour la boule $B_2$ associée à la norme $\ell^2$, qui donne une solution $x^\star$ qui n'est pas le long des axes, et n'est donc pas parcimonieuse.
+%
+Ce phénomène, déjà visible en dimension 2, est en fait accentué lorsque la dimension augmente, de sorte que l'approximation obtenue en remplaçant $\norm{\cdot}_0$ par $\norm{\cdot}_1$ devient meilleure en grande dimension. 
+% 
+Ce phénomène est appelé par David Donoho la \guill{bénédiction de la grand dimension}~\cite{DonohoCurse} : bien que les données deviennent très coûteuses et complexes à traiter (la \guill{malédiction de la dimension}) on dispose de techniques efficaces pour les analyser si elles sont suffisamment parcimonieuses. 
+%
+Rendre cette intuition rigoureuse est cependant difficile, et c'est l'objet de recherches encore en cours pour des opérateurs $\Phi$ tels que des convolutions~\cite{candes-towards2013,2015-duval-focm}. L'analyse dans le cas des opérateurs que l'on rencontre par exemple en imagerie médicale est un problème mathématique ouvert.
+
+
+\begin{figure}\centering
+\begin{tabular}{@{}c@{\hspace{4mm}}c@{}}
+\includegraphics[width=.35\linewidth]{l1-vs-l2/l1} &
+\includegraphics[width=.35\linewidth]{l1-vs-l2/l2} \\
+Minimisation $\ell^1$ & Minimisation $\ell^2$
+\end{tabular}
+\caption{Comparaison de la minimisation avec des contraintes de type $\norm{x}_\al \leq \tau$  pour $\al \in \{1,2\}$.
+%
+Une solution $x^\star$ est obtenue lorsque l'on trouve un tube $\enscond{x}{\norm{\Phi x-y} \leq \epsilon}$ assez grand (i.e. en faisant croitre progressivement $\epsilon$) tel qu'il soit tangent en $x^\star$ à la boule $\enscond{x}{\norm{x}_\al \leq \tau}$.  \label{fig-l1-vs-l2} }
+\end{figure}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{L'échantillonnage compressé}
+
+Il existe une classe particulière d'opérateurs $\Phi$ pour laquelle il est possible d'analyser très précisément les performances obtenues lorsque l'on résout~\eqref{eq-pbm-l1}. Il s'agit du cas où $\Phi$ est tiré aléatoirement selon certaines distributions de matrices aléatoires. Utiliser des matrices aléatoires peut sembler étrange, car les opérateurs mentionnés plus haut (convolution,  tomographie, etc.) ne le sont pas du tout. 
+%
+En fait, ce choix est motivé par une application concrète proposée conjointement par Candès, Tao et Romberg~\cite{candes2006stable} ainsi que Donoho~\cite{donoho2006compressed}, et que l'on appelle communément \guill{échantillonnage compressé} (\guill{compressed sensing} en anglais). 
+
+
+
+%%%%
+\paragraph{Appareil photo \guill{pixel unique}.}
+
+Afin de rendre l'explication plus parlante, nous allons aborder le prototype d'appareil photo \guill{pixel unique} (\guill{single pixel caméra} en anglais) développé à Rice University~\cite{DuarteSinglePixel}, et qui est illustré par la figure~\ref{fig-single-pixel} (gauche). 
+%
+Il s'agit de développer une nouvelle classe d'appareils photos permettant de réaliser à la fois \textit{l'échantillonnage} et la \textit{compression} d'une image. Au lieu de d'abord échantillonner très finement (i.e. avec $Q$ très grand) le signal analogique $\tilde f$ pour obtenir une image $f \in \RR^Q$ puis de compresser énormément (i.e. avec $M$ petit)  en utilisant~\eqref{eq-formule-thresh}, on aimerait disposer directement d'une représentation économique $y \in \RR^P$ de l'image, avec un budget $P$ aussi proche de $M$ et tel que l'on soit capable de \guill{décompresser} $y$ pour obtenir une bonne approximation de l'image $f$.
+
+L'appareil \guill{pixel unique} permet de réaliser l'échantillonnage compressé d'une scène observée $\tilde f$ (la lettre \guill{R} sur la Figure~\ref{fig-single-pixel}), qui est une fonction continue indiquant la quantité de lumière $\tilde f(s)$ atteignant chaque point $s \in \RR^2$ du plan focal de la camera. 
+%
+Pour ce faire, la lumière est focalisée contre un jeu de $Q$ micro-miroirs tapissant le plan focal. Ces micro-miroirs ne sont pas des capteurs. Contrairement à l'échantillonnage classique (décrit à la section~\ref{sec-echantillonnage}), ils n'enregistrent aucune information, mais ils peuvent chacun être positionné pour refléter ou absorber la lumière. 
+%
+Pour réaliser l'enregistrement complet, on change très rapidement $P$ fois les configurations des micro-miroirs. Pour $p=1,\ldots,P$, on note ainsi $\Phi_{p,q} \in \{0,1\}$ suivant que le micro-miroir à la position $q$ a été mis en position absorbante (valeur 0) ou réfléchissante (valeur 1) à l'étape $p$ de l'acquisition. 
+%
+La lumière totale réfléchie à l'étape $p$ est ensuite accumulée en un capteur unique (d'où le nom de \guill{pixel unique}, en fait il s'agit plutôt d'un \guill{capteur unique}), noté \guill{PD} sur la figure, ce qui réalise une somme linéaire des intensités réfléchies pour obtenir la valeur $y_p \in \RR$ enregistrée. 
+%
+Au final, si l'on note (comme  à la section~\ref{sec-echantillonnage}) $f_q = \int_{c_q} \tilde f(s) \text{d} s$ l'intensité de lumière qui arrive sur la surface $c_q$ du miroir indexé par $q$, l'équation qui relie l'image discrète $f \in \RR^Q$ \guill{vue par les miroirs} aux $P$ mesures $y \in \RR^P$ est 
+\eq{
+	\foralls p = 1,\ldots,P, \quad
+	y_p = \sum_q \Phi_{p,n} \int_{c_n} \tilde f(s) \text{d} s = (\Phi f)_p, 
+}
+ce qui correspond exactement à~\eqref{eq-fwd-model}.
+%
+Il est important de noter que les miroirs n'enregistrent rien, donc en particulier, l'image discrète $f$ n'est jamais calculée ou enregistrée, l'appareil calculant directement la représentation compressée $y$ depuis le signal analogique $\tilde f$. 
+%
+Le terme $w$ modélise ici les imperfections d'acquisition (bruit de mesure). L'échantillonnage compressé correspond donc au passage de la scène observée $\tilde f$ au vecteur directement compressé $y$. La \guill{décompression} correspond à la résolution d'un problème inverse, qui a pour but de retrouver une bonne approximation de $f$ (l'image discrète \guill{idéale} telle que vue par les micro-miroirs) à partir de $y$.
+
+
+\begin{figure}\centering
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+\includegraphics[width=.45\linewidth]{single-pixel/single-pixel-schema}&
+\includegraphics[width=.25\linewidth]{single-pixel/reconstruction-1}&
+\includegraphics[width=.25\linewidth]{single-pixel/reconstruction-6}\\
+Schéma de l'appareil & $f$ &  $f^\star$, $P/Q=6$
+\end{tabular}
+\caption{Gauche : schéma de la méthode d'acquisition par pixel unique.
+%
+Centre : image $f \in \RR^Q$ \guill{idéale} observée dans le plan focal des micro-miroirs. 
+% 
+Droite : image $f^\star=\Psi x^\star$ reconstruite à partir d'observation $y \in \RR^P$ avec un facteur de compression $P/Q=6$.
+\label{fig-single-pixel} }
+\end{figure}
+
+
+
+
+%%%%
+\paragraph{Garanties théoriques.}
+
+Une particularité importante de ce problème inverse est que l'on peut choisir comme on le souhaite les configurations des micro-miroirs, ce qui revient à dire que l'on peut choisir librement la matrice $\Phi \in \{0,1\}^{P \times Q}$. La question est donc de faire le meilleur choix, de sorte que l'on puisse résoudre efficacement le problème inverse. Si l'on fait l'hypothèse que le signal $f$ à reconstruire est compressible dans une base orthonormée $\Psi$ (c'est-à-dire que $f \approx \Psi x_0$ avec $M \eqdef \norm{x_0}_0$ petit), alors de nombreux travaux, à commencer par~\cite{candes2006stable,donoho2006compressed}, ont montré que la méthode~\eqref{eq-pbm-l1} était efficace si l'on choisit $\Phi$ comme une réalisation de certaines matrices aléatoires. Pour le cas de l'appareil photo à pixel unique, on peut ainsi tirer chaque $\Phi_{p,n}$ aléatoirement avec une probabilité de $1/2$ pour les valeurs $0$ et $1$. 
+%
+En pratique, on utilise un générateur pseudo-aléatoire, de sorte qu'à la fois la personne qui compresse les données et la personne qui va les décompresser connaîssent parfaitement la matrice $\Phi$ (car elles peuvent se communiquer la graine du générateur). 
+%
+La figure~\ref{fig-single-pixel} (droite) montre un exemple de reconstruction obtenue pour le cas de l'appareil à  pixel unique avec un tel choix aléatoire de matrice $\Phi$, avec pour dictionnaire $\Psi$ une famille d'ondelettes invariantes par translation (voir~\cite[Sect. 5.2]{mallat2009a-wav} pour une description de cette famille).
+
+Il a ainsi été montré par~\cite{candes2006stable,donoho2006compressed} qu'il existe une constante $C$ telle que si l'on note $f = \Psi x_0$ où $x_0$ sont les coefficients de l'image à retrouver, où $\Psi$ est une base orthogonale (donc en particulier $Q=N$), et si le nombre $P$ de mesures vérifie
+\eql{\label{eq-cs-contrainte}
+	\frac{P}{M} \geq C  \log\pa{\frac{N}{M}} \qouq M \eqdef \norm{x_0}_0
+}
+alors une solution $f^\star =\Psi x^\star$ calculée par~\eqref{eq-pbm-l1} tend vers $f$ lorsque le bruit $w$ tend vers $0$ et $\tau$ tend vers $+\infty$. Ce résultat est vrai \guill{avec forte probabilité} sur le tirage aléatoire de la matrice $\Phi$, c'est-à-dire une probabilité tendant rapidement vers 1 lorsque $N$ augmente. En particulier, s'il n'y a pas de bruit, $w=0$, en prenant $\tau \rightarrow +\infty$, la méthode permet de retrouver exactement $f$ si $P$ vérifie~\eqref{eq-cs-contrainte}. 
+%
+Cette théorie permet aussi de prendre en compte des données \guill{compressibles}, c'est à dire si l'on suppose uniquement que $f$ est proche de (mais pas nécessairement égal à) $\Psi x_0$ avec $M \eqdef \norm{x_0}_0$ petit.
+
+
+De façon intuitive, ce résultat théorique signifie que l'échantillonnage compressé arrive à faire quasiment \guill{aussi bien} en calculant $\Psi x^\star$ à partir de $y$ (en résolvant~\eqref{eq-pbm-l1}) qu'une méthode de compression usuelle (MP3, JPEG, JPEG2000, MPEG, etc.) qui connaitrait exactement le signal $f$ et calculerait la meilleure approximation $\Psi x_0$ avec $M \eqdef \norm{x_0}_0$ coefficients (en résolvant~\eqref{eq-pbm-approx} via la formule~\eqref{eq-expansion-bon}). 
+%
+La signification précise du qualificatif \guill{aussi bien} correspond au  facteur multiplicatif $C  \log(N/M)$, qui borne $P/M$. Ce facteur correspond au \guill{surcoût} de la méthode d'échantillonnage compressé (qui calcule $P$ mesures) par rapport à une méthode de compression usuelle (qui calcule $M$ coefficients). 
+%
+Malgré ce surcoût, la méthode de l'échantillonnage compressé présente de nombreux avantages : gain de temps et d'énergie (on fait en même temps l'échantillonnage et la compression), codage \guill{démocratique} (tous les coefficients $y_n$ jouent le même rôle, et donc aucun n'a de rôle prépondérant, contrairement au codage des coefficients de $x_0$ qui ont une importance proportionnelle à leur amplitude), codage automatiquement crypté (si on ne connaît pas $\Phi$, on ne peut pas retrouver $f$ à partir de $y$). La valeur de la constante $C$ dépend du sens que l'on donne au terme \guill{avec forte probabilité}. Si cette probabilité porte uniquement sur $\Phi$, mais doit être vraie pour tous les $x_0$ (analyse au pire cas), alors elle est très grande (voir~\cite{dossal-laa-09}). Si par contre on veut qu'elle porte à la fois sur $\Phi$ et sur $x_0$ (pour que le résultat théorique soit vrai pour presque tous les signaux) alors on peut montrer que par exemple, pour $N/P=4$ (compression d'un facteur $4$), on a $C  \log(N/M) \sim 4$ (voir~\cite{chandrasekaran2012convex}), ce qui reste un surcoût conséquent, mais qui est acceptable pour certaines applications.
+
+L'appareil photo \guill{pixel unique} est une déclinaison particulière de la technique d'échantillonnage compressé.  Les applications à la photographie sont limitées, car les capteurs CCD des appareils photos sont performants et peu chers. L'échantillonnage compressé aura probablement un impact pour des applications où les mesures sont difficiles à acquérir ou coûtent chers. Une autre source d'applications potentielles est l'imagerie médicale, par exemple par résonance magnétique. Dans ces domaines, il est cependant impossible d'obtenir des matrices totalement aléatoires, de sorte que l'on ne peut pas appliquer directement la théorie de l'échantillonnage compressé. Des résultats encourageants sur ces applications ont cependant été obtenus, voir par exemple~\cite{AdcockBreaking,Chauffert14}. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}
+
+Les avancées récentes de l'analyse de données ont permis d'étendre le champ d'application de la compression afin de traiter des problèmes inverses difficiles en imagerie, mais aussi dans d'autres domaines (sytème de recommandation, analyse de réseaux, etc.). Ces avancées ont été rendues possibles par l'utilisation d'un spectre très large de techniques en mathématiques appliquées, qui couvre à la fois l'analyse harmonique, l'approximation non-linéaire, l'optimisation non-lisse et les probabilités, mais également l'analyse fonctionnelle et les EDPs (qui n'ont pas été mentionnées dans cet article). Les méthodes parcimonieuses associées à la régularisation $\ell^1$ ne sont pourtant que la partie émergée de l'iceberg, et des régularisations plus fines permettent d'obtenir de meilleurs résultats en prenant en compte les structures géométriques complexes des données. Pour plus de détails sur ces dernières avancées, nous recommandons la lecture de l'article~\cite{2014-vaiter-ps-review}, ainsi que la visite du site web \guill{Numerical Tours of Signal Processing}~\cite{2011-peyre-cise}, qui présente de nombreux codes informatiques pour réaliser les expériences numériques présentées ici, ainsi que de nombreuses autres. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Remerciements}
+
+Je tiens à remercier Charles Dossal, Jalal Fadili, Samuel Vaiter, Stéphane Seuret et le relecteur anonyme pour leur aide précieuse. 
+
+

@@ -3,11 +3,20 @@
 
 % https://en.wikipedia.org/wiki/Joukowsky_transform
 
-rep = '../results/conformal/';
-[~,~] = mkdir(rep);
+name = 'poly';
+name = 'cube';
+name = 'exp';
+name = 'square';
+name = 'inv';
+
+drawmode = 'circle';
+
+addpath('../toolbox/');
+rep = MkResRep(name);
 
 % # grids
-n = 19;
+n = 23;
+n = 11;
 % sampling on grid
 p = 601;
 
@@ -22,41 +31,70 @@ G = X+1i*Y;
 [Y,X] = meshgrid(y,x); X = X'; Y = Y';
 H = Y+1i*X;
 
+% intersection points
+[Y,X] = meshgrid(x,x);
+I = X+1i*Y;
+
 lw=2; fs = 20;
 
-clf; hold on;
-plot(G, 'r', 'LineWidth', lw);
-plot(H, 'b', 'LineWidth', lw);
-axis tight; axis equal; box on;
-axis off;
-set(gca, 'FontSize', fs);
-saveas(gcf, [rep 'grid.eps'], 'epsc');
-
-name = 'poly';
 
 switch name
     case 'square'
         f = @(z)z.^2;
+        f1 = @(z)2*z;
     case 'cube'
         f = @(z)z.^3;
     case 'exp'
         f = @(z)exp(z);
+        f1 = @(z)exp(z); % differential
     case 'poly'
         f = @(z)log(z);
     case 'inv'
         f = @(z)1./(z+1.3) + 1./(z-1.6);
+        f1 = @(z)-1./(z+1.3).^2 - 1./(z-1.6).^2;
+        %
+        f = @(z)z - 1./(z+1.5+.3i) - 1./(z-1.6-.2i);
+        f1 = @(z)1 + 1./(z+1.5+.3i).^2 + 1./(z-1.6-.2i).^2;
 end
 
-clf; hold on;
-plot(f(G), 'r', 'LineWidth', lw);
-plot(f(H), 'b', 'LineWidth', lw);
-axis tight; axis equal; box on;
-set(gca, 'FontSize', fs);
-axis off;
-saveas(gcf, [rep name '.eps'], 'epsc');
+q = 50;
 
+if strcmp(drawmode, 'circle')
+    damp = .7;
+else
+    damp = 0;
+end
+
+% basic circle
+C0 = exp(2i*pi*linspace(0,1,80));
+
+for i=1:q
+    t = (i-1)/(q-1);
+    
+    clf; hold on;
+    plot(t*f(G) + (1-t)*G, 'color', [1 0 0]*(1-damp)+[1 1 1]*damp, 'LineWidth', lw);
+    plot(t*f(H) + (1-t)*H, 'color', [0 0 1]*(1-damp)+[1 1 1]*damp, 'LineWidth', lw);
+    if strcmp(drawmode, 'circle')
+        % centers
+        Iw = t*f(I) + (1-t)*I;
+        % radius
+        R = abs(t*f1(I) + (1-t))*1/(n-1);
+        plot(Iw(:), 'k.', 'MarkerSize', 20);    
+        for k=1:n*n
+            plot( Iw(k) + R(k)*C0, 'k', 'LineWidth', 2  );
+        end
+    end
+    axis equal;  axis tight; box on;
+    set(gca, 'FontSize', fs); axis off;
+    drawnow;
+    saveas(gcf, [rep name '-' znum2str(i,2) '.png'], 'png');
+end
+
+% AutoCrop(rep, [name '-']);
 
 return;
+
+
 %%
 % Past a disk
 
