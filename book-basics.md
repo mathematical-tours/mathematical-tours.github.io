@@ -13,7 +13,7 @@ An Introduction to Imaging Sciences
 You can retrieve the text:
 
 <div align="center">
-  <a href="http://www.gpeyre.com/">Gabriel Peyré</a>, <i><a href="https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/book-basics-sources/IntroImaging.pdf">An Introduction to Imaging Sciences</a></i>, 2018.
+  <a href="http://www.gpeyre.com/">Gabriel Peyré</a>, <i><a href="https://mathematical-tours.github.io/book-basics-sources/IntroImaging.pdf">An Introduction to Imaging Sciences</a></i>, 2018.
 </div>
 
 The [Latex sources of this text are available](https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/book-basics-sources).
@@ -33,7 +33,7 @@ Une introduction aux sciences de l'imagerie
 Vous pouvez télécharger le texte:
 
 <div align="center">
-  <a href="http://www.gpeyre.com/">Gabriel Peyré</a>, <i><a href="https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/book-basics-sources/IntroImaging-FR.pdf">Une introduction aux sciences de l'imagerie</a></i>, 2018.
+  <a href="http://www.gpeyre.com/">Gabriel Peyré</a>, <i><a href="https://mathematical-tours.github.io/book-basics-sources/IntroImaging-FR.pdf">Une introduction aux sciences de l'imagerie</a></i>, 2018.
 </div>
 
 Les [sources Latex de ce livre sont disponibles.(https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/book-basics-sources)
