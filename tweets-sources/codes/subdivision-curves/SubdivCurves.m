@@ -11,10 +11,13 @@
 % * [DynGreLev91]?N. Dyn, J.A. Gregory, G. Levin, _Analysis of uniform binary subdivision schemes for curve design_, Constructive Approximation, 7(1), p. 127-147, 1991.
 
 
-addpath('../toolbox/');
+if not(exist('test'))
+    test = 0;
+end
+test = test+1;
 
 addpath('../toolbox/');
-rep = MkResRep();
+rep = MkResRep(num2str(test));
 
 
 ms = 20; lw = 1.5;
@@ -22,13 +25,14 @@ myplot = @(f,c)plot(f([1:end 1]), c, 'LineWidth', lw, 'MarkerSize', ms);
 myaxis = @(rho)axis([-rho 1+rho -rho 1+rho], 'off');
 
 
-
+A = load_image('elephant', 256);
+B = load_image('bunny', 256);
 
 %%
-% First we create a 2D closes polygon, which will be a cage used to perform
-% 2D shape deformation.
+% First we create a 2D closes polygon.
 
 clf; hold on;
+imagesc([0 1],[0 1],A);
 f0 = [];
 while true
     axis equal; axis([0 1 0 1]);  % axis off;
@@ -40,6 +44,8 @@ while true
     f0(end+1) = a + 1i*b;
     plot(f0, 'r', 'LineWidth', 2);
 end
+clf; hold on;
+imagesc([0 1],[0 1],B);
 k = size(f0,2);
 plot(f0([1:end,1]), 'r', 'LineWidth', 2);
 f1 = [];
@@ -56,9 +62,9 @@ f0 = f0(:); f1 = f1(:);
 subdivide = @(f,h)cconvol( upsampling(f), h);
 
 % bi-cubic
-name = 'quadratic';
 name = 'cubic';
 name = 'interpolating';
+name = 'quadratic';
 switch name
     case 'cubic'
         h = [1 4 6 4 1]; % cubic B-spline
@@ -101,5 +107,5 @@ for j=jlist
     end
 end
 
-AutoCrop(rep, name);
+% AutoCrop(rep, name);
 
