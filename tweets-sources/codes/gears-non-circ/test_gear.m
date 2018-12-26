@@ -4,31 +4,33 @@
 
 n = 1024*4;  % # sampling points
 
-name = 'engrenage-16';
 name = 'discont';
-name = 'discont-2';
 name = 'circle';
 name = 'ellipse-centered';
 name = 'hexagon';
-name = 'random-strong';
 name = 'petal';
-name = 'petal-8';
 name = 'cardioid';
 name = 'square';
-name = 'random';
+%
+%
+name = 'engrenage-16';
+name = 'petal-8';
+name = 'discont-2';
 name = 'triangle';
 name = 'ellipse-focal';
+name = 'random';
+name = 'random-strong';
+
+
+addpath('../toolbox/');
+rep = MkResRep(name);
 
 center = [0 0];
 
 
-rep = 'results/';
-if not(exist(rep))
-    mkdir(rep);
-end
-
 tooth.transition =.2;
 tooth.nbr = 30;
+tooth.nbr = 0; % no tooth
 tooth.height = .03;
 smoothing = .01;
 x = load_gear(name, n, center, tooth, smoothing);
@@ -38,17 +40,33 @@ x = load_gear(name, n, center, tooth, smoothing);
 
 [y,L,phi] = compute_dual_gear(x);
 
-%%
-% Plot the gears
+%% 
+% display
 
+q = 50; % number of time step
 
-clf;
-hold on;
-plot_gear(x, [0 0], 'k',0, [],0);
-plot_gear(y, [L*1.1 0], 'k',1, [],0);
-axis tight; axis equal;
-set(gcf, 'Color', [1 1 1]);
-saveas(gcf, [rep 'gears-' name '.eps']);
+b = max(max(x),max(y));
+a1 = max(x); a2 = L+max(y);
+
+t = 2*pi* (0:n-1)'/n;
+tx = linspace(0,2*pi,q+1)';
+ty = linspace(0,2*pi,n+1)';
+ty = interp1( ty, phi, tx);
+
+for i=1:q
+    clf;
+    hold on;
+    plot_gear(x, [0 0], 'b',0, t + tx(i));
+    plot_gear(y, [L 0], 'r',1, t + ty(i));
+    axis([-a1-.1 a2+1 -b-.1 b+.1]); axis on;
+    set(gcf, 'Color', [1 1 1]);
+    set(gca, 'XTick', [], 'YTick', []); box on;
+    drawnow;
+    % saveas(gcf, [rep 'anim-' znum2str(i,2) '.png' ]);
+end
+
+% AutoCrop(rep,'anim');
+    
 
 return;
 

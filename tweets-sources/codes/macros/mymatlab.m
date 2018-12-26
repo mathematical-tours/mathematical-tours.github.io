@@ -21,8 +21,7 @@ Quant = @(x,q)min(floor( rescale(x)*q  ), q-1);
 rescale = @(x)(x-min(x(:)))/(max(x(:))-min(x(:)));
 
 % display
-SetAR = @(ar)set(gca, 'PlotBoxAspectRatio', [1 ar 1], 'FontSize', 20);
-set(gca, 'XTick', [], 'YTick', []);
+set(gca, 'PlotBoxAspectRatio', [1 ar 1], 'FontSize', 20, 'XTick', [], 'YTick', []);
 
 % matrix
 Xm = @(X)X-repmat(mean(X,1), [size(X,1) 1]);

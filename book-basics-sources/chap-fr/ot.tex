@@ -1,0 +1,166 @@
+% !TEX root = ../IntroImaging-FR.tex
+
+\newcommand{\iC}{{\color{red}i}}
+\newcommand{\jC}{{\color{blue}j}}
+
+\chapter{Le Transport Optimal et ses Applications}
+\label{chap-ot}
+
+Livres sur le transport optimal~\cite{Villani03}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Le Transport Optimal de Monge}
+
+Gaspard Monge, en plus d'être un grand mathématicien, a participé activement à la révolution Française, et a créer l'\'Ecole Polytechnique ainsi que l'\'Ecole Normale Supérieure. Motivé par des applications militaire, il a formulé en 1781 le problème du transport optimal~\cite{Monge1781}. Il s'est posé la question du calcul de la façon la plus économique de transporter de la terre entre deux endroits pour faire des remblais. Dans son texte original, il a fait l'hypothèse que le coût du déplacement d'une unité de masse est égal à la distance parcourue, mais l'on peut utiliser n'importe quel coût adapté au problème à résoudre. 
+
+Pour illustrer le problème et sa formulation mathématique, intéressons-nous à la façon optimale de distribuer les croissantes depuis les boulangeries vers le café, le matin dans Paris. Pour simplifier, nous allons supposer qu'il y a uniquement 6 boulangeries et cafés, que l'on peut voir à la figure~\ref{fig:image-cafe} (les boulangeries sont en rouge et les cafés en bleu). Le coût à minimisé est le temps de trajets, et l'on note $C_{\iC,\jC}$ le temps entre la boulangerie $\iC \in \{1,\ldots,6\}$  et le café $\jC \in \{1,\ldots,6\}$. Par exemple, on a $C_{{\color{red}3},{\color{blue}4}}=10$, ce qui signifie qu'il y a 10 minutes de trajet entre la boulangerie numéro ${\color{red}3}$ et le café numéro ${\color{blue}4}$. 
+
+\begin{figure}\centering
+    \begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{4mm}}c@{\hspace{1mm}}c@{}}
+        \includegraphics[width=.2\linewidth]{transport/cafe-paris/map-paris-0-couts} 
+        \includegraphics[width=.24\linewidth]{transport/cafe-paris/map-paris-0} 
+        \includegraphics[width=.2\linewidth]{transport/cafe-paris/map-paris-1-couts} 
+        \includegraphics[width=.24\linewidth]{transport/cafe-paris/map-paris-1} 
+    \end{tabular}
+    \caption{\label{fig:image-cafe} Matrice de coût et connexions associées. Gauche: une ligne de la matrice coût. Droite: un choix de permutation valide. } 
+\end{figure}
+
+Afin de satisfaire la contrainte d'approvisionnement (que l'on appelle aussi la conservation de la masse), il faut que chaque boulangerie soit connectée à un et un seul café. Comme il y a le même nombre de boulangeries que de café, ceci implique que chaque café est également connecté à une et une seule boulangerie. On va noter 
+\eq{    
+    \si : \iC \in \{1,\ldots,6\} \longmapsto \jC \in \{1,\ldots,6\}
+}
+un tel choix de connexion. La figure~\ref{fig:image-cafe} illustre au centre et à droite l'exemple
+\eql{\label{eq-bijection-exmp}
+    \si({\color{red}1})={\color{blue}5}, \;
+    \si({\color{red}2})={\color{blue}2}, \;
+    \si({\color{red}3})={\color{blue}6}, \;
+    \si({\color{red}4})={\color{blue}1}, \;
+    \si({\color{red}5})={\color{blue}3}, \;
+    \si({\color{red}6})={\color{blue}4}.
+}  
+La contrainte de conservation de masse signifie que $\si$ est une bijection de l'ensemble $\{1,\ldots,6\}$ dans lui-même. On dit ainsi que $\si$ est une permutation. 
+
+Le coût de transport associé à une telle bijection est la somme des coût $C_{\iC,\si(\iC)}$  sélectionnés par la permutation $\si$, c'est-à-dire 
+\eq{
+    \text{Coût}(\si) \eqdef 
+        C_{{\color{red}1},\si({\color{red}1})} + 
+        C_{{\color{red}2},\si({\color{red}2})} + 
+        C_{{\color{red}3},\si({\color{red}3})} + 
+        C_{{\color{red}4},\si({\color{red}4})} + 
+        C_{{\color{red}5},\si({\color{red}5})} + 
+        C_{{\color{red}6},\si({\color{red}6})}. 
+}
+Par exemple, pour la bijection~\eqref{eq-bijection-exmp} montrée à la figure~\ref{fig:image-cafe}, on obtient comme coût
+\eq{
+    C_{{\color{red}1},{\color{blue}5}} + 
+    C_{{\color{red}2},{\color{blue}2}} + 
+    C_{{\color{red}3},{\color{blue}6}} + 
+    C_{{\color{red}4},{\color{blue}1}} + 
+    C_{{\color{red}5},{\color{blue}3}} + 
+    C_{{\color{red}6},{\color{blue}4}} = 
+    10 + 7 + 15 + 10 + 14 + 9 = 65. 
+}
+
+Le problème de Monge consiste à chercher la permutation $\si$ qui a le coût minimum, c'est-à-dire résoudre le problème d'optimisation
+\eq{
+    \umin{\si} \enscond{
+        \text{Coût}(\si)
+    }{
+        \si \in \text{Perm}(\{1,\ldots,6\})
+    }
+}
+où l'on a noté $\text{Perm}(\{1,\ldots,6\})$ l'ensemble des permutations de l'ensemble  $\{1,\ldots,6\})$.
+
+
+\begin{figure}\centering
+    \begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/ordre-croissant-64}&
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/ordre-croissant-65}&
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/ordre-croissant-66}&
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/ordre-croissant-152}\\
+        Coût=64 &  
+        Coût=65 &  
+        Coût=66 &  
+        Coût=152
+    \end{tabular}
+    \caption{\label{fig:ordre-croissant} Choix de permutation avec différent coûts. } 
+\end{figure}
+
+La figure~\ref{fig:ordre-croissant} montre que la permutation~\eqref{eq-bijection-exmp} n'est pas la meilleure : il existe par exemple une autre permutation qui a un coût de 64. Mais est-ce la meilleure ? Il se trouve que oui, on peut en effet tester sur un ordinateur toutes les permutations de  $\{1,\ldots,6\}$ et calculer leur coût. Combien y a-t-il de permutation au total ? Il s'agit  
+
+
+\begin{figure}\centering
+    \includegraphics[width=.7\linewidth]{transport/metro/plan-metro}
+    \caption{\label{fig:metro} Le transport optimal en 1D. } 
+\end{figure}
+
+
+\begin{figure}\centering
+    \begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+        \includegraphics[width=.22\linewidth]{transport/monge-2d/article-monge}&
+        \includegraphics[width=.22\linewidth]{transport/monge-2d/decroisement}&
+        \includegraphics[width=.22\linewidth]{transport/monge-2d/example-10}&
+        \includegraphics[width=.22\linewidth]{transport/monge-2d/example-70}
+    \end{tabular}
+    \caption{\label{fig:ot2d} Le transport optimal en 2D. Gauche: extrait de l'article de Monge~\cite{Monge1781}. } 
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Le Transport Optimal de Kantorovitch}
+
+
+
+\begin{figure}\centering
+    \begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+        \includegraphics[width=.22\linewidth]{transport/kantorovitch/coupling-array}&
+        \includegraphics[width=.22\linewidth]{transport/kantorovitch/coupling-squares}&
+        \includegraphics[width=.22\linewidth]{transport/kantorovitch/coupling-map}&
+        \includegraphics[width=.22\linewidth]{transport/kantorovitch/coupling-bipartite}
+    \end{tabular}
+    \caption{\label{fig:coupling-visu} Différentes façons de représenter une matrice de couplage. } 
+\end{figure}
+
+
+
+
+
+\cite{Kantorovich42}
+
+\cite{Dantzig51}
+
+Théorème de birkhoff-von Neumann. 
+
+\cite{birkhoff,von1953certain}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Les Applications}
+
+
+\begin{figure}\centering
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-1} &
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-2} &
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-2-equalized} \\
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-1-histo}&
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-2-histo}&
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-1-histo}\\
+    Toto & tata & tutu 
+\end{tabular}
+\caption{\label{fig:image-eq} Exemple de transfert d'histogrammes à l'aide du transport optimal. }
+\end{figure}
+
+
+
+\begin{figure}\centering
+        \includegraphics[width=.6\linewidth]{transport/applis/shapes-3d}
+    \caption{\label{fig:barycenters} Exemple d'interpolation barycentrique entre des formes 3D.  }
+\end{figure}
+
+
+\begin{figure}\centering
+    \includegraphics[width=.35\linewidth]{transport/applis/bag-word-1}
+    \qquad
+    \includegraphics[width=.35\linewidth]{transport/applis/bag-word-2}
+\caption{\label{fig:bagwords} Exemple d'interpolation barycentrique entre des formes 3D.  }
+\end{figure}
