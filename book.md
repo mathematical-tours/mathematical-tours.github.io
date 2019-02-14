@@ -7,7 +7,7 @@ header-img: "img/boat-waves.jpg"
 
 You can retrieve the draft of the book:
 
-> Gabriel Peyré, [Mathematical Foundations of Data Sciences](https://www.dropbox.com/s/q5ah7howqh0wgpa/FundationsDataScience.pdf?dl=0).
+> Gabriel Peyré, [Mathematical Foundations of Data Sciences](book-sources/FundationsDataScience.pdf).
 
 The [Latex sources of the book are available](https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/book-sources).
 
