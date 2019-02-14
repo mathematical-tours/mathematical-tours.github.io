@@ -17,7 +17,7 @@ fconv = @(x,y)real( ifft2( fft2(x).*fft2(y) ) );
 GFilt = @(f,s)fconv(f, G(s));
 
 % compute the stack
-p = 30; % #convolution images
+p = 30*2; % #convolution images
 smax = 50/2;
 slist = linspace(1e-5,smax,p);
 F = [];
@@ -35,13 +35,13 @@ Gauss = @(m,s)exp(-((X-m(1)).^2+(Y-m(2)).^2)/(2*s^2));
 % animation
 q = 50; 
 % animate
-s = .3;
+s = .3*2;
 
 for it=1:q
     t = (it-1)/q;
     m = .6 * [cos(2*pi*t), sin(2*pi*t)];
     %
-    M = round(Gauss(m,s) * (p-1))+1;
+    M = round((1-Gauss(m,s)) * (p-1))+1;
     M = repmat(M,[1 1 d]);
     % selector
     [I,J,K] = meshgrid(1:n,1:n,1:k);
@@ -52,6 +52,7 @@ for it=1:q
     imageplot(g);
     drawnow;
     % display level
+    if 0
     R = Gauss(m,s);
     r = 15; % #levellines
     clf; hold on;
@@ -61,6 +62,7 @@ for it=1:q
     caxis([0 1]);
     axis image; axis ij; axis off;
     saveas(gcf, [rep 'map-' znum2str(it,2) '.png']);
+    end
 end
 
 % AutoCrop(rep, 'map');

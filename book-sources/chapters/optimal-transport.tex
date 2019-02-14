@@ -10,6 +10,7 @@ The main reference for this chapter is the book ``Computational Optimal Transpor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Radon Measures}
 
+\newcommand{\dims}{d}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Measures.}
@@ -34,10 +35,10 @@ Integration of $f \in \Cc(\X)$ against a discrete measure $\al$ computes a sum
 	\int_\X f(x) \d\al(x) = \sum_{i=1}^n \a_i f(x_i).
 }
 %
-More general measures, for instance on $\X=\RR^\dim$ (where $\dim \in \NN^*$ is the dimension), can have a density $\d\al(x)=\density{\al}(x)\d x$ w.r.t. the Lebesgue measure, often denoted $\density{\al} = \frac{\d\al}{\d x}$, which means that 
+More general measures, for instance on $\X=\RR^\dims$ (where $\dims \in \NN^*$ is the dimension), can have a density $\d\al(x)=\density{\al}(x)\d x$ w.r.t. the Lebesgue measure, often denoted $\density{\al} = \frac{\d\al}{\d x}$, which means that 
 \eq{
-	\foralls h \in \Cc(\RR^\dim), \quad
-	\int_{\RR^\dim} h(x) \d\al(x) =  \int_{\RR^\dim} h(x) \density{\al}(x) \d x.
+	\foralls h \in \Cc(\RR^\dims), \quad
+	\int_{\RR^\dims} h(x) \d\al(x) =  \int_{\RR^\dims} h(x) \density{\al}(x) \d x.
 }
 %
 An arbitrary measure $\al \in \Mm(\X)$ (which needs not to have a density nor be a sum of Diracs) is defined by the fact that it can be integrated agains any continuous function $f \in \Cc(\X)$ and obtain $\int_\X f(x) \d\al(x) \in \RR$. If $\X$ is not compact, one should also impose that $f$ has compact support or at least as $0$ limit at infinity. 
@@ -100,11 +101,11 @@ Intuitively, a measurable map $T: \X\rightarrow \Y$, can be interpreted as a fun
 
 %%%%%%%
 \begin{rem}[Push-forward for densities]
-Explicitly doing the change of variable in formula~\eqref{eq-push-fwd} for measures with densities $(\density{\al},\density{\be})$ on $\RR^\dim$ (assuming $\T$ is smooth and a bijection) shows that a push-forward acts on densities linearly as a change of variables in the integration formula, indeed
+Explicitly doing the change of variable in formula~\eqref{eq-push-fwd} for measures with densities $(\density{\al},\density{\be})$ on $\RR^\dims$ (assuming $\T$ is smooth and a bijection) shows that a push-forward acts on densities linearly as a change of variables in the integration formula, indeed
 \eql{\label{eq-pfwd-density}
 	\density{\al}(x) = |\det(\T'(x))|  \density{\be}(\T(x))
 }
-where $\T'(x) \in \RR^{\dim \times \dim}$ is the Jacobian matrix of $T$ (the matrix formed by taking the gradient of each coordinate of $T$).
+where $\T'(x) \in \RR^{\dims \times \dims}$ is the Jacobian matrix of $T$ (the matrix formed by taking the gradient of each coordinate of $T$).
 This implies, denoting $y=\T(x)$
 \eq{
 	|\det(\T'(x))| = \frac{ \density{\al}(x) }{ \density{\be}(y) }.
@@ -603,10 +604,10 @@ The discrete case~\eqref{eq-dual} corresponds to the dual vectors being samples 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Benier's Theorem and Monge-Amp\`ere PDE}
 
-The following celebrated theorem of~\cite{Brenier91} ensures that in $\RR^\dim$ for $p=2$, if at least one of the two inputs measures has a density, then Kantorovitch and Monge problems are equivalent.
+The following celebrated theorem of~\cite{Brenier91} ensures that in $\RR^\dims$ for $p=2$, if at least one of the two inputs measures has a density, then Kantorovitch and Monge problems are equivalent.
 
 \begin{thm}[Brenier]
-	In the case $\X=\Y=\RR^\dim$ and $c(x,y)=\norm{x-y}^2$, if at least one of the two inputs measures (denoted $\al$) has a density $\density{\al}$ with respect to the Lebesgue measure, then the optimal $\pi$ in the Kantorovich formulation~\eqref{eq-mk-generic} is unique, and is supported on the graph $(x,\T(x))$ of a ``Monge map'' $\T : \RR^\dim \rightarrow \RR^\dim$. This means that $\pi = (\Id,\T)_{\sharp} \mu$, \emph{i.e.} 
+	In the case $\X=\Y=\RR^\dims$ and $c(x,y)=\norm{x-y}^2$, if at least one of the two inputs measures (denoted $\al$) has a density $\density{\al}$ with respect to the Lebesgue measure, then the optimal $\pi$ in the Kantorovich formulation~\eqref{eq-mk-generic} is unique, and is supported on the graph $(x,\T(x))$ of a ``Monge map'' $\T : \RR^\dims \rightarrow \RR^\dims$. This means that $\pi = (\Id,\T)_{\sharp} \mu$, \emph{i.e.} 
 \eql{\label{eq-brenier-map}
 	\foralls h \in \Cc(\X \times \Y), \quad
 		\int_{\X \times \Y} h(x,y) \d \pi(x,y) = \int_{\X} h(x,\T(x)) \d\mu(x).
@@ -659,7 +660,7 @@ Brenier's theorem, stating that an optimal transport map must be the gradient of
 
 Note also that this theorem can be extended in many directions. 
 % 
-The condition that $\al$ has a density can be weakened to the condition that it does not give mass to ``small sets'' having Hausdorff dimension smaller than $\dim-1$ (e.g. hypersurfaces). 
+The condition that $\al$ has a density can be weakened to the condition that it does not give mass to ``small sets'' having Hausdorff dimension smaller than $\dims-1$ (e.g. hypersurfaces). 
 %
 One can also consider costs of the form $\c(x,y)=h(x-y)$ where $h$ is a strictly convex function. 
 
@@ -667,7 +668,7 @@ For measures with densities, using~\eqref{eq-pfwd-density}, one obtains that $\p
 \eql{\label{eq-monge-ampere}
 	\det(\partial^2\phi(x))  \density{\be}(\nabla\phi(x)) = \density{\al}(x)
 }
-where $\partial^2\phi(x) \in \RR^{\dim \times \dim}$ is the hessian of $\phi$. The Monge-Amp\`ere operator $\det(\partial^2\phi(x))$ can be understood as a non-linear degenerate Laplacian. In the limit of small displacements, $\phi=\Id + \epsilon\phi$, one indeed recovers the Laplacian $\Delta$ as a linearization since for smooth maps
+where $\partial^2\phi(x) \in \RR^{\dims \times \dims}$ is the hessian of $\phi$. The Monge-Amp\`ere operator $\det(\partial^2\phi(x))$ can be understood as a non-linear degenerate Laplacian. In the limit of small displacements, $\phi=\Id + \epsilon\phi$, one indeed recovers the Laplacian $\Delta$ as a linearization since for smooth maps
 \eq{
 	\det(\partial^2\phi(x)) = 1 + \epsilon \Delta \phi(x) + o(\epsilon).
 }
@@ -785,7 +786,7 @@ Computation of OT and displacement interpolation between two 1-D measures, using
 
 %%%%%%%
 \begin{rem}[Distance between Gaussians]\label{rem-dist-gaussians}
-If $\al = \Nn(\mean_\al,\cov_\al)$ and $\be = \Nn(\mean_\be,\cov_\be)$ are two Gaussians in $\RR^\dim$, then one can show that the following map
+If $\al = \Nn(\mean_\al,\cov_\al)$ and $\be = \Nn(\mean_\be,\cov_\be)$ are two Gaussians in $\RR^\dims$, then one can show that the following map
 \eql{\label{eq-transport-Bures}T:x\mapsto \mean_\be + A(x-\mean_\al),}
 where 
 $$A=\cov_\al^{-\tfrac{1}{2}}\Big(\cov_\al^{\tfrac{1}{2}}\cov_\be\cov_\al^{\tfrac{1}{2}}\Big)^{\tfrac{1}{2}}\cov_\al^{-\tfrac{1}{2}}=\transp{A},$$

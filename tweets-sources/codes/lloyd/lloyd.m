@@ -1,13 +1,16 @@
 %%
 % test for k-means on a dense lattice.
 
-addpath('../toolbox/');
-rep = MkResRep();
-
-name = 'gaussian';
 name = 'linear';
+name = 'gaussian';
+name = 'gaussian4';
 name = 'half';
+name = 'gaussian1';
 name = 'uniform';
+
+addpath('../toolbox/');
+repsvg = MkResRep(name);
+
 
 
 n = 400; % size of the image
@@ -17,6 +20,7 @@ t = linspace(0,1,n);
 
 [v,u] = meshgrid(t,t);
 X = [u(:)';v(:)'];
+gauss = @(m,s)exp( - ( (X(1,:)-m(1)).^2 + (X(2,:)-m(2)).^2 )/(2*s^2) );
 
 % measure on the image
 switch name
@@ -25,9 +29,17 @@ switch name
     case 'gaussian'
         m = [.8 .2];
         s = .15;
-        mu = .01 + exp( - ( (X(1,:)-m(1)).^2 + (X(2,:)-m(2)).^2 )/(2*s^2) );
+        mu = .01 + gauss(m,s);
+    case 'gaussian1'
+        m = [.5 .5];
+        s = .2;
+        mu = .01 + gauss(m,s);
+    case 'gaussian4'
+        m = [.8 .2];
+        s = .1; r = .15;
+        mu = .01 + gauss([r r],s) + gauss([1-r r],s) + gauss([r 1-r],s) + gauss(1-[r r],s);
     case 'half'
-        mu = 1+(X(1,:)<.5)*10; mu(1)=max(mu)+5;
+        mu = 1+(X(1,:)<.5)*50; % mu(1)=max(mu)+5;
     case 'linear'
         mu = 1-X(1,:);
 end
@@ -39,7 +51,8 @@ if not(exist('Y0'))
     Y0 = [];
     clf; hold on;
     while true
-        axis([0 1 0 1]);
+        axis equal; axis([0 1 0 1]);
+        box on; set(gca, 'Xtick', [], 'Ytick', []);
         [a,b,button] = ginput(1);
         plot(a,b, '.', 'MarkerSize', 20);
         if button==3
@@ -55,12 +68,10 @@ end
 
 k = size(Y0,2);
 
-
-repsvg = [rep name '-' num2str(k) '/'];
-[~,~] = mkdir(repsvg);
-
 niter = 500;
-disp_list = [1:10 15:5:100 150:50:niter];
+q = 80;
+disp_list = unique( round( 1+(niter-1)*linspace(0,1,q).^5 ) );
+
 kdisp = 1;
 
 % coloring
@@ -74,25 +85,26 @@ for it=1:niter
     [D1,I] = min(D,[], 2);
     % display
     if it==disp_list(kdisp)
-        kdisp = kdisp+1;
         J = reshape(I, [n n]);
         D1 = reshape(D1, [n n]);
-        clf; hold on;    
-        if strcmp(name, 'uniform')
-            % render in colors
-            R = zeros(n,n,3);
-            for m=1:k
-                for ic=1:3
-                    R(:,:,ic) = R(:,:,ic) + (J==m)*C(m,ic);
-                end
+        % render in colors
+        R = zeros(n,n,3);
+        for m=1:k
+            for ic=1:3
+                R(:,:,ic) = R(:,:,ic) + (J==m)*C(m,ic);
             end
-            s = .5;
-            imagesc(t,t,s + (1-s)*R); colormap jet(256);
-        else
-            % display density
-            imagesc(t,t,-reshape(mu, [n n])); colormap gray(256); 
-            caxis([min(-mu(:)) max(-mu(:))]);
         end
+        % display
+        clf; hold on;
+        % display density
+        Mu = repmat(reshape(mu, [n n]), [1 1 3]);
+        if strcmp(name, 'uniform')
+            Mu = Mu*0;
+        end
+        if strcmp(name, 'half')
+            Mu = rescale(Mu,0,.6);
+        end
+        imagesc(t,t,(1-Mu)*.9+R*.1);
         for l=1:k
             contour(t,t,J==l,[.5 .5], 'k', 'LineWidth', 2);
         end
@@ -102,7 +114,9 @@ for it=1:niter
         axis equal; 
         plot([0 1 1 0 0], [0 0 1 1 0], 'k', 'LineWidth', 2);
         axis off;  drawnow;
-        saveas(gcf, [repsvg 'iter-' znum2str(it,3)], 'png');
+        saveas(gcf, [repsvg 'iter-' znum2str(kdisp,2)], 'png');
+        %
+        kdisp = kdisp+1;
     end
     % New centroids
     for l=1:k
