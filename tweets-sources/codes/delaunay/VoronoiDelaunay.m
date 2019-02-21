@@ -1,4 +1,4 @@
-%%
+mk%%
 % Plot of Delaunay triangulation
 
 
