@@ -1,0 +1,35 @@
+%%
+% Contrast Haar and Walsh transforms.
+
+rep = '../results/haar-walsh/';
+[~,~] = mkdir(rep);
+
+n = 32;
+x = cos(4*pi/n*(0:n-1)');
+x(1:end/2)
+
+SetAR = @(ar)set(gca, 'PlotBoxAspectRatio', [1 ar 1], 'FontSize', 20);
+
+
+
+j = log2(n);
+Nlist = n ./ 2.^(0:j);
+
+for j=1:length(Nlist)
+    nmax = Nlist(j);
+    t = (j-1)/(length(Nlist)-1);
+    %%
+    y = Haar(x,nmax);
+    clf;
+    plot( y, 'Color', [t 0 1-t], 'LineWidth', 2 );
+    box on; axis tight; axis([]);
+    SetAR(1/2); set(gca, 'XTick', [], 'YTick', []);
+    saveas(gcf, [rep 'haar-' num2str(nmax) '.eps'], 'epsc');
+    %%
+    y = Walsh(x,Nlist(j));
+    clf;
+    plot( y, 'Color', [t 0 1-t], 'LineWidth', 2 );
+    box on; axis tight;
+    SetAR(1/2); set(gca, 'XTick', [], 'YTick', []);
+    saveas(gcf, [rep 'walsh-' num2str(nmax) '.eps'], 'epsc');    
+end

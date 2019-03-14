@@ -1,6 +1,9 @@
 %%
 % Test for mirror-descent deconvolution under positivity constraints.
 
+addpath('../toolbox/');
+rep = MkResRep();
+
 n = 256*2; 
 
 % load filter
@@ -15,27 +18,38 @@ tau = 5; %% NEEDS TO BE TUNED
 
 % Gaussian kernel
 s = .015; 
-k = exp(-t.^2/(2*s^2)); k = k/sum(k);
+k = exp(-t.^2/(2*s^2));
 
 % Block kernel
 s = .08;
 k = abs(t)<s;
 
+
+% Gaussian kernel
+s = .018; 
+k = exp(-abs(t)/s);
+
 k = k/sum(k);
 
 tau = 50; %% NEEDS TO BE TUNED
-
 
 % be sure it is positive
 kf = max(fft(k),0);
 % convolution operator
 K = @(x)real(ifft(kf.*fft(x)));
 
+
 % data
 B = @(m,s)double(abs(t-m)<s);
 x0 = double(abs(t-1/2)<.08);
 x0 = B(0,.2) +.0001;
 x0 = B(0,.2) + .5*B(.1,.35) +.0001;
+
+
+x0 = zeros(n,1);
+x0( round([.2 .3 .6 .8]*n) ) = [.3 .7 -.5 -.5];
+x0 = cumsum(x0) +.0001;
+x0 = fftshift(x0);
 
 % laplacian for regularization
 Delta = @(x)-n^2*( 2*x - circshift(x,1) - circshift(x,-1) );
@@ -51,8 +65,8 @@ E = @(x)dotp(K(x-x0),x-x0)/2;
 loss = 'l2';
 loss = 'kl';
 
-niter = 1000;
-q = 200; % #display
+niter = 500;
+q = 60; % #display
 ndisp = round( 1+(niter-1)*linspace(0,1,q).^3 );
 ndisp = unique(ndisp);
 
@@ -60,7 +74,25 @@ kdisp = 1;
 
 y = K(x0); % observations
 
+clf;
+plot(fftshift(x0), 'b-', 'LineWidth', 2);
+axis([1 n 0 max(x0)*1.08]); box on;
+set(gca, 'PlotBoxAspectRatio', [1 1/2 1], 'FontSize', 20, 'XTick', [], 'YTick', []);
+saveas(gcf, [rep 'fig-x0.eps'], 'epsc');
 
+clf;
+plot(fftshift(k), 'k-', 'LineWidth', 2);
+axis([1 n 0 max(k)*1.08]); box on;
+set(gca, 'PlotBoxAspectRatio', [1 1/2 1], 'FontSize', 20, 'XTick', [], 'YTick', []);
+saveas(gcf, [rep 'fig-k.eps'], 'epsc');
+
+clf;
+plot(fftshift(y), 'r-', 'LineWidth', 2);
+axis([1 n 0 max(x0)*1.08]); box on;
+set(gca, 'PlotBoxAspectRatio', [1 1/2 1], 'FontSize', 20, 'XTick', [], 'YTick', []);
+saveas(gcf, [rep 'fig-y.eps'], 'epsc');
+
+   
 x = ones(n,1)/n; 
 for it=1:niter
     switch loss
@@ -80,16 +112,20 @@ for it=1:niter
     if it==ndisp(kdisp)
         s = (kdisp-1)/(length(ndisp)-1);
         clf; hold on;
-        area(fftshift(x), 'FaceColor', [s 0 1-s], 'EdgeColor', [s 0 1-s], 'LineWidth', 2); 
+        area(fftshift(x), 'FaceColor', .5+.5*[s 0 1-s], 'EdgeColor', [s 0 1-s], 'LineWidth', 2); 
 %        plot(fftshift(x), 'k', 'LineWidth', 2); 
-        plot(fftshift(y), 'k--', 'LineWidth', 2);
+%        plot(fftshift(y), 'k-', 'LineWidth', 2);
         % plot(fftshift(x0), 'r', 'LineWidth', 2);
-        axis([1 n 0 max(x0)*1.05]); box on;
+        axis([1 n 0 max(x0)*1.08]); box on;
+        set(gca, 'PlotBoxAspectRatio', [1 1/2 1], 'FontSize', 20, 'XTick', [], 'YTick', []);
         drawnow;
-        kdisp = kdisp+1;
+        saveas(gcf, [rep 'anim-' znum2str(kdisp,2) '.png'], 'png');
+        kdisp = kdisp+1;        
     end
 end
 return;
 clf;
 plot(log(Elist), 'LineWidth', 2); 
 axis tight;
+
+% AutoCrop(rep, 'anim');

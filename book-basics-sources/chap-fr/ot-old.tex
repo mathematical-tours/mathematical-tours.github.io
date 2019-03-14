@@ -1,0 +1,309 @@
+% !TEX root = ../TransportFR.tex
+
+
+\newcommand{\Blu}[1]{{\color{blue}#1}}
+\newcommand{\Red}[1]{{\color{red}#1}}
+\newcommand{\iC}{\Red{i}}
+\newcommand{\jC}{\Blu{j}}
+\newcommand{\aC}{\Red{a}}
+\newcommand{\bC}{\Blu{b}}
+
+
+\ifdefined\otarticle
+\newcommand{\myparagraph}[1]{\subsection{#1}}
+\else
+\newcommand{\myparagraph}[1]{\paragraph{#1}}
+\chapter{Le Transport Optimal et ses Applications}
+\fi
+
+\label{chap-ot}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Le Transport Optimal de Monge}
+
+Gaspard Monge, en plus d'ï¿½tre un grand mathï¿½maticien, a participï¿½ activement ï¿½ la rï¿½volution Franï¿½aise, et a crï¿½ï¿½ l'\'Ecole Polytechnique ainsi que l'\'Ecole Normale Supï¿½rieure. Motivï¿½ par des applications militaires, il a formulï¿½ en 1781 le problï¿½me du transport optimal~\cite{Monge1781}. Il s'est posï¿½ la question du calcul de la faï¿½on la plus ï¿½conomique de transporter de la terre entre deux endroits pour faire des remblais. Dans son texte original, il a fait l'hypothï¿½se que le coï¿½t du dï¿½placement d'une unitï¿½ de masse est ï¿½gal ï¿½ la distance parcourue, mais on peut utiliser n'importe quel coï¿½t adaptï¿½ au problï¿½me ï¿½ rï¿½soudre. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\myparagraph{Le problï¿½me de Monge}
+
+Pour illustrer le problï¿½me et sa formulation mathï¿½matique, intï¿½ressons-nous ï¿½ la faï¿½on optimale de distribuer les croissants depuis les boulangeries vers les cafï¿½s, le matin dans Paris. Pour simplifier, nous allons supposer qu'il y a uniquement six boulangeries et cafï¿½s, que l'on peut voir ï¿½ la figure~\ref{fig:image-cafe} (les boulangeries sont en \Red{rouge} et les cafï¿½s en \Blu{bleu}). Le coï¿½t ï¿½ minimiser est le temps total des trajets, et l'on note $C_{\iC,\jC}$ le temps entre la boulangerie $\iC \in \{1,\ldots,6\}$  et le cafï¿½ $\jC \in \{1,\ldots,6\}$. Par exemple, on a $C_{\Red{3},\Blu{4}}=10$, ce qui signifie qu'il y a dix minutes de trajet entre la boulangerie numï¿½ro $\Red{3}$ et le cafï¿½ numï¿½ro $\Blu{4}$. 
+
+\begin{figure}\centering
+    \begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{4mm}}c@{\hspace{1mm}}c@{}}
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/map-paris-0-couts} 
+        \includegraphics[width=.27\linewidth]{transport/cafe-paris/map-paris-0} 
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/map-paris-1-couts} 
+        \includegraphics[width=.27\linewidth]{transport/cafe-paris/map-paris-1} 
+    \end{tabular}
+    \caption{\label{fig:image-cafe} Matrice de coï¿½t et connexions associï¿½es. Gauche : une ligne de la matrice coï¿½t. Droite : un exemple particulier de permutation. } 
+\end{figure}
+
+Afin de satisfaire la contrainte d'approvisionnement (que l'on appelle aussi la conservation de la masse), il faut que chaque boulangerie soit connectï¿½e ï¿½ un et un seul cafï¿½. Comme il y a le mï¿½me nombre de boulangeries que de cafï¿½s, ceci implique que chaque cafï¿½ est ï¿½galement connectï¿½ ï¿½ une et une seule boulangerie. On va noter 
+\eq{    
+    \si : \iC \in \{1,\ldots,6\} \longmapsto \jC \in \{1,\ldots,6\}
+}
+un tel choix de connexions. La figure~\ref{fig:image-cafe} illustre au centre et ï¿½ droite l'exemple
+\eql{\label{eq-bijection-exmp}
+    \si(\Red{1})=\Blu{5}, \;
+    \si(\Red{2})=\Blu{2}, \;
+    \si(\Red{3})=\Blu{6}, \;
+    \si(\Red{4})=\Blu{1}, \;
+    \si(\Red{5})=\Blu{3}, \;
+    \si(\Red{6})=\Blu{4}.
+}  
+La contrainte de conservation de masse signifie que $\si$ est une bijection de l'ensemble $\{1,\ldots,6\}$ dans lui-mï¿½me. On dit aussi que $\si$ est une permutation. 
+
+Le coï¿½t de transport associï¿½ ï¿½ une telle bijection est la somme des coï¿½ts $C_{\iC,\si(\iC)}$ sï¿½lectionnï¿½s par la permutation $\si$, c'est-ï¿½-dire 
+\eql{\label{eq:cout}
+    \text{Coï¿½t}(\si) \eqdef 
+        C_{\Red{1},\si(\Red{1})} + 
+        C_{\Red{2},\si(\Red{2})} + 
+        C_{\Red{3},\si(\Red{3})} + 
+        C_{\Red{4},\si(\Red{4})} + 
+        C_{\Red{5},\si(\Red{5})} + 
+        C_{\Red{6},\si(\Red{6})}. 
+}
+Par exemple, pour la bijection~\eqref{eq-bijection-exmp} montrï¿½e ï¿½ la figure~\ref{fig:image-cafe}, on obtient comme coï¿½t
+\eq{
+    C_{\Red{1},\Blu{5}} + 
+    C_{\Red{2},\Blu{2}} + 
+    C_{\Red{3},\Blu{6}} + 
+    C_{\Red{4},\Blu{1}} + 
+    C_{\Red{5},\Blu{3}} + 
+    C_{\Red{6},\Blu{4}} = 
+    10 + 7 + 15 + 10 + 14 + 9 = 65. 
+}
+
+
+Le problï¿½me de Monge consiste ï¿½ chercher la permutation $\si$ qui a le coï¿½t minimum, c'est-ï¿½-dire rï¿½soudre le problï¿½me d'optimisation
+\eql{\label{eq:monge}
+    \umin{\si \in \Si_6} \text{Coï¿½t}(\si), 
+}
+oï¿½ l'on a notï¿½ $\Si_6$ l'ensemble des permutations de l'ensemble $\{1,\ldots,6\}$.
+
+
+\begin{figure}\centering
+    \begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/ordre-croissant-64}&
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/ordre-croissant-65}&
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/ordre-croissant-66}&
+        \includegraphics[width=.22\linewidth]{transport/cafe-paris/ordre-croissant-152}\\
+        Coï¿½t=64 &  
+        Coï¿½t=65 &  
+        Coï¿½t=66 &  
+        Coï¿½t=152
+    \end{tabular}
+    \caption{\label{fig:ordre-croissant} Exemples de permutations avec diffï¿½rent coï¿½ts. } 
+\end{figure}
+
+La figure~\ref{fig:ordre-croissant} montre que la permutation~\eqref{eq-bijection-exmp} n'est pas la meilleure : il existe par exemple une autre permutation qui a un coï¿½t de 64. Mais est-ce la meilleure ? Il se trouve que oui, on peut en effet tester sur un ordinateur toutes les permutations de  $\{1,\ldots,6\}$ et calculer leur coï¿½t. Combien y a-t-il de permutations au total ? Pour effectuer ce dï¿½nombrement, on voit qu'il y a six choix d'affectation possible de $\Red{1}$ ï¿½  $\si(\Red{1}) \in \{\Blu{1,\ldots,6}\} $, puis cinq choix possibles pour affecter $\Red{2}$ ï¿½ $\si(\Red{2}) \in  \{ \Blu{1,\ldots,6 } \}  - \{ \si(\Red{1}) \}$, et ainsi de suite. Le nombre total de possibilitï¿½s est donc $6 \times 5 \times 4 \times 3 \times 2 \times 1 = 720$ que l'on note $6!$, \guill{factorielle 6}. Si on considï¿½re un nombre $n$ de boulangeries, alors le nombre de permutations ï¿½ tester pour trouver la meilleure est $n! =n \times (n-1) \times \ldots \times 2 \times 1$. Ce nombre croit extrï¿½mement vite avec $n$, par exemple $70! \approx 1,198 \times 10^{100}$, ï¿½ comparer avec les $10^{11}$ neurones dans le cerveau et les $10^{79}$ atomes dans l'univers. Cette stratï¿½gie de recherche exhaustive n'est donc possible que pour de toute petites valeurs de $n$. 
+
+
+\begin{figure}\centering
+    \includegraphics[width=.7\linewidth]{transport/metro/plan-metro}
+    \caption{\label{fig:metro} Le transport optimal en 1D le long d'une ligne de mï¿½tro. La bijection optimale est  
+    $\si : (\Red{1,2,3,4,5}) \mapsto (\Blu{3,2,1,5,4})$. } 
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\myparagraph{En 1D et 2D}
+
+La section~\ref{sec-kanto} explique comment des avancï¿½es mathï¿½matiques ont permis de dï¿½velopper des techniques efficaces pour calculer un transport optimal $\si$ mï¿½me pour de grandes valeurs de $n$. Mais il aura fallu attendre prï¿½s de 200 ans pour y arriver. Dans certains cas simples, on peut cependant calculer le transport optimal de faï¿½on simple. Le cas le plus ï¿½lï¿½mentaire est lorsque les points ï¿½ apparier sont le long d'un axe 1D, par exemple si les cafï¿½s et les boulangeries sont situï¿½s le long d'une ligne de mï¿½tro. Il faut ï¿½galement que le coï¿½t $C_{\iC,\jC}$ soit la distance le long de cet axe (par exemple le temps de trajet en mï¿½tro entre les stations). Dans ce cas, il suffit de classer les indices $\iC$ et $\jC$ par ordre croissant (donc de gauche ï¿½ droite le long de la ligne de mï¿½tro) et d'apparier le premier indice $\iC$ au premier indice $\jC$ ensemble, puis le deuxiï¿½me indice, etc. Ce procï¿½dï¿½ est illustrï¿½ ï¿½ la figure~\ref{fig:metro}.  Le temps de calcul nï¿½cessaire pour calculer le transport optimal en mï¿½tro est donc le temps nï¿½cessaire pour classer les indices. L'algorithme le plus simple pour effectuer un classement est celui utilisï¿½ habituellement pour trier un jeu de $n$ cartes : il s'agit du tri par insertion, qui insï¿½re itï¿½rativement chaque carte ï¿½ sa place par rapport aux cartes dï¿½jï¿½ classï¿½es. Il effectue $n(n-1)/2$ comparaisons. Pour $n=70$, ceci nï¿½cessite donc seulement 21415 operations, ce qui rend la mï¿½thode utilisable, au contraire de la recherche exhaustive de toutes les $n!$ permutations.
+% 
+On dispose d'algorithmes encore plus rapides (par exemple le tri fusion), qui effectuent de l'ordre de $n \log(n)$ opï¿½rations, et donc pour $n = 70$, de telles mï¿½thodes nï¿½cessitent moins de 1000 opï¿½rations. 
+
+Malheureusement, il n'est plus possible d'utiliser cette technique de classement dans des cas plus gï¿½nï¿½raux. Pour des points en dimension 2, si on prend comme coï¿½t $C_{\iC,\si(\iC)}$ la distance euclidienne (la distance en vol d'oiseau) entre les points, alors Gaspard Monge a montrï¿½ dans son papier original (voir la figure~\ref{fig:ot2d}, ï¿½ gauche) qu'un transport optimal ne peut par contenir de croisement. Par exemple, comme le montre la figure~\ref{fig:ot2d} (ï¿½ droite), si l'on trace tous les segments entre les points $\iC \mapsto \jC = \si(\iC)$  que l'on relie par la bijection dï¿½finie par $\si$, ceux-ci ne se croisent jamais. 
+
+\begin{figure}\centering
+    \begin{tabular}{@{}c@{\hspace{6mm}}c@{\hspace{3mm}}c@{}} % c@{\hspace{1mm}}
+        \includegraphics[width=.22\linewidth]{transport/monge-2d/article-monge}&
+%        \includegraphics[width=.22\linewidth]{transport/monge-2d/decroisement}&
+        \includegraphics[width=.22\linewidth]{transport/monge-2d/example-10}&
+        \includegraphics[width=.22\linewidth]{transport/monge-2d/example-70}
+    \end{tabular}
+    \caption{\label{fig:ot2d} Gauche: extrait de l'article de Monge~\cite{Monge1781}. Droite: le transport optimal en 2D pour un coï¿½t euclidien.  } 
+\end{figure}
+
+Cette observation gï¿½omï¿½trique n'est cependant pas suffisante pour calculer un transport optimal en 2D : il existe en effet beaucoup de permutations $\si$ telles que les segments associï¿½s ne se croisent pas. 
+%
+Il va falloir analyser de faï¿½on plus fine la structure des permutations optimales afin de pouvoir les calculer de faï¿½on efficace. 
+%
+Nous allons maintenant voir comment Leonid Kantorovitch a reformulï¿½ le problï¿½me de Monge afin d'y parvenir. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Le Transport Optimal de Kantorovitch}
+\label{sec-kanto}
+
+Leonid Kantorovitch est un mathï¿½maticien et un ï¿½conomiste soviï¿½tique qui a rï¿½volutionnï¿½ la thï¿½orie du transport optimal pendant les annï¿½es 40. Ses recherches sont issues de considï¿½rations pratiques qui l'ont occupï¿½ avant et aprï¿½s la seconde guerre mondiale. Il y a jouï¿½ un rï¿½le important pour assurer une distribution optimale des ressources, en particulier durant le siï¿½ge de Lï¿½ningrad.
+%
+Il a par la mï¿½me occasion participï¿½ au dï¿½veloppement de l'optimisation moderne, laquelle a eu un impact ï¿½norme dans de trï¿½s nombreux domaines appliquï¿½s. Il a ainsi obtenu en 1975 le prix Nobel d'ï¿½conomie, car les premiï¿½res applications (mais certainement pas les seules !) de sa thï¿½orie l'ont ï¿½tï¿½ dans ce domaine. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\myparagraph{Le problï¿½me de Kantorovitch}
+
+L'idï¿½e centrale de Kantorovitch est de modifier le problï¿½me de Monge en remplaï¿½ant l'ensemble des permutations par un ensemble plus grand mais plus simple. Tout d'abord on remarque que l'on peut reprï¿½senter une permutation $\si$ ï¿½ l'aide d'une matrice de permutation $P$ qui est une matrice binaire (remplie de 0 et de 1) de taille $n \times n$ telle que $P_{\iC,\jC} = 0$ sauf si $\jC=\si(\iC)$ auquel cas $P_{\iC,\si(\iC)} = 1$. Par exemple, pour $n=3$ points, les permutations 
+$(\Red{1,2,3}) \mapsto (\Blu{1,2,3})$ (l'identitï¿½), 
+$(\Red{1,2,3}) \mapsto (\Blu{3,2,1})$ et
+$(\Red{1,2,3}) \mapsto (\Blu{2,1,3})$ sont reprï¿½sentï¿½es par les matrices de taille $3 \times 3$
+\eq{
+	\begin{pmatrix} 1&0&0 \\ 0&1&0 \\ 0&0&1 \end{pmatrix}, \quad
+	\begin{pmatrix} 0&0&1 \\ 0&1&0 \\ 1&0&0 \end{pmatrix} \qetq
+	\begin{pmatrix} 0&1&0 \\ 1&0&0 \\ 0&0&1 \end{pmatrix}.
+}
+Dans la suite, on note $\Pp_n$ l'ensemble des $n!$ matrices de permutation de taille $n \times n$.
+
+Comme la matrice est binaire, avec seulement $n$ ï¿½lï¿½ments non-nuls ï¿½gaux ï¿½ 1, on peut remplacer la somme de $n$ termes qui apparait dans $\text{Coï¿½t}(\si)$ dï¿½fini en~\eqref{eq:cout} par une somme sur l'ensemble des $n \times n$ indices $(\iC,\jC)$, c'est-ï¿½-dire que si $P$ est la matrice de permutation associï¿½e ï¿½ $\si$, on a 
+\eq{
+	\text{Coï¿½t}(\si) = \sum_{\iC=1}^n \sum_{\jC=1}^n P_{\iC,\jC} C_{\iC,\jC}.
+}
+On peut ainsi remplacer le problï¿½me de Monge~\eqref{eq:monge} par le problï¿½me ï¿½quivalent 
+\eql{\label{eq:mongematrix}
+    \umin{P \in \Pp_n}  \sum_{\iC=1}^n \sum_{\jC=1}^n P_{\iC,\jC} C_{\iC,\jC}.
+}
+
+Le gï¿½nie de Kantorovitch a ï¿½tï¿½ de remarquer que l'on peut remplacer l'ensemble discret $\Pp_n$ (c'est-ï¿½-dire composï¿½ d'un ensemble fini, mais trï¿½s grand, de $n!$ matrices) par un ensemble \guill{continu} (donc en particulier infini) mais plus simple. On remarque en effet que les matrices de permutation de $\Pp_n$ sont exactement les matrices qui ont un et un seul 1 le long de chaque ligne et de chaque colonne. Ceci peut aussi s'exprimer comme le fait qu'une matrice de permutation est une matrice binaire dont la somme de chaque ligne et de chaque colonne vaut 1, c'est-ï¿½-dire
+\eq{
+	\Pp_n = \enscond{ P \in \{0,1\}^{n \times n} }{ \foralls \iC, \sum_{\jC} P_{\iC,\jC}=1, \foralls \jC, \sum_{\iC} P_{\iC,\jC}=1  }.
+}
+Ce qui rend cet ensemble trï¿½s compliquï¿½, c'est la contrainte binaire, c'est-ï¿½-dire que ces matrices sont contraintes ï¿½ ï¿½tre dans $\{0,1\}^{n \times n}$. Kantorovitch propose alors de \guill{relaxer} cette contrainte en supposant simplement que les entrï¿½es de $P$ sont entre $0$ et $1$. Ceci dï¿½finit un ensemble plus grand, l'ensemble des matrices bistochastiques 
+\eql{\label{eq:bistoch}
+	\Bb_n \eqdef \enscond{ P \in [0,1]^{n \times n} }{ \foralls \iC, \sum_{\jC} P_{\iC,\jC}=1, \foralls \jC, \sum_{\iC} P_{\iC,\jC}=1  }.
+}
+Le problï¿½me de Kantorovitch s'obtient en effectuant ce remplacement dans~\eqref{eq:mongematrix}, afin de rï¿½soudre 
+\eql{\label{eq:kantoassign}
+    \umin{P \in \Bb_n} 
+        \sum_{\iC=1}^n \sum_{\jC=1}^n P_{\iC,\jC} C_{\iC,\jC}.
+}
+L'immense avantage du problï¿½me de Kantorovitch~\eqref{eq:kantoassign} par rapport ï¿½ celui de Monge~\eqref{eq:mongematrix} est que l'ensemble des matrices bistochastique est convexes, c'est-ï¿½-dire que si l'on considï¿½re deux matrices bistochastiques $P,Q \in \Bb_n$, alors leur moyenne $\frac{P+Q}{2} \in \Bb_n$ est encore bistochastique. Ceci n'est pas vrai pour les matrices de permutation, puisque la moyenne de deux matrices binaires $(P,Q)$ n'est pas binaire (sauf si bien sï¿½r si $P=Q$). Cette convexitï¿½ est la clef pour le dï¿½veloppement d'algorithmes efficaces. 
+%
+Cette nouvelle formulation a en effet pu bï¿½nï¿½ficier d'une deuxiï¿½me rï¿½volution initiï¿½e par George Dantzig~\cite{Dantzig51}, qui, ï¿½ la mï¿½me ï¿½poque, a proposï¿½ l'algorithme du simplexe. Celui-ci permet de rï¿½soudre efficacement une certaine classe de problï¿½mes d'optimisation convexe : les problï¿½mes de programmation linï¿½aire, dont~\eqref{eq:kantoassign} est un cas particulier. Dans le cas du problï¿½me de Kantorovitch, il existe en effet un algorithme du simplexe qui a une complexitï¿½ de l'ordre de $n^3$ opï¿½rations, ce qui permet de faire des calculs pour de grands $n$, de l'ordre de plusieurs milliers. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\myparagraph{L'ï¿½quivalence Monge--Kantorovitch}
+
+L'ensemble des matrices bistochastiques est plus grand que celui des matrices de permutations, $\Pp_n \subset \Bb_n$, de sorte que l'on a l'inï¿½galitï¿½ 
+\eql{\label{eq:monge-vs-kanto}
+    \umin{P \in \Bb_n} 
+        \sum_{\iC=1}^n \sum_{\jC=1}^n P_{\iC,\jC} C_{\iC,\jC}
+     \leq 
+    \umin{P \in \Pp_n} 
+        \sum_{\iC=1}^n \sum_{\jC=1}^n P_{\iC,\jC} C_{\iC,\jC}
+}
+entre les problï¿½mes de Kantorovitch et de Monge. Mais de faï¿½on ï¿½ premiï¿½re vue surprenante, un thï¿½orï¿½me fondamental dï¿½ ï¿½ George Birkhoff et ï¿½ John von Neumann~\cite{birkhoff,von1953certain} assure qu'en fait il y a ï¿½galitï¿½ entre les valeurs de ces deux minimisations. En effet, ce thï¿½orï¿½me montre qu'il existe toujours une matrice solution du problï¿½me de Kantorovitch qui est une matrice de permutation, de sorte qu'elle est aussi solution du problï¿½me de Monge. Attention cependant, en gï¿½nï¿½ral il n'y a pas unicitï¿½ des solutions de ces problï¿½mes : il peut exister une matrice bistochastique solution du problï¿½me de Kantorovitch qui n'est pas une permutation. 
+%
+La conjonction de deux avancï¿½es spectaculaires, dues ï¿½ Kantorovitch et ï¿½ Dantzig, a permis de rendre le transport optimal applicable ï¿½ des problï¿½mes de grande taille, puisque l'algorithme du simplexe permet de rï¿½soudre en pratique ces problï¿½mes. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\myparagraph{Le cas pondï¿½rï¿½}
+
+Outre son intï¿½rï¿½t pratique, la formulation de Kantorovitch a aussi permis de gï¿½nï¿½raliser le problï¿½me initial de Monge, en donnant le bon cadre pour le formaliser et l'ï¿½tudier mathï¿½matiquement. En effet, le problï¿½me de Monge est trï¿½s limitï¿½. Que se passe-t-il par exemple si il n'y pas le mï¿½me nombre $n$ de cafï¿½s et $m$ de boulangeries ? Le problï¿½me initial~\eqref{eq:monge} n'a pas de solution, car on ne peut pas mettre en bijection deux ensembles de tailles diffï¿½rentes. Le bon concept n'est pas le nombre de boulangeries et de cafï¿½s, mais plutï¿½t les distributions $(\Red{a_1,\ldots,a_n})$ de production (associï¿½es au boulangeries) et les distributions $(\Blu{b_1,\ldots,b_m})$ de consommation des cafï¿½s.  Dans le cas initialement considï¿½rï¿½, oï¿½ $n=m$, toutes les quantitï¿½s $\Red{a_i}$ et $\Blu{b_j}$ sont ï¿½gales ï¿½ 1. Mais dans de nombreux cas concrets, ces quantitï¿½s sont quelconques. Ces quantitï¿½s doivent ï¿½tre positives, et vï¿½rifier 
+\eq{
+	\Red{a_1+\cdots+a_n} = \Blu{b_1 + \cdots + b_m}, 
+}
+de sorte qu'il y ait autant de production que de consommation. La construction de Kantorovitch s'adapte naturellement ï¿½ ce cas de distributions gï¿½nï¿½rales, en remplaï¿½ant les matrices bistochastique~\eqref{eq:bistoch} par des matrices de \guill{couplage} qui satisfont la contrainte de conservation de la masse 
+\eq{
+	\Bb(\aC,\bC) \eqdef \enscond{ P \in [0,1]^{n \times m} }{ \foralls \iC, \sum_{\jC} P_{\iC,\jC}=\Red{a_i}, \foralls \jC, \sum_{\iC} P_{\iC,\jC}= \Blu{b_j}  }.
+}
+Dans le cas initial oï¿½ $n=m$ et $\Red{a_i}=\Blu{b_j}=1$, alors $\Bb(\aC,\bC) = \Bb_n$ et l'on retrouve des matrices bistochastiques. Dans le cas gï¿½nï¿½ral, ï¿½ chaque fois qu'une entrï¿½e $P_{\iC,\jC}$ est non-nulle, ceci signifie que l'on transfert de la \guill{masse} (ici une certaine quantitï¿½ de croissants) entre $\iC$ et $\jC$. Comme le montre la figure~\ref{fig:coupling-visu}, on peut visualiser de diffï¿½rentes faï¿½ons une telle matrice $P$ couplant deux distributions $(\aC,\bC)$.
+%
+Contrairement au cas des matrices bistochastiques, pour lequel il y a toujours une solution qui est une permutation, ici un couplage optimal $\Bb(\aC,\bC)$ peut avoir plus d'une seule entrï¿½e non-nulle $P_{\iC,\jC}$ le long d'une ligne indexï¿½e par $\iC$ (voir la figure~\ref{fig:coupling-visu}). Ceci signifie que cette boulangerie $\iC$ est connectï¿½e ï¿½ plusieurs cafï¿½s, de sorte que sa production est alors sï¿½parï¿½e en plusieurs lots de croissants distribuï¿½s, tout en satisfaisant la contrainte de conservation de la masse $\sum_{\jC} P_{\iC,\jC}=\Red{a_i}$.
+
+\begin{figure}\centering
+    \begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+        \includegraphics[width=.22\linewidth]{transport/kantorovitch/coupling-array}&
+        \includegraphics[width=.22\linewidth]{transport/kantorovitch/coupling-squares}&
+        \includegraphics[width=.22\linewidth]{transport/kantorovitch/coupling-map}&
+        \includegraphics[width=.22\linewidth]{transport/kantorovitch/coupling-bipartite} \\
+        (a) matrice & (b) histogrammes & (c) segments & (d) graphe biparti
+    \end{tabular}
+    \caption{\label{fig:coupling-visu} Diffï¿½rentes faï¿½ons de reprï¿½senter une matrice de couplage $P \in \Bb(\aC,\bC)$:
+    	(a) un tableau de nombres dont les lignes et colonnes ont des sommes prescrites ; 
+		(b) un histogramme bidimensionnel dont la taille de carrï¿½ est propositionnelle ï¿½ $P_{\iC,\jC}$ ; 
+		(c) un ensemble de segments dont la largeur est proportionnelle est  $P_{\iC,\jC}$. 
+		(d) un graphe biparti, c'est-ï¿½-dire avec deux ensembles de sommets tels que les arrï¿½tes soient seulement entre ces deux ensembles.   } 
+\end{figure}
+
+
+Le problï¿½me de Kantorovitch qui gï¿½nï¿½ralise~\eqref{eq:kantoassign} s'ï¿½crit alors
+\eql{\label{eq-kanto-gen}
+    \umin{P \in \Bb(\aC,\bC)} 
+        \sum_{\iC=1}^n \sum_{\jC=1}^m P_{\iC,\jC} C_{\iC,\jC}
+}
+ce qui signifie que l'on doit payer un coï¿½t  $C_{\iC,\jC}$ ï¿½ chaque fois que l'on transfert une unitï¿½ de masse entre $\iC$ et $\jC$. Tout comme le problï¿½me original~\eqref{eq:kantoassign}, on peut le rï¿½soudre de faï¿½on efficace avec l'algorithme du simplexe.  La figure~\ref{fig:coupling-visu} montre un exemple de couplage optimal. 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Les applications}
+
+Bien que les motivations initiales de Monge et Kantorovitch ï¿½taient ï¿½tï¿½ respectivement militaires et ï¿½conomiques, le transport optimal a trouvï¿½ d'innombrables applications, ï¿½ la fois thï¿½oriques mais aussi plus concrï¿½tes. Sur le plan mathï¿½matique, on peut considï¿½rer des distributions \guill{continues} de masses, en quelque sorte la limite quand le nombre de point $n$ tend vers l'infini. Ceci permet de dï¿½finir le problï¿½me de transport entre des mesures de probabilitï¿½s quelconques. Ce point de vue thï¿½orique est extrï¿½mement fructueux, et c'est le mathï¿½maticien franï¿½ais Yann Brenier qui a le premier montrï¿½ l'ï¿½quivalence dans le cadre continu des formulations de Monge et de Kantorotich~\cite{Brenier91}. Ces travaux pionniers ont montrï¿½ la connexion entre le problï¿½me de transport et les ï¿½quations aux dï¿½rivï¿½es partielles, et ont dï¿½bouchï¿½, entre autres, sur les mï¿½dailles Fields de Cï¿½dric Villani (2010) et Alessio Figalli (2018). 
+
+\begin{figure}\centering
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-2} &
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-1} &
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-2-equalized} \\
+    Image $(\Red{x_i})_{\iC=1}^n$ & Image $(\Blu{y_j})_{\jC=1}^n$ & Image  $(y_{\si(\iC)})_{\iC=1}^n$ \\
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-2-histo}&
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-1-histo}&
+    \includegraphics[width=.24\linewidth]{transport/applis/painting-1-histo}
+\end{tabular}
+\caption{\label{fig:image-eq} Exemple de transfert de palettes de couleurs ï¿½ l'aide du transport optimal. 
+	Haut: les pixels sont sur la grille d'affichage pour former une image couleur. 	
+	Bas: les pixels sont placï¿½s ï¿½ leurs positions dans $\RR^3$ pour former un nuage de points. }
+\end{figure}
+
+Le transport optimal est depuis peu au c\oe{}ur de problï¿½matiques plus appliquï¿½es en sciences des donnï¿½es, en particulier pour rï¿½soudre des problï¿½mes en traitement d'image et en apprentissage machine. 
+%
+La premiï¿½re idï¿½e, la plus immï¿½diate, est d'utiliser la bijection $\si$ afin de transformer des donnï¿½es, par exemple des images. Dans ce cas, on considï¿½re les pixels $(\Red{x_i})_{\iC=1}^n$ et $(\Blu{y_j})_{\jC=1}^n$ de deux images couleur. Chaque pixel $\Red{x_i}, \Blu{y_j} \in \RR^3$ est un vecteur de dimension 3, qui reprï¿½sente les intensitï¿½s de chacune des trois couleurs ï¿½lï¿½mentaires, rouge, vert et bleu. Afin de changer les couleurs de la premiï¿½re image, et lui imposer la palette de la deuxiï¿½me image, on calcule le transport $\si$ pour la matrice de coï¿½t $C_{\iC} = \norm{\Red{x_i} - \Blu{y_j}}^2$ (c'est-ï¿½-dire le carrï¿½ de la norme euclidienne dans $\RR^3$), c'est-ï¿½-dire le carrï¿½ de la distance euclidienne entre les pixels. L'image avec les couleurs modifiï¿½es est $(y_{\si(\iC)})_{\iC=1}^n$, c'est ï¿½ dire que l'on remplace dans la premiï¿½re image le pixel $\Red{x_i}$ par le pixel $y_{\si(\iC)}$. Cette image ressemble ï¿½ la premiï¿½re, mais a la palette de couleurs de la deuxiï¿½me image.
+%
+La figure~\ref{fig:image-eq} illustre ce procï¿½dï¿½ pour imposer la palette de couleurs de Picasso ï¿½ un tableau de Cï¿½zanne. 
+
+On peut ï¿½galement utiliser le transport optimal pour des problï¿½mes plus difficiles, en n'utilisant que de faï¿½on indirecte la bijection $\si$ ou bien la matrice de couplage optimal $P \in \Bb(\aC,\bC)$. L'idï¿½e centrale est que la quantitï¿½ associï¿½e ï¿½ un couplage optimal $P$ solution de~\eqref{eq-kanto-gen}
+\eq{
+	W(\aC,\bC) \eqdef \sum_{i,j} P_{\iC,\jC} C_{\iC,\jC}
+}
+dï¿½finit en quelque sorte l'effort nï¿½cessaire pour dï¿½placer la masse de la distribution $\aC$ vers la distribution $\bC$. Elle permet donc de quantifier combien ces deux distributions sont \guill{proches}. Par exemple, si $C_{\iC} = \norm{\Red{x_i} - \Blu{y_j}}^p$ est associï¿½ ï¿½ la distance euclidienne entre des points, pour $p \geq 1$, alors la quantitï¿½ $W(\aC,\bC)^{1/p}$ est une distance entre les distributions, en particulier elle vï¿½rifie $W(\aC,\bC)=0$ si et seulement si $\aC=\bC$, et elle vï¿½rifie l'inï¿½galitï¿½ triangulaire. Ces propriï¿½tï¿½s sont trï¿½s importantes pour permettre d'appliquer le transport ï¿½ des problï¿½mes pratiques.
+
+
+\begin{figure}\centering
+        \includegraphics[width=.6\linewidth]{transport/applis/shapes-3d}
+    \caption{\label{fig:barycenters} Exemple d'interpolation barycentrique entre des formes 3D, obtenu en minimisant~\eqref{eq-bary}.  }
+\end{figure}
+
+Un exemple typique d'application consiste ï¿½ calculer des barycentres entre des distributions~\cite{agueh2011barycenters}. La figure~\ref{fig:barycenters} montre un exemple oï¿½ l'on considï¿½re trois distributions $a^1,a^2,a^3$ (montrï¿½es aux trois sommets du triangles) qui sont des distributions uniformes de masse ï¿½ l'intï¿½rieur de formes 3D (c'est-ï¿½-dire que la masse $a^1_i$ associï¿½e ï¿½ chaque point est 0 ï¿½ l'extï¿½rieur de la premiï¿½re forme et constante ï¿½ l'intï¿½rieur). On calcule un barycentre pondï¿½rï¿½ $b$ de ces trois distributions en minimisant une somme pondï¿½rï¿½e de distances de transport optimal
+\eql{\label{eq-bary}
+	\umin{b} \la_1 W(a^1,b) + \la_1 W(a^2,b) + \la_1 W(a^3,b).
+}
+En modifiant les poids $(\la^1,\la^2,\la^3)$, qui sont positifs et tels que $\la^1+\la^2+\la^3=1$, on modifie la forme obtenue en se dï¿½plaï¿½ant ï¿½ l'intï¿½rieur d'un triangle de transport optimal. 
+%
+On peut utiliser cette distance $W$ pour bien d'autres applications oï¿½ l'on doit comparer des distributions de probabilitï¿½. C'est le cas en apprentissage machine, par exemple pour comparer des textes ï¿½ l'aide des distributions des mots qui les composent. La figure~\ref{fig:bagwords} illustre les histogrammes d'apparition des mots pour deux textes, oï¿½ la taille des lettres du mot $\iC$ est proportionnelle ï¿½ la masse $\aC_\iC$. Une question difficile dans ce cas est de savoir quelle matrice de coï¿½t $C_{\iC,\jC}$ utiliser entre deux mots $(\iC,\jC)$. Il s'agit d'un travail de linguistique (caractï¿½riser la proximitï¿½ sï¿½mantique entre des mots du langages), que l'on peut chercher ï¿½ rï¿½soudre en mï¿½me temps que le transport optimal~\cite{huang2016supervised}. 
+
+\begin{figure}\centering
+    \includegraphics[width=.35\linewidth]{transport/applis/bag-word-1}
+    \qquad
+    \includegraphics[width=.35\linewidth]{transport/applis/bag-word-2}
+\caption{\label{fig:bagwords} Exemples d'histogrammes de distributions des mots dans deux textes diffï¿½rents (seuls les mots les plus frï¿½quents sont montrï¿½s).  }
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Conclusions}
+
+Le transport optimal a connu de nombreuses rï¿½volutions. Sous l'impulsion de mathï¿½maticiens tels que Monge, Kantorovitch, Dantzig et Brenier, il est progressivement devenu un outil thï¿½orique et numï¿½rique fondamental. 
+%
+Il est maintenant au c\oe{}ur de questions importantes en science des donnï¿½es pour modï¿½liser, rï¿½soudre numï¿½riquement et analyser thï¿½oriquement les problï¿½mes de l'apprentissage machine. Les opportunitï¿½s pour dï¿½velopper de nouvelles thï¿½ories et des algorithmes performants sont immenses. 
+%
+Pour plus d'informations sur les aspects thï¿½oriques du transport optimal, on pourra consulter les livres~\cite{Villani03,SantambrogioBook}. Les aspects numï¿½riques et applicatifs sont couverts dans le livre~\cite{PeyreCuturi}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Remerciements}
+
+Je tiens ï¿½ remercier Vincent Beck, Gwenn Guichaoua et Marie-Noï¿½lle Peyrï¿½ pour leurs relectures attentives. 
+
+
