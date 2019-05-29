@@ -2,8 +2,15 @@
 % Non linear heat equation.
 
 
+H = 2;
+H = 1;
+H = 3;
+H = 4;
+
+
 addpath('../toolbox/');
-rep = MkResRep('1d');
+rep = MkResRep(['1d-' num2str(H)]);
+
 SetAR = @(ar)set(gca, 'PlotBoxAspectRatio', [1 ar 1], 'FontSize', 20);
 
 
@@ -36,47 +43,35 @@ end
 
 
 
-H = 3;
-H = 1;
 switch H
     case 4
-        Tmax = 200000;
+        Tmax = 20000*3;
         tau = .9;
     case 3
-        Tmax = 25000;
+        Tmax = 25000*2;
         tau = .6;
     case 2
         Tmax = 10000;
         tau = .9;
     case 1
-        Tmax = 4000;
+        Tmax = 3000;
         tau = .8;
 end
 niter = round(Tmax/tau);
 
 
-
 % svg run
-ndisp = max(1,ceil(niter/50)); 
-k = 0; 
+q = 50; 
+ndisp = round(linspace(1,niter,q));
+k = 1; 
 %
 f  = f0;
 f1 = f0;
-for i=1:niter    
-    if mod(i,ndisp)==1
+F = zeros(n,q);
+for i=1:niter  
+    if ndisp(k)==i
+        F(:,k) = f/sum(f);
         k = k+1;
-        u = (i-1)/(niter-1);
-        % display 
-        g = f / max(abs(f(:)));
-        clf;
-        plot(t, g, 'Color', [u 0 1-u], 'LineWidth', 2);
-        axis([0 1 -.02 1.02]);
-        box on;
-        set(gca, 'XTick', [], 'YTick', []);
-        SetAR(1/2);
-        drawnow;
-        %
-        saveas(gcf, [rep  'porous-' num2str(H) '-' znum2str(k,2) '.png'], 'png');
     end
     f = f + tau * Delta(f.^H);
 end
@@ -85,4 +80,23 @@ axis tight;
 
 % AutoCrop(rep, ['porous-']);
 % convert heat-*.png heat.gif
-% convert wave-*.png wave.gif
+
+% re-render
+for i=1:q
+    clf; hold on;
+    for j=1:i
+        u = (j-1)/(q-1);
+        plot(t, F(:,j), 'Color', [1 1 1]*.7 + .3*[u 0 1-u], 'LineWidth', 1);
+    end
+    u = (i-1)/(q-1);
+    plot(t, F(:,i), 'Color', [u 0 1-u], 'LineWidth', 2);
+    axis([0 1 0 max(F(:))*1.01]);
+    % axis([0 1 -.02 1.02]);
+    box on;
+    set(gca, 'XTick', [], 'YTick', []);
+    SetAR(1/2);
+    drawnow;     
+    saveas(gcf, [rep  'anim-' znum2str(i,2) '.png'], 'png');
+end
+
+%  AutoCrop(rep, 'anim')

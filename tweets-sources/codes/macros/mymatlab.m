@@ -1,6 +1,6 @@
 % create gifs
 % Use znum2str() for consistent numbering
-AutoCrop(rep, 'interp-'); %=  to crop the image generated using saveas
+AutoCrop(rep, 'anim-'); %=  to crop the image generated using saveas
 % > convert interp-*.png interp.gif % generate the gif using imagemagik
 % > convert -delay 1x3 interp-*.png interp.gif % 3x slower
 

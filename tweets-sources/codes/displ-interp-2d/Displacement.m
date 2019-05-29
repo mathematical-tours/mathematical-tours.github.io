@@ -6,8 +6,9 @@ addpath('./mexEMD/');
 addpath('./toolbox-lsap/');
 addpath('./img/');
 
-names = {'annulus', 'cat'};
 names = {'disk', 'two_disks'};
+names = {'disk', 'joined-balls'};
+names = {'cat', 'annulus'};
 
 str = [names{1} '-' names{2}];
 rep = MkResRep(str);
@@ -23,7 +24,7 @@ myplotS = @(x,y,ms,col)plot(x,y, '.', 'MarkerSize', ms, 'MarkerEdgeColor', col, 
 
 
 % load the shapes
-n0 = 200;
+n0 = 140;
 xy = {};
 for i=1:2
     f = load_image(names{i},n0);
@@ -88,29 +89,57 @@ for k=1:length(tlist)
     t=tlist(k);
     col = [1-t;0;t];
     Xt = (1-t)*xy{1}(I,:) + t*xy{2}(J,:);
-    % render as image
-    K = 8;
-    n1 = n0*K;
-    Xt1 = round( K*Xt*(n0-1) + 1);
-    A = zeros(n1,n1);
-    %        A(Xt1(:,1) + n1*(Xt1(:,2)-1)) = gammaij;
-    for m=1:size(Xt1,1)
-        A(Xt1(m,1) + n1*(Xt1(m,2)-1)) = A(Xt1(m,1) + n1*(Xt1(m,2)-1)) + ...
-            gammaij(m);
+    %%% render as point clouds
+    if 1
+        Nt = length(I);
+        s = ones(Nt,1)*20; % size
+        col = cat(2,(xy{1}(I,:)), ones(Nt,1));
+        % col = cat(2,cos(10*pi*xy{1}(I,:)), ones(Nt,1));
+        
+        u = xy{1}(I,1); v = xy{1}(I,2); 
+        m = 6;
+        
+        t = (mod(u*m,1)<.5 ) == (mod(v*m,1)<.5);
+        t = rescale( cos(10*pi*u)  .* sin(10*pi*v) );
+
+        t = xy{2}(J,1);
+        
+        col = (1-t)*[1 0 0] + t*[0 0 1];
+        
+        clf; scatter( Xt(:,2), Xt(:,1), s, col, 'filled' );
+        axis equal; axis([0 1 0 1]); box on; set(gca, 'XTick', [], 'YTick', []);
+        axis ij;
+        drawnow;
+        saveas(gcf, [rep 'anim-' znum2str(k,2) '.png']);
+    else
+        %%% render as image
+        K = 8;
+        n1 = n0*K;
+        Xt1 = round( K*Xt*(n0-1) + 1);
+        A = zeros(n1,n1);
+        %        A(Xt1(:,1) + n1*(Xt1(:,2)-1)) = gammaij;
+        for m=1:size(Xt1,1)
+            A(Xt1(m,1) + n1*(Xt1(m,2)-1)) = A(Xt1(m,1) + n1*(Xt1(m,2)-1)) + ...
+                gammaij(m);
+        end
+        nF = 128*2; % width of the convolution kernel
+        s = K*2;
+        g = exp(-(-nF:nF).^2 / (2*s^2) );
+        B = conv2(conv2(A, g, 'same')', g, 'same')';
+        %
+        Br = [];
+        for r=1:3
+            Br(:,:,r) = B * col(r) + (1-B);
+        end
+        clf; imageplot(Br);
+        imwrite(rescale(Br), [rep 'interp-dens-' znum2str(k,2) '.png']);
+        drawnow;
     end
-    nF = 128*2; % width of the convolution kernel
-    s = K*2;
-    g = exp(-(-nF:nF).^2 / (2*s^2) );
-    B = conv2(conv2(A, g, 'same')', g, 'same')';
-    %
-    Br = [];
-    for r=1:3
-        Br(:,:,r) = B * col(r) + (1-B);
-    end
-    clf; imageplot(Br); drawnow;
-    imwrite(rescale(Br), [rep 'interp-dens-' znum2str(k,2) '.png']);
 end
 
+% AutoCrop(rep, 'anim');
+
+return;
 
 %%
 % Render on a small cloud of discrete samples.

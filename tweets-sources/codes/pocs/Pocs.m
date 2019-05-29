@@ -16,9 +16,9 @@ DrawLine = @(u)20*(t-.5)*( imag(u)-1i*real(u) );
 
 
 name = 'linecircle';
-name = 'twolines';
 name = 'twocircles';
 name = 'sines';
+name = 'twolines';
 
 % Select which algorithm POCS or DR
 algotype = 'proj';

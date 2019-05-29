@@ -8,24 +8,33 @@ n = 2048;
 A = 4;
 s = linspace(-A,A,n);
 
-q = 9;
+q0 = 12;
+xilist0 = linspace(-.7,.9,q0);
+q = 50; % for animation
 xilist = linspace(-.7,.9,q);
-%xilist = [-.5 0 .5];
-q = length(xilist);
 
-clf; hold on;
-for i=1:q
-    xi = xilist(i);
-    t = (i-1)/(q-1);
-    if not(xi==0)
-        f = exp(-(1+xi*s).^(-1/xi)) .* ((xi*s+1)>0);
-    else
-        f = exp(-exp(-s));
+for j=1:q
+    t = (j-1)/(q-1);
+    % background display
+    clf; hold on;
+    for i=1:q0
+        t0 = (i-1)/(q0-1);
+        plot(s(1:n-1), ExtVal(s,xilist0(i)), 'LineWidth', 1, 'Color', .6*[1 1 1] + .4*[t0 0 1-t0]);
     end
-    h = diff(f); h = (n-1)/(2*A)*h; % /sum(h);
-    plot(s(1:n-1),h, 'LineWidth', 2, 'Color', [t 0 1-t]);
+    % display
+    plot(s(1:n-1), ExtVal(s,xilist(j)), 'LineWidth', 3, 'Color', [t 0 1-t]);
+    set(gca, 'XTick', [], 'YTick', [], 'PlotBoxAspectRatio', [1 1/2 1], 'FontSize', 20);
+    axis([-A A 0 .6]); box on;
+    drawnow;
+    saveas(gcf, [rep 'extreme-' znum2str(j,2) '.png']);
 end
+
+
+ % AutoCrop(rep, 'extreme');
+
 %axis tight;
-set(gca, 'XTick', -A:2:A, 'YTick', 0:.2:1, 'PlotBoxAspectRatio', [1 1/2 1], 'FontSize', 20);
-axis([-A A 0 .6]); box on;
-saveas(gcf, [rep 'extreme.eps'], 'epsc');
+% set(gca, 'XTick', -A:2:A, 'YTick', 0:.2:1, 'PlotBoxAspectRatio', [1 1/2 1], 'FontSize', 20);
+% axis([-A A 0 .6]); box on;
+
+
+

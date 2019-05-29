@@ -1,11 +1,12 @@
 %%
 % Test for the Durand?Kerner method.
 
-rep = 'results/';
-[~,~] = mkdir(rep);
 if not(exist('test'))
     test=1;
 end
+
+addpath('../toolbox/');
+rep = MkResRep(num2str(test));
 
 % n = 5;
 % z0 = randn(n,1)+1i*randn(n,1);
@@ -14,7 +15,7 @@ end
 clf; hold on;
 z0 = [];
 while true
-    axis([-1 1 -1 1]);
+    axis equal; axis([-1 1 -1 1]); 
     [a,b,button] = ginput(1);
     plot(a,b, '.', 'MarkerSize', 15);   
     if button==3
@@ -29,7 +30,7 @@ clf; hold on;
 plot(z0, 'k.', 'MarkerSize', 25);
 z1 = [];
 for i=1:n
-    axis([-1 1 -1 1]);
+    axis equal; axis([-1 1 -1 1]);
     [a,b,button] = ginput(1);
     plot(a,b, '.', 'MarkerSize', 15);   
     z1(end+1) = a+1i*b;
@@ -38,6 +39,7 @@ z1 = z1(:);
 
 
 niter = 600;
+niter = 150*4;
 
 tau = .02;
 
@@ -61,14 +63,40 @@ for i=1:niter
     end
 end
 
-clf; hold on;
-for i=1:size(Z,2)-1
-    t = (i-1)/(size(Z,2)-2);
-    plot( permute(Z(:,i:i+1), [2 1]), '-', 'Color', [t 0 1-t], 'LineWidth', 2 );
+% evaluate polynomial on a grid
+m = 256;
+t = linspace(-1,1,m);
+[Y,X] = meshgrid(t,t); XY = X+1i*Y;
+F = ones(m);
+for i=1:length(z0)
+    F = F .* (XY-z0(i));
 end
-plot(z0, 'r.', 'MarkerSize', 25);
-axis tight; axis equal; % axis([-1 1 -1 1]); 
-axis off;
+U = log(.001+abs(F));
 
-saveas(gcf, [rep 'roots-' num2str(test) '.eps'], 'epsc');
-test = test+1;
+% display quantized colormap
+r = 15; % #levellines
+clf; hold on;
+imagesc(t,t,U');
+contour(t,t,U',linspace(min(U(:)),max(U(:)),r), 'k');
+colormap(parula(r-1));
+caxis([min(U(:)) max(U(:))]);
+axis image; axis off;
+plot(z0, 'r.', 'MarkerSize', 25);
+%
+q = 50;
+ndisp = round(linspace(1,size(Z,2)-1,q)); kdisp = 1;
+for i=1:size(Z,2)-1
+    s = (i-1)/(size(Z,2)-2);
+    plot( permute(Z(:,i:i+1), [2 1]), '-', 'Color', [s 0 1-s], 'LineWidth', 3 );
+    if ndisp(kdisp)==i
+        axis tight; axis equal; axis([-1 1 -1 1]); 
+        axis off;
+        drawnow;
+        saveas(gcf, [rep 'anim-' znum2str(kdisp,2) '.png']);
+        kdisp = kdisp + 1;
+    end
+end
+
+% AutoCrop(rep, 'anim')
+
+% test = test+1;
