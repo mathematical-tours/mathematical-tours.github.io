@@ -40,31 +40,45 @@ A = max(A,A');
 % A(A>.06) = 0; % elephant
 A(A>.06) = 0; % triskel
 
-
-
 clf; hold on;
 gplot(A,P, 'k');
 plot(P(:,1), P(:,2), 'b.', 'MarkerSize', 25);
 axis equal; axis tight; axis ij;
 
-z = [1/2 1/2];
+z = .5+.5i;
 switch name
     case 'elephant'
-        z = [.95 .81];
+        z = .95 + .81i;
     case 'triskel'
-        z = [.74 .74];
+        z = .74  + .74i;
+    case 'horse'
+        z = .9 + .8i;
 end
 
-[~,I] = min(abs(P(:,1)-z(1))+abs(P(:,2)-z(2)));
+[v,Istart] = min(abs(P(:,1)+1i*P(:,2)-z)); Istart = Istart(1);
+% target point
+[d,Iend] = max(abs(P(:,1)+1i*P(:,2)-z)); Iend = Iend(1);
+h = abs(P(:,1)+1i*P(:,2)-P(Iend,1)-1i*P(Iend,2));
 
-opt.svg_rate = ceil(n/70);
-[D0,Dsvg,Ssvg] = dijkstra(A, I,opt);
+
+clf; hold on;
+gplot(A,P, 'k');
+plot(P(Istart,1), P(Istart,2), 'b.', 'MarkerSize', 25);
+plot(P(Iend,1), P(Iend,2), 'r.', 'MarkerSize', 25);
+axis equal; axis tight; axis ij;
 
 
-q = size(Ssvg,2);
+opt.svg_rate = 1; % ceil(n/200);
+opt.target = Iend;
+opt.heuristic = 2*h; % set to 0 for no heuristic
+[D0,Dsvg,Ssvg] = dijkstra(A, Istart, opt);
+
+q = 50; 
+ndisp = round(linspace(1,size(Ssvg,2),q));
 for it=1:q
-    S = Ssvg(:,it);
-    D = Dsvg(:,it);
+    i = ndisp(it);
+    S = Ssvg(:,i);
+    D = Dsvg(:,i);
     %
     I = find(D~=Inf);
     J = find(D==Inf);
@@ -76,7 +90,7 @@ for it=1:q
     scatter( P(J,1), P(J,2),s,c,'filled');
     %
     s = ones(length(I),1)*80; % size
-    m = D(I)/max(D0);
+    m = D(I)/D0(Iend);
     c = m*[1 0 0] + (1-m)*[0 0 1]; % colors
     scatter( P(I,1), P(I,2),s, c, 'filled');
     %

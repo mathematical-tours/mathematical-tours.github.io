@@ -35,7 +35,8 @@ set(0,'DefaultFigureWindowStyle','docked')
 figure('NumberTitle', 'off', 'Name', 'toto')
 
 % filled coloring
-area(fftshift(x), 'FaceColor', 'r', 'EdgeColor', 'k', 'LineWidth', 2);
+h = area(fftshift(x), 'FaceColor', 'r', 'EdgeColor', 'k', 'LineWidth', 2);
+h.FaceAlpha = 0.5;
 
 % stabilized log-sum-exp and soft max
 max2 = @(S)repmat(max(S,[],2), [1 size(S,2)]);

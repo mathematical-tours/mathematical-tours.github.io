@@ -17,9 +17,11 @@ function [D,Dsvg,Ssvg] = dijkstra(W, I, options)
 options.null = 0;
 svg_rate = getoptions(options, 'svg_rate', 10);
 niter = getoptions(options, 'niter', Inf);
-
+j_tgt = getoptions(options, 'target', []);
 
 n = size(W,1);
+
+h = getoptions(options, 'heuristic',zeros(n,1)); 
 
 % Initialize the distance to \(+\infty\), excepted for the boundary conditions.
 D = zeros(n,1)+Inf; % current distance
@@ -34,7 +36,7 @@ Dsvg = []; Ssvg = [];
 while not(isempty(I)) && iter<=niter
     iter = iter+1;
     % pop from stack
-    [tmp,j] = sort(D(I)); j = j(1);
+    [tmp,j] = sort(D(I)+h(I)); j = j(1);
     i = I(j); I(j) = [];
     % declare dead
     S(i) = -1; 
@@ -51,9 +53,12 @@ while not(isempty(I)) && iter<=niter
         D(j) = min(D(j), D(i) + W(i,j));
     end
     % svd
-    if mod(iter,svg_rate)==1 && nargout>2
+    if ( svg_rate==1 || (mod(iter,svg_rate)==1) ) && nargout>2
         Dsvg(:,end+1) = D;
         Ssvg(:,end+1) = S;
+    end
+    if not(isempty(j_tgt)) && sum(S(j_tgt)==-1)==length(j_tgt)        
+        break
     end
 end
 

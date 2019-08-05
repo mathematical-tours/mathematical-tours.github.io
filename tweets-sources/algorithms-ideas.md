@@ -1,9 +1,8 @@
 
 
-- Dorit S. Hochbaum de l'algo de clustering Hochbaum-Shmoys,
-- Phyllis Nicolson  pour Crank-Nicolson,
 - Ada Lovelace pour le très "Oldie"
-- Cynthia Dwork,
+
+- Dorit S. Hochbaum de l'algo de clustering Hochbaum-Shmoys,
 - Mireille Deschamps, Marie Françoise Roy, Yvette Amice, Michèle Raynaud, Shafi Goldwasser,
 - Katalin Vesztergombi (graph limits),
 - Nalini Anantharaman (entropy of eigenfucntions).
@@ -13,11 +12,10 @@
 - Madam Wu's paper on parity violation in weak interaction.
 - Cathleen Morawetz
 - Greinbaich (Computer science theory)
-- Grace Wahba, Spline models for observational data, 1990.
 - Grace Wahba, Generalized cross-validation... 1979.
 - Karen Uhlenbeck. Her work with Sacks on harmonic maps had a great influence for instance.
 - Éva Tardos, on strongly polytime LPs/flows, price of anarchy, or maybe newer game theory work
-- Boser, Bernhard E.; Guyon, Isabelle M.; Vapnik, Vladimir N. (1992). "A training algorithm for optimal margin classifiers". Proceedings of the fifth annual workshop on Computational learning theory – COLT '92. p. 144.
+
 
 
 
@@ -28,9 +26,8 @@
 - 1978: [RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) (Ron Rivest, Adi Shamir, Leonard Adleman)
 - 1977: [Lempel–Ziv–Markov](https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Markov_chain_algorithm) (Abraham Lempel, Jacob Ziv)
 - 1996: [Set partitioning in hierarchical trees](https://en.wikipedia.org/wiki/Set_partitioning_in_hierarchical_trees) (Amir Said, William Pearlman)
-- 1968: [A star shortest path](https://en.wikipedia.org/wiki/A*_search_algorithm) (Peter Hart, Nils Nilsson, Bertram Raphael )
 - 2008: [MapReduce](https://en.wikipedia.org/wiki/MapReduce) (Jeffrey Dean, Sanjay Ghemawat)
-- 1895: [Runge Kutta](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) (Carl David Tolme Runge, Martin Wilhelm Kutta)
+
 
 
 
