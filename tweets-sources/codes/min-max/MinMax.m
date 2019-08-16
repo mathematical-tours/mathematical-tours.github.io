@@ -64,7 +64,7 @@ for k=1:length(Z)
 end
 
 
-saveas(gcf, [rep 'minmax-' num2str(round(10*a)) '.png'], 'png');
+% saveas(gcf, [rep 'minmax-' num2str(round(10*a)) '.png'], 'png');
 
 return;
 z = z0;

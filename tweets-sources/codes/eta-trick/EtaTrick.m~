@@ -1,0 +1,30 @@
+%%
+% Display variational formulation of |.|=min_eta 
+
+
+addpath('../toolbox/');
+rep = MkResRep();
+
+q = 50;
+elist = linspace(.8,.01,q);
+elist = .8 + .01 * linspace(0,.01,q);
+
+x = linspace(-1,1,1024);
+
+for it=1:q
+    
+    clf; hold on;
+    plot(x,abs(x), 'k', 'LineWidth', 2);
+    for jt=1:it
+    eta = elist(jt);
+    s = (jt-1)/(q-1);    
+    plot( x, 1/2*( x.^2/eta + eta ), 'Color', [s 0 1-s]*.3+.7, 'LineWidth', 2  );
+    end
+    plot( x, 1/2*( x.^2/eta + eta ), 'Color', [s 0 1-s], 'LineWidth', 3  );
+    plot( [-1 1]*eta, [1 1]*eta, '.', 'MarkerSize', 25, 'Color', [s 0 1-s], 'LineWidth', 2  );
+    box on; 
+    set(gca, 'XTick', [], 'YTick', []);
+    axis equal; axis([-1 1 -.02 1.5]);
+    drawnow;
+    
+end

@@ -1,0 +1,108 @@
+% !TEX root = ../CourseOT.tex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Dual Problem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Discrete dual}
+
+- Dual pbm discrete, dual of linear programming
+- Mention auction and eps-scaling
+
+The Kantorovich problem~\eqref{eq-mk-discr} is a constrained convex minimization problem, and as such, it can be naturally paired with a so-called dual problem, which is a constrained concave maximization problem. The following fundamental proposition, which is a special case of Fenchel-Rockafellar duality theory, explains the relationship between the primal and dual problems.
+
+\begin{prop}\label{prop-duality-discr}
+One has
+\eql{\label{eq-dual}
+	\MKD_\C(\a,\b) = 
+	\umax{(\fD,\gD) \in \PotentialsD(\a,\b)} \dotp{\fD}{\a} + \dotp{\gD}{\b} 
+}
+where the set of admissible potentials is
+\eql{\label{eq-feasible-potential}
+	\PotentialsD(\a,\b) \eqdef \enscond{
+		(\fD,\gD) \in \RR^n \times \RR^m
+	}{ \foralls (i,j) \in \range{n} \times \range{m}, \fD \oplus \gD \leq \C }
+}
+\end{prop}
+
+\begin{proof}
+This result is a direct consequence of the more general result on the strong duality for linear programs~\cite[p.148,Theo.4.4]{bertsimas1997introduction}. The easier part of that result, namely that the right-hand side of Equation~\eqref{eq-dual} is a lower bound on $\MKD_\C(\a,\b)$ is discussed in~\ref{rem-duality}.
+%
+For the sake of completeness, let us derive this dual problem with the use of Lagrangian duality. The Lagangian associate to~\eqref{eq-mk-discr} reads
+\eql{\label{eq-mk-lagr}
+	\umin{\P \geq 0} \umax{ (\fD,\gD) \in \RR^n \times \RR^m }
+		\dotp{\C}{\P} + \dotp{\a - \P\ones_m}{\fD} + \dotp{\b - \P^\top \ones_n}{\gD}. 
+}
+For linear program, one can always exchange the min and the max and get the same value of the linear program, and one thus consider
+\eq{
+	\umax{ (\fD,\gD) \in \RR^n \times \RR^m } 
+	\dotp{\a}{\fD} + \dotp{\b}{\gD}
+	+ \umin{\P \geq 0} 
+		\dotp{\C - \fD\ones_m^\top - \ones_n \gD^\top}{\P}.
+}
+We conclude by remarking that 
+\eq{
+	\umin{\P \geq 0} \dotp{\Q}{\P} = 
+	\choice{
+		0 \qifq \Q \geq 0\\
+		-\infty \quad \text{otherwise}
+	}
+}
+so that the constraint reads $\C - \fD\ones_m^\top - \ones_n \gD^\top = \C-\fD\oplus \gD \geq 0$.
+\end{proof}
+
+The primal-dual optimality relation for the Lagrangian~\eqref{eq-mk-lagr} allows to locate the support of the optimal transport plan
+\eql{\label{eq-mk-pd-rel}
+	\Supp(\P) \subset \enscond{(i,j) \in \range{n} \times \range{m}}{ \fD_i+\gD_j=\C_{i,j} }.
+} 
+
+
+\todo{$W_c$ is convex in (mu,nu)  (--> density fitting)}
+
+\todo{$W_c$ is concave in c (from the primal) metric learning}
+  
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{General formulation}
+
+To extend this primal-dual construction to arbitrary measures, it is important to realize that measures are naturally paired in duality with continuous functions (a measure can only be accessed through integration against continuous functions). The duality is formalized in the following proposition, which boils down to Proposition~\ref{prop-duality-discr} when dealing with discrete measures.
+	
+\begin{prop}
+	One has
+	\eql{\label{eq-dual-generic}
+		\MK_\c(\al,\be) = 
+		\umax{(\f,\g) \in \Potentials(\c)}
+			\int_\X \f(x) \d\al(x) + \int_\Y \g(y) \d\be(y), 
+	} 
+	where the set of admissible dual potentials is
+	\eql{\label{eq-dfn-pot-dual}
+		\Potentials(\c) \eqdef \enscond{
+			(\f,\g) \in \Cc(\X) \times \Cc(\Y)
+		}{
+			\forall (x,y), \f(x)+\g(y) \leq \c(x,y)
+		}.
+	}
+	Here, $(\f,\g)$ is a pair of continuous functions, and are often called ``Kantorovich potentials''.
+\end{prop}
+
+The discrete case~\eqref{eq-dual} corresponds to the dual vectors being samples of the continuous potentials, \emph{i.e.} $(\fD_i,\gD_j)=(\f(x_i),\g(y_j))$. 
+	%
+	The primal-dual optimality conditions allow to track the support of optimal plan, and~\eqref{eq-mk-pd-rel} is generalized as 
+	\eql{\label{eq-mk-pd-rel-cont}
+		\Supp(\pi) \subset \enscond{(x,y) \in \X \times \Y}{ \f(x)+\g(y)=\c(x,y) }.
+	} 
+	
+	Note that in contrast to the primal problem~\eqref{eq-mk-generic}, showing the existence of solutions to~\eqref{eq-dual-generic} is non-trivial, because the constraint set $\Potentials(\c)$ is not compact and the function to minimize non-coercive.
+	%
+	Using the machinery of $c$-transform detailed in Section~\ref{s-c-transform}, one can however show that optimal $(\f,\g)$ are necessarily Lipschitz regular, which enable to replace the constraint by a compact one. 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$c$-transforms}
+
+- c-transform
+  link with Legendre transform
+  intuition on brenier proof 
+  c-transform gives regularity hence compactness via Ascoli on the dual 

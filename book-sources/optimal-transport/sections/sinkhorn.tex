@@ -1,0 +1,338 @@
+% !TEX root = ../CourseOT.tex
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Sinkhorn}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Entropic Regularization for Discrete Measures}
+
+
+%%%%%
+\paragraph{Relative entropy}
+
+The discrete entropy of a coupling matrix is defined as
+\eql{\label{eq-discr-entropy}
+	\HD(\P) \eqdef -\sum_{i,j} \P_{i,j} (\log(\P_{i,j})-1), 
+}
+with an analogous definition for vectors, with the convention that $\HD(\a) = -\infty$ if one of the entries $\a_j$ is 0 or negative. The function $\HD$ is 1-strongly concave, because its hessian is $\partial^2 \HD(P)=-\diag(1/\P_{i,j})$ and $\P_{i,j} \leq 1$. 
+
+\todo{Relative entropy}
+
+Defining the Kullback-Leibler divergence between couplings as
+\eql{\label{eq-kl-defn}
+	\KLD(\P|\K) \eqdef \sum_{i,j}  \P_{i,j} \log\pa{\frac{\P_{i,j}}{\K_{i,j}}} - \P_{i,j} + \K_{i,j}.
+}
+
+
+%%%%%
+\paragraph{Entropic Regularization for Discrete Measures}
+
+The idea of the entropic regularization of optimal transport is to use $-\HD$ as a regularizing function to obtain approximate solutions to the original transport problem~\eqref{eq-mk-discr}:
+\eql{\label{eq-regularized-discr}
+	\MKD_\C^\epsilon(\a,\b) \eqdef 
+	\umin{\P \in \CouplingsD(\a,\b)}
+		\dotp{\P}{\C} - \epsilon \HD(\P). 
+} 
+Since the objective is a $\epsilon$-strongly convex function, problem~\ref{eq-regularized-discr} has a unique optimal solution. 
+
+
+Figure~\ref{fig-impact-eps} illustrates the effect of the entropy to regularize a linear program over the simples $\simplex_3$ (which can thus be visualized as a triangle in 2-D). Note how the entropy pushes the original LP solution away from the boundary of the triangle. The optimal $\P_\epsilon$ progressively moves toward an ``entropic center'' of the triangle. This is further detailed in the proposition below. The convergence of the solution of that regularized problem towards an optimal solution of the original linear program has been studied by~\cite{CominettiAsympt}.
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.5\linewidth]{entropic/simplex}
+\caption{\label{fig-impact-eps}
+Impact of $\epsilon$ on the optimization of a linear function on the simplex, solving $\P_\epsilon = \argmin_{\P \in \simplex_3} \dotp{\C}{\P}-\epsilon\HD(\P)$ for a varying $\epsilon$. 
+}
+\end{figure}
+
+
+%%%%%
+\paragraph{Smoothing effect}
+
+ (see later for the derivative)
+ 
+ 
+\begin{prop}[Convergence with $\epsilon$]\label{prop-convergence-eps}
+The unique solution $\P_\epsilon$ of~\eqref{eq-regularized-discr} converges to the optimal solution with maximal entropy within the set of all optimal solutions of the Kantorovich problem, namely
+\eql{\label{eq-entropy-conv-1}
+	\P_\epsilon \overset{\epsilon \rightarrow 0}{\longrightarrow}
+	\uargmin{\P} \enscond{ -\HD(\P) }{
+		\P \in \CouplingsD(\a,\b), \dotp{\P}{\C} = \MKD_\C(\a,\b)
+	}
+}
+so that in particular
+\eq{
+	\MKD_\C^\epsilon(\a,\b) \overset{\epsilon \rightarrow 0}{\longrightarrow} \MKD_\C(\a,\b).
+}
+One has
+\eql{\label{eq-entropy-conv-2}
+	\P_\epsilon \overset{\epsilon \rightarrow \infty}{\longrightarrow}
+	\a \transp{\b} = (\a_i \b_j)_{i,j}.
+}
+\end{prop}
+
+\begin{proof}
+	 We consider a sequence $(\epsilon_\ell)_\ell$ such that $\epsilon_\ell \rightarrow 0$ and $\epsilon_\ell > 0$.	
+ 	We denote $\P_\ell$ the solution of~\eqref{eq-regularized-discr} for $\epsilon=\epsilon_\ell$. 
+	%
+	Since $\CouplingsD(\a,\b)$ is bounded, we can extract a sequence (that we do not relabel for sake of simplicity) such that $\P_\ell \rightarrow \P^\star$. Since $\CouplingsD(\a,\b)$ is closed, $\P^\star \in \CouplingsD(\a,\b)$. We consider any $\P$ such that $\dotp{\C}{\P} = \MKD_\C(\a,\b)$. By optimality of $\P$ and $\P_\ell$ for their respective optimization problems (for $\epsilon=0$ and $\epsilon=\epsilon_\ell$), one has
+ 	\eql{\label{eq-proof-gamma-conv}
+ 		0 \leq \dotp{\C}{\P_\ell} - \dotp{\C}{\P} \leq \epsilon_\ell ( \HD(\P_\ell)-\HD(\P) ).
+ 	}
+ 	Since $\HD$ is continuous, taking the limit $\ell \rightarrow +\infty$ in this expression shows that 
+ 	$\dotp{\C}{\P^\star} = \dotp{\C}{\P}$ so that $\P^\star$ is a feasible point of~\eqref{eq-entropy-conv-1}. Furthermore, dividing by $\epsilon_\ell$ in~\eqref{eq-proof-gamma-conv} and taking the limit shows that 
+ 	$\HD(\P) \leq \HD(\P^\star)$, which shows that $\P^\star$ is a solution of~\eqref{eq-entropy-conv-1}. Since the solution $\P_0^\star$ to this program is unique by strict convexity of $-\HD$, one has $\P^\star = \P_0^\star$, and the whole sequence is converging. 
+\end{proof}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.48\linewidth]{entropic/densities}
+\includegraphics[width=.48\linewidth]{entropic/matching-2d}
+\caption{\label{fig-entropic}
+Impact of $\epsilon$ on coupling between densities and discrete distributions, illustrating Proposition~\ref{prop-convergence-eps}.
+%
+Left: between two 1-D densities. Right: between two 2-D discrete empirical densities with same number $n=m$ of points (only entries of the optimal $(\P_{i,j})_{i,j}$ above a small threshold are displayed as segments between $x_i$ and $y_j$).
+}
+\end{figure}
+
+
+The unique solution $\P_\epsilon$ of~\eqref{eq-regularized-discr} is a projection onto $\CouplingsD(\a,\b)$ of the Gibbs kernel associated to the cost matrix $\C$ as
+\eq{
+	\K_{i,j} \eqdef e^{-\frac{\C_{i,j}}{\epsilon}}
+}
+Indeed one has that using the definition above
+\eql{\label{eq-kl-proj}
+	\P_\epsilon = \Proj_{\CouplingsD(\a,\b)}^\KLD(\K) \eqdef \uargmin{\P \in \CouplingsD(\a,\b)} \KLD(\P|\K).
+}
+
+
+
+\todo{First order expansion}
+
+ 
+%%%%%
+\paragraph{Complexity}
+ 
+ 
+- complexity in discrete, comparison with e.g. interior points
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{General Formulation}
+
+- general formulation for measures
+
+One can consider arbitrary measures by replacing the discrete entropy by the relative entropy with respect to the product measure $\d\al\otimes\d\be(x,y) \eqdef \d\al(x)\d\be(y)$, and propose a regularized counterpart to~\eqref{eq-mk-generic} using
+\eql{\label{eq-entropic-generic}
+	\MK_\c^\epsilon(\al,\be) \eqdef 
+	\umin{\pi \in \Couplings(\al,\be)}
+		\int_{X \times Y} c(x,y) \d\pi(x,y) + \epsilon \KL(\pi|\al\otimes\be)
+}
+where the relative entropy is a generalization of the discrete Kullback-Leibler divergence~\eqref{eq-kl-defn}
+\eql{\label{eq-defn-rel-entropy}
+\begin{aligned}	 \KL(\pi|\xi) \eqdef \int_{\X \times \Y} \log\Big( \frac{\d \pi}{\d\xi}(x,y) \Big) \d\pi(x,y)
+	  +\\ \int_{\X \times \Y} (\d\xi(x,y)-\d\pi(x,y)), 
+	  \end{aligned}
+}
+and by convention $\KL(\pi|\xi)=+\infty$ if $\pi$ does not have a density $\frac{\d \pi}{\d\xi}$ with respect to $\xi$. 
+%
+It is important to realize that the reference measure $\al\otimes\be$ chosen in~\eqref{eq-entropic-generic} to define the entropic regularizing term $\KL(\cdot|\al\otimes\be)$ plays no specific role, only its support matters.
+
+Formula~\eqref{eq-entropic-generic} can be re-factored as a projection problem
+\eql{\label{eq-entropic-generic-proj}
+	\umin{\pi \in \Couplings(\al,\be)} \KL(\pi|\Kk)
+}
+where $\Kk$ is the Gibbs distributions $\d\Kk(x,y) \eqdef e^{-\frac{c(x,y)}{\epsilon}} \d\mu(x)\d\nu(y)$.
+%
+This problem is often referred to as the ``static Schr\"odinger problem''~\cite{LeonardSchroedinger,RuschendorfThomsen}, since it was initially considered by Schr\"odinger in statistical physics~\cite{Schroedinger31}. 
+%
+As $\epsilon \rightarrow 0$, the unique solution to~\eqref{eq-entropic-generic-proj} converges to the maximum entropy solution to~\eqref{eq-mk-generic}, see~\cite{leonard2012schrodinger,2017-carlier-SIMA}.
+%
+~\S\ref{sec-entropic-dynamic} details an alternate ``dynamic'' formulation of the Schr\"odinger problem over the space of paths connecting the points of two measures.
+
+- Probabilistic interpretation, mutual information, independence
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Sinkhorn's Algorithm}
+
+
+The following proposition shows that the solution of~\eqref{eq-regularized-discr} has a specific form, which can be parameterized using $n+m$ variables. That parameterization is therefore essentially dual, in the sense that a coupling $\P$ in $\CouplingsD(\a,\b)$ has $nm$ variables but $n+m$ constraints.
+
+\begin{prop}\label{prop-regularized-primal}
+The solution to~\eqref{eq-regularized-discr} is unique and has the form
+\eql{\label{eq-scaling-form}
+	\foralls (i,j) \in \range{n} \times \range{m}, \quad \P_{i,j} = \uD_i \K_{i,j} \vD_j
+}
+for two (unknown) scaling variable $(\uD,\vD) \in \RR_+^n \times \RR_+^m$. 
+\end{prop} 
+
+\begin{proof} 
+Introducing two dual variables $\fD\in\RR^n,\gD\in\RR^m$ for each marginal constraint, the Lagrangian of~\eqref{eq-regularized-discr} reads
+\eq{\label{eq-sinkhorn-lagrangian}
+	\Lag(\P,\fD,\gD)= \dotp{\P}{\C} - \epsilon \HD(\P) - \dotp{\fD}{\P\ones_m-\a}-\dotp{\gD}{\transp{\P}\ones_n-\b}.
+}
+Considering first order conditions, we have
+$$
+	\frac{\partial\Lag(\P,\fD,\gD)}{\partial \P_{i,j}}= \C_{i,j} - \epsilon \log(\P_{i,j}) - \fD_i -\gD_j.
+$$
+which results, for an optimal $\P$ coupling to the regularized problem, in the expression $\P_{i,j}=e^{\fD_i/\varepsilon}e^{-\C_{i,j}/\varepsilon}e^{\gD_j/\varepsilon}$ which can be rewritten in the form provided in the proposition using non-negative vectors $\uD$ and $\vD$.
+\end{proof} 
+
+The factorization of the optimal solution exhibited in Equation~\eqref{eq-scaling-form} can be conveniently rewritten in matrix form as $\P=\diag(\uD)\K\diag(\vD)$.
+%
+$\uD,\vD$ must therefore satisfy the following non-linear equations which correspond to the mass conservation constraints inherent to $\CouplingsD(\a,\b)$,
+\eql{\label{eq-dualsinkhorn-constraints}
+	\diag(\uD)\K\diag(\vD)\ones_m=\a,
+	\qandq
+	\diag(\vD)\K^\top \diag(\uD)\ones_n=\b,
+}
+These two equations can be further simplified, since $\diag(\vD)\ones_m$ is simply $\vD$, and the multiplication of $\diag(\uD)$ times $\K \vD$ is 
+\eql{\label{eq-dualsinkhorn-constraints2}
+	\uD \odot (\K \vD) = \a
+	\qandq
+	\vD \odot (\transp{\K}\uD) = \b
+}
+where $\odot$ corresponds to entry-wise multiplication of vectors. That problem is known in the numerical analysis community as the matrix scaling problem (see~\cite{nemirovski1999complexity} and references therein).
+%
+An intuitive way to try to solve these equations is to solve them iteratively, by modifying first $\uD$ so that it satisfies the left-hand side of Equation~\eqref{eq-dualsinkhorn-constraints2} and then $\vD$ to satisfy its right-hand side. These two updates define Sinkhorn's algorithm:
+\eql{\label{eq-sinkhorn}	
+	\itt{\uD} \eqdef \frac{\a}{\K \it{\vD}}
+	\qandq
+	\itt{\vD} \eqdef \frac{\b}{\transp{\K}\itt{\uD}},
+}
+initialized with an arbitrary positive vector $\init{\vD} = \ones_m$. The division operator used above between two vectors is to be understood entry-wise. Note that a different initialization will likely lead to a different solution for $\uD,\vD$, since $\uD,\vD$ are only defined up to a multiplicative constant (if $\uD,\vD$ satisfy \eqref{eq-dualsinkhorn-constraints} then so do $\lambda\uD,\vD/\lambda$ for any $\lambda>0$).
+%
+It turns out however that these iterations converge (see Remark~\ref{rem-iterative-projection} for a justification using iterative projections, and Remark~\ref{rem-global-conv-sinkh} for a strict contraction result) and all result in the same optimal coupling $\diag(\uD)\K\diag(\vD)$. 
+%
+Figure~\ref{fig-sinkhorn-convergence}, top row, shows the evolution of the coupling $\diag(\it{\UD})\K\diag(\it{\VD})$ computed by Sinkhorn iterations. It  evolves from the Gibbs kernel $\K$ towards the optimal coupling solving~\eqref{eq-regularized-discr} by progressively shifting the mass away from the diagonal.
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.7\linewidth]{entropic/sinkhorn-convergence}
+\includegraphics[width=.28\linewidth]{entropic/sinkhorn-rates}
+\caption{\label{fig-sinkhorn-convergence}
+Left: evolution of the coupling $\pi_\epsilon^\ell=\diag(\it{\UD})\K\diag(\it{\VD})$ computed at iteration $\ell$ of Sinkhorn's iterations, for 1-D densities.
+Right: impact of $\epsilon$ the convergence rate of Sinkhorn, as measured in term of marginal constraint violation $\log( \norm{\pi_\epsilon^\ell \ones_m - \b}_1 )$.
+}
+\end{figure}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Convergence}
+
+%%%%
+\paragraph{Convergence finite dimension via alternating projections}
+ 
+
+Denoting 
+\eq{
+	\Cc^1_\a \eqdef \enscond{\P}{\P\ones_m=\a}
+	\qandq
+	\Cc^2_\b \eqdef \enscond{\P}{\transp{\P}\ones_m=\b}
+}
+the rows and columns constraints, one has $\CouplingsD(\a,\b) = \Cc^1_\a \cap \Cc^2_\b$. One can use Bregman iterative projections~\cite{bregman1967relaxation}
+\eql{\label{eq-kl-sinkh-proj}
+	\itt{\P} \eqdef \Proj_{\Cc^1_\a}^{\KLD}(\it{\P})
+	\qandq
+	\ittt{\P} \eqdef \Proj_{\Cc^2_\b}^{\KLD}(\itt{\P}).
+}
+Since the sets $\Cc^1_\a$ and $\Cc^2_\b$ are affine, these iterations are known to converge to the solution of~\eqref{eq-kl-proj}, see~\cite{bregman1967relaxation}. These iterate are equivalent to Sinkhorn iterations~\eqref{eq-sinkhorn} since defining 
+\eq{\label{eq-sink-matrix}\P^{(2\ell)} \eqdef \diag(\it{\uD}) \K \diag(\it{\vD}),}
+one has
+\begin{align*}
+	\P^{(2\ell+1)} &\eqdef \diag(\itt{\uD}) \K \diag(\it{\vD}) \\
+	\qandq
+	\P^{(2\ell+2)} &\eqdef \diag(\itt{\uD}) \K \diag(\itt{\vD})
+\end{align*}
+In practice however one should prefer using~\eqref{eq-sinkhorn} which only requires manipulating scaling vectors and multiplication against a Gibbs kernel, which can often be accelerated (see below Remarks~\ref{rem-separable} and~\ref{rem-geod-heat}). 
+ 
+\todo{Remark on Bregman divergence, generalizatiton of projected gradient desc (mirror descent), etc.}
+
+
+
+%%%%
+\paragraph{Convergence for the Hilbert metric}
+
+As initially explained by~\cite{franklin1989scaling}, the global convergence analysis of Sinkhorn is greatly simplified using Hilbert projective metric on $\RR_{+,*}^n$ (positive vectors), defined as
+\eq{
+	\foralls (\uD,\uD') \in (\RR_{+,*}^n)^2, \quad
+	\Hilbert(\uD,\uD') \eqdef \log \umax{i,i'} \frac{ \uD_i \uD_{i'}' }{ \uD_{i'} \uD_{i}'  }.
+}
+This can be shows to be a distance on the projective cone $\RR_{+,*}^n/\sim$, where $\uD \sim \uD'$ means that $\exists s>0, \uD=s\uD'$ (the vector are equal up to rescaling, hence the naming ``projective'').  
+%
+This means that $\Hilbert$ satisfies the triangular inequality and $\Hilbert(\uD,\uD')=0$ if and only if $\uD \sim \uD'$. 
+%
+This is a projective version of Hilbert's original distance on bounded open convex sets~\cite{hilbert1895gerade}.
+%
+The projective cone $\RR_{+,*}^n/\sim$ is a complete metric space for this distance. 
+%
+It was introduced independently by~\cite{birkhoff1957extensions} and~\cite{samelson1957perron} to provide a quantitative proof of Perron-Frobenius theorem, which, as explained in Remark~\ref{rem-local-conv} is linked to a local linearization of Sinkhorn's iterates. They proved the following fundamental theorem, which shows that a positive matrix is a strict contraction on the cone of positive vectors.
+
+\begin{thm}\label{thm-birkoff}
+	Let $\K \in \RR_{+,*}^{n \times m}$, then for $(\vD,\vD') \in (\RR_{+,*}^m)^2$
+	\eq{
+		\Hilbert(\K \vD,\K \vD') \leq \la(\K) \Hilbert(\vD,\vD')
+		\text{ where }
+		\choice{
+			\la(\K) \eqdef \frac{ \sqrt{\eta(\K)}-1 }{ \sqrt{\eta(\K)}+1 } < 1 \\
+			\eta(\K) \eqdef \umax{i,j,k,\ell} \frac{ \K_{i,k} \K_{j,\ell} }{ \K_{j,k} \K_{i,\ell} }.
+		}
+	}
+\end{thm}
+
+The following theorem, proved by~\cite{franklin1989scaling}, makes use of this Theorem~\ref{thm-birkoff} to show the linear convergence of Sinkhorn's iterations.
+
+\begin{thm}
+	One has $(\it{\uD},\it{\vD}) \rightarrow (\uD^\star,\vD^\star)$ and
+	\eql{\label{eq-convlin-sinkh}
+		\Hilbert(\it{\uD}, \uD^\star) = O(\la(\K)^{2\ell}), \quad
+		\Hilbert(\it{\vD}, \vD^\star) = O(\la(\K)^{2\ell}).
+	}
+	One also has
+	\eql{\label{eq-convsinkh-control}
+		\begin{split}
+		\Hilbert(\it{\uD}, \uD^\star) &\leq \frac{\Hilbert( \it{\P}\ones_m,\a )}{1-\la(\K)} \\
+		\Hilbert(\it{\vD}, \vD^\star) &\leq \frac{\Hilbert( \P^{(\ell),\top} \ones_n,\b )}{1-\la(\K)}
+		\end{split}
+	}
+	where we denoted $\it{\P} \eqdef \diag(\it{\uD}) \K \diag(\it{\vD})$. Lastly, one has
+	\eql{\label{eq-convlin-sinkh-prim}
+		\|\log(\it{\P}) - \log(\P^\star)\|_\infty \leq \Hilbert(\it{\uD}, \uD^\star) + \Hilbert(\it{\vD}, \vD^\star)
+	}
+	where $\P^\star$ is the unique solution of~\eqref{eq-regularized-discr}. 
+\end{thm}
+
+\begin{proof}
+	One notice that for any $(\vD,\vD') \in (\RR_{+,*}^m)^2$, one has 
+	\eq{	
+		\Hilbert(\vD,\vD') = \Hilbert(\vD/\vD',\ones_m) = \Hilbert(\ones_m/\vD,\ones_m/\vD').
+	}
+	This shows that
+	\begin{align*}
+		\Hilbert(\itt{\uD},\uD^\star) &= \Hilbert\pa{ \frac{\a}{\K \it{\vD}}, \frac{\a}{\K \vD^\star} } \\
+		&= \Hilbert( \K \it{\vD}, \K \vD^\star ) \leq \la(\K) \Hilbert( \it{\vD}, \vD^\star ).
+	\end{align*}
+	where we used Theorem~\ref{thm-birkoff}. This shows~\eqref{eq-convlin-sinkh}.  One also has, using the triangular inequality
+	\begin{align*}
+		\Hilbert(\it{\uD},\uD^\star) &\leq \Hilbert(\itt{\uD},\it{\uD}) + \Hilbert(\itt{\uD},\uD^\star) \\
+		&\leq \Hilbert\pa{ \frac{\a}{\K \it{\vD}},\it{\uD} } + \la(\K) \Hilbert(\it{\uD},\uD^\star) \\
+		&= \Hilbert\pa{ \a,\it{\uD} \odot  ( \K \it{\vD} ) } + \la(\K) \Hilbert(\it{\uD},\uD^\star), 
+	\end{align*}
+	which gives the first part of~\eqref{eq-convsinkh-control} since 
+	$\it{\uD} \odot  ( \K \it{\vD} ) = \it{\P}\ones_m$ (the second one being similar).
+	%
+	The proof of~\eqref{eq-convlin-sinkh-prim} follows from~\cite[Lemma 3]{franklin1989scaling}
+\end{proof}
+ 
+The bound~\eqref{eq-convsinkh-control} shows that some error measures on the marginal constraints violation, for instance $\| \it{\P} \ones_m - \a \|_1$ and $\|\transp{\it{\P}} \ones_n - \b \|_1$, are useful stopping criteria to monitor the convergence. 
+
+Figure~\ref{fig-sinkhorn-convergence}, bottom row, highlights this linear rate on the constraint violation, and shows how this rate degrades as $\epsilon\rightarrow 0$. 
+%
+These results are proved in~\cite{franklin1989scaling} and are tightly connected to nonlinear Perron-Frobenius Theory~\cite{lemmens2012nonlinear}. Perron-Frobenius theory corresponds to the linearization of the iterations, see~\eqref{eq-linearized-sinkh}. This convergence analysis is extended in~\cite{linial1998deterministic}, who shows that each iteration of Sinkhorn increases the permanent of the scaled coupling matrix. 

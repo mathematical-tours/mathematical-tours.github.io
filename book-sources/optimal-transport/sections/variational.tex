@@ -1,0 +1,278 @@
+% !TEX root = ../CourseOT.tex
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variational Problems}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Barycenters}
+
+formulation
+   1D, Gaussians
+   Sinkhorn barycenter:  pbm : choice of ref measure
+
+%%%%%% 
+\paragraph{Discrete barycenters}
+   
+Given input histogram $\{\b_s\}_{s=1}^S$, where $b_s \in \simplex_{n_s}$, and weights $\la \in \simplex_S$, a Wasserstein barycenter is computed by minimizing
+\eql{\label{eq-wass-discr}
+	\umin{\a \in \simplex_n} \sum_{s=1}^S \la_s \MKD_{\C_s}(\a,\b_s)
+}
+where the cost matrices $\C_s \in \RR^{n \times n_s}$ need to be specified. 
+%
+A typical setup is ``Eulerian'', so that all the barycenters are defined on the same grid, $n_s=n$, $\C_s=\C=\distD^p$ is set to be a distance matrix, so that one solves
+\eq{
+	\umin{\a \in \simplex_n} \sum_{s=1}^S \la_s \WassD_p^p(\a,\b_s). 
+}
+
+This barycenter problem~\eqref{eq-wass-discr} was originally introduced by~\cite{Carlier_wasserstein_barycenter} following earlier ideas of~\cite{carlierekelandmatching}. They proved in particular uniqueness of the barycenter for $c(x,y)=\norm{x-y}^2$ over $\X=\RR^d$, if one of the input measure has a density with respect to the Lebesgue measure (and more generally under the same hypothesis as the one guaranteeing the existence of a Monge map, see Remark~\ref{rem-exist-mongemap}).
+
+The barycenter problem for histograms~\eqref{eq-wass-discr} is in fact a linear program, since one can look for the $S$ couplings $(\P_s)_s$ between each input and the barycenter itself
+\eq{
+	\umin{\a \in \simplex_n, (\P_s \in \RR^{n \times n_s})_s } \enscond{
+		\sum_{s=1}^S \la_s \dotp{\P_s}{\C_s}
+	}{
+		\foralls s, \P_s^\top \ones_{n_s}=\a, \P_s^\top \ones_{n} = \b_s
+	}.
+}
+Although this problem is an LP, its scale forbids the use generic solvers for medium scale problems. One can therefore resort to using first order methods such as subgradient descent on the dual~\cite{Carlier-NumericsBarycenters}.
+
+%%%%%%%
+\paragraph{Barycenter of arbitrary measures}
+
+Given a set of input measure $(\be_s)_s$ defined on some space $\X$, the barycenter problem becomes 
+	\eql{\label{eq-barycenter-generic}
+		\umin{\al \in \Mm_+^1(\X)} \sum_{s=1}^S \la_s \MK_{\c}(\al,\be_s).
+	}
+	In the case where $\X=\RR^d$ and $c(x,y)=\norm{x-y}^2$,~\cite{Carlier_wasserstein_barycenter} shows that if one of the input measures has a density, then this barycenter is unique. 
+	%
+	Problem~\eqref{eq-barycenter-generic} can be viewed as a generalization of the problem of computing barycenters of points $(x_s)_{s=1}^S \in \X^S$ to arbitrary measures. Indeed, if $\be_s=\de_{x_s}$ is a single Dirac mass, then a solution to~\eqref{eq-barycenter-generic} is $\de_{x^\star}$ where $x^\star$ is a Fr\'echet mean solving~\eqref{eq-frechet-means}.
+	%
+	Note that for $c(x,y)=\norm{x-y}^2$, the mean of the barycenter $\al^\star$ is necessarily the barycenter of the mean, \emph{i.e.} 
+	\eq{
+		\int_\Xx x \d\al^\star(x) =  \sum_s \la_s \int_\Xx x \d\al_s(x), 
+	}
+	and the support of $\al^\star$ is located in the convex hull of the supports of the $(\al_s)_s$.
+	%
+	The consistency of the approximation of the infinite dimensional optimization~\eqref{eq-barycenter-generic} when approximating the input distribution using discrete ones (and thus solving~\eqref{eq-wass-discr} in place) is studied in~\cite{Carlier-NumericsBarycenters}.
+	%
+	Let us also note that it is possible to re-cast~\eqref{eq-barycenter-generic} as a multi-marginal OT problem, see Remark~\ref{eq-multimarg-bary}. 
+
+
+%%%%%%%
+\paragraph{Sinkhorn for barycenters}
+
+One can use entropic smoothing and approximate the solution of~\eqref{eq-wass-discr} using 
+\eql{\label{eq-entropic-bary}
+	\umin{\a \in \simplex_n} \sum_{s=1}^S \la_s \MKD_{\C_s}^\epsilon(\a,\b_s)
+}
+for some $\epsilon>0$. 
+%
+This is a smooth convex minimization problem, which can be tackled using gradient descent~\cite{CuturiBarycenter}. An alternative is to use descent method (typically quasi-Newton) on the semi-dual~\cite{2016-Cuturi-siims}, which is useful to integrate additional regularizations on the barycenter (e.g. to impose some smoothness).
+%
+A simple but effective approach, as remarked in~\cite{2015-benamou-cisc} is to rewrite~\eqref{eq-entropic-bary} as a (weighted) KL projection problem
+\eql{\label{eq-bary-entropy-couplings}
+	\umin{ (\P_s)_s } \enscond{ \sum_{s} \la_s \KLD( \P_s|\K_s ) }{
+		\foralls s, \transp{\P_s}\ones_m = \b_s, \:
+		\P_1\ones_1 =  \ldots = \P_S\ones_S
+	}
+}
+where we denoted $\K_s \eqdef e^{-\C_s/\epsilon}$. Here, the barycenter $\a$ is implicitly encoded in the row marginals of all the couplings $\P_s \in \RR^{n \times n_s}$ as $\a = \P_1\ones_1 =  \ldots = \P_S\ones_S$.
+%
+As detailed in~\cite{2015-benamou-cisc}, one can generalize Sinkhorn to this problem, which also corresponds to iterative projection. This can also be seen as a special case of the generalized Sinkhorn detailed in~\S\ref{sec-generalized}.
+%
+The optimal couplings $(\P_s)_s$ solving~\eqref{eq-bary-entropy-couplings} are computed in scaling form as 
+\eql{\label{eq-bary-opt}
+	\P_s=\diag(\uD_s)\K\diag(\vD_s), 
+}
+and the scalings are sequentially updated as
+\begin{align}\label{eq-sinkhorn-bary}
+	\foralls s \in \range{1,S}, \quad \itt{\vD}_s &\eqdef \frac{\b_s}{\transp{\K}_s \it{\uD}_s}, \\
+	\foralls s \in \range{1,S}, \quad  \itt{\uD}_s &\eqdef \frac{\itt{\a}}{\K_s \itt{\vD}_s}, \label{eq-sinkhorn-bary-2}\\
+		\qwhereq
+		\itt{\a} &\eqdef \prod_s (  \K_s \itt{\vD}_s )^{\la_s}. \label{eq-sinkhorn-bary-3}
+\end{align}
+An alternative way to derive these iterations is to perform alternate minimization on the variables of a dual problem, which detailed in the following proposition.
+
+\begin{prop}
+	The optimal $(\uD_s,\vD_s)$ appearing in~\eqref{eq-bary-opt} can be written as $(\uD_s,\vD_s) = ( e^{\fD_s/\epsilon},e^{\gD_s/\epsilon} )$ where $( \fD_s,\gD_s )_s$ are the solutions of the following program (whose value matches the one of \eqref{eq-entropic-bary})
+	\eql{\label{eq-dual-bary-entropy}
+		\umax{ ( \fD_s,\gD_s )_s } \enscond{
+		\sum_s \la_s \pa{
+			\dotp{\gD_s}{\b_s} - \epsilon \dotp{\K_s e^{\gD_s/\epsilon}}{e^{\fD_s/\epsilon}}
+		}
+		}{
+			\sum_s \la_s \fD_s = 0
+		}.
+	}
+\end{prop}
+
+\begin{proof}
+	Introducing Lagrange multipliers in~\eqref{eq-bary-entropy-couplings} leads to
+	\begin{align*}
+		\umin{ (\P_s)_s, \a } 
+		\umax{ ( \fD_s,\gD_s )_s }
+		\sum_{s} \la_s \Big(
+			\epsilon \KLD( \P_s|\K_s )
+			+ 
+			\dotp{\a - \P_s\ones_m}{ \fD_s } \\
+		\qquad\qquad	+			
+			\dotp{\b_s - \transp{\P_s}\ones_m}{ \gD_s }
+		\Big).
+	\end{align*}
+	Strong duality holds, so that one can exchange the min and the max, and gets
+		\begin{align*}
+		&\umax{ ( \fD_s,\gD_s )_s }
+			\sum_s \la_s \pa{
+				 \dotp{\gD_s}{\b_s}
+		+ 
+		\umin{\P_s} \epsilon \KLD( \P_s|\K_s ) - \dotp{\P_s}{\fD_s \oplus \gD_s }
+		} \\
+	&\qquad\qquad	+ \umin{\a}
+			\dotp{ \sum_{s} \la_s \fD_s }{\a}.
+	\end{align*}
+	The explicit minimization on $\a$ gives the constraint $\sum_{s} \la_s \fD_s=0$ together with 
+	\begin{align*}
+		\umax{ ( \fD_s,\gD_s )_s }
+			\sum_s \la_s 
+				 \dotp{\gD_s}{\b_s}
+		-
+		\epsilon \KLD^*\pa{ \frac{\fD_s \oplus \gD_s}{\epsilon}|\K_s }
+	\end{align*}
+	where $\KLD^*(\cdot|\K_s)$ is the Legendre transform~\eqref{eq-legendre} of the function $\KLD^*(\cdot|\K_s)$.
+	%
+	This Legendre transform reads
+	\eql{\label{eq-legendre-kl}
+		\KLD^*(\VectMode{U}|\K) = \sum_{i,j} \K_{i,j} (e^{\VectMode{U}_{i,j}}-1), 
+	}
+	which shows the desired formula. 
+	%
+	To show~\eqref{eq-legendre-kl}, since this function is separable, one needs to compute
+	\eq{
+		\foralls (u,k) \in \RR_+^2, \quad
+		\KLD^*(u|k) \eqdef \umax{r} ur -   \pa{ r \log(r/k) - r + k  }
+	}
+	whose optimality condition reads $u=\log(r/k)$, i.e. $r = k e^{u}$, hence the result.
+\end{proof}
+
+Minimizing~\eqref{eq-dual-bary-entropy} with respect to each $\gD_s$, while keeping all the other variable fixed, is obtained in closed form by~\eqref{eq-sinkhorn-bary}. 
+%
+Minimizing~\eqref{eq-dual-bary-entropy} with respect to all the $(\fD_s)_s$ requires to solve for $\a$ using~\eqref{eq-sinkhorn-bary-3} and leads to the expression~\eqref{eq-sinkhorn-bary-2}.
+
+Figures~\ref{fig-barycenters-images} and~\ref{fig-bary-shapes} show applications to 2-D and 3-D shapes interpolation. Figure~\ref{fig-barycenters-surfaces} shows a computation of barycenters on a surface, where the ground cost is the square of the geodesic distance. For this figure, the computations are performed using the geodesic in heat approximation detailed in Remark~\ref{rem-geod-heat}. We refer to~\cite{2015-solomon-siggraph} for more details and other applications to computer graphics and imaging sciences.
+
+
+% trim=left bottom right height
+\newcommand{\FigBaryShapeA}[2]{\includegraphics[width=.07\linewidth,trim=130 78 110 60,clip]{barycenters-shapes/duck-spiky-moomoo_s0-double-torus/barycenter-#1-#2}}
+\newcommand{\FigBaryShapeLineA}[1]{\FigBaryShapeA{#1}{0} & \FigBaryShapeA{#1}{1} & \FigBaryShapeA{#1}{2} & \FigBaryShapeA{#1}{3} & \FigBaryShapeA{#1}{4}}
+%
+\newcommand{\FigBaryShapeB}[2]{\includegraphics[width=.067\linewidth,trim=160 65 150 55,clip]{barycenters-shapes/mushroom-torus-hand1-trim-star/barycenter-#1-#2}}
+\newcommand{\FigBaryShapeLineB}[1]{\FigBaryShapeB{#1}{0} & \FigBaryShapeB{#1}{1} & \FigBaryShapeB{#1}{2} & \FigBaryShapeB{#1}{3} & \FigBaryShapeB{#1}{4}}
+
+\begin{figure}
+\centering
+%%% VOLUMETRIC SHAPES %%%
+\fbox{
+\begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}}
+\FigBaryShapeLineA{0} \\
+\FigBaryShapeLineA{1} \\
+\FigBaryShapeLineA{2} \\
+\FigBaryShapeLineA{3} \\
+\FigBaryShapeLineA{4}
+\end{tabular}
+}
+\qquad
+\fbox{
+\begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}}
+\FigBaryShapeLineB{0} \\
+\FigBaryShapeLineB{1} \\
+\FigBaryShapeLineB{2} \\
+\FigBaryShapeLineB{3} \\
+\FigBaryShapeLineB{4}
+\end{tabular}
+}
+\caption{\label{fig-barycenters-shapes}
+Barycenters between 4 input 3-D shapes using entropic regularization~\eqref{eq-entropic-bary}. The weights $(\la_s)_s$ are bilinear with respect to the four corners of the square.  
+%
+Shapes are represented as measures that are uniform within the boundaries of the shape and null outside.
+}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Wasserstein Loss}
+
+In statistics, text processing or imaging, one must usually compare a probability distribution $\be$ arising from measurements to a model, namely a parameterized family of distributions $\{\al_\th,\th\in\Theta\}$ where $\Theta$ is a subset of an Euclidean space. Such a comparison is done through a ``loss'' or a ``fidelity'' term, which, in this section, is the Wasserstein distance. 
+%
+In the simplest scenario, the computation of a suitable parameter $\th$ is obtained by minimizing directly
+\eql{\label{eq-wloss-generic}
+	\umin{\th \in \Theta} \Ee(\th) \eqdef \MK_\c(\al_\th,\be).
+}
+Of course, one can consider more complicated problems: for instance, the barycenter problem described in~\S\ref{sec-bary} consists in a sum of such terms. However, most of these more advanced problems can be usually solved by adapting tools defined for basic case: either using the chain rule to compute explicitly derivatives, or using automatic differentiation. %  as advocated in~\S\ref{rem-auto-diff}.
+
+The Wasserstein distance between two histograms or two densities is convex with respect to these inputs, as shown by~\eqref{eq-dual} and~\eqref{eq-dual-generic} respectively. Therefore, when the parameter $\theta$ is itself a histogram, namely $\Theta=\simplex_n$ and $\al_\theta=\theta$, or more generally when $\theta$ describes $K$ weights in the simplex, $\Theta=\simplex_K$, and $\alpha_\theta=\sum_{i=1}^K \theta_i \alpha_i$ is a convex combination of known atoms $\alpha_1,\dots,\alpha_K$ in $\simplex_N$, Problem~\eqref{eq-wloss-generic} remains convex (the first case corresponds to the barycenter problem, the second to one iteration of the dictionary learning problem with a Wasserstein loss~\cite{pmlr-v51-rolet16}). However, for more general parameterizations $\th\mapsto \al_\th$, Problem~\eqref{eq-wloss-generic} is in general not convex. 
+
+
+A practical problem of paramount importance in statistic and machine learning is density fitting. 
+%
+Given some discrete samples $(x_i)_{i=1}^n \subset \Xx$ from some unknown distribution, the goal is to fit a parametric model $\th \mapsto \al_\th \in \Mm(\Xx)$ to the observed empirical input measure $\be$
+\eql{\label{eq-density-fitting}
+	\umin{\th \in \Theta} \Ll(\al_\th,\be)
+	\qwhereq
+	\be = \frac{1}{n} \sum_i \de_{x_i}, 
+}
+where $\Ll$ is some ``loss'' function between a discrete and a ``continuous'' (arbitrary) distribution (see Figure~\ref{fig-density-fitting}). 
+
+In the case where $\al_\th$ as a densify $\density{\th} \eqdef \density{\al_\th}$ with respect to the Lebesgue measure (or any other fixed reference measure), the maximum likelihood estimator (MLE) is obtained by solving
+\eq{
+	\umin{\th} \Ll_{\text{MLE}}(\al_\th,\be) \eqdef -\sum_i \log(\density{\th}(x_i)). 
+}
+This corresponds to using an empirical counterpart of a Kullback-Leibler loss since, assuming the $x_i$ are i.i.d. samples of some $\bar\be$, then 
+\eq{
+	\Ll_{\text{MLE}}(\al,\be) \overset{n \rightarrow +\infty}{\longrightarrow} \KL(\al|\bar\be)
+}
+
+\begin{figure}
+\centering
+\includegraphics[width=.4\linewidth]{density-fitting/schematic-fitting}
+\caption{\label{fig-density-fitting}
+Schematic display of the density fitting problem~\ref{eq-density-fitting}.
+}
+\end{figure}
+
+
+\newcommand{\fPF}{h}
+
+This MLE approach is known to lead to optimal estimation procedures in many cases (see for instance~\cite{owen2001empirical}). However, it fails to work when estimating singular distributions, typically when the $\al_\th$ does not has a density (so that $\Ll_{\text{MLE}}(\al_\th,\be) = +\infty$) or when $(x_i)_i$ are samples from some singular $\bar\be$ (so that the $\al_\th$ should share the same support as $\be$ for $\KL(\al|\bar\be)$ to be finite, but this support is usually unknown). Another issue is that in several cases of practical interest, the density $\density{\th}$ is inaccessible (or too hard to compute).
+
+A typical setup where both problems (singular and unknown densities) occur is for so-called generative models, where the parametric measure is written as a push-forward of a fixed reference measure $\zeta \in \Mm(\Zz)$
+\eq{
+	\al_\th = \fPF_{\th,\sharp} \zeta \qwhereq \fPF_\th : \Zz \rightarrow \Xx
+}
+where the push-forward operator is introduced in Definition~\ref{defn-pushfwd}. The space $\Zz$ is usually low-dimensional, so that the support of $\al_\th$ is localized along a low-dimensional ``manifold'' and the resulting density is highly singular (it does not have a density with respect to Lebesgue measure).
+%
+Furthermore, computing this density is usually intractable, while generating i.i.d. samples from $\al_\th$ is achieved by computing $x_i=\fPF_\th(z_i)$ where $(z_i)_i$ are i.i.d. samples from $\zeta$.
+
+In order to cope with such difficult scenario, one has to use weak metrics in place of the MLE functional $\Ll_{\text{MLE}}$, which needs to be written in dual form as 
+\eql{\label{eq-dual-loss}
+	\Ll(\al,\be) \eqdef 
+	\umax{(\f,\g) \in \Cc(\X)^2} 
+	\enscond{ \int_{\X} \f(x) \d\al(x) + \int_{\X} \g(x) \d\be(x) }{ (\f,\g) \in \Potentials}.
+}
+Dual norms exposed in~\S\ref{sec-dual-norms} correspond to imposing $\Potentials = \enscond{(\f,-\f)}{\f \in B}$, while optimal transport~\eqref{eq-dual-generic} sets $\Potentials = \Potentials(c)$ as defined in~\eqref{eq-dfn-pot-dual}. 
+
+For a fixed $\th$, evaluating the energy to be minimized in~\eqref{eq-density-fitting} using such a loss function corresponds to solving a semi-discrete optimal transport, which is the focus of Chapter~\ref{c-algo-semidiscr}. Minimizing the energy with respect to $\th$ is much more involved, and is typically highly non-convex.
+
+The class of estimators obtained using $\Ll=\MK_\c$, often called ``Minimum Kantorovitch Estimators'' (MKE), was initially introduced in~\cite{bassetti2006minimum}, see also~\cite{CanasRosasco}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Gradient flows}
+
+OT as $W_2$ metric on points. 
+Study of mean field limits.
+   Eulerian vs Lagrangian derivative 
+   Fokker planck, Langevin flows
+   Application to neural net training and other functional over measures
