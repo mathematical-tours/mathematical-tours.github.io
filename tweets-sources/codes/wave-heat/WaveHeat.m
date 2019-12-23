@@ -50,20 +50,20 @@ switch name
     case 'wave'
         % heat, df^2/dt = Delta(f)
         niter = 7000;
-        tau = .002;        
+        tau = .002;
 end
 
 
 
 % svg run
-ndisp = max(1,ceil(niter/50)); k = 0; 
+ndisp = max(1,ceil(niter/50)); k = 0;
 %
 f  = f0;
 f1 = f0;
-for i=1:niter    
+for i=1:niter
     if mod(i,ndisp)==1
         k = k+1;
-        % display 
+        % display
         g = f/max(abs(f(:)));
         r = 16; % #levellines
         clf; hold on;

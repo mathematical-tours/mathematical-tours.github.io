@@ -2,9 +2,9 @@
 % Burgers equation in 1D
 % df/dt = -d/dx( f^2 )
 
-name = 'box';
 name = 'sine';
 name = 'gauss';
+name = 'box';
 
 addpath('../toolbox/');
 rep = MkResRep(name);
@@ -16,7 +16,7 @@ t = (0:n-1)'/n;
 
 
 
-xi = .01/6; % diffusivity
+
 
 switch name
     case 'gauss'
@@ -29,16 +29,44 @@ switch name
         Tmax = 1.5;
     case 'box';
         f0 = abs(t-.15)<.1;
-        Tmax = 1.8;
+        f0 = abs(t-.3)<.05;
+        Tmax = 2.3;
         xi = .01/5; % diffusivity
 end
 
-tau = 1/xi * .8/n^2;
+
+xi = .1; % diffusivity
+Tmax = .2;
+
+
+
+
+% high diffusion
+xi = 2; 
+Tmax = .03;
+
+% low diffusion
+xi = .01/7; 
+Tmax = 2.3;
+
+
+% medium diffusion
+xi = .015; 
+Tmax = 2;
+
+
+
+tau = 1/xi * .1/n^2;
 
 niter = round(Tmax/tau);
 
 dx = @(f)n * ( f([2:end 1])-f([end 1:end-1]) )/2;
 ddx = @(f)n^2 * ( f([2:end 1])+f([end 1:end-1])-2*f ) / 2;
+
+dx = @(f)n * ( f([2:end end])-f([1 1:end-1]) )/2;
+ddx = @(f)n^2 * ( f([2:end end])+f([1 1:end-1])-2*f ) / 2;
+
+
 
 q = 40;
 ndisp = round(linspace(1,niter,q));

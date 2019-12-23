@@ -63,7 +63,7 @@ plot(1:n*q, f1, 'b');
 plot(1:n*q, g1, 'r');
 axis tight; box on;
 
-return;
+% return;
 
 %%
 % Compare with cubic splines

@@ -16,7 +16,7 @@ which must be related one from each other by dyadic scaling and must also be sta
 \eq{
 	f \in V_j \quad\Longleftrightarrow\quad f(\cdot/2) \in V_{j+1}
 	\qandq
-	f \in V_j \quad\Longleftrightarrow\quad \foralls n \in \ZZ, \: f(\cdot+t2^j) \in V_{j}
+	f \in V_j \quad\Longleftrightarrow\quad \foralls n \in \ZZ, \: f(\cdot + n 2^j) \in V_{j}
 }
 So large $j$ corresponds to coarse approximation spaces, and $2^j$ is often call the ``scale''.
 
@@ -26,19 +26,37 @@ The limit on the left of~\eqref{eq-nested-spaces} means that $\cup_j V_j$ is den
 }
 The limit on the right of~\eqref{eq-nested-spaces} means that $\cap_j V_j = \{0\}$, or equivalently that $P_{V_j}(f) \rightarrow 0$ as $j \rightarrow +\infty$.
 
+The first example is piecewise constant functions on dyadic intervals
+\eql{\label{eq-haar-multires}
+	V_j = \enscond{f \in L^2(\RR)}{\forall n, f \text{ is constant on } [2^j n, 2^j (n+1)[}, 
+}
+
+A second example is the space used for Shannon interpolation of bandlimitted signals
+\eql{\label{eq-shannon-multires}
+	V_j = \enscond{f}{ \Supp(\hat f) \subset [-2^{-j}\pi,2^{-j} \pi] } 
+}
+which corresponds to function which can be exactly represented using samples $f(2^j n)$ (to be compared with piecewise constant signal on a grid with spacing $2^j$). In this case, the orthogonal projection is the bandlimitting operator 
+\eq{
+	P_{V_j}(f) = \Ff^{-1}( \hat f \odot 1_{[-2^{-j}\pi,2^{-j} \pi]} ). 
+}
+
 %%
 \paragraph{Scaling functions.}
 
 We also require that there exists a scaling function $\phi \in L^2(\RR)$ so that  
 \eq{
-	\{ \phi(\cdot-n) \}_n \text{ is an Hilertian orthonormal basis of } V_0.
+	\{\phi(\cdot-n) \}_n  
+	\text{ is an Hilertian orthonormal basis of } 
+	V_0.
 }
 By the dilation property, this implies that 
 \eq{
-	\{ \phi_{j,n} \}_n \text{ is an Hilertian orthonormal basis of } V_j
+	\{ \phi_{j,n} \}_n \text{ is an Hilertian orthonormal basis of } V_j
 	\qwhereq
 	\phi_{j,n} \eqdef \frac{1}{2^{j/2}} \phi\pa{ \frac{\cdot - 2^j n}{2^j} }.
 }
+The normalization is such to ensure $\norm{\phi_{j,n}} = 1$. 
+
 Note that one then has
 \eq{
 	P_{V_j}(f) = \sum_n \dotp{f}{\phi_{j,n}} \phi_{j,n}. 
@@ -58,16 +76,26 @@ $\phi_{j,0}$ & $\phi_{j+1,2}$ & $\phi_{j-1,}$
 }{fig-multires-1d}
 
 
-A typical example is approximation by piecewise constant signals
-\eql{\label{eq-haar-multires}
-	V_j \eqdef \enscond{f \in L^2(\RR)}{\forall n, f \text{ is constant on } [2^j n, 2^j (n+1)[}, 
+For the case of piecewise constant signals~\eqref{eq-haar-multires}, one can use 
+\eq{
+	\phi = 1_{[0,1[}
+	\qandq 
+	\phi_{j,n} = 2^{-j/2}1_{[2^j n, 2^j (n+1)[}.
 }
-in which case one can use $\phi = 1_{[0,1[}$ and $\phi_{j,n} = 2^{-j/2}1_{[2^j n, 2^j (n+1)[}$ .
+
+For the case of Shannon multiresolution~\eqref{eq-shannon-multires}, one can use 
+$\phi(t) = \sin(\pi t)/(\pi t)$ and one verifies
+\eq{
+	\dotp{f}{\phi_{j,n}} = f(2^j n)
+	\qandq
+	f = \sum_n f(2^j n) \phi_{j,n}. 
+}
 
 \myfigure{
 \image{wavelets}{.3}{multires-1d-haar-wavelet}
 \image{wavelets}{.3}{multires-1d-haar-scaling}
 }{%
+	\textbf{BUG: the elevation should be $2^{-j/2}$ and not $2^{j/2}$}
 	Haar scaling (left) and wavelet (right) functions.%	
 }{fig-haard-scaling-wav} 
 
@@ -75,6 +103,8 @@ in which case one can use $\phi = 1_{[0,1[}$ and $\phi_{j,n} = 2^{-j/2}1_{[2^j n
 \paragraph{Spectral orthogonalization.}
 
 In many case of practical interest, the space $V_j$ is describe by a translation-invariant basis which is not-orthogonal, $V_j=\Span(\th(\cdot-n))_{n \in \ZZ}$. The following proposition shows how to orthogonalize it using the Fourier transform.
+%
+Figure~\ref{fig-spline-ortho} shows how it leads to cardinal spline orthogonal functions.
 
 \begin{prop}\label{prop-spectral-ortho}
 	For $\th \in L^2(\RR)$ (assumed regular and with fast enough decay), $\{\th(\cdot-n)\}_{n \in \ZZ}$ is orthonormal if and only if
@@ -88,6 +118,12 @@ In many case of practical interest, the space $V_j$ is describe by a translation
 	is such that $\{\phi(\cdot-n)\}_{n \in \ZZ}$ is an Hilbertian basis of $\Span\{\th(\cdot-n)\}_{n \in \ZZ}$.
 \end{prop}
 
+
+\myfigure{
+\image{wavelets}{.5}{spline-ortho}
+}{Orthogonalization of b-spline to defines cardinal orthogonal spline functions. 
+}{fig-spline-ortho} 
+
 \begin{proof}
 	One has that $\{\th(\cdot-n)\}_{n \in \ZZ}$ is orthonormal if and only if 
 	\eq{
@@ -97,11 +133,15 @@ In many case of practical interest, the space $V_j$ is describe by a translation
 			1 \quad\text{otherwise.}
 		}
 	}
-	where $\bar\th=\th(?\cdot)$ and $\de_0$ is the discrete Dirac vector. 
+	where $\bar\th=\th(-\cdot)$ and $\de_0$ is the discrete Dirac vector. 
 	%
-	The Poisson summation formula~\eqref{eq-poisson-formula} then reads
+	Recall the Poisson summation formula~\eqref{eq-poisson-formula} for any function $h$ 
 	\eq{
-		\sum_n \Ff(\th \star \bar\th)(\om-2\pi n) = \sum_n  \de_{0,n} e^{-\imath \om} = 1.
+		\sum_n h(\om - 2 n \pi) = \sum_n h(n) e^{-\imath n \om}
+	}
+	which here reads
+	\eq{
+		\sum_n \Ff(\th \star \bar\th)(\om-2\pi n) = \sum_n  \de_{0,n} e^{-\imath n \om} = 1.
 	}
 	We conclude with the Fourier-convolution formula~\eqref{eq-convol-fourier} shows that $\Ff(\th \star \bar\th)(\om)=\hat\th(\om)\hat\th(\om)^*=|\hat\th(\om)|^2$ which leads to the desired formula, and it is if and only if. 
 	%
@@ -123,7 +163,7 @@ This leads to the following sequence of embedded spaces
 \end{center}
 Once again, we suppose that $W_0$ has an Hilbertian ortho-basis of the form $\{\psi(\cdot-n)\}_n$, so that 
 \eq{
-	\{ \psi_{j,n} \}_n \text{ is an Hilertian orthonormal basis of } V_j
+	\{ \psi_{j,n} \}_n \text{ is an Hilertian orthonormal basis of } W_j
 	\qwhereq
 	\psi_{j,n} \eqdef \frac{1}{2^{j/2}} \psi\pa{ \frac{\cdot - 2^j n}{2^j} }.
 }
@@ -136,9 +176,9 @@ Due to the orthogonal complementarity property, one has
 This means that for all $f \in L^2(\RR)$, one has the following convergence in $L^2(\RR)$, 
 \eq{
 	f = 
-	\lim_{(j_-,j_+) \rightarrow (-\infty,+\infty)} \sum_{j=j_-}^{j_+} P_{V_j} f
+	\lim_{(j_-,j_+) \rightarrow (-\infty,+\infty)} \sum_{j=j_-}^{j_+} P_{W_j} f
 	= 
-	\lim_{j_+ \rightarrow +\infty} P_{j_0} f +  \sum_{j=j_0}^{j_+} P_{V_j} f. 
+	\lim_{j_+ \rightarrow +\infty} P_{V_{j_0}} f +  \sum_{j=j_0}^{j_+} P_{W_j} f. 
 }
 This decomposition shows that 
 \eq{
@@ -206,6 +246,19 @@ $P_{V_{-5}} f$ & $P_{W_{-5}} f$
 Figure~\ref{fig-haar-appr-details} shows examples of projections on details spaces, and how they can be derived from projection on approximation spaces. 
 
 
+%%
+\paragraph{Shannon and splines.}
+
+Figure~\ref{fig-spline-vs-shannon} shows that Shannon and splines corresponds to a hard and a soft segmentation of the frequency domain (Shannon being in some sense the high degree limit of splines).
+
+
+\myfigure{
+\image{wavelets}{.5}{spline-vs-shannon}
+}{Spline and Shannon wavelet segmentation of the frequency axis.
+}{fig-spline-vs-shannon} 
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{On Bounded Domains}
 
@@ -218,9 +271,18 @@ The wavelet basis is thus define as
 	\enscond{\psi_{j,n}^P}{j \leq j_0, 0 \leq n < 2^{-j}} \cup 
 	\enscond{\phi_{j_0,n}^P}{0 \leq n < 2^{-j_0}}.
 }
-and one verifies that it defines an Hilbertian ortho-basis of $L^2(\TT)$.
+and one verifies that it defines an Hilbertian ortho-basis of $L^2(\TT)$, see Figure~\ref{fig-periodize}.
 %
 It is possible to define wavelet basis using Neumann (mirror) boundary conditions, but this is more involved.
+
+
+
+\myfigure{
+\image{wavelets}{.3}{periodize-1}\quad
+\image{wavelets}{.3}{periodize-2}
+}{Periodizing basis functions. This leads to considering only $0 \leq n 2^{-j}$, so that in practice one choose $j_0=0$. 
+}{fig-periodize} 
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -231,11 +293,11 @@ It is possible to define wavelet basis using Neumann (mirror) boundary condition
 
 We now work over $\RR/\ZZ$.
 %
-The modelling hypothesis is that one has acess to a discrete signal $a_J \in \RR^N$ with $N = 2^{-J}$ at some fixed scale $2^J$, and that this signal exactly matches the inner-product with the scaling functions, i.e.
+The modeling hypothesis is that one has access to a discrete signal $a_J \in \RR^N$ with $N = 2^{-J}$ at some fixed scale $2^J$, and that this signal exactly matches the inner-product with the scaling functions, i.e.
 \eql{\label{eq-hyp-wav-samples}
-	\foralls n, \in \{0,\ldots,N-1\}, \quad a_{J,n} = \dotp{f}{\phi_{J,n}^P}
+	\foralls n, \in \{0,\ldots,N-1\}, \quad a_{J,n} = \dotp{f}{\phi_{J,n}^P} \approx f(2^J n), 
 }
-for some function of interest $f$ we are sampling. This is equivalent to saying that the discretization process have exactly access to $P_{V_J}f$. This hypothesis is questionnable, and similar to the Shannon bandlimit assumption. In practice, the scaling functions $\phi_{j,n}$ are often quite close to the point-spread function of the acquisition device, so it is acceptable. One can however improves this by correcting the acquired values by the device to be closer to asumption~\eqref{eq-hyp-wav-samples}.
+for some function of interest $f$ we are sampling. This is equivalent to saying that the discretization process have exactly access to $P_{V_J}f$. This hypothesis is questionnable, and similar to the Shannon bandlimit assumption. In practice, the scaling functions $(\phi_{J,n})_n$ are often quite close to the point-spread function of the acquisition device, so it is acceptable. One can however improves this by correcting the acquired values by the device to be closer to asumption~\eqref{eq-hyp-wav-samples}.
 
 The discrete wavelet transform then computes, from this input $a_J$, all the coefficients 
 \eq{
@@ -286,12 +348,20 @@ The algorithm proceeds by computing a series of simple operators
 }
 The number of such steps is thus $|J|=\log_2(N)$. Each $\Ww_j$ is orthogonal since it corresponds to linear maps between coefficients in orthogonal bases. 
 
-In order to describe the algorihm that computes $\Ww_j$, we introduce the filters ``filter'' coefficients $f, g \in \RR^\ZZ$
+In order to describe the algorithm that computes $\Ww_j$, we introduce the filters ``filter'' coefficients $f, g \in \RR^\ZZ$
 \eql{\label{eq-dfn-h-g}
 	h_n \eqdef \frac{1}{\sqrt{2}} \dotp{ \phi(\cdot/2) }{\phi(\cdot-n)}
 	\qandq
 	g_n \eqdef \frac{1}{\sqrt{2}} \dotp{ \psi(\cdot/2) }{\phi(\cdot-n)}.
 }
+Figure~\ref{fig-haar-inner} illustrates the computation of these weights for the Haar system.
+
+\myfigure{
+\image{wavelets}{.3}{haar-inner}
+}{Haar wavelets weights as inner products. 
+}{fig-haar-inner} 
+
+
 We denote as $\downarrow_2 : \RR^K \rightarrow \RR^{K/2}$ the subsampling operator by a factor of 2, i.e.
 \eq{
 	u\downarrow_2 \eqdef (u_0,u_2,u_4,\ldots,u_{K-2},u_K).
@@ -315,7 +385,7 @@ We note that $\phi(\cdot/2)$ and $\psi(\cdot/2)$ are in $\Ww_j$, so one has the 
 }
 Doing the change of variable $t \mapsto \frac{t-2^j p}{2^{j-1}}$ in~\eqref{eq-phipsi-recurse-1}, one obtains
 \eq{
-	\frac{1}{\sqrt{2}} \phi\pa{ \frac{t-2^j p}{2^j} }  = \sum_n h_n \phi\pa{ \frac{t}{2^{j-1}}-(n+2p)}
+	\frac{1}{\sqrt{2}} \phi\pa{ \frac{t-2^j p}{2^j} }  = \sum_n h_n \phi\pa{ \frac{t}{2^{j-1}}-(n+2p)}
 }
 (similarly for $\psi$) and then doing the change $n \mapsto n-2p$, one obtains
 \eq{
@@ -346,7 +416,7 @@ Figure~\ref{fig-filterbank-fwd} shows two steps of application of these refineme
 
 The FWT thus operates as follow:
 \begin{rs}
-	\item \textbf{Input:} signal $f \in \CC^N$.
+	\item \textbf{Input:} signal $f \in \CC^N$.
 	\item \textbf{Initialization:} $a_J = f$.
 	\item \textbf{For} $j=J,\ldots,j_0-1$.
 		\eq{
@@ -403,7 +473,7 @@ This corresponds to the filters
 }
 The Haar wavelet transform algorithm thus processes by iterating averaging and differences:
 \begin{rs}
-	\item \textbf{Input:} signal $f \in \CC^N$.
+	\item \textbf{Input:} signal $f \in \CC^N$.
 	\item \textbf{Initialization:} $a_J = f$.
 	\item \textbf{For} $j=J,\ldots,j_0-1$.
 		\eq{
@@ -419,7 +489,7 @@ The Haar wavelet transform algorithm thus processes by iterating averaging and d
 The inverse algorithm proceeds by inverting each step~\eqref{eq-wavelet-step}
 \eql{\label{eq-wavelet-step}
 	\foralls j = 0, \ldots, J+1, \quad 
-	a_{j-1} = \Ww_j^{-1}(a_{j},d_{j}), 
+	a_{j-1} = \Ww_j^{-1}(a_{j},d_{j}) = \Ww_j^*(a_{j},d_{j}), 
 }
 where $\Ww_j^{*}$ is the adjoint for the canonical inner product on $\RR^{2^{-j+1}}$ , i.e. when viewed as a matrix, the transpose.
 
@@ -462,7 +532,7 @@ Indeed, let us check this for the convolution, assuming involved sequences are i
 }
 for the copying
 \eq{
-	\dotp{\Dd(a)}{(u,v)} = \dotp{a}{u} + \dotp{b}{u} = \dotp{a}{u+v} = \dotp{a}{\Dd^*(u,v)}, 
+	\dotp{\Dd(a)}{(u,v)} = \dotp{a}{u} + \dotp{a}{v} = \dotp{a}{u+v} = \dotp{a}{\Dd^*(u,v)}, 
 }
 and for the down-sampling
 \eq{
@@ -727,7 +797,7 @@ These steps can be applied in place, so that the coefficients are stored in an i
 
 The 2-D FWT algorithm iterates these steps through the scales:
 \begin{rs}
-	\item \textbf{Input:} signal $f \in \CC^N$.
+	\item \textbf{Input:} signal $f \in \CC^N$.
 	\item \textbf{Initialization:} $a_J = f$.
 	\item \textbf{For} $j=J,\ldots,j_0-1$.
 		\eq{
@@ -835,11 +905,11 @@ The refinement equation reads like a discrete-continuous convolution (or equival
 Denoting $h \star \phi$ such a convolution, assuming $h \in \ell_1(\ZZ)$ and $\phi \in L^1(\RR)$, one check that one can apply Fubini and that $h \star \phi \in L^1(\RR)$ and then 
 \begin{align*}
 	\Ff( \sum_{n \in \ZZ} h_n \phi(t-n) )(\om) &= \int_\RR \sum_{n \in \ZZ} h_n \phi(t-n) e^{-\imath \om t} \d t
-	= \sum_{n \in \ZZ} h_n \int_\RR \phi(t-n) e^{-\imath \om t} \d t \\
+	= \sum_{n \in \ZZ} h_n \int_\RR \phi(t-n) e^{-\imath \om t} \d t \\
 	& = \sum_{n \in \ZZ} h_n e^{-\imath n \om } \int_\RR \phi(x) e^{-\imath \om x} \d x
 	= \hat \phi(\om) \hat h(\om)
 \end{align*}
-where we made the change of variable $x = t-n$. Note that here, $h(\om)$ is the $2\pi$-periodic Fourier transform (i.e. Fourier series) of infinite filters defined in~\eqref{eq-fourier-tr-infi}, whereas $\hat\phi(\om)$ is the Fourier transform of function. This is thus a product of a $2\pi$-periodic function $\hat h$ and a non-periodic function $\hat \phi$. 
+where we made the change of variable $x = t-n$. Note that here, $\hat h(\om)$ is the $2\pi$-periodic Fourier transform (i.e. Fourier series) of infinite filters defined in~\eqref{eq-fourier-tr-infi}, whereas $\hat\phi(\om)$ is the Fourier transform of function. This is thus a product of a $2\pi$-periodic function $\hat h$ and a non-periodic function $\hat \phi$. 
 %
 We recall that $\Ff(f(\cdot/s)) = s \hat f(s \cdot)$.
 %
@@ -858,24 +928,24 @@ The orthogonality of $\phi(\cdot-n) \}_n$ is rewritten using a continuous convol
 	\foralls n \in \ZZ, \quad \phi \star \bar \phi(n)=\de_0
 }
 where $\bar \phi(x) = \phi(-x)$, 
-and thus over the Fourier domain, using~\eqref{eq-wav-proof-refine-fourier} which shows $\hat\phi\om) = \frac{1}{\sqrt{2}}\hat h(\om/2) \hat \phi(\om/2)$
+and thus over the Fourier domain, using~\eqref{eq-wav-proof-refine-fourier} which shows $\hat\phi(\om) = \frac{1}{\sqrt{2}}\hat h(\om/2) \hat \phi(\om/2)$
 \eq{
 	1 = \sum_k |\hat \phi(\om+2k\pi)|^2 = \frac{1}{2}\sum_k |\hat h(\om/2+k\pi)|^2 |\hat \phi(\om/2+k\pi)|^2.
 }
 Since $\hat h$ is $2\pi$-periodic, one can split even and odd $k$ and obtain
 \eq{
-	2 = |h(\om/2)|^2 \sum_k |\hat \phi(\om/2+2k\pi)|^2 +
-	    |h(\om/2+\pi)|^2 \sum_k |\hat \phi(\om/2+2k\pi+\pi)|^2
+	2 = |\hat h(\om/2)|^2 \sum_k |\hat \phi(\om/2+2k\pi)|^2 +
+	    |\hat h(\om/2+\pi)|^2 \sum_k |\hat \phi(\om/2+2k\pi+\pi)|^2
 }
 This leads to condition~\eqref{eq-cond-h-2}. Re-using the fact that $\sum_k |\hat \phi(\om+2k\pi)|^2=1$ for $\om'=\om/2$ in place of $\om$, one thus has 
 \eq{
-	|h(\om')|^2+|h(\om'+\pi)|^2 = 2.
+	|\hat h(\om')|^2+|\hat h(\om'+\pi)|^2 = 2.
 }
 
 %%
 We do not prove the converse statement, which requires to ``create'' a function $\phi$ from the filter $h$. The intuition is that iterating~\eqref{eq-wav-proof-refine-fourier} leads informally to
 \eql{\label{eq-dfn-cascade-inf}
-	\phi(\om) = \prod_{k < 0} \frac{\hat h(\om/2^k)}{\sqrt{2}}.
+	\hat \phi(\om) = \prod_{k < 0} \frac{\hat h(\om/2^k)}{\sqrt{2}}.
 }
 Condition~\eqref{eq-cond-h-star} can be shown to imply that this infinite product converge, and define a (non-periodic) function in $L^2(\RR)$.
 \end{proof}
@@ -891,6 +961,13 @@ We now introduce the following two conditions on a pair of filter $(g,h)$
 	\label{eq-cond-g-1}\tag{$C_3$}  |\hat g(\om)|^2 + |\hat g(\om+\pi)|^2&=2  \\
 	\label{eq-cond-g-2}\tag{$C_4$}   \hat g(\om) \hat h(\om)^* + \hat g(\om+\pi) \hat h(\om+\pi)^*&=0.
 \end{align}
+Figure~\ref{fig-filter-constr} illustrates this constraint. 
+
+\myfigure{
+\image{wavelets}{.3}{filter-constr}
+}{Low/high pass filter constraint. 
+}{fig-filter-constr} 
+
 
 
 \begin{thm}\label{thm-wave-h}
@@ -943,6 +1020,9 @@ and hence over the Fourier domain (using Poisson formula, similarly to Propositi
 }
 Using the Fourier domain refinement equations~\eqref{eq-wav-proof-refine-fourier} and~\eqref{eq-ref-fourier-wav}, this is equivalent to condition~\eqref{eq-cond-g-2}.
 \end{proof}
+
+
+
 
 
 %%
@@ -1006,9 +1086,15 @@ A wavelet $\psi$ has $p$ vanishing moments if
 \eql{\label{eq-dfn-vm}
 	\foralls k \leq p-1, \quad \int_\RR \psi(x) \, x^k \d x = 0.
 }
-This ensures that $\dotp{f}{\psi_{j,n}}$ is small if $f$ is $\Cal$, $\al<p$ on Supp$(\psi_{j,n})$.
+This ensures that $\dotp{f}{\psi_{j,n}}$ is small if $f$ is $\Cal$, $\al<p$ on Supp$(\psi_{j,n})$, which can be seen by doing a Taylor expansion of $f$ around the point $2^j n$ on the support of the wavelet.
+%
+This condition is equivalently expressed over Fourier as followed (see Fig.~\ref{fig-vanmoments}).
 
-This condition can be equivalently expressed over Fourier as followed.
+\myfigure{
+\image{wavelets}{.3}{vanmoments}
+}{%
+	Wanishing moment condition as zero derivative conditions.
+}{fig-vanmoments}
 
 \begin{prop}
 Assuming enough regularity of $\psi$, and using the QMF construction~\eqref{eq-qmf}, it has $p$ vanishing moments if and only if

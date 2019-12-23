@@ -52,6 +52,9 @@ imwrite(rescale(x), [rep 'q' num2str(q) '-image.png']);
 hx = myhist(x(:),0:q-1);
 Tx = compute_hufftree(hx);
 
+clf;
+imageplot({x0 x});
+
 clf; 
 bar(0:q-1, hx); axis tight;
 myaxis(0:qmax-1, hx);

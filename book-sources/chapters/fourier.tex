@@ -32,7 +32,16 @@ where the convergence is in the sense of $\norm{f}^2 \eqdef \dotp{f}{f}$, i.e. $
 	\norm{f}^2 = \sum_n \dotp{f}{\phi_n}^2.
 }
 
-A way to construct such an ortho-basis is using Gram-Schmidt orthogonalization procedure. On $L^2([0,1])$ equipped with the usual inner product, orthogonalization of monomials defines the Legendre polynomials. On $L^2(\RR)$ equipped with a Gaussian measure, this leads to functions of the form $P_n(x) e^{-x^2}$ where $P_n$ are Laguerre polynomials. Intuitively, orthogonality forces $\phi_n$ to have $n$ ``oscillations'', e.g. orthogonal polynomials have exactly $n$ zeros.
+A way to construct such an ortho-basis is using Gram-Schmidt orthogonalization procedure. From some family $(\bar\phi_n)_n$, one defines $\phi_0=\bar\phi_0/\norm{\bar\phi_0}$, $\phi_n=\tilde\phi_n/\norm{\tilde\phi_n}$ where $\tilde\phi_n$ is computed as  $\tilde\phi_n=\bar\phi_n - \sum_{i<n} a_i \phi_i$, and by orthogonality $a_i = \dotp{\bar \phi_n}{\phi_i}$. 
+
+On $L^2([-1,1])$ equipped with the usual inner product, orthogonalization of monomials defines the Legendre polynomials, so that
+\eq{
+	\phi_0(x)=1, \quad \phi_1(x)=x, \quad \phi_2(x) = \frac{1}{2}(3x^2-1), \quad \text{etc.}
+}
+On $L^2(\RR)$ equipped with a Gaussian measure $e^{x^2}\d x$, this leads to functions of the form $P_n(x) e^{-x^2}$ where $P_n$ are Hermite polynomials, $P_0(x)=1, P_1(x)=x, P_2(x)=x^2-1$. Intuitively, orthogonality forces $\phi_n$ to have $n$ ``oscillations'', e.g. orthogonal polynomials have exactly $n$ zeros.
+
+Another example is provided by the Shannon interpolation theorem, which states that $( \sinc(x-n) )_n$ is an orthogonal basis of $\enscond{f}{\supp(\hat f) \subset [-\pi,\pi]}$ and the reconstruction formula is $f=\sum_n f(n) \sinc(x-n)$ so that $f_n = \dotp{f}{\sinc(x-n)}$. The convergence is in $L^2$ but it is actually also pointwise as shown in the proof of the previous chapter. 
+
 
 Another way (that we do not detail here) to construct orthogonal bases is to consider the eigenvectors of some symmetric operator. We will show bellow that Fourier bases can be obtained this way, by considering translation-invariant operators (convolutions). 
 
@@ -149,8 +158,21 @@ For $(f,g) \in L^1(\XX)^2$ (so on $\XX=\TT$, also in any $L^p(\XX)$), one has
 } 
 which means that $\Ff$ is a morphism of algebra. For instance if $\XX=\RR$, its range is included in the algebra of continuous functions with vanishing limits in $\pm\infty$.
 
+As shown in Figure~\ref{fig-splines}
 
-\texttt{Associated code: fourier/test\_denoising.m}
+\begin{figure}
+\centering
+\includegraphics[width=.3\linewidth]{2-fourier/splines}
+\caption{\label{fig-splines}
+Cardinal splines are defined by successive convolutions;  
+}
+\end{figure}
+
+
+Note also that the convolution is used extensively in probability and statistics, because if we denote $f_X$ the probability density (with respect to Lebesgue or any measure) of some random vector $X$, then if $X$ and $Y$ are independent random variable, then $f_{X+Y}=f_X \star f_Y$. 
+
+
+\texttt{Associated code: fourier/test\_denoising.m and fourier/test\_fft2.m}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Translation Invariant Operators}
@@ -173,6 +195,17 @@ We first study the case of convolution mapping to continuous functions.
 	}
 	with $g \in L^2(\XX)$.
 \end{prop}
+
+The heuristic proof using distributions is that $f(x) = (f\star \de)(x) = \int f(t) \de(x-t) \d t$ and thus by linearity
+\eq{
+	Hf = H( \int f(t) \de(\cdot-t) \d t ) = \int f(t) H(\de(\cdot-t)) \d t
+	=  \int f(t) H(T_t \de) \d t
+	\int f(t) T_t(H(\de)) \d t
+	\int f(t) H(\de)(\cdot -t) \d t
+	= f \star H(\de).
+}
+
+
 \begin{proof}
 	Thanks to~\eqref{eq-young-convol} (and the remark in the case $r=\infty$), $T : f \mapsto f \star g$ with $g \in L^2(\XX)$ is indeed a continuous operator from $L^2(\XX)$ to $C^0(\XX)$.  Furthermore
 	\eq{
@@ -183,7 +216,7 @@ We first study the case of convolution mapping to continuous functions.
 	
 	Conversely, we define $\ell : f \mapsto H(f)(0) \in \RR$, which is legit since $H(f) \in \Cc^0(\XX)$. 
 	%
-	Since $H$ is continuous, there exists $C$ such that $\norm{Hf}_\infty \leq C \norm{f}_2$, and hence $|\ell(f)| \leq C \norm{f}_2$, so that $f$ is a continuous linear form on the Hilbert space $L^2(\XX)$. Hence, according to Fréchet-Riesz theorem, there exists $h \in L^2(\XX)$ such that $\ell(f)=\dotp{f}{h}$.
+	Since $H$ is continuous, there exists $C$ such that $\norm{Hf}_\infty \leq C \norm{f}_2$, and hence $|\ell(f)| \leq C \norm{f}_2$, so that $f$ is a continuous linear form on the Hilbert space $L^2(\XX)$. Hence, according to Fr\'echet-Riesz theorem, there exists $h \in L^2(\XX)$ such that $\ell(f)=\dotp{f}{h}$.
 	%
 	Hence, $\foralls x \in \XX$, 
 	\eq{
@@ -262,7 +295,7 @@ The Poisson formula~\eqref{eq-poisson-bis} can thus be interpreted as
 }
 Since $\Ff^{-1} = \frac{1}{2\pi} \Ss \circ \Ff$ where $\Ss(f)=f(-\cdot)$, one has, applying this operator on both sides
 \eq{
-	\Pi_1 \odot f = \frac{1}{2\pi} \Ss \circ \Ff(\hat f \star \Pi_{2\pi}) =  \Ss(  \frac{1}{2\pi} \Ff(\hat f) \odot \hat\Pi_{2\pi})
+	\Pi_1 \odot f = \frac{1}{2\pi} \Ss \circ \Ff(\hat f \star \Pi_{2\pi}) =  \Ss(  \frac{1}{2\pi} \Ff(\hat f) \odot \hat\Pi_{2\pi})
 	= \Ss(  \frac{1}{2\pi} \Ff(\hat f) ) \odot \Ss(\hat\Pi_{2\pi}) = \hat \Pi_{2\pi} \odot f.
 }
 This can be interpreted as the relation
@@ -319,7 +352,7 @@ This is not feasible for large datasets where $N$ is of the order of millions. W
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Discrete Fourier transform}
 
-We denote $f = (f_n)_{n=0}^{N-1} \in \RR^N$, but we insists that such vector should really be understood as being indexed by $n \in \ZZ/N\ZZ$, which is a finite commutative group for the addition. This corresponds to using periodic boundary conditions. 
+We denote $f = (f_n)_{n=0}^{N-1} \in \RR^N$, but we insists that such vector should really be understood as being indexed by $n \in \ZZ/N\ZZ$, which is a finite commutative group for the addition. This corresponds to using periodic boundary conditions. 
 
 The discrete Fourier transform is defined as
 \eql{\label{eq-dft}
@@ -382,6 +415,8 @@ where $\Ii_N$ is the ``interleaving'' operator, defined by $\Ii_N(a,b) \eqdef (a
 %
 There iterations define the so-called Fast Fourier Transform algorithm, which works here when $N$ is a power of 2. These iterations can be extended to arbitrary number $N$, but a workaround is to simply pad with 0 (or use more complicated extensions) to have vector with size that are power of $2$. 
 
+This algorithm can also be interpreted as a factorization of the Fourier matrix into $O(\log(N))$ product of matrices. 
+
 \begin{figure}
 \centering
 \includegraphics[width=.5\linewidth]{2-fourier/fft}
@@ -395,7 +430,7 @@ Denoting $C(N)$ the numerical complexity (number of elementary operations) assoc
 \eql{\label{eq-cplx-fft}
 	C(N) = 2C(N/2)+NK
 }
-where $K$ is the complexity of $N$ complex additions and $N/2$ multiplications. Making the change of variable 
+where $K N$ is the complexity of $N$ complex additions and $N/2$ multiplications. Making the change of variable 
 \eq{
 	\ell \eqdef \log_2(N)
 	\qandq 
@@ -452,6 +487,7 @@ This is very advantageous with respect to the naive implementation of formula~\e
 }
 needs $3N$ operations.
 
+WARNING: this is wrong, one needs also to carie reminders in the multiplication. 
 An example of application of the FFT is the multiplication of large polynomial, and thus of large integers (viewing the expansion in a certain basis as a polynomial). Indeed
 \eq{
 	(\sum_{i=0}^A a_i X_i)( \sum_{j=0}^B b_i X^j ) = 
@@ -472,7 +508,7 @@ Beside computing convolutions, another major application of the FFT is to approx
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Fourier approximation via spatial zero padding.}
 
-It is possible to view the discrete finite Fourier transform~\eqref{eq-dft} as a first order approximation to compute Fourier coefficients, or rather actually samples from the Fourier transform~\eqref{eq-fourier-transform}. Supposing that $f$ is a smooth enough function is supported on $[0,1]$, we consider the discrete Fourier transform of the vector $f^Q \eqdef (f(n/N))_{n=0^{Q-1}} \in \RR^Q$  where $Q \geq N$ induced a padding by $0$ (since $f(n/N)=0$ for $n > N$)
+It is possible to view the discrete finite Fourier transform~\eqref{eq-dft} as a first order approximation to compute Fourier coefficients, or rather actually samples from the Fourier transform~\eqref{eq-fourier-transform}. Supposing that $f$ is a smooth enough function is supported on $[0,1]$, we consider the discrete Fourier transform of the vector $f^Q \eqdef (f(n/N))_{n=0}^{Q-1} \in \RR^Q$  where $Q \geq N$ induced a padding by $0$ (since $f(n/N)=0$ for $n > N$)
 \eq{
 	\foralls k \in \range{-\frac{Q}{2},\frac{Q}{2}}, \quad
 	\frac{1}{N} \hat f_k^Q = \frac{1}{N} \sum_{n=0}^{N-1} f\pa{\frac{n}{N}} e^{-\frac{2\imath\pi}{Q} n k}
@@ -480,7 +516,8 @@ It is possible to view the discrete finite Fourier transform~\eqref{eq-dft} as a
 	\qwhereq
 	T \eqdef \frac{Q}{N}.
 }
-The approximation is first order accurate, i.e. $O(1/N)$ for a $C^1$ function $f$. Increasing the amount $Q$ of zero padding is a way to compute larger frequencies. Increasing the discretization precision $N$ is on contrary a way to increase the precision of the Fourier sampling (using smaller step size $2\pi/T$). 
+The approximation is first order accurate, i.e. $O(1/N)$ for a $C^1$ function $f$. 
+% FAUX Increasing the amount $Q$ of zero padding is a way to compute larger frequencies. Increasing the discretization precision $N$ is on contrary a way to increase the precision of the Fourier sampling (using smaller step size $2\pi/T$). 
 
 \begin{figure}
 \centering
@@ -492,8 +529,10 @@ Fourier transform approximation by zero-padding in the spatial domain.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Fourier approximation via spatial zero padding.}
+\subsection{Fourier interpolation via spectral zero padding.}
 
+One can reverse the roles of space and frequency in the previous construction. 
+%
 If one has at its disposal $N$ uniform discrete samples $f^N=(f^N_n)_{n=0}^{N-1}$, one can compute its discrete Fourier transform $\Ff(f^N) = \hat f^N$ (in $O(N \log(N))$ operations with the FFT), 
 \eq{
 	\hat f^N_k \eqdef \sum_{n=0}^{N-1} f^N_n e^{-\frac{2\imath\pi}{N} n k}, 
@@ -506,6 +545,8 @@ Indexing the frequencies as $-N' \leq k \leq N'$ The padding vector is of the fo
 \eq{
 	\tilde f^Q \eqdef (0,\ldots,0,\hat f^N,0,\ldots,0) \in \RR^Q
 } 
+
+WARNING: there is most likely an error in the following derivation, should be rewritten.
 One can then compute the (with a normalization constant $Q/N$) inverse discrete Fourier transform of size $Q$ (in $O(Q \log(Q))$ operations with the FFT) to obtain
 \begin{align*}
 	\frac{Q}{N} \Ff^{-1}( \tilde f^Q )_\ell &= 
@@ -633,7 +674,7 @@ The basis $(\phi_k)_k$ is indeed orthonormal for this inner product. The Fourier
 	\foralls k \in \YY_d, \quad 
 	\hat f_k &\eqdef \sum_{n \in \YY_d} f_n e^{ -\imath \dotp{k}{n}_{\YY_d} }, \\
 	\foralls n \in \YY_d, \quad 
-	f_n &= \frac{1}{N} \sum_{k \in \YY_d} \hat f_k e^{ \imath \dotp{k}{n}_{\YY_d} }.
+	f_n &= \frac{1}{N} \sum_{k \in \YY_d} \hat f_k e^{ \imath \dotp{k}{n}_{\YY_d} }.
 \end{align*}
 
 
@@ -692,7 +733,7 @@ The sampling Theorem~\ref{thm-shannon-sampling} extends easily to $\RR^d$ by ten
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Convolution in higher dimension.}
 
-Convolution on $\XX^d$ with $\XX=\RR$ or $\XX=\RR/2\pi\ZZ$ are defined in the very same way as in 1-D~\eqref{eq-convol-1d} as
+Convolution on $\XX^d$ with $\XX=\RR$ or $\XX=\RR/2\pi\ZZ$ are defined in the very same way as in 1-D~\eqref{eq-convol-1d} as
 \eq{
 	f \star g(x) = \int_{\XX^d} f(t) g(x-t) \d t. 
 }
@@ -758,9 +799,9 @@ which is a Gaussian of standard deviation $\sqrt{2t}$.
 
 On $\RR/N\ZZ$ (i.e. discrete domains with periodic boundary conditions), one typically considers forward finite differences (first and second order)
 \begin{align}\label{eq-disc-diff-1}
-	D_1 f &\eqdef N (f_{n+1}-f_n)_n = f \star d_1 \qwhereq d_1 = [-1,0,\ldots,0,1]^\top \in \RR^N, \\
+	D_1 f &\eqdef N (f_{n+1}-f_n)_n = f \star d_1 \qwhereq d_1 = [1,0,\ldots,0,-1]^\top \in \RR^N, \\
 	\label{eq-disc-diff-2}
-	D_2 f = D_1^\top D_1 f & \eqdef N^2 (f_{n+1}+f_{n-1}-2f_n)_n = f \star d_2 \qwhereq d_2 = d_1 \star \bar d_1 = [2,-1,0,\ldots,0,-1]^\top \in \RR^N.
+	D_2 f = D_1^\top D_1 f & \eqdef N^2 (f_{n+1}+f_{n-1}-2f_n)_n = f \star d_2 \qwhereq d_2 = d_1 \star \bar d_1 = [-2,1,0,\ldots,0,1]^\top \in \RR^N.
 \end{align}
 \wrapf{2-fourier/finite-diff}{Comparison of the spectrum of $\De$ and $D_2$. }
 Thanks to Proposition~\ref{prop-tfd-conv}, one can alternatively computes
@@ -842,9 +883,9 @@ This construction, thanks to the structure theorem, leads to a constructive proo
 	} 
 	where we denoted $G_\ell \eqdef \ZZ/N_\ell\ZZ$. 
 	%
-	One then remark that  $\hat G_1 \otimes \hat G_2 \sim G_1 \times \hat G_2$.
+	One then remark that  $\hat G_1 \otimes \hat G_2 \sim \hat G_1 \times \hat G_2$.
 	%
-	One conclude thanks to Proposition~\ref{prop-iso-cyclic}, since one has $\hat G_k \sim G_k$.
+	One concludes thanks to Proposition~\ref{prop-iso-cyclic}, since one has $\hat G_k \sim G_k$.
 \end{proof}
 
 Note that the isomorphism $\hat G \sim G$ is not ``canonical'' since it depends on the indexing of the roots of unity on the circle. Similarly to the case of duality of vector space, the isomorphism $\hat{\hat{G}} \sim G$ can be made canonical by considering the evaluation map
@@ -876,7 +917,7 @@ by tensorizing these functions together, one thus obtains that the characters co
 
 For an infinite group with a finite number of generator, one has  $Q>0$, and the definition of $\hat G$ should impose the continuity of the characters (and also use an invariant measure on $G$ to define inner products). In the case $G=\ZZ$, the dual are indexed by a continuous parameter, 
 \eq{
-	\hat \ZZ = \enscond{ \phi_\om : n \mapsto e^{\imath n \om} \in L^2( \RR/2\pi\ZZ) }{  \om \in \RR/2\pi\ZZ }
+	\hat \ZZ = \enscond{ \phi_\om : n \mapsto e^{\imath n \om} \in \CC^\ZZ }{  \om \in \RR/2\pi\ZZ }
 }
 so that $\hat \ZZ \sim \RR/2\pi\ZZ$.
 %
@@ -887,13 +928,15 @@ The $(\phi_\om)_\om$ are ``orthogonal'' in the sense that $\dotp{\phi_\om}{\phi_
 The ``decomposition'' of a sequence $(c_n)_{n \in \ZZ}$ on the set of characters is equivalent to forming a Fourier series $\sum_n c_n e^{-\imath n \om}$. 
 
 Similarly, for $G=\RR/2\pi\ZZ$, one has $\hat G=\ZZ$, with orthonormal characters $\phi_n=e^{\imath \cdot n}$, so that the decomposition of functions in $L^2(G)$ is the computation of Fourier coefficients.
+%
+Intuitively, an Hilbertian theory is associated to a compact group, which comes with an invariant measure. 
 
 %%%
 \paragraph{Non-commutative groups.}
  
-For non-commutative group, one also observes that $G$ is not isometric to $\hat G$. A typical example is the symmetric group $\Si_N$ of $N$ elements, where one can show that $\hat G = \{\Id,\epsilon\}$ where $\epsilon(\si) = (-1)^{q}$ is the signature, where $q$ is the number of permutations involved in a decomposition of $\si \in \Si_N$. 
+For non-commutative group, one observes that $G$ is not isometric to $\hat G$. A typical example is the symmetric group $\Si_N$ of $N$ elements, where one can show that $\hat G = \{\Id,\epsilon\}$ where $\epsilon(\si) = (-1)^{q}$ is the signature, where $q$ is the number of permutations involved in a decomposition of $\si \in \Si_N$. 
 
-In order to study non-commutative groups, one has to replace morphisms $\chi : G \rightarrow \CC^*$ by morphisms $\rho : G \rightarrow \text{GL}(\CC^{n_\rho})$ for some $n_\rho$, which are called ``representations'' of the group $G$. For $(g,g') \in G$ (denoting now multiplicatively the operation on $G$), one should thus have $\rho(gg')=\rho(g) \circ \rho(g')$. When $n_\rho=1$, identifying $\text{GL}(\CC) \sim \CC^*$, one retrieve the definition of characters. Note that if $\rho$ is a representation, then $\chi(g) \eqdef \tr(\rho(g))$, where $\tr$ is the trace, defines a character. 
+In order to study non-commutative groups, one has to replace morphisms $\chi : G \rightarrow \CC^*$ by morphisms $\rho : G \rightarrow \text{GL}(\CC^{n_\rho})$ for some $n_\rho$, which are called ``representations'' of the group $G$. For $(g,g') \in G$ (denoting now multiplicatively the operation on $G$), one should thus have $\rho(gg')=\rho(g) \circ \rho(g')$. When $n_\rho=1$, identifying $\text{GL}(\CC) \sim \CC^*$, one retrieves the definition of characters. Note that if $\rho$ is a representation, then $\chi(g) \eqdef \tr(\rho(g))$, where $\tr$ is the trace, defines a character. 
 
 If there is a subspace $V$ stable by all the $\rho(g)$, one can build $W$ such that $\RR^{n_\rho}=V+W$ which is also stable, thus reducing the study of $\rho$ to the study on a small space (matrices have a block diagonal form). It suffice to consider the inner product
 \eq{
@@ -981,7 +1024,7 @@ This theory extends to compact group by considering a discrete but infinite set 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Bit of Spectral Theory}
 
-In order to define Fourier methods on general domains $\XX$, one can use the aforementioned group-theoretic approach if $\XX=G$ is a group, or also if a group acts transitively on $\XX$. An alternative way is to describe the equivalent of Fourier basis functions as diagonalizing a specific differential operator (as we have seen in Section~\ref{sec-fourier-pdes} that it is in some sense a way to characterise the Fourier basis). Of particular interest is the Laplacian, since it is the lowest order rotation-invariant differential operator, and that there exists natural generalization on domains such as surfaces or graphs.
+In order to define Fourier methods on general domains $\XX$, one can use the aforementioned group-theoretic approach if $\XX=G$ is a group, or also if a group acts transitively on $\XX$. An alternative way is to describe the equivalent of Fourier basis functions as diagonalizing a specific differential operator (as we have seen in Section~\ref{sec-fourier-pdes} that it is in some sense a way to characterise the Fourier basis). Of particular interest is the Laplacian, since it is the lowest order rotation-invariant differential operator, and that there exists natural generalization on domains such as surfaces or graphs.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1065,6 +1108,14 @@ This proposition shows that $\Delta$ is a negative semi-definite operator, which
 
 More details and application of Laplacians on graphs can be found in Chapter~\ref{chap-meshes}, see in particular Section~\ref{sec-grad-lapl-meshes}.
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Other things}
+
+Multiplication of polynomials (\texttt{Code text\_polymult.m}).
+
+Fourier transform for finite-field valued functions.
 
 
 

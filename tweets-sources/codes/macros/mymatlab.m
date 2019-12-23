@@ -141,6 +141,14 @@ for i=1:niter
     % ...
 end
 
+% arrrows
+clf; hold on;
+quiver(t,t,imag(U), real(U), 'k', 'filled', 'LineWidth', 1, 'AutoScaleFactor', .7);
+g = .07;
+axis([-g 1+g -g 1+g]);
+set(gca, 'PlotBoxAspectRatio', [1 1 1])
+box on;  axis off;
+
 
 % resample a curve using a fixed number of points
 

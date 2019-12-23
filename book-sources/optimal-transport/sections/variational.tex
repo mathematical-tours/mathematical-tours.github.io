@@ -4,201 +4,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Variational Problems}
+\section{Wasserstein Estimation}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Barycenters}
-
-formulation
-   1D, Gaussians
-   Sinkhorn barycenter:  pbm : choice of ref measure
-
-%%%%%% 
-\paragraph{Discrete barycenters}
-   
-Given input histogram $\{\b_s\}_{s=1}^S$, where $b_s \in \simplex_{n_s}$, and weights $\la \in \simplex_S$, a Wasserstein barycenter is computed by minimizing
-\eql{\label{eq-wass-discr}
-	\umin{\a \in \simplex_n} \sum_{s=1}^S \la_s \MKD_{\C_s}(\a,\b_s)
-}
-where the cost matrices $\C_s \in \RR^{n \times n_s}$ need to be specified. 
-%
-A typical setup is ``Eulerian'', so that all the barycenters are defined on the same grid, $n_s=n$, $\C_s=\C=\distD^p$ is set to be a distance matrix, so that one solves
-\eq{
-	\umin{\a \in \simplex_n} \sum_{s=1}^S \la_s \WassD_p^p(\a,\b_s). 
-}
-
-This barycenter problem~\eqref{eq-wass-discr} was originally introduced by~\cite{Carlier_wasserstein_barycenter} following earlier ideas of~\cite{carlierekelandmatching}. They proved in particular uniqueness of the barycenter for $c(x,y)=\norm{x-y}^2$ over $\X=\RR^d$, if one of the input measure has a density with respect to the Lebesgue measure (and more generally under the same hypothesis as the one guaranteeing the existence of a Monge map, see Remark~\ref{rem-exist-mongemap}).
-
-The barycenter problem for histograms~\eqref{eq-wass-discr} is in fact a linear program, since one can look for the $S$ couplings $(\P_s)_s$ between each input and the barycenter itself
-\eq{
-	\umin{\a \in \simplex_n, (\P_s \in \RR^{n \times n_s})_s } \enscond{
-		\sum_{s=1}^S \la_s \dotp{\P_s}{\C_s}
-	}{
-		\foralls s, \P_s^\top \ones_{n_s}=\a, \P_s^\top \ones_{n} = \b_s
-	}.
-}
-Although this problem is an LP, its scale forbids the use generic solvers for medium scale problems. One can therefore resort to using first order methods such as subgradient descent on the dual~\cite{Carlier-NumericsBarycenters}.
-
-%%%%%%%
-\paragraph{Barycenter of arbitrary measures}
-
-Given a set of input measure $(\be_s)_s$ defined on some space $\X$, the barycenter problem becomes 
-	\eql{\label{eq-barycenter-generic}
-		\umin{\al \in \Mm_+^1(\X)} \sum_{s=1}^S \la_s \MK_{\c}(\al,\be_s).
-	}
-	In the case where $\X=\RR^d$ and $c(x,y)=\norm{x-y}^2$,~\cite{Carlier_wasserstein_barycenter} shows that if one of the input measures has a density, then this barycenter is unique. 
-	%
-	Problem~\eqref{eq-barycenter-generic} can be viewed as a generalization of the problem of computing barycenters of points $(x_s)_{s=1}^S \in \X^S$ to arbitrary measures. Indeed, if $\be_s=\de_{x_s}$ is a single Dirac mass, then a solution to~\eqref{eq-barycenter-generic} is $\de_{x^\star}$ where $x^\star$ is a Fr\'echet mean solving~\eqref{eq-frechet-means}.
-	%
-	Note that for $c(x,y)=\norm{x-y}^2$, the mean of the barycenter $\al^\star$ is necessarily the barycenter of the mean, \emph{i.e.} 
-	\eq{
-		\int_\Xx x \d\al^\star(x) =  \sum_s \la_s \int_\Xx x \d\al_s(x), 
-	}
-	and the support of $\al^\star$ is located in the convex hull of the supports of the $(\al_s)_s$.
-	%
-	The consistency of the approximation of the infinite dimensional optimization~\eqref{eq-barycenter-generic} when approximating the input distribution using discrete ones (and thus solving~\eqref{eq-wass-discr} in place) is studied in~\cite{Carlier-NumericsBarycenters}.
-	%
-	Let us also note that it is possible to re-cast~\eqref{eq-barycenter-generic} as a multi-marginal OT problem, see Remark~\ref{eq-multimarg-bary}. 
-
-
-%%%%%%%
-\paragraph{Sinkhorn for barycenters}
-
-One can use entropic smoothing and approximate the solution of~\eqref{eq-wass-discr} using 
-\eql{\label{eq-entropic-bary}
-	\umin{\a \in \simplex_n} \sum_{s=1}^S \la_s \MKD_{\C_s}^\epsilon(\a,\b_s)
-}
-for some $\epsilon>0$. 
-%
-This is a smooth convex minimization problem, which can be tackled using gradient descent~\cite{CuturiBarycenter}. An alternative is to use descent method (typically quasi-Newton) on the semi-dual~\cite{2016-Cuturi-siims}, which is useful to integrate additional regularizations on the barycenter (e.g. to impose some smoothness).
-%
-A simple but effective approach, as remarked in~\cite{2015-benamou-cisc} is to rewrite~\eqref{eq-entropic-bary} as a (weighted) KL projection problem
-\eql{\label{eq-bary-entropy-couplings}
-	\umin{ (\P_s)_s } \enscond{ \sum_{s} \la_s \KLD( \P_s|\K_s ) }{
-		\foralls s, \transp{\P_s}\ones_m = \b_s, \:
-		\P_1\ones_1 =  \ldots = \P_S\ones_S
-	}
-}
-where we denoted $\K_s \eqdef e^{-\C_s/\epsilon}$. Here, the barycenter $\a$ is implicitly encoded in the row marginals of all the couplings $\P_s \in \RR^{n \times n_s}$ as $\a = \P_1\ones_1 =  \ldots = \P_S\ones_S$.
-%
-As detailed in~\cite{2015-benamou-cisc}, one can generalize Sinkhorn to this problem, which also corresponds to iterative projection. This can also be seen as a special case of the generalized Sinkhorn detailed in~\S\ref{sec-generalized}.
-%
-The optimal couplings $(\P_s)_s$ solving~\eqref{eq-bary-entropy-couplings} are computed in scaling form as 
-\eql{\label{eq-bary-opt}
-	\P_s=\diag(\uD_s)\K\diag(\vD_s), 
-}
-and the scalings are sequentially updated as
-\begin{align}\label{eq-sinkhorn-bary}
-	\foralls s \in \range{1,S}, \quad \itt{\vD}_s &\eqdef \frac{\b_s}{\transp{\K}_s \it{\uD}_s}, \\
-	\foralls s \in \range{1,S}, \quad  \itt{\uD}_s &\eqdef \frac{\itt{\a}}{\K_s \itt{\vD}_s}, \label{eq-sinkhorn-bary-2}\\
-		\qwhereq
-		\itt{\a} &\eqdef \prod_s (  \K_s \itt{\vD}_s )^{\la_s}. \label{eq-sinkhorn-bary-3}
-\end{align}
-An alternative way to derive these iterations is to perform alternate minimization on the variables of a dual problem, which detailed in the following proposition.
-
-\begin{prop}
-	The optimal $(\uD_s,\vD_s)$ appearing in~\eqref{eq-bary-opt} can be written as $(\uD_s,\vD_s) = ( e^{\fD_s/\epsilon},e^{\gD_s/\epsilon} )$ where $( \fD_s,\gD_s )_s$ are the solutions of the following program (whose value matches the one of \eqref{eq-entropic-bary})
-	\eql{\label{eq-dual-bary-entropy}
-		\umax{ ( \fD_s,\gD_s )_s } \enscond{
-		\sum_s \la_s \pa{
-			\dotp{\gD_s}{\b_s} - \epsilon \dotp{\K_s e^{\gD_s/\epsilon}}{e^{\fD_s/\epsilon}}
-		}
-		}{
-			\sum_s \la_s \fD_s = 0
-		}.
-	}
-\end{prop}
-
-\begin{proof}
-	Introducing Lagrange multipliers in~\eqref{eq-bary-entropy-couplings} leads to
-	\begin{align*}
-		\umin{ (\P_s)_s, \a } 
-		\umax{ ( \fD_s,\gD_s )_s }
-		\sum_{s} \la_s \Big(
-			\epsilon \KLD( \P_s|\K_s )
-			+ 
-			\dotp{\a - \P_s\ones_m}{ \fD_s } \\
-		\qquad\qquad	+			
-			\dotp{\b_s - \transp{\P_s}\ones_m}{ \gD_s }
-		\Big).
-	\end{align*}
-	Strong duality holds, so that one can exchange the min and the max, and gets
-		\begin{align*}
-		&\umax{ ( \fD_s,\gD_s )_s }
-			\sum_s \la_s \pa{
-				 \dotp{\gD_s}{\b_s}
-		+ 
-		\umin{\P_s} \epsilon \KLD( \P_s|\K_s ) - \dotp{\P_s}{\fD_s \oplus \gD_s }
-		} \\
-	&\qquad\qquad	+ \umin{\a}
-			\dotp{ \sum_{s} \la_s \fD_s }{\a}.
-	\end{align*}
-	The explicit minimization on $\a$ gives the constraint $\sum_{s} \la_s \fD_s=0$ together with 
-	\begin{align*}
-		\umax{ ( \fD_s,\gD_s )_s }
-			\sum_s \la_s 
-				 \dotp{\gD_s}{\b_s}
-		-
-		\epsilon \KLD^*\pa{ \frac{\fD_s \oplus \gD_s}{\epsilon}|\K_s }
-	\end{align*}
-	where $\KLD^*(\cdot|\K_s)$ is the Legendre transform~\eqref{eq-legendre} of the function $\KLD^*(\cdot|\K_s)$.
-	%
-	This Legendre transform reads
-	\eql{\label{eq-legendre-kl}
-		\KLD^*(\VectMode{U}|\K) = \sum_{i,j} \K_{i,j} (e^{\VectMode{U}_{i,j}}-1), 
-	}
-	which shows the desired formula. 
-	%
-	To show~\eqref{eq-legendre-kl}, since this function is separable, one needs to compute
-	\eq{
-		\foralls (u,k) \in \RR_+^2, \quad
-		\KLD^*(u|k) \eqdef \umax{r} ur -   \pa{ r \log(r/k) - r + k  }
-	}
-	whose optimality condition reads $u=\log(r/k)$, i.e. $r = k e^{u}$, hence the result.
-\end{proof}
-
-Minimizing~\eqref{eq-dual-bary-entropy} with respect to each $\gD_s$, while keeping all the other variable fixed, is obtained in closed form by~\eqref{eq-sinkhorn-bary}. 
-%
-Minimizing~\eqref{eq-dual-bary-entropy} with respect to all the $(\fD_s)_s$ requires to solve for $\a$ using~\eqref{eq-sinkhorn-bary-3} and leads to the expression~\eqref{eq-sinkhorn-bary-2}.
-
-Figures~\ref{fig-barycenters-images} and~\ref{fig-bary-shapes} show applications to 2-D and 3-D shapes interpolation. Figure~\ref{fig-barycenters-surfaces} shows a computation of barycenters on a surface, where the ground cost is the square of the geodesic distance. For this figure, the computations are performed using the geodesic in heat approximation detailed in Remark~\ref{rem-geod-heat}. We refer to~\cite{2015-solomon-siggraph} for more details and other applications to computer graphics and imaging sciences.
-
-
-% trim=left bottom right height
-\newcommand{\FigBaryShapeA}[2]{\includegraphics[width=.07\linewidth,trim=130 78 110 60,clip]{barycenters-shapes/duck-spiky-moomoo_s0-double-torus/barycenter-#1-#2}}
-\newcommand{\FigBaryShapeLineA}[1]{\FigBaryShapeA{#1}{0} & \FigBaryShapeA{#1}{1} & \FigBaryShapeA{#1}{2} & \FigBaryShapeA{#1}{3} & \FigBaryShapeA{#1}{4}}
-%
-\newcommand{\FigBaryShapeB}[2]{\includegraphics[width=.067\linewidth,trim=160 65 150 55,clip]{barycenters-shapes/mushroom-torus-hand1-trim-star/barycenter-#1-#2}}
-\newcommand{\FigBaryShapeLineB}[1]{\FigBaryShapeB{#1}{0} & \FigBaryShapeB{#1}{1} & \FigBaryShapeB{#1}{2} & \FigBaryShapeB{#1}{3} & \FigBaryShapeB{#1}{4}}
-
-\begin{figure}
-\centering
-%%% VOLUMETRIC SHAPES %%%
-\fbox{
-\begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}}
-\FigBaryShapeLineA{0} \\
-\FigBaryShapeLineA{1} \\
-\FigBaryShapeLineA{2} \\
-\FigBaryShapeLineA{3} \\
-\FigBaryShapeLineA{4}
-\end{tabular}
-}
-\qquad
-\fbox{
-\begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}}
-\FigBaryShapeLineB{0} \\
-\FigBaryShapeLineB{1} \\
-\FigBaryShapeLineB{2} \\
-\FigBaryShapeLineB{3} \\
-\FigBaryShapeLineB{4}
-\end{tabular}
-}
-\caption{\label{fig-barycenters-shapes}
-Barycenters between 4 input 3-D shapes using entropic regularization~\eqref{eq-entropic-bary}. The weights $(\la_s)_s$ are bilinear with respect to the four corners of the square.  
-%
-Shapes are represented as measures that are uniform within the boundaries of the shape and null outside.
-}
-\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Wasserstein Loss}
@@ -267,12 +74,94 @@ For a fixed $\th$, evaluating the energy to be minimized in~\eqref{eq-density-fi
 The class of estimators obtained using $\Ll=\MK_\c$, often called ``Minimum Kantorovitch Estimators'' (MKE), was initially introduced in~\cite{bassetti2006minimum}, see also~\cite{CanasRosasco}.
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Wasserstein Derivatives}
+
+\todo{Write me.}
+
+Eulerian vs Lagrangian. 
+
+Derivatives. 
+
+Sinkhorn smoothing. 
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Gradient flows}
+\subsection{Sample Complexity}
 
-OT as $W_2$ metric on points. 
-Study of mean field limits.
-   Eulerian vs Lagrangian derivative 
-   Fokker planck, Langevin flows
-   Application to neural net training and other functional over measures
+In an applied setting, given two input measures $(\al,\be) \in \Mm_+^1(\X)^2$, an important statistical problem is to approximate the (usually unknown) divergence $D(\al,\be)$ using only samples $(x_i)_{i=1}^n$ from $\al$ and $(y_j)_{j=1}^m$ from $\be$. These samples are assumed to be independently identically distributed from their respective distributions. 
+%
+For both Wasserstein distances $\Wass_p$ (see~\ref{eq-defn-wass-dist}) and MMD norms (see \S\ref{sec-dual-norms}), a straightforward estimator of the unknown distance between distributions is compute it directly between the empirical measures, hoping ideally that one can control the rate of convergence of the latter to the former,
+\eq{
+	D(\al,\be) \approx D(\al_n,\be_m) \qwhereq
+	\choice{
+		\al_n \eqdef \frac{1}{n}\sum_i \de_{x_i},\\ 
+		\be_m \eqdef \frac{1}{m}\sum_j \de_{y_j}.
+	}
+}
+Note that here both $\al_n$ and $\be_m$ are random measures, so $D(\al_n,\be_m)$ is a random number. 
+% 
+For simplicity, we assume that $\X$ is compact (handling unbounded domain requires extra constraints on the moments of the input measures).
+
+For such a dual distance that metrizes the weak convergence (see Definition~\ref{dfn-weak-conv}), since there is the weak convergence $\hat\al_n \rightarrow \al$, one has $D(\al_n,\be_n) \rightarrow D(\al,\be)$ as $n \rightarrow +\infty$.
+%
+But an important question is the speed of convergence of $D(\al_n,\be_n)$ toward $D(\al,\be)$, and this rate is often called the ``sample complexity'' of $D$. 
+
+% Note that for $D(\al,\be) = \norm{\cdot}_{\TV}$, since the TV norm does not metrize the weak convergence, $\norm{\al_n - \be_n}_{\TV}$ is not a consistent estimator, namely it does not converge toward $\norm{\al-\be}_{\TV}$. Indeed, with probability 1, $\norm{\al_n - \be_n}_{\TV}=2$ since the support of the two discrete measures does not overlap. Similar issues arise with other $\phi$-divergences, which cannot be estimated using divergences between empirical distributions.
+
+%%%%
+\paragraph{Rates for OT.}
+
+For $\X=\RR^\dim$ and measure supported on bounded domain, it is shown by~\cite{dudley1969speed} that for $\dim>2$, and $1 \leq p < +\infty$,  
+\eq{
+	\EE( |\Wass_p(\al_n,\be_n)-\Wass_p(\al,\be)| ) = O(n^{-\frac{1}{\dim}}),
+}
+where the expectation $\EE$ is taken with respect to the random samples $(x_i,y_i)_i$. This rate is tight in $\RR^\dim$ if one of the two measures has a density with respect to the Lebesgue measure. This result was proved for general metric spaces~\cite{dudley1969speed} using the notion of covering numbers and was later refined, in particular for $\X=\RR^d$ in~\cite{dereich2013constructive,fournier2015rate}. 
+% Proof on $\Wass_1$ implies on $\Wass_p$ for $1 \leq p < +\infty$ by monotonicity in $p$.
+This rate can be refined when the measures are supported on low-dimensional subdomains:~\cite{weed2017sharp} show that, indeed, the rate depends on the intrinsic dimensionality of the support. \cite{weed2017sharp} also study the nonasymptotic behavior of that convergence, such as for measures which are discretely approximated (\emph{e.g.} mixture of Gaussians with small variances).
+%
+It is also possible to prove concentration of $\Wass_p(\al_n,\be_n)$ around its mean $\Wass_p(\al,\be)$; see~\cite{bolley2007quantitative,boissard2011simple,weed2017sharp}.
+
+%%%
+\paragraph{Rates for MMD.}
+
+For weak norms $\norm{\cdot}^2_{\Krkhs}$ which are dual of RKHS norms (also called MMD), as defined in~\eqref{eq-kernel-dual}, and contrary to Wasserstein distances, the sample complexity rate does not depend on the ambient dimension 
+\eq{
+	\EE( |\norm{\al_n-\be_n}_{\Krkhs}^2 - \norm{\al-\be}_{\Krkhs}^2 |^2 )
+	= 
+	O(n^{-\frac{1}{2}}), 
+}
+see~\cite{sriperumbudur2012empirical}. Note however that the constant appearing in this rate might depend on the dimension. 
+%
+This corresponds to the classical rate when using a Monte-Carlo method to estimate an integral using random samples. 
+% 
+For instance, one has, denoting $\xi=\al-\be$ and $\xi_n=\al_n-\be_n$
+\eq{
+	\EE( |\norm{\xi_n}_{\Krkhs} - \norm{\al-\be}_{\Krkhs} | ) 	= 
+	\EE( |\int k \d(\xi \otimes \xi - \xi_n \otimes \xi_n)|^2 ).
+}
+
+\todo{Explain that this corresponds to the Monte-Carlo approximation of integrals using sums. Explain that the constant might depends on the dimension. Give a proof. }
+
+%
+% Figure~\ref{fig-sample-complexity} shows a numerical comparison of the sample complexity rates for Wasserstein and MMD distances.  
+%
+%Note, however, that $\norm{\al_n-\be_n}_{\Krkhs}^2$ is a slightly biased estimate of $\norm{\al-\be}_{\Krkhs}^2$. In order to define an unbiased estimator, and thus to be able to use, for instance, SGD when minimizing such losses, one should rather use the unbiased estimator 
+%\begin{align*}
+%	\text{MMD}_{\Krkhs}(\al_n,\be_n)^2 & \eqdef
+%		\frac{1}{n(n-1)} \sum_{i,i'} \Krkhs(x_i,x_{i'})	+
+%		\frac{1}{n(n-1)}\sum_{j,j'} \Krkhs(y_j,y_{j'}) \\
+%		 & \qquad - 2
+%		\frac{1}{n^2}\sum_{i,j} \Krkhs(x_i,y_j), 
+%\end{align*}
+%which should be compared to~\eqref{eq-mmd-discr}. It satisfies $\EE(\text{MMD}_{\Krkhs}(\al_n,\be_n)^2) = \norm{\al-\be}_{\Krkhs}^2$; see~\cite{gretton2012kernel}.
+
+
+
+%%%
+\paragraph{Rates for Sinkhorn.}
+
+\todo{Give the intuition : smoothness of the potentials, Sobolev ball. }
+
+

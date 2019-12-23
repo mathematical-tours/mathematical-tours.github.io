@@ -8,10 +8,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Discrete dual}
 
-- Dual pbm discrete, dual of linear programming
-- Mention auction and eps-scaling
+% - Dual pbm discrete, dual of linear programming
+% - Mention auction and eps-scaling
 
-The Kantorovich problem~\eqref{eq-mk-discr} is a constrained convex minimization problem, and as such, it can be naturally paired with a so-called dual problem, which is a constrained concave maximization problem. The following fundamental proposition, which is a special case of Fenchel-Rockafellar duality theory, explains the relationship between the primal and dual problems.
+The Kantorovich problem~\eqref{eq-mk-discr} is a linear program, so that one can equivalently compute its value by solving a dual linear program. 
+
+% a constrained convex minimization problem, and as such, it can be naturally paired with a so-called dual problem, which is a constrained concave maximization problem. The following fundamental proposition, which is a special case of Fenchel-Rockafellar duality theory, explains the relationship between the primal and dual problems.
 
 \begin{prop}\label{prop-duality-discr}
 One has
@@ -28,19 +30,19 @@ where the set of admissible potentials is
 \end{prop}
 
 \begin{proof}
-This result is a direct consequence of the more general result on the strong duality for linear programs~\cite[p.148,Theo.4.4]{bertsimas1997introduction}. The easier part of that result, namely that the right-hand side of Equation~\eqref{eq-dual} is a lower bound on $\MKD_\C(\a,\b)$ is discussed in~\ref{rem-duality}.
+% This result is a direct consequence of the more general result on the strong duality for linear programs~\cite[p.148,Theo.4.4]{bertsimas1997introduction}. The easier part of that result, namely that the right-hand side of Equation~\eqref{eq-dual} is a lower bound on $\MKD_\C(\a,\b)$ is discussed in~\ref{rem-duality}.
 %
 For the sake of completeness, let us derive this dual problem with the use of Lagrangian duality. The Lagangian associate to~\eqref{eq-mk-discr} reads
 \eql{\label{eq-mk-lagr}
 	\umin{\P \geq 0} \umax{ (\fD,\gD) \in \RR^n \times \RR^m }
 		\dotp{\C}{\P} + \dotp{\a - \P\ones_m}{\fD} + \dotp{\b - \P^\top \ones_n}{\gD}. 
 }
-For linear program, one can always exchange the min and the max and get the same value of the linear program, and one thus consider
+For linear program, if the primal set of constraint is non-empty, one can always exchange the min and the max and get the same value of the linear program, and one thus consider
 \eq{
 	\umax{ (\fD,\gD) \in \RR^n \times \RR^m } 
 	\dotp{\a}{\fD} + \dotp{\b}{\gD}
 	+ \umin{\P \geq 0} 
-		\dotp{\C - \fD\ones_m^\top - \ones_n \gD^\top}{\P}.
+		\dotp{\C - \fD\ones_m^\top - \ones_n \g^\top}{\P}.
 }
 We conclude by remarking that 
 \eq{
@@ -58,15 +60,18 @@ The primal-dual optimality relation for the Lagrangian~\eqref{eq-mk-lagr} allows
 	\Supp(\P) \subset \enscond{(i,j) \in \range{n} \times \range{m}}{ \fD_i+\gD_j=\C_{i,j} }.
 } 
 
+The formulation~\eqref{eq-dual} shows that $(\a,\b) \mapsto \MKD_\C(\a,\b)$ is a convex function (as a supremum of linear functions). From the primal problem~\eqref{eq-mk-discr}, one also sees that $\C \mapsto \MKD_\C(\a,\b)$ is concave. 
 
-\todo{$W_c$ is convex in (mu,nu)  (--> density fitting)}
 
-\todo{$W_c$ is concave in c (from the primal) metric learning}
+% \todo{$W_c$ is convex in (mu,nu)  (--> density fitting)}
+% \todo{$W_c$ is concave in c (from the primal) metric learning}
   
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{General formulation}
 
-To extend this primal-dual construction to arbitrary measures, it is important to realize that measures are naturally paired in duality with continuous functions (a measure can only be accessed through integration against continuous functions). The duality is formalized in the following proposition, which boils down to Proposition~\ref{prop-duality-discr} when dealing with discrete measures.
+To extend this primal-dual construction to arbitrary measures, it is important to realize that measures are naturally paired in duality with continuous functions, using the pairing $\dotp{\f}{\al} \eqdef \int f \d \al$.
+
+%  (a measure can only be accessed through integration against continuous functions). The duality is formalized in the following proposition, which boils down to Proposition~\ref{prop-duality-discr} when dealing with discrete measures.
 	
 \begin{prop}
 	One has
@@ -101,8 +106,124 @@ The discrete case~\eqref{eq-dual} corresponds to the dual vectors being samples 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{$c$-transforms}
+\label{sec-c-transfo}
 
-- c-transform
-  link with Legendre transform
-  intuition on brenier proof 
-  c-transform gives regularity hence compactness via Ascoli on the dual 
+%%%%
+\paragraph{Definition.}
+
+Keeping a dual potential $\g$ fixed, one can try to minimize in closed form the dual problem~\eqref{eq-dual-generic}, which leads to consider
+\eq{
+	\usup{\g \in \Cc(\Yy)} \enscond{
+		\int g \d \be }{
+			\foralls (x,y), \g(y) \leq c(x,y) - \f(x)
+		}.
+}
+The constraint can be replaced by
+\eq{
+	\foralls y \in \Yy, \quad \g(y) \leq \f^\c(y)
+}
+where we define the $\c$-transform as 
+\eql{\label{eq-c-transform}
+	\foralls y \in \Y, \quad
+	\f^\c(y) \eqdef \uinf{x \in \X} \c(x,y) - \f(x).
+}
+Since $\be$ is positive, the maximization of $\int \g \d \be$ is thus achieved at those functions such that $\g=\f^\c$ on the support of $\be$, which means $\be$-almost everywhere.
+
+Similarly, we defined the $\bar \c$-transform, which a transform for the symetrized cost $\bar c(y,x)=c(x,y)$, i.e.
+\eq{
+	\foralls x \in \X, \quad
+	\g^{\bar\c}(x) \eqdef \uinf{y \in \Y} \c(x,y) - \g(y), 
+}
+and one checks that any function $\f$ such that $\f=\g^{\bar c}$ $\al$-almost everywhere is solution to the dual problem for a fixed $g$.
+
+The map $(\f,\g) \in \Cc(\X) \times \Cc(\Y) \mapsto (\g^{\bar\c},\f^\c) \in \Cc(\X) \times \Cc(\Y)$ replaces dual potentials by ``better'' ones (improving the dual objective $\Ee$). Functions that can be written in the form $\f^\c$ and $\g^{\bar\c}$ are called $c$-concave and $\bar c$-concave functions. 
+
+Note that these partial minimizations define maximizers on the support of respectively $\al$ and $\be$, while the definitions~\eqref{eq-c-transform} actually define functions on the whole spaces $\X$ and $\Y$. This is thus a way to extend in a canonical way solutions of~\eqref{eq-dual-generic} on the whole spaces.
+
+Furthermore, if $c$ is Lipschitz, then $f^c$ and $g^c$ are also Lipschitz functions, as we now show. This property is crucial to show existence of solution to the dual problem. Indeed, since one can impose this Lipschitz on the dual problems, the constraint set is compact via Ascoli theorem. 
+
+\begin{prop}
+	If $\c$ is $L$-Lipschitz with respect to the second variable, then $f^\c$ is $L$-Lipschitz.
+\end{prop}
+\begin{proof}
+	We apply to $F_x = c(x,\cdot)-f(x)$ the fact that if all the $F_x$ are $L$-Lipschitz, then the Lipschitz constant of $F=\min_x F_x$ is $L$. Indeed, using the fact that $|\inf(A)-\inf(B)| \leq \sup |A-B|$ for two function $A$ and $B$, then 
+	\eq{
+		|F(y)-F(y')| = |\inf_x(F_x(y)) - \inf_x(F_x(y'))| \leq \sup_x |F_x(y)-F_x(y')| \leq \sup_x L d(y,y') = Ld(y,y'). 
+	}
+\end{proof}
+
+
+%%%%
+\paragraph{Euclidean case.}
+
+The special case $\c(x,y)=-\dotp{x}{y}$ in $\X=\Y=\RR^d$ is of utmost importance because it allows one to study the $W_2$ problem, since for any $\pi \in \Couplings(\al,\be)$
+\eq{
+	\int \norm{x-y}^2 \d\pi(x,y) = \text{cst} - 2 \int \dotp{x}{y} \d\pi(x,y)
+	\qwhereq
+	\text{cst} = \int \norm{x}^2 \d\al(x) + \int \norm{y}^2 \d\be(y). 
+}
+For this special choice of cost, one has $f^c = -(-f)^*$ where $h^*$ is the Fenchel-Legendre transform
+\eq{
+	h^*(y) \eqdef \usup{x} \dotp{x}{y}-h(y).
+}
+One has that $h^*$ is always convex, so that $f^c$ is always concave. For a general cost, one thus denotes functions of the form $f^c$ as being $c$-concave.
+
+\begin{rem}[Proof of Brenier's theorem]\label{rem-proof-brenier}
+	In the case $c(x,y)=\norm{x-y}^2$, using instead $c(x,y)=-\dotp{x}{y}$, the primal-dual relation ship, together with the fact that one can replace $(f,g)$ by $(f^{cc},f^{ccc}=f^c)$ one sees that 
+	\eq{
+		\supp(\pi) \subset \enscond{(x,y)}{\phi(x)+\phi^*(y) = \dotp{x}{y}}
+	}
+	where we have denoted $\phi=-f^{cc}$ which is a convex function and $-g=\phi^*$. 
+	%
+	One always have $\phi(x)+\phi^*(y) \leq \dotp{x}{y}$ from the definition of the Legendre transform, and the set of $y$ such that this equality holds is precisely the sub-differential $\partial\phi(x)$.
+	%
+	In the special case where $\al$ has a density, since a convex function is differentiable Lebesgue-almost everywhere, it is also $\al$-everywhere differentiable, so it is legit to use $T=\nabla\phi$ as an optimal transport plan.
+\end{rem}
+
+
+
+%%%%
+\paragraph{The failure of alternate optimization.}
+
+A crucial property of the Legendre transform is that $f^{***}=f^*$, and that $f^{**}$ is the convex enveloppe of $f$ (the largest convex function bellow $f$). These properties carries over for the more general setting of $c$-transforms.
+
+\begin{prop}
+The following identities, in which the inequality sign between vectors should be understood elementwise, hold, denoting $\f^{c\bar c} \eqdef (\f^{c})^{\bar c}$:
+	\begin{itemize}
+	\item[(i)] $f \leq f' \Rightarrow f^{c}\geq f'^{c}$, 
+	\item[(ii)] $f^{\c\bar{\c}} \geq f$, 
+	\item [(iii)] $g^{\bar{\c}\c} \geq g$, 
+	\item[(iv)] $\f^{\c\bar{\c}\c}=\f^{\c}.$
+	\end{itemize}	
+\end{prop}
+
+\begin{proof} The first inequality (i) follows from the definition of $\c$-transforms. To prove (ii), expanding the definition of $\f^{\c\bar{\c}}$ we have
+\eq{
+	\left(\f^{\c\bar{\c}}\right)(x)= \min_{y} \c(x,y)-\f^{\c}(y) 
+		= \min_{y} \c(x,y) - \min_{x'}( \c(x',y) - \f(x') ).}
+Now, since $-\min_{x'} \c(x',y) - \f(x') \geq -(\c(x,y)-\f(x))$, we recover 
+\eq{
+	(\f^{\c\bar{\c}})(x) \geq \min_{y} \c(x,y) - \c(x,y)+\f(x) = \f(x).
+}
+The relation $\g^{\bar{\c}\c} \geq \g$ is obtained in the same way. 
+%
+Now, to prove (iv), we first apply (ii) and then (i) with $f'=f^{c\bar c}$ to have $f^c \geq f^{c \bar c}$.
+Then we apply (iii) to $g=f^c$ to obtain $f^c \leq f^{c\bar c c}$. 
+%we apply (ii) to $\g=\f^{\c}$ to obtain 
+% set $\g=\f^{\c}$. Then, using (ii), $\g^{\bar{\c}}=\f^{\c\bar{\c}}\geq \f$. Therefore, using result (i) we have $\f^{\c\bar{\c}\c}\leq \f^{\c}$. Result (ii) yields $\f^{\c\bar{\c}\c}\geq \f^{\c}$, proving the equality.
+\end{proof}
+
+This invariance property shows that one can ``improve'' only once the dual potential this way. Indeed, starting from any pair $(f,g)$, one obtains the following iterates by alternating maximization
+\eql{\label{eq-iter-c-trans}
+	(f,g) \mapsto (f,f^c) \mapsto (f^{cc},f^c) \mapsto (f^{cc},f^{ccc}) =  (f^{cc},f^c) \ldots
+}
+so that one reaches a stationary point. 
+%
+This failure is the classical behavior of alternating maximization on a non-smooth problem, where the non-smooth part of the functional (here the constraint) mixes the two variables. 
+% 
+The workaround is to introduce a smoothing, which is the classical method of augmented Lagrangian, and that we will develop here using entropic regularization, and corresponds to Sinkhorn's algorithm. 
+
+% Alternatively, this means that alternate maximization does not converge (it immediately enters a cycle), which is classical for functionals involving a nonsmooth (a constraint) coupling of the optimized variables. This is in sharp contrast with entropic regularization of OT as shown in Chapter~\ref{c-entropic}. 
+
+  
+  

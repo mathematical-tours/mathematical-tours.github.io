@@ -102,7 +102,7 @@ When $\hat f \in L^1(\RR)$, one can invert the Fourier transform so that
 }
 which shows in particular that $f$ is continuous with vanishing limits at $\pm\infty$. 
 
-The Fourier transform $\Ff : f \mapsto \hat f$ exchanges regularity and decay. For instance, if $f \in C^p(\RR)$ with an integrable Fourier transform, then $\Ff(f^{(p)})(\om) = (\imath \om)^{-p} \hat f(\om)$ so that $|\hat f(\om)|=O(1/|\om|^p)$. 
+The Fourier transform $\Ff : f \mapsto \hat f$ exchanges regularity and decay. For instance, if $f \in C^p(\RR)$ with an integrable Fourier transform, then $\Ff(f^{(p)})(\om) = (\imath \om)^{p} \hat f(\om)$ so that $|\hat f(\om)|=O(1/|\om|^p)$. 
 %
 Conversely, 
 \eql{\label{eq-fourier-regul}
@@ -145,7 +145,7 @@ For some function $h(t)$ defined on $\RR$ (typically the goal is to apply this t
 } 
 This formula makes sense if $h \in L^1(\RR)$, and in this case $\norm{h_P}_{L^1(\TT)} \leq \norm{h}_{L^1(\RR)}$ (and there is equality for positive functions). 
 %
-The Poisson formula, stated in Proposition~\ref{prop-poisson} bellow, corresponds to proving that the following diagram
+The Poisson formula, stated in Proposition~\ref{prop-poisson}Â bellow, corresponds to proving that the following diagram
 \eq{
 	\begin{array}{rcccl}
 						& f(x)  &  \overset{\Ff}{\longrightarrow} &  \hat f(\om) &\\
@@ -217,7 +217,11 @@ Figure~\ref{fig-sampling-aliasing} give some insight on how the proof works (lef
 \end{thm}
 
 \begin{proof} 
-	The change of variable $g \eqdef f(s \cdot)$ results in $\hat g=1/s \hat f(\cdot/s)$ so that we can restrict our attention to $s=1$.
+	The change of variable $g \eqdef f(s \cdot)$ results in $\hat g=1/s \hat f(\cdot/s)$, indeed, denoting $z=s x$
+	\eq{
+		\hat g(\om) = \int f(s x) e^{-\imath \om x} \d x = \frac{1}{s} \int f(z) e^{-\imath (\om/s) z} \d z = \hat f(\om/s)/s, 
+	} 
+	so that we can restrict our attention to $s=1$.
 	%
 	The compact support hypothesis implies $\hat f(\om) = 1_{[-\pi,\pi]}(\om) \hat f_P(\om)$.  
 	Combining the inversion formula~\eqref{eq-i-ft} with Poisson formula~\eqref{eq-poisson-formula}
@@ -262,16 +266,18 @@ This theorem also explains what happens if $\hat f$ is not supported in $[-\pi/s
 
 Once the signal have been sampled to obtain a discrete vector, in order to store it and transmit it, it is necessary to quantize the value to some finite precision. 
 % 
-Section~\ref{sec-transform-coding} presents transform coding, which is an efficient family of compression schemes which operate the quantization over some transformed domain (which correspond to applying a linear transform, usually orthogonal, to the sampled values). This is useful to enhance the performance of the source coding scheme. It is however common to operate directly the quantization over the sampled value. 
+Section~\ref{sec-transform-coding}Â presents transform coding, which is an efficient family of compression schemes which operate the quantization over some transformed domain (which correspond to applying a linear transform, usually orthogonal, to the sampled values). This is useful to enhance the performance of the source coding scheme. It is however common to operate directly the quantization over the sampled value. 
 
 Considering for instance a step size $s=1/N$, one samples $(u_n \eqdef f(n/N))_{n=1}^{N} \in \RR^N$ to obtain a finite dimensional data vector of length $N$. Note that dealing with finite data corresponds to restricting the function $f$ to some compact domain (here $[0,1]$) and is contradictory with Shannon sampling theorem, since a function $f$ cannot have a compact support in both space and frequency (so perfect reconstruction never holds when using finite storage).
 
+\wrapf{1-shannon/quantizer}{}
+
 Choosing a quantization step $T$, quantization $v_n = Q_T(u_n) \in \ZZ$ rounds to the nearest multiple of $T$, i.e. 
 \eq{
-	\tilde u = Q_T(u) \quad\Leftrightarrow\quad
-	v-\frac{1}{2} \leq u/T \leq v+\frac{1}{2}
+	v = Q_T(u) \quad\Leftrightarrow\quad
+	v-\frac{1}{2} \leq u/T < v+\frac{1}{2},
 }
-\todo{put here a figure}. De-quantization is needed to restore a signal, and the best reconstruction (in average or in worse case) is defined by setting $D_T(v) \eqdef T v$. Quantizing and then de-quantizing introduce an error bounded by $T/2$, since $|D_T(Q_T(u))-u| \leq T/2$. 
+see Fig.~\ref{fig-quantizer}. De-quantization is needed to restore a signal, and the best reconstruction (in average or in worse case) is defined by setting $D_T(v) \eqdef T v$. Quantizing and then de-quantizing introduce an error bounded by $T/2$, since $|D_T(Q_T(u))-u| \leq T/2$. 
 %
 Up to machine precision, quantization is the only source of error (often called ``lossy compression'') in Shannon's standard pipeline.
 
@@ -349,7 +355,7 @@ The following fundamental lemma describes the set of prefix codes using an inequ
 	\eq{
 		\sum_k 2^{m-|c_k|} \leq 2^m, 
 	}
-	hence~\eqref{eq-kraft-ineg}. 
+	hence~\eqref{eq-kraft-ineg}.Â 
 	
 	\myfigure{
 	\image{1-shannon}{.35}{kraft-ineq-1}\quad
@@ -382,7 +388,7 @@ The entropy of such an histogram is
 }
 with the convention $0\log_2(0)=0$. 
 
-Denoting $h(u)=-u \log(u)$, $h''(u)=-1/u<0$ so that $H$ is strictly concave. The definition of the entropy extends to continuous density $f(x)$ for $x$ on some measure space with reference measure $\d x$ (e.g. Lebesgue on $\RR^d$) by setting $H(f)=\int f(x) \log(f(x)) \d x$. 
+Denoting $h(u)=-u \log(u)$, $h'(u)=-\log(u)-1$, $h''(u)=-1/u<0$ so that $H$ is strictly concave. The definition of the entropy extends to continuous density $f(x)$ for $x$ on some measure space with reference measure $\d x$ (e.g. Lebesgue on $\RR^d$) by setting $H(f)=-\int f(x) \log(f(x)) \d x$. 
 
 \myfigure{
 \tabquatre{
@@ -394,18 +400,29 @@ $H(p)=0$ & $H(p)=\log_2(2)=1$ &  $H(p) = 1.62$
 }{Three examples of probability distributions with corresponding entropies.}{fig-histo-entropy}
 
 
+\myfigure{
+	\image{1-shannon}{.35}{entropy-extrema}
+}{%
+	Linked extra for the entropy. %	
+}{fig-entropy-extrema}
+
+
 
 \begin{lem} One has
 \eq{
 	0 \leq H(p) \leq \log_2(K).
 }
 \end{lem}
+
+
 \begin{proof}
 	We consider the following constrained optimization problem
 	\eq{
 		\min_p \enscond{ f(p) }{ g(p) = \sum_k p_k =1 }
 	}
-	where $f=-H$. According to the linked extrema theorem, at an optimum $p^\star$, $\nabla f(p^\star)=\la \nabla g(p^\star)$ for some $\la \in \RR$, so that here $\log(p_k^\star)+1 = \la$, i.e. $p_k^\star=c$ is constant, and since $\sum_k p_k^\star=1$, one has $p_k^*=1/K$ and thus $H(p)=\log_2(K)$.
+	where $f=-H$, see Fig.~\ref{fig-entropy-extrema}. According to the linked extrema theorem, at an optimum $p^\star$, $\nabla f(p^\star)=\la \nabla g(p^\star)$ for some $\la \in \RR$, so that here $\log(p_k^\star)+1 = \la$, i.e. $p_k^\star=c$ is constant, and since 
+	$\sum_k p_k^\star=1$, 	
+	one has $p_k^*=1/K$ and thus $H(p)=\log_2(K)$.
 \end{proof}
 
 
@@ -438,7 +455,11 @@ Shannon theorem of entropic coding, proved bellow, give both lower and upper bou
 		\umin{ \ell = (\ell_k)_k } \enscond{ f(\ell) \eqdef \sum_k \ell_k p_k }{ g(\ell) \eqdef  \sum_k 2^{-\ell_k} \leq 1 }.
 	}
 	We fist show that at an optimal $\ell^\star$, the constraint is saturated, i.g. $g(\ell^\star)=1$. Indeed, if $g(\ell^\star)=2^{-u} < 1$, with $u>0$, we define $\ell_k' \eqdef \ell_k^\star-u$, which satisfies $g(\ell') = 1$ and also $f(\ell')=\sum_k (\ell_k-u) p_k < f(\ell^\star)$, which is a contradiction.
-	So we can restrict in~\eqref{eq-proof-shannon} the constraint to $g(\ell)=1$ and apply the linked extrema theorem, which shows that necessarily, there exists $\la \in \RR$ with $\nabla f(\ell^\star)=\nabla g(\ell^\star)$, i.e.  $(p_k)_k = -\la \ln(2) (2^{-\ell_k^\star})_k$. Since $\sum_k p_k=\sum_k 2^{-\ell_k^\star}=1$, we deduce that $\ell^\star_k = -\log(p_k)$. 
+	So we can restrict in~\eqref{eq-proof-shannon} the constraint to $g(\ell)=1$ and apply the linked extrema theorem, which shows that necessarily, there exists $\la \in \RR$ with $\nabla f(\ell^\star)=\nabla g(\ell^\star)$, i.e.  $(p_k)_k = -\la \ln(2) (2^{-\ell_k^\star})_k$. Since 
+	\eq{
+		1 = \sum_k p_k = -\la \ln(2) \sum_k 2^{-\ell_k} = - \la \ln(2) 
+	}
+	we deduce that $\ell^\star_k = -\log(p_k)$. 
 	
 	(i) If $c=\text{Leave}(T)$, the by Kraft inequality~\eqref{eq-kraft-ineg}, necessarily $\ell_k=|c_k|$ satisfy the constraints of~\eqref{eq-proof-shannon}, and thus $H(p) = f(\ell^\star) \leq f(\ell) = L(\ell)$.
 	

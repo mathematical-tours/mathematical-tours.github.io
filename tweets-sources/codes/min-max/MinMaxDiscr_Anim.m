@@ -36,6 +36,7 @@ C = distinguishable_colors(length(tau_list));
 
 tau = .1;
 tau = .2;
+tau = .4;
 
 niter = 50;
 q = 50; % for anim
@@ -60,9 +61,15 @@ for it=1:niter
     % 'extra'
     z1 = z(it,2) - tau*GradF(z(it,2));
     z(it+1,2) = z(it,2) - tau*GradF(z1);
+    
     % . 'implicit'
-    u = [1, tau; -tau, 1]\[real(z(it,3)); imag(z(it,3))];
-    z(it+1,3) = u(1) + 1i*u(2);
+    % u = [1, tau; -tau, 1]\[real(z(it,3)); imag(z(it,3))];
+    % z(it+1,3) = u(1) + 1i*u(2);
+    
+    % mid point    
+    z1 = z(it,3) - tau/2*GradF(z(it,3));
+    z(it+1,3) = z(it,3) - tau*GradF(z1);
+    
     if averaging==0
         za(it+1,:) = z(it+1,:);
     else
@@ -81,7 +88,7 @@ for it=1:niter
         quiver(x,y,-y,x,'k');
         axis image; axis off;
         % plot curves
-        for k=[1 3]
+        for k=[1 2 3]
             col = C(k,:);
             plot(real(za(:,k)), imag(za(:,k)), '.-', 'LineWidth', 2, 'color', col, 'MarkerSize', 15);
             plot(real(za(end,k)), imag(za(end,k)), '.', 'LineWidth', 2, 'color', col, 'MarkerSize', 30);

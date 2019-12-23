@@ -8,21 +8,759 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Semi-discrete}
 
-- semi-discrete
-  prove differentiability and grad formula when beta has density 
-- stochastic optimization, 
-- optimal quantization, 
-   solution in 1D via quantile function
-   kmeans
+A case of particular interest is when $\be = \sum_j \b_j \de_{y_j}$ is discrete (of course the same construction applies if $\al$ is discrete by exchanging the role of $\al,\be$).
+%
+One can adapt the definition of the $\bar c$ transform~\eqref{eq-c-transform} to this setting by restricting the minimization to the support $(y_j)_j$ of $\be$,
+\eql{\label{eq-disc-c-transfo}
+	\foralls \gD \in \RR^m, \;
+	\foralls x \in \Xx, \quad
+	\gD^{\bar \c}(x) \eqdef \umin{j \in \range{m}} \c(x,y_j) - \gD_j.
+}
+This transform maps a vector $\gD$ to a continuous function $\gD^{\bar \c} \in \Cc(\Xx)$.
+%
+Note that this definition coincides with~\eqref{eq-c-transform} when imposing that the space $\X$ is equal to the support of $\be$.
+
+Crucially, using the discrete $\bar c$-transform, when $\be$ is a discrete measure, yields a finite-dimensional optimization, 
+\eql{\label{eq-semi-dual-discr}
+	\MK_\c(\al,\be) = 
+		\umax{\gD \in \RR^m}
+			\Ee(\gD) \eqdef 
+			\int_\X \gD^{\bar \c}(x) \d\al(x) + \sum_j \gD_j \b_j.
+}
+
+The Laguerre cells associated to the dual weights $\gD$
+\eq{
+	\Laguerre_{j}(\gD) \eqdef \enscond{x \in \X}{ \foralls j' \neq j, \c(x,y_j) - \gD_j \leq \c(x,y_{j'}) - \gD_{j'} }
+}
+induce a disjoint decomposition of $\X = \bigcup_j \Laguerre_{j}(\gD)$. When $\gD$ is constant, the Laguerre cells decomposition corresponds to the Voronoi diagram partition of the space. 
+%
+% Figure~\ref{fig-c-transform-discrete}, bottom row, shows examples of Laguerre cells segmentations in two dimensions. 
+
+This allows one to conveniently rewrite the minimized energy as
+\eql{\label{eq-semi-disc-energy}
+	\Ee(\gD) = \sum_{j=1}^m \int_{\Laguerre_{j}(\gD)} \pa{ c(x,y_j) - \gD_j } \d\al(x) + \dotp{\gD}{\b}.
+}
+The following proposition provides a formula for the gradient of this convex function.
+
+\begin{prop}
+If $\al$ has a density with respect to Lebesgue measure and if $c$ is smooth away from the diagonal, then $\Ee$ is differentiable and
+\eq{
+	\foralls j \in \range{m}, \quad
+	\nabla\Ee(\gD)_j = \b_j - \int_{\Laguerre_{j}(\gD)} \d\al.
+}
+\end{prop}
+\begin{proof} 
+	One has
+	\eq{
+		\Ee(\gD+\epsilon\de_j) - \Ee(\gD) - \epsilon \pa{ \b_j - \int_{\Laguerre_{j}(\gD)} \d\al }
+		=
+		\sum_k \int_{\Laguerre_{k}(\gD+\epsilon\de_j)} c(x,x_k) \d \al(x) - \int_{\Laguerre_{k}(\gD)} c(x,x_k) \d \al(x).
+	}
+	Most of the terms in the right hand side vanish (because most the Laguerre cells associated to $\gD+\epsilon\de_j$ are equal to those of $\gD$) and the only terms remaining correspond to neighboring cells $(j,k)$ such that 
+	$\Laguerre_{j}(\gD) \cap \Laguerre_{k}(\gD) \neq \emptyset$ (for the cost $\norm{x-y}^2$ and $\gD=0$ this forms the Delaunay triangulation).
+	%
+	On these pairs, the right integral differs on a volume of the order of $\epsilon$ (since $\al$ has a density) and the function being integrated only varies on the order of $\epsilon$ (since the cost is smooth). So the right hand side is of the order of $\epsilon^2$.
+\end{proof}
+
+The first order optimality condition shows that in order to solve the dual semi discrete problem, one needs to select the weights $\gD$ in order to drive the Laguerre cell in a configuration such that $\int_{\Laguerre_{j}(\gD)} \d\al = \b_j$, i.e. each cell should capture the correct amount of mass. In this case, the optimal transport $T$ such that $T_\sharp \al=\be$ (which exists and is unique according to Brenier's theorem if $\al$ has a density) is piecewise constant and map $x \in \Laguerre_{j}(\gD)$ to $y_j$.  
+
+In the special case $\c(x,y)=\norm{x-y}^2$, the decomposition in Laguerre cells is also known as a ``power diagram''.  
+%
+In this case, the cells are polyhedral and can be computed efficiently using computational geometry algorithms; see~\cite{aurenhammer1987power}. 
+%
+The most widely used algorithm relies on the fact that the power diagram of points in $\RR^d$ is equal to the projection on $\RR^d$ of the convex hull of the set of points $( (y_j,\norm{y_j}^2 - \gD_j) )_{j=1}^m \subset \RR^{d+1}$. There are numerous algorithms to compute convex hulls; for instance, that of~\cite{chan1996optimal} in two and three dimensions has complexity $O(m\log(Q))$, where $Q$ is the number of vertices of the convex hull.
+
+
+%%%
+\paragraph{Stochastic optimization.}
+
+The semidiscrete formulation~\eqref{eq-semi-disc-energy} is also appealing because the energies to be minimized are written as an expectation with respect to the probability distribution $\al$,
+\eq{
+	\Ee(\gD) = \int_\X E(\gD,x) \d\al(x) = \EE_X(  E(\gD,X) )
+	\qwhereq
+	 E(\gD,x) \eqdef 
+	\gD^{\bar\c}(x) - \dotp{\gD}{\b},
+}
+and $X$ denotes a random vector distributed on $\X$ according to $\al$.
+%
+Note that the gradient of each of the involved functional reads
+\eq{
+	\nabla_{\gD} E(x,\gD) = (  \ones_{\Laguerre_{j}(\gD)}(x) - \b_j )_{j=1}^m \in \RR^m
+}
+where $\ones_{\Laguerre_{j}(\gD)}$ is the indicator function of the Laguerre cell. 
+%
+One can thus use stochastic optimization methods to perform the maximization, as proposed in~\cite{genevay2016stochastic}.
+%
+This allows us to obtain provably convergent algorithms without the need to resort to an arbitrary discretization of $\al$ (either approximating $\al$ using sums of Diracs or using quadrature formula for the integrals).
+%
+The measure $\al$ is used as a black box from which one can draw independent samples, which is a natural computational setup for many high-dimensional applications in statistics and machine learning. 
+
+Initializing $\gD^{(0)} = \zeros_{m}$, the stochastic gradient descent algorithm (SGD; used here as a maximization method) draws at step $\ell$ a point $x_\ell \in \X$ according to distribution $\al$ (independently from all past and future samples $(x_\ell)_\ell$) to form the update
+\eql{\label{eq-sgd}
+	\itt{\gD} \eqdef \it{\gD} + \tau_\ell  \nabla_{\gD} E(\it{\gD},x_\ell).
+} 
+The step size $\tau_\ell$ should decay fast enough to zero in order to ensure that the ``noise'' created by using  $\nabla_{\gD} E(x_\ell,\gD)$ as a proxy for the true gradient $\nabla \Ee(\gD)$ is canceled in the limit. 
+%
+A typical choice of schedule is 
+\eql{\label{eq-step-size-sgd} 
+	\tau_\ell \eqdef \frac{\tau_0}{1 + \ell/\ell_0}, 
+}
+where $\ell_0$ indicates roughly the number of iterations serving as a warmup phase.
+%
+One can prove the convergence result
+\eq{ 
+	\Ee(\gD^\star) - \EE( \Ee(\it{\gD}) ) = O\pa{ \frac{1}{\sqrt{\ell}} }, 
+}
+where $\gD^\star$ is a solution of~\eqref{eq-semi-disc-energy-entropy} and where $\EE$ indicates an expectation with respect to the i.i.d. sampling of $(x_\ell)_\ell$ performed at each iteration.
+%
+% Figure~\ref{fig-semi-discrete-sgd} shows the evolution of the algorithm on a simple 2-D example, where $\al$ is the uniform distribution on $[0,1]^2$. 
+
+
+%%%
+\paragraph{Optimal quantization.}
+
+The optimal quantization problem of some measure $\al$ corresponds to the resolution of
+\eq{
+	\Qq_m(\al) = \umin{ Y=(y_j)_{j=1}^m, (\b_j)_{j=1}^m } W_p( \al, \sum_j b_j \de_{y_j} ). 
+}
+This problem is at the heart of the computation of efficient vector quantizer in information theory and compression, and is also the basic problem to solve for clustering in unsupervised learning.
+%
+The asymptotic behavior of $\Qq_m$ is of fundamental importance, and its precise behavior is in general unknown. For a measure with a density in Euclidean space, it scales like $O(1/n^{1/d})$, so that quantization generally suffers from the curse of dimensionality.
+
+This optimal quantization problem is convex with respect to $\b$, but is unfortunately non-convex with respect to $Y=(y_j)_j$. Its resolution is in general NP-hard.
+%
+The only setting where this problem is simple is the 1-D case, in which case the optimal sampling is simply $y_j = \Cc_\al^{-1}(j/m)$. \todo{see where this is proved}
+
+ 
+Solving explicitly for the minimization over $\b$ in the formula~\eqref{eq-semi-dual-discr} (exchanging the role of the min and the max) shows that necessarily, at optimality, one has $\gD=0$, so that the optimal transport maps the Voronoi cells $\Laguerre_{j}(\gD=0)$, which we denote $\VV_j(Y)$ to highlight the dependency on the quantization points $Y=(y_j)_j$
+\eq{
+	\VV_j(Y) = \enscond{x}{ \foralls j', c(x,y_{j'}) \leq c(x,y_j) }.
+}
+This also shows that the quantization energy can be rewritten in a more intuitive way, which accounts for the average quantization error induced by replacing a point $x$ by its nearest centroid
+\eq{
+	\Qq_m(\al) = \umin{Y} \Ff(Y) \eqdef \int_\Xx \umin{1 \leq j\leq m} c(x,y_j) \d\al(x).
+}
+At any local minimizer (at least if $\al$ has a density so that this function is differentiable) of this energy over $Y$, one sees that each $y_j$ should be a centroid of its associated Voronoi region, 
+\eq{
+	y_j \in \uargmin{y} \int_{\VV_j(Y)} c(x,y) \d \al(x). 
+}
+For instance, when $c(x,y)=\norm{x-y}^2$, one sees that any local minimizer should satisfy the fixed point equation
+\eq{
+	y_j = \frac{  \int_{\VV_j(Y)} x \d \al(x) }{ \int_{\VV_j(Y)} \d \al }.
+}
+The celebrated $k$-means algorithm, also known as Lloyd algorithm, iteratively apply this fixed point. It is not guaranteed to converge (it could in theory cycle) but in practice it always converge to a local minimum. 
+%
+A practical issue to obtain a good local minimizer is to seed a good initial configuration. The intuitive way to achieve this is to spread them as much as possible, and a well known algorithm to do so is the $k$-means++ methods, which achieve without even any iteration a quantization cost which is of the order of $\log(m) \Qq_m(\al)$.  
+ 
+% \todo{ optimal quantization,  solution in 1D via quantile function kmeans }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{$W_1$}
 
-- W1
-  c-transform f->-f
-  Dual lipschitz function
-  Div constraint
-  on graphs 
-- Dual norms, RKHS norms, metrizing weak* condition
-- phi-divergence, definition, dual
-- GANS, neural networks intro (discr, generative) WGANS
+%%%
+\paragraph{$\c$-transform for $W_1$.}
+
+Here we assume that $d$ is a distance on $\Xx=\Yy$, and we solve the OT problem with the ground cost $c(x,y)=d(x,y)$. The following proposition highlights key properties of the $c$-transform~\eqref{eq-c-transform} in this setup. In the following, we denote the Lipschitz constant of a function $f \in \Cc(\Xx)$ as
+\eq{
+	\Lip(f) \eqdef \sup \enscond{ \frac{|\f(x)-\f(y)|}{d(x,y)} }{ (x,y) \in \X^2, x \neq y }.
+}
+% We define Lipschitz functions to be those functions $f$ satisfying $\Lip(f) < +\infty$; they form a convex subset of $\Cc(\X)$.
+
+\begin{prop}Suppose $\X=\Y$ and $c(x,y)=d(x,y)$. 
+Then, there exists $g$ such that $\f = g^c$ if and only $\Lip(f) \leq 1$. 
+Furthermore, if $\Lip(f)\leq1$, then $f^c=-f$.
+\end{prop}
+
+\begin{proof}
+First, suppose $f=g^c$ for some $g$.  Then, for $x,y\in \X$,
+\begin{align*}
+|f(x)-f(y)|&=\left|\inf_{z\in\X} d(x,z)-g(z) \;\; - \;\;\inf_{z\in \X} d(y,z)-g(z) \right|\\
+&\leq \sup_{z\in\X} |d(x,z)-d(y,z)|\leq d(x,y).
+\end{align*}
+The first equality follows from the definition of $g^c$, the next inequality from the identity $|\inf f-\inf g|\leq\sup|f-g|$, and the last from the triangle inequality. This shows that $\Lip(f)\leq1$.
+
+If $f$ is 1-Lipschitz, for all $x,y\in\X$, $f(y)-d(x,y)\leq f(x)\leq f(y)+d(x,y)$, which shows that 
+\begin{align*}
+f^c(y)&=\inf_{x\in\X}\left[ d(x,y) - f(x) \right]
+\geq\inf_{x\in \X} \left[  d(x,y)-f(y)-d(x,y)\right]=-f(y),\\
+f^c(y)&=\inf_{x\in\X}\left[ d(x,y) - f(x) \right]
+\leq \inf_{x\in\X}\left[ d(x,y) - f(y)+d(x,y) \right]=-f(y), 
+\end{align*}
+and thus $f^c=-f$. 
+
+Applying this property to $-f$ which is also $1$-Lipschitz shows that $(-f)^c = f$ so that $f$ is indeed $c$-concave (i.e. it is the $c$-transform of a function). 
+%Now, suppose $\Lip(f)\leq1$, and define $g\eqdef -f$. By the Lipschitz property, for all $x,y\in\X$,
+%$f(y)-d(x,y)\leq f(x)\leq f(y)+d(x,y)$.
+%Applying these inequalities,
+%\begin{align*}
+%g^c(y)&=\inf_{x\in\X}\left[ d(x,y) + f(x) \right]
+%\geq\inf_{x\in \X} \left[  d(x,y)+f(y)-d(x,y)\right]=f(y),\\
+%g^c(y)&=\inf_{x\in\X}\left[ d(x,y) + f(x) \right]
+%\leq \inf_{x\in\X}\left[ d(x,y) + f(y)+d(x,y) \right]=f(y).
+%\end{align*}
+%Hence, $f=g^c$ with $g=-f$.  Using the same inequalities shows
+%\begin{align*}
+%f^c(y)&=\inf_{x\in\X}\left[ d(x,y) - f(x) \right]
+%\geq\inf_{x\in \X} \left[  d(x,y)-f(y)-d(x,y)\right]=-f(y),\\
+%f^c(y)&=\inf_{x\in\X}\left[ d(x,y) - f(x) \right]
+%\leq \inf_{x\in\X}\left[ d(x,y) - f(y)+d(x,y) \right]=-f(y).
+%\end{align*}
+%This shows $f^c=-f$.
+\end{proof}
+
+Using the iterative $c$-transform scheme~\eqref{eq-iter-c-trans}, one can replace the dual variable $(f,g)$ by $(f^{cc},f^{c})=(-f^c,f^{c})$, or equivalently by any pair $(f,-f)$ where $f$ is $1$-Lipschitz. 
+%
+This leads to the following alternative expression for the $\Wass_1$ distance
+%Plugging the relationship $f^c=-f$ into~\eqref{eq-semi-dual-cont} shows
+\eql{\label{eq-w1-metric}
+	\Wass_1(\al,\be) = 
+	\umax{f} \enscond{ \int_{\Xx} f \d(\al-\be) }{ \Lip(f) \leq 1 }.
+}
+This expression shows that $\Wass_1$ is actually a norm, \ie $\Wass_1(\al,\be) = \norm{\al-\be}_{\Wass_1}$, and that it is still valid for any measures (not necessary positive) as long as $\int_{\Xx} \al=\int_{\Xx} \be$. This norm is often called the Kantorovich-Rubinstein norm~\cite{kantorovich1958space}.
+
+For discrete measures of the form~\eqref{eq-discr-meas}, writing $\al-\be = \sum_{k} \VectMode{m}_k \de_{z_k}$ with $z_k \in \Xx$ and $\sum_k \VectMode{m}_k=0$, the optimization~\eqref{eq-w1-metric} can be rewritten as
+\eql{\label{eq-w1-discr}	
+	\Wass_1(\al,\be) = 
+	\umax{ (\fD_k)_k } \enscond{ \sum_k \fD_k \VectMode{m}_k }{ \foralls (k,\ell), 
+		\abs{\fD_k-\fD_\ell} \leq d(z_k,z_\ell), }
+}
+which is a finite-dimensional convex program with quadratic-cone constraints.  It can be solved using interior point methods or, as we detail next for a similar problem, using proximal methods. 
+
+When using $d(x,y)=|x-y|$ with $\X=\RR$, we can reduce the number of constraints by ordering the $z_k$'s via $z_1 \leq z_2 \leq \ldots$.  In this case, we only have to solve
+\eq{	
+	\Wass_1(\al,\be) = 
+	\umax{ (\fD_k)_k } \enscond{ \sum_k \fD_k \VectMode{m}_k }{ \foralls k, \abs{\fD_{k+1}-\fD_k} \leq z_{k+1}-z_k }, 
+}
+which is a linear program. 
+%
+Note that furthermore, in this 1-D case, a closed form expression for $\Wass_1$ using cumulative functions is given in~\eqref{eq-w1-1d}.
+
+%%%
+\paragraph{$W_1$ on Euclidean spaces}
+
+In the special case of Euclidean spaces $\X=\Y=\RR^\dim$, using $\c(x,y) = \norm{x-y}$, the global Lipschitz constraint appearing in~\eqref{eq-w1-metric} can be made local as a uniform bound on the gradient of $f$, 
+\eql{\label{eq-w1-cont}
+	\Wass_1(\al,\be) = 
+	\usup{f} \enscond{ \int_{\RR^\dim} \f (\d\al-\d\be) }{ \norm{\nabla \f}_\infty \leq 1 }.
+}
+Here the constraint $\norm{\nabla \f}_\infty \leq 1$ signifies that the norm of the gradient of $\f$ at any point $x$ is upper bounded by $1$, $\norm{\nabla \f(x)}_2 \leq 1$ for any $x$.
+
+Considering the dual problem to~\eqref{eq-w1-cont}, denoting $\xi \eqdef \al-\be$, and using that
+\eq{
+	\iota_{\norm{\cdot}_{\RR^d} \leq 1}(u) = \umax{v} \dotp{u}{v} - \norm{v}_{\RR^d}
+}
+one has a maximization on flow vector fields $\flow :  \RR^d \rightarrow \RR^d$ 
+\begin{align*}
+	\Wass_1(\al,\be) &= 
+	\usup{f} \uinf{\flow(x) \in \RR^d} \int_{\RR^\dim} \f \d\xi - \int \dotp{\nabla f(x)}{\flow(x)} \d x + \int \norm{\flow(x)}_{\RR^d} \d x \\
+	&= 
+	\uinf{\flow(x) \in \RR^d} \int \norm{\flow(x)} \d x
+		+ \usup{f} \int f(x) ( \d \xi - \diverg(\flow) \d x) 
+\end{align*}
+one obtains an optimization problem under fixed divergence constraint
+\eql{\label{eq-w1-cont-div}
+	\Wass_1(\al,\be) = 
+	\uinf{\flow} \enscond{ \int_{\RR^\dim} \norm{\flow(x)}_{\RR^d} \d x }{  \diverg(\flow)=\al-\be }, 
+}
+which is often called the Beckmann formulation~\cite{Beckmann52}.
+%
+Here the vectorial function $\flow(x) \in \RR^2$ can be interpreted as a flow field, describing locally the movement of mass. Outside the support of the two input measures, $\diverg(\flow)=0$, which is the conservation of mass constraint. 
+%
+Once properly discretized using finite elements, Problems~\eqref{eq-w1-cont} and~\eqref{eq-w1-cont-div} become a nonsmooth convex optimization problems. 
+
+The previous formulations~\eqref{eq-w1-cont} and~\eqref{eq-w1-cont-div} of $\Wass_1$ can be generalized to the setting where $\X$ is a Riemannian  manifold, i.e. $\c(x,y)=\dist(x,y)$ where $\dist$ is the associated geodesic distance (and then for smooth manifolds, the gradient and divergence should be understood as the differential operators on manifold). In a similar way it can be extended on a graph (where the geodesic distance is the length of the shortest path), in this case, the gradient and divergence are the corresponding finite difference operations operating along the edges of the graph. In this setting, the corresponding linear program can be solved using a min-cost flow simplex in complexity $O(n^2 \log(n))$ for sparse graph (e.g. grids). 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dual norms (Integral Probability Metrics)}
+\label{sec-dual-norms}
+
+Formulation~\eqref{eq-w1-cont} is a special case of a dual norm. A dual norm is a convenient way to design ``weak'' norms that can deal with arbitrary measures. For a symmetric convex set $B$ of measurable functions, one defines 
+\eql{\label{eq-dual-norm-cont}
+	\norm{\al}_B \eqdef 
+	\usup{\f} \enscond{ \int_{\X} \f(x) \d\al(x) }{ \f \in B}.
+}
+These dual norms are often called ``integral probability metrics''; see~\cite{sriperumbudur2012empirical}.
+
+
+\begin{example}[Total variation]
+The total variation norm (Example~\ref{exmp-tv}) is a dual norm associated to the whole space of continuous functions
+\eq{
+	B = \enscond{f \in \Cc(\X)}{\norm{f}_\infty \leq 1}.
+}
+The total variation distance is the only nontrivial divergence that is also a dual norm; see~\cite{sriperumbudur2009integral}. 
+\end{example}
+
+\begin{example}[$\Wass_1$ norm]
+$\Wass_1$ as defined in~\eqref{eq-w1-cont}, is a special case of dual norm~\eqref{eq-dual-norm-cont}, using
+\eq{ 
+	B = \enscond{f}{\Lip(f) \leq 1}
+} 
+the set of 1-Lipschitz functions.
+\end{example}
+
+\begin{example}[Flat norm and Dudley metric]
+If the set $B$ is bounded, then $\norm{\cdot}_B$ is a norm on the whole space $\Mm(\Xx)$ of measures.
+%
+This is not the case of $\Wass_1$, which is only defined for $\al$ such that $\int_\X \d\al=0$ (otherwise $\norm{\al}_B=+\infty$). 
+%
+This can be alleviated by imposing a bound on the value of the potential $\f$, in order to define for instance the flat norm, 
+ 
+\eql{\label{eq-set-flatnorm}
+	B=\enscond{f}{\Lip(f) \leq 1 \qandq \norm{\f}_\infty \leq 1}.
+}
+It metrizes the weak convergence on the whole space $\Mm(\X)$.
+% 
+Formula~\eqref{eq-w1-discr} is extended to compute the flat norm by adding the constraint $\abs{\fD_k} \leq 1$.
+%
+The flat norm is sometimes called the ``Kantorovich--Rubinstein'' norm~\cite{hanin1992kantorovich} and has been used as a fidelity term for inverse problems in imaging~\cite{lellmann2014imaging}.
+%
+The flat norm is  similar to the Dudley metric, which uses
+\eq{\label{eq-set-dudley}
+	B=\enscond{f}{\norm{\nabla \f}_\infty + \norm{\f}_\infty \leq 1}.
+}
+\end{example}
+
+The following proposition shows that to metrize the weak convergence, the dual ball $B$ should not be too large (because otherwise one obtain a strong norm), namely one needs $\Cc(\Xx) \subset \overline{\Span(B)}$.
+
+\begin{prop}\label{prop-metrization}
+	(i) If $\Cc(\Xx) \subset \overline{\Span(B)}$ (i.e. if the span of $B$ is dense in continuous functions for the sup-norm $\norm{\cdot}_\infty$), then $\norm{\al_k-\al}_B \rightarrow 0$ implies $\al_k \rightharpoonup \al$.  \\
+	%
+	(ii) If $B \subset \Cc(\Xx)$ is compact for  $\norm{\cdot}_\infty$ then $\al_k \rightharpoonup \al$ implies $\norm{\al_k-\al}_B \rightarrow 0$.
+	% $\overline{\Span(B)} \subset \Cc(\Xx)$ then $\al_k \rightharpoonup \al$ implies $\norm{\al_k-\al}_B \rightarrow 0$.
+\end{prop}
+\begin{proof} 
+% \todo{prove me, see~\cite[para. 5.1]{ambrosio2006gradient}}
+(i) If  $\norm{\al_k-\al}_B \rightarrow 0$, then by duality, for any $f \in B$, 
+ since $\dotp{f}{\al_k - \al} \leq \norm{\al_k-\al}_B$ then $\dotp{f}{\al_k} \rightarrow \dotp{f}{\al}$. By linearity, this property extends to $\Span(B)$. 
+%
+By density, this extends to $\overline{\Span(B)}$, indeed $|\dotp{f}{\al_k} - \dotp{f'}{\al_k}| \leq \norm{f-f'}_\infty$. \\
+%%%% 
+(ii) We assume $\al_k \rightharpoonup \al$ and we consider a sub-sequence $\al_{n_k}$ such that 
+\eq{
+	\norm{\al_{n_k}-\al}_B \longrightarrow \lim\sup_k \norm{\al_{k}-\al}_B
+}
+Since $B$ is compact, the maximum appearing in the definition of $\norm{\al_{n_k}-\al}_B$ is reached, so that there exists some 1-Lipschitz function $f_{n_k}$ so that $\dotp{\al_{n_k}-\al}{f_{n_k}} = \norm{\al_{n_k}-\al}_B$. Once again, by Ascoli-Arzel\`a theorem, we can extract from $(f_{n_k})_k$ a (not relabelled for simplicity) subsequence converging to some $f \in B$. One has $\norm{\al_{n_k}-\al}_{B} = \dotp{\al_{n_k}-\al}{f_{n_k}}$, and this quantity converges to 0 because one can decompose it as
+\eq{
+	\dotp{\al_{n_k}-\al}{f_{n_k}} =
+	\dotp{\al_{n_k}-\al}{f} + \dotp{\al_{n_k}}{f_{n_k} - f} - \dotp{\al}{f_{n_k} - f}
+}
+and these three terms goes to zero because $\al_{n_k}-\al \rightharpoonup 0$ (first term)
+and $\norm{f_{n_k} - f}_\infty \rightarrow 0$ (two others, recall that $|\dotp{\al_{n_k}}{f_{n_k} - f}| \leq \norm{f_{n_k} - f}_\infty$).
+\end{proof}
+
+
+\begin{cor}\label{cor-topol-wass}
+	On a compact space, the Wasserstein-$p$ distance metrizes the weak convergence. 
+\end{cor}
+\begin{proof}
+	Denoting $B=\enscond{f}{\text{Lip}(f) \leq 1}$.
+	
+	For (i), one has that  then $\Span(B)$ is the space of Lipschitz functions.
+	%
+	The adherence of Lipschitz functions for $\norm{\cdot}_\infty$ is the space of continuous functions.
+	%
+	For (ii), for probability distributions, without loss of generality, functions $f$ in $B$ can be taken up to an additive constant, so that we can impose $f(x_0)=0$ for some fixed $x_0 \in \Xx$, and since $\Xx$ is compact, $\norm{f}_\infty \leq \text{diam}(\Xx)$ so that we can consider in placed of $B$ another ball of equicontinuous bounded functions. By Ascoli-Arzel\`a theorem, it is hence compact. 	
+	%
+	Proposition~\ref{prop-comp-wass-p} shows that $W_p$ has the same topology as $W_1$ so that it is also the topology of convergence in law. 
+\end{proof}
+
+
+% Figure~\ref{fig-dual-norms} displays a comparison of several such dual norms, which we now detail.
+
+
+
+%%%%
+\paragraph{Dual RKHS Norms and Maximum Mean Discrepancies.}
+
+It is also possible to define ``Euclidean'' norms (built using quadratic functionals) on measures using the machinery of kernel methods and more specifically reproducing kernel Hilbert spaces (RKHS; see~\cite{scholkopf2002learning} for a survey of their applications in data sciences), of which we recall first some basic definitions.
+
+\begin{defn}\label{def-negativedefinitekernel}
+A symmetric function $k$ defined on $\X \times \X$ is said to be positive definite if for any $n\geq0$, for any family $x_1,\dots,x_n\in\Z$ the matrix $(k(x_i,x_j))_{i,j}$ is positive (i.e. has positive eigenvalues), i.e.  for all $r \in \RR^n$
+\eql{\label{eq-dual-kern}
+	\sum_{i,j=1}^n r_i r_j k(x_i,x_j)\geq 0, 
+}
+The kernel is said to be conditionally positive if positivity only holds in~\eqref{eq-dual-kern} for zero mean vectors $r$ (i.e. such that $\dotp{r}{\ones_n}=0$).  
+\end{defn}
+
+One of the most popular kernels is the Gaussian one $\Krkhs(x,y) = e^{-\frac{\norm{x-y}^2}{2 \si^2}}$, which is a positive universal kernel on $\Xx=\RR^d$. 
+%
+Another type of kernels are energy distances, which are more global (scale free) and are studied in Section~\ref{sec-sinkhorn-div}.
+
+
+\if 0 %%%% REMOVED 
+Using a positive definite kernel $k$, one can now define a Hilbertian norm $\norm{\cdot}_\Krkhs$ on functions 
+\eq{
+	\norm{f}_\Krkhs^2 \eqdef \int_{\X \times \X} \Krkhs(x,y) f(x) f(y) \d \rho(x) \d \rho(y)
+}
+where $\rho$ is some reference measure, typically Lebesgue's measure on $\X=\RR^\dim$. This norm can then be used to define a subset $B$ of functions with bounded RKHS norm,
+\eql{\label{eq-dual-rkhs}
+	B = \enscond{\f}{ \norm{\f}_\Krkhs \leq 1}
+}
+%
+that is plugged into notation~\eqref{eq-dual-norm-cont}. The dual RKHS norm for measures that results from this construction is often referred to as the ``maximum mean discrepancy'' (MMD) (see~\cite{gretton2007kernel}), and can be revisited through the prism of Kernel Mean Embeddings (see~\cite{muandet2017kernel} for a review). 
+\fi 
+
+
+If $k$ is conditionally positive, one defines the following norm for $\xi=\al-\be$ being a signed measure  
+\eql{\label{eq-kernel-dual}
+	\norm{\xi}^2_{\Krkhs} \eqdef \int_{\X \times \X} \Krkhs(x,y) \d \xi(x) \d \xi(y). 
+}
+These norms are often referred to as ``maximum mean discrepancy'' (MMD) (see~\cite{gretton2007kernel}) and have also been called ``kernel norms'' in shape analysis~\cite{glaunes2004diffeomorphic}.
+%
+This expression~\eqref{eq-kernel-dual} can be rephrased, introducing two independent random vectors $(X,X')$ on $\X$ distributed with law $\al$, as
+\eq{
+	\norm{\al}^2_{\Krkhs} = \EE_{X,X'}( \Krkhs(X,X') ). 
+}
+One can show that $\norm{\cdot}^2_{\Krkhs}$ is the dual norm in the sense of~\eqref{eq-dual-norm-cont} associated to the unit ball $B$ of the RKHS associated to $k$. We refer to~\cite{berlinet03reproducing,Hofmann2008,scholkopf2002learning} for more details on RKHS functional spaces.  
+
+\begin{rem}[Universal kernels]
+According to Proposition~\ref{prop-metrization}, the MMD norm $\norm{\cdot}_k$ metrizes the weak convergence if the span of the dual ball $B$ is dense in the space of continuous functions $\Cc(\Xx)$. This means that finite sums of the form $\sum_{i=1}^n a_i k(x_i,\cdot)$ (for arbitrary choice of $n$ and points $(x_i)_i$) are dense in $\Cc(\Xx)$ for the uniform norm $\norm{\cdot}_\infty$.  For translation-invariant kernels over $\X=\RR^d$, $\Krkhs(x,y)=\Krkhs_0(x-y)$, this is equivalent to having a nonvanishing Fourier transform, $\hat \Krkhs_0(\om) >0$.
+\end{rem}
+
+In the special case where $\al$ is a discrete measure of the form~\eqref{eq-pair-discr}, one thus has the simple expression
+\eq{
+	\norm{\al}_{\Krkhs}^2 = \sum_{i=1}^n \sum_{i'=1}^n \a_i\a_{i'} \KrkhsD_{i,i'}  = \dotp{\KrkhsD\a}{\a}
+	\qwhereq
+	\KrkhsD_{i,i'} \eqdef \Krkhs(x_i,x_{i'}).
+}
+In particular, when $\al=\sum_{i=1}^n \a_i \de_{x_i}$ and $\be=\sum_{i=1}^n \b_i \de_{x_i}$ are supported on the same set of points, $\norm{\al-\be}_{\Krkhs}^2 = \dotp{\KrkhsD(\a-\b)}{\a-\b}$, so that $\norm{\cdot}_{\Krkhs}$ is a Euclidean norm (proper if $\KrkhsD$ is positive definite, degenerate otherwise if $\KrkhsD$ is semidefinite) on the simplex $\simplex_n$.
+%
+To compute the discrepancy between two discrete measures of the form~\eqref{eq-pair-discr}, one can use
+\eql{\label{eq-mmd-discr}
+	\norm{\al-\be}_{\Krkhs}^2 = 
+		\sum_{i,i'} \a_i \a_{i'} \Krkhs(x_i,x_{i'})	+
+		\sum_{j,j'} \b_j \b_{j'} \Krkhs(y_j,y_{j'}) - 2
+		\sum_{i,j} \a_i \b_j \Krkhs(x_i,y_j). 
+}
+
+
+
+
+
+%\begin{example}[Gaussian RKHS]\label{exmp-gaussian-kernel}
+%An attractive feature of the Gaussian kernel is that it is separable as a product of 1-D kernels, which facilitates computations when working on regular grids (see also Remark~\ref{rem-separable}).
+%However, an important issue that arises when using the Gaussian kernel is that one needs to select the bandwidth parameter $\si$. This bandwidth should match the ``typical scale'' between observations in the measures to be compared. If the measures have multiscale features (some regions may be very dense, others very sparsely populated), a Gaussian kernel is thus not well adapted, and one should consider a ``scale-free'' kernel as we detail next. An issue with such scale-free kernels is that they are global (have slow polynomial decay), which makes them typically computationally more expensive, since no compact support approximation is possible.
+%%
+%% Figure~\ref{fig-rkhs} shows a comparison between several kernels. 
+%\end{example}
+
+
+
+
+%\begin{example}[$H^{-1}(\RR^\dim)$]\label{exp-sobolev-neg1}
+%Another important dual norm is $H^{-1}(\RR^\dim)$, the dual (over distributions) of the Sobolev space $H^1(\RR^\dim)$ of functions having derivatives in $L^2(\RR^\dim)$.
+%%
+%It is defined using the primal RKHS norm $\norm{\nabla \f}_{L^2(\RR^\dim)}^2$. It is not defined for singular measures (\emph{e.g.} Diracs) unless $\dim=1$ because functions in the Sobolev space $H^1(\RR^\dim)$ are in general not continuous.
+%%
+%This $H^{-1}$ norm (defined on the space of zero mean measures with densities) can also be formulated in divergence form,
+%\eql{\label{eq-dual-sobolev-div}
+%	\norm{\al-\be}_{H^{-1}(\RR^\dim)}^2 = 
+%	\umin{\flow} \enscond{ \int_{\RR^\dim} \norm{\flow(x)}_2^2 \d x }{  \diverg(\flow)=\al-\be },
+%}
+%which should be contrasted with~\eqref{eq-w1-cont-div}, where an $L^1$ norm of the vector field $\flow$ was used in place of the $L^2$ norm used here.
+%%
+%The ``weighted'' version of this Sobolev dual norm,
+%\eq{
+%	\norm{\rho}_{H^{-1}(\al)}^2 = 
+%	\umin{\diverg(\flow)=\rho} \int_{\RR^\dim} \norm{\flow(x)}_2^2 \d \al(x),
+%}
+%can be interpreted as the natural ``linearization'' of the Wasserstein $\Wass_2$ norm, in the sense that the Benamou--Brenier dynamic formulation can be interpreted infinitesimally as 
+%\eql{\label{eq-wass-asymp-sob}
+%	\Wass_2(\al,\al+\varepsilon \rho) = \varepsilon \norm{\rho}_{H^{-1}(\al)} + o(\varepsilon).
+%}
+%The functionals $\Wass_2(\al,\be)$ and $\norm{\al-\be}_{H^{-1}(\al)}$ can be shown to be equivalent~\cite{peyre2011comparison}.
+%%
+%The issue is that $\norm{\al-\be}_{H^{-1}(\al)}$ is not a norm (because of the weighting by $\al$), and one cannot in general replace it by $\norm{\al-\be}_{H^{-1}(\RR^\dim)}$ unless $(\al,\be)$ have densities. 
+%%
+%In this case, if $\al$ and $\be$ have densities on the same support bounded from below by $a>0$ and from above by $b<+\infty$, then 
+%\eql{\label{eq-compar-w2-sob}
+%	b^{-1/2} \norm{\al-\be}_{H^{-1}(\RR^\dim)} \leq W_2(\al,\be) \leq a^{-1/2} \norm{\al-\be}_{H^{-1}(\RR^\dim)};
+%}
+%see~\cite[Theo. 5.34]{SantambrogioBook}, and see~\cite{peyre2011comparison} for sharp constants. 
+%%
+%% Note however $H^{-1}(\al)$ and $\Wass_2(\al,\be)$ are related when comparing close enough distribution, they have very different behaviors.
+%\end{example}
+%
+%\begin{example}[Negative Sobolev spaces]\label{exp-sobolev-neg}
+%	One can generalize this construction by considering the Sobolev space $H^{-r}(\RR^\dim)$ of arbitrary negative index, which is the dual of the functional Sobolev space $H^{r}(\RR^\dim)$ of functions having $r$ derivatives (in the sense of distributions) in $L^2(\RR^\dim)$.
+%	%
+%	In order to metrize the weak convergence, one needs functions in $H^{r}(\RR^\dim)$  to be continuous, which is the case when $r>\dim/2$. As the dimension $\dim$ increases, one thus needs to consider higher regularity.
+%	%
+%	For arbitrary $\al$ (not necessarily integers), these spaces are defined using the Fourier transform, and for a measure $\al$ with Fourier transform $\hat \al(\om)$ (written here as a density with respect to the Lebesgue measure $\d\om$)
+%	\eq{
+%		\norm{\al}_{H^{-r}(\RR^\dim)}^2 \eqdef \int_{\RR^\dim} \norm{\om}^{-2r} |\hat \al(\om)|^{2}\d\om.
+%	}
+%	This corresponds to a dual RKHS norm with a convolutive kernel $k(x,y)=k_0(x-y)$ with $\hat k_0(\om) = \pm \norm{\om}^{-2r}$. Taking the inverse Fourier transform, one sees that (up to constant) one has
+%	 \eql{\label{eq-sob-kern}
+%	 	\foralls x \in \RR^\dim, \quad  
+%		k_0(x) = 
+%		\choice{
+%			\frac{1}{\norm{x}^{d-2r}} \qifq r < d/2,  \\
+%			-\norm{x}^{2r-d} \qifq r>d/2. 
+%		}
+%	}
+%\end{example}
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$\phi$-divergences}
+\label{sec-phi-div}
+
+We now consider a radically different class of methods to compare distributions, which are simpler to compute ($O(n)$ for discrete distributions) but never metrize the weak$^*$ convergence. 
+%
+Note that yet another way is possible, using Bregman divergence, which might metrize the weak$^*$ convergence in the case where the associated entropy function is weak$^*$ regular.
+
+\begin{defn}[Entropy function]
+\label{def_entropy}
+A function $\phi : \RR \to \RR \cup \{\infty\}$ is an entropy function if it is lower semicontinuous, convex, $\dom \phi\subset [0,\infty[$, and satisfies the following feasibility condition:  $\dom \phi \; \cap\;  ]0, \infty[\; \neq \emptyset$. The speed of growth of $\phi$ at $\infty$ is described by %its recession (or horizon) function
+\eq{
+\phi'_\infty = \lim_{x\rightarrow +\infty} \varphi(x)/x \in \RR \cup \{\infty\} \, .
+}
+\end{defn}
+
+If $\phi'_\infty = \infty$, then $\phi$ grows faster than any linear function and $\phi$ is said \emph{superlinear}. Any entropy function $\phi$ induces a $\phi$-divergence (also known as Cisz\'ar divergence~\cite{ciszar1967information,ali1966general} or $f$-divergence) as follows.
+
+\begin{defn}[$\phi$-Divergences]
+\label{def_divergence}
+Let $\phi$ be an entropy function.
+For $\al,\be \in \Mm(\X)$, let $\frac{\d \al}{\d \be} \be + \al^{\perp}$ be the Lebesgue decomposition\footnote{The Lebesgue decomposition theorem asserts that, given $\be$, $\al$ admits a unique decomposition as the sum of two measures $\al^s + \al^\perp$ such that $\al^s$ is absolutely continuous with respect to $\be$ and $\al^\perp$ and $\be$ are singular.} of $\al$ with respect to $\be$. The divergence $\Divergm_\phi$ is defined by
+\eql{\label{eq-phi-div}
+	\Divergm_\phi (\al|\be) \eqdef \int_\X \phi\left(\frac{\d \al}{\d \be} \right) \d \be 
++ \phi'_\infty \al^{\perp}(\X)
+}
+if $\al,\be$ are nonnegative and $\infty$ otherwise.
+\end{defn}%
+
+The additional term $\phi'_\infty \al^{\perp}(\X)$ in~\eqref{eq-phi-div} is important to ensure that $\Divergm_\phi$ defines a continuous functional (for the weak topology of measures) even if $\phi$ has a linear growth at infinity, as this is, for instance, the case for the absolute value~\eqref{eq-tv-entropy} defining the TV norm. If $\phi$ as a superlinear growth, \eg the usual entropy~\eqref{eq-shannon-entropy}, then $\phi'_\infty=+\infty$ so that $\Divergm_\phi (\al|\be) = +\infty$ if $\al$ does not have a density with respect to $\be$. 
+
+In the discrete setting, assuming 
+\eql{\label{eq-div-disc-meas}
+	\al=\sum_i \a_i \de_{x_i}
+	\qandq \be=\sum_i \b_i \de_{x_i}
+} 
+are supported on the same set of $n$ points $(x_i)_{i=1}^n \subset \X$,~\eqref{eq-phi-div} defines a divergence on $\simplex_n$
+\eql{\label{eq-discr-diverg}
+	\DivergmD_\phi(\a|\b) = \sum_{i \in \Supp(\b)} \phi\pa{ \frac{\a_i}{\b_i} } \b_i + \phi'_\infty \sum_{i \notin \Supp(\b)} \a_i,
+}
+where $\Supp(\b) \eqdef \enscond{i \in \range{n}}{ b_i \neq 0 }$.
+
+
+\begin{proposition}
+If $\phi$ is an entropy function, then $\Divergm_\phi$ is jointly $1$-homogeneous, convex and weakly* lower semicontinuous in $(\al,\be)$.
+\end{proposition}
+
+\begin{proof} 
+	One defines the associated perspective function 
+	\eq{	
+		\foralls (u,v) \in (\RR_+)^2, \quad
+		\psi(u,v) = \choice{
+			\phi(u/v) v \qifq v \neq 0, \\
+			u \phi_\infty \qifq v=0
+		}
+	}
+	so that (we only do the proof in discrete for simplicity)
+	\eq{
+		\DivergmD_\phi(\a|\b) = \sum_{i} \psi(\a_i,\b_j), 
+	}
+	and we will show that it is convex on $(\RR_+)^2$. We will show this convexity on $\RR_+ \times \RR_+^*$ and this convexity extends to $(\RR_+)^2$ by taking the limit $v \rightarrow 0$.
+	%
+	Indeed, for any $\la \in [0,1]$,  $\tau=1-\la$
+	\begin{align*}
+		\phi\pa{ \frac{\tau u_1 + \la u_2}{\tau v_1 + \la v_2} }
+		(\tau v_1 + \la v_2) 
+		= 
+		\phi\pa{ 
+			 	\frac{\tau u_1 }{\tau v_1 + \la v_2} \frac{u_1}{v_1}+
+				\frac{\la u_2 }{\tau v_1 + \la v_2} \frac{u_2}{v_2}		
+		}
+		(\tau v_1 + \la v_2)
+		\leq 
+		\tau \phi\pa{\frac{u_1}{v_1}} v_1 
+		+ 
+		\la \phi\pa{\frac{u_2}{v_2}} v_2 .
+	\end{align*}
+	% For a smooth function $\phi$, one can indeed compute its hessian for $v>0$, since $\partial^2 \psi(u,v) = \diag(\phi''(u/v), $
+\end{proof} 
+
+The following proposition shows that $\Divergm_\phi$ is a ``distance-like'' function.
+
+\begin{proposition}\label{phi-div-positive}
+For probability distribution $(\al,\be) \in \Mm_+^1(\Xx)$, then $\Divergm_\phi(\al,\be) \geq 0$. Assuming $\phi$ to be strictly convex and $\phi(1)=0$, then one has $\Divergm_\phi(\al,\be)=0$ if and only if $\al=\be$.
+%
+This property extends to arbitrary distribution $(\al,\be) \in \Mm_+(\Xx)$ if one furthermore imposes that $\phi \geq 0$. 
+\end{proposition}
+
+\begin{proof} 
+	For probability measure, this follows from Jensen inequality, since
+	\eq{
+		\int \phi\pa{ \frac{\d\al}{\d\be}  } \d \be \geq
+		\phi\pa{ \int \frac{\d\al}{\d\be} \d \be } = \phi(1) = 0
+	}
+	and the case of equality for a strictly convex function is only when $\frac{\d\al}{\d\be}$ is constant (and thus equal to 1).
+	%
+	In the general case, if $\phi \geq 0$ then the divergence is positive by construction. 
+\end{proof} 
+
+\begin{example}[Kullback--Leibler divergence]
+\label{ex_KLdiv}
+The Kullback--Leibler divergence $\KL \eqdef \Divergm_{\phi_{\KL}}$, also known as the relative entropy, was already introduced in~\eqref{eq-defn-rel-entropy} and~\eqref{eq-kl-defn}. It is the divergence associated to the Shannon--Boltzman entropy function $\phi_{\KL}$, given by
+\eql{\label{eq-shannon-entropy}
+	\phi_{\KL}(s)= \begin{cases}
+		s\log(s)-s+1 & \textnormal{for } s>0 , \\
+		1 & \textnormal{for } s=0 , \\
+		+\infty & \textnormal{otherwise.}
+		\end{cases}
+}
+%\todo{Explain a bit Hyperbolic geometry of KL
+%\eq{
+%		\KL( \Nn(m+\de_m,(\si+\de_\si)^2) | \Nn(m,\si^2) ) = \frac{1}{\si^2}\pa{
+%			\frac{1}{2}\de_m^2 + \de_\si^2
+%		} + 
+%		o( \de_m^2,\de_\si^2 ).
+%	}
+%To be contrasted with the Euclidean geometry of OT on 1-D Gaussians. 
+%}
+\end{example}
+
+
+\begin{example}[Total variation]\label{exmp-tv}
+The total variation distance $\TV \eqdef \Divergm_{\phi_{\TV}}$ is the divergence associated to
+\eql{\label{eq-tv-entropy}
+	\phi_{\TV}(s)= \begin{cases}
+		|s-1| & \textnormal{for } s\geq0 , \\
+		+\infty & \textnormal{otherwise.}
+		\end{cases}
+}
+It actually defines a norm on the full space of measure $\Mm(\X)$ where
+\eql{\label{eq-defn-tv}
+	\TV(\al|\be) = \norm{\al-\be}_{\TV},
+	\qwhereq
+	\norm{\al}_{\TV} = |\al|(\X) = \int_\X \d|\al|(x).
+}
+If $\al$ has a density $\density{\al}$ on $\X=\RR^\dim$, then the TV norm is the $L^1$ norm on functions, $\norm{\al}_{\TV} = \int_\X |\density{\al}(x)| \d x = \norm{\density{\al}}_{L^1}$.
+%
+If $\al$ is discrete as in~\eqref{eq-div-disc-meas}, then the TV norm is the $\ell^1$ norm of vectors in $\RR^n$, $\norm{\al}_{\TV}=\sum_i |\a_i| = \norm{\a}_{\ell^1}$.
+\end{example}
+
+\begin{rem}[Strong vs. weak topology]
+	The total variation norm~\eqref{eq-defn-tv} defines the so-called ``strong'' topology on the space of measure. 
+	%
+	On a compact domain $\X$ of radius $R$, one has 
+	\eq{
+		\Wass_1(\al,\be) \leq R \norm{\al-\be}_{\TV}
+	}
+	so that this strong notion of convergence implies the weak convergence metrized by Wasserstein distances. 
+	%
+	The converse is, however, not true, since $\de_x$ does not converge strongly to $\de_y$ if $x \rightarrow y$ (note that
+	$\norm{\de_x-\de_y}_{\TV}=2$ if $x \neq y$). 
+	%
+	A chief advantage is that $\Mm_+^1(\Xx)$ (once again on a compact ground space $\X$) is compact for the weak topology, so that from any sequence of probability measures $(\al_k)_k$, one can always extract a converging subsequence, which makes it a suitable space for several optimization problems, such as those considered in Chapter~\ref{c-variational}.
+\end{rem}
+
+%
+%\begin{example}[Hellinger]\label{exmp-hellinger}
+%	The Hellinger distance $\Hellinger \eqdef \Divergm_{\phi_{H}}^{1/2}$ is the square root of the divergence associated to
+%	\eq{
+%		\phi_{H}(s)= \begin{cases}
+%			|\sqrt{s}-1|^2 & \textnormal{for } s\geq0 , \\
+%			+\infty & \textnormal{otherwise.}
+%			\end{cases}
+%	}
+%	As its name suggests, $\Hellinger$ is a distance on $\Mm_+(\X)$, which metrizes the strong topology as $\norm{\cdot}_{\TV}$. 
+%	%
+%	If $(\al,\be)$ have densities $(\density{\al},\density{\be})$ on $\X=\RR^\dim$, then $\Hellinger(\al,\be) = \norm{\sqrt{\density{\al}}-\sqrt{\density{\be}}}_{L^2}$.
+%	%
+%	If $(\al,\be)$ are discrete as in~\eqref{eq-div-disc-meas}, then $\Hellinger(\al,\be) = \norm{\sqrt{\a}-\sqrt{\b}}$.	
+%	%
+%	Considering $\phi_{L^p}(s)=|s^{1/p}-1|^p$ generalizes the Hellinger ($p=2$) and total variation ($p=1$) distances
+%	and $\Divergm_{\phi_{L^p}}^{1/p}$ is a distance which metrizes the strong convergence for $0<p<+\infty$. 
+%\end{example}
+%
+%
+%\begin{example}[Jensen--Shannon distance]
+%	The KL divergence is not symmetric and, while being a Bregman divergence (which are locally quadratic norms), it is not the square of a distance. On the other hand, the Jensen--Shannon distance $\text{JS}(\al,\be)$, defined as
+%	\eq{
+%		\text{JS}(\al,\be)^2 \eqdef \frac{1}{2}\pa{
+%			\KL(\al|\xi) + \KL(\be|\xi)
+%		}
+%		\qwhereq
+%		\xi = \frac{\al+\be}{2}, 
+%	}
+%	is a distance~\cite{endres2003new,osterreicher2003new}. 
+%	% 
+%	$\text{JS}^2$ can be shown to be a $\phi$-divergence for $\phi(s) = t\log(t)-(t+1)\log(t+1)$.
+%	%
+%	In sharp contrast with $\KL$, $\text{JS}(\al,\be)$ is always bounded; more precisely, it satisfies $0 \leq \text{JS}(\al,\be)^2 \leq \ln(2)$. 
+%	%
+%	Similarly to the TV norm and the Hellinger distance, it metrizes the strong convergence. 
+%\end{example}
+%
+%\begin{example}[$\chi^2$]\label{exmp-chisquare}
+%	The $\chi^2$-divergence $\chi^2 \eqdef \Divergm_{\phi_{\chi^2}}$ is the divergence associated to
+%	\eq{
+%		\phi_{\chi^2}(s)= \begin{cases}
+%			|s-1|^2 & \textnormal{for } s\geq0 , \\
+%			+\infty & \textnormal{otherwise.}
+%			\end{cases}
+%	}
+%	If $(\al,\be)$ are discrete as in~\eqref{eq-div-disc-meas} and have the same support, then 
+%	\eq{
+%		\chi^2(\al|\be) = \sum_i \frac{(\a_i-\b_i)^2}{\b_i}.
+%	}	
+%\end{example}
+
+
+\begin{proposition}[Dual expression]
+	A $\phi$-divergence can be expressed using the Legendre transform 
+	\eq{
+		\phi^{*,\geq 0}(s) \eqdef \usup{t \in \RR^+} st - \phi(t)
+	}
+	(notice that we restrict the function to the positive real)
+	of $\phi$ as % (see also~\eqref{eq-legendre})
+	\eql{\label{eq-dual}
+		\Divergm_\phi(\al|\be) = \usup{f: \X \rightarrow \RR} \int_\X f(x) \d\al(x) - \int_\X \phi^{*,\geq 0}(f(x)) \d\be(x). 
+	}
+	which equivalently reads that the Legendre transform of $\Divergm_\phi(\cdot|\be)$ reads
+	\eql{\label{eq-legendre}
+		\foralls f \in \Cc(\Xx), \quad
+		\Divergm_\phi^*(f|\be)  = \int_\X \phi^{*,\geq 0}(f(x)) \d\be(x).
+	} 
+\end{proposition}
+
+\begin{proof} 
+	For simplicity, we consider super-linear entropy so that $\phi_\infty'=+\infty$, and thus this impose $\Dd_\phi(\al|\be)=+\infty$ if $\al$ does not has a density $\rho \geq 0$ with respect to $\be$, $\d\al=\rho \d\be$. Thus the Legendre-Fenchel transform of $\Dd_\phi(\cdot|\be)$
+	reads
+	\begin{align*}
+		\Dd_\phi^*(f|\be) &= \usup{\rho \geq 0} \int_\Xx f(x) \rho(x)\d\be(x) - \int_\Xx \phi(\rho(x)) \d\be(x)\\
+		&=  \int_\Xx \usup{\rho(x) \geq 0} \pa{  f(x) \rho(x) -\phi(\rho(x))  }\d\be(x) 
+		= \int_\Xx \phi^{*,\geq 0}(f(x)) \d\be(x).
+	\end{align*}
+	The proposed formula intuitively corresponds to using the idempotence property  $\Dd_\phi^{**}(\cdot|\be)=\Dd_\phi(\cdot|\be)$.
+\end{proof} 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{GANs via Duality}
+
+The goal is to fit a generative parametric model $\al_\th = g_{\th,\sharp} \zeta$ to empirical data $\be = \frac{1}{m}\sum_{j} \de_{y_j}$, where $\zeta \in \Mm_+^1(\Zz)$ is a fixed density over the latent space and $g_\th : \Zz \rightarrow \Xx$ is the generator, often a neural network. We consider first a dual norm~\eqref{eq-dual-norm-cont} minimization, in which case one aim at solving a min-max saddle point problem
+\eq{
+	\umin{\th} \norm{\al_\th - \be}_B 
+	= \umin{\th}
+	\usup{\f \in B} \int_{\X} \f(x) \d(\al_\th-\be)(x)
+	= \umin{\th}
+	\usup{\f \in B} \int_{\Zz} \f( g_\th(z)) \d\zeta - \frac{1}{m} \sum_j f(y_j).
+}
+Instead of a dual norm, one can consider any convex function and represent is as a maximization,  for instance a $\phi$-divergence, which, thanks to the dual formula~\eqref{eq-dual}, leads to
+\eq{
+	\umin{\th} \Divergm_\phi(\al_\th|\be) 
+	= \umin{\th} \usup{\f} \int_\Xx f(x) \d\al_\th(x) - \Divergm_\phi^*(f|\be)
+	= \umin{\th} \usup{\f} \int_\Xx f(g_\th(z)) \d\zeta(z) - 
+	\frac{1}{m}\sum_j \phi^*(f(y_j)).
+}
+The GAN's idea corresponds to replacing $\f$ by a parameterized network $\f=\f_\xi$ and doing the maximization over the parameter $\xi$. For instance, Wasserstein GAN consider weight clipping by constraining $\norm{\xi}_\infty \leq 1$ in order to ensure $\f_\xi \in B = \enscond{f}{\Lip(f) \leq 1}$. This set of network is both in practice smaller and non-convex so that no theoretical analysis of this method currently exists.

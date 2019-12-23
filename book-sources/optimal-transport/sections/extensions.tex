@@ -8,8 +8,57 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Dynamical formulation}
 
+\todo{Write me.}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Unbalanced OT}
+\label{sec-unbalanced}
+
+We consider the following ``unbalanced'' generalization of OT
+\eq{
+	\uinf{\pi \in \Mm_+^1(\Xx \times \Yy)} \int_{\Xx \times \Yy} c(x,y) \d\pi(x,y)
+		+ \Dd_{\psi_1}(\pi_1|\al) + \Dd_{\psi_2}(\pi_2|\be)
+}
+for entropy function $\psi_1,\psi_2$.
+
+One gets a dual by using the formula~\eqref{eq-legendre} for the dual of a divergence
+\begin{align*}
+	\uinf{\pi \in \Mm_+^1(\Xx \times \Yy)} \usup{(f,g) \in \Cc(\Xx) \times \Cc(\Yy)}
+		\dotp{c}{\pi} + \dotp{-f}{\pi_1} + \dotp{-g}{\pi_1} - \Dd_{\psi_1}^*(-f|\al) - \Dd_{\psi_2}^*(-g|\be). 
+\end{align*}
+Exchanging the min and the max gives
+\begin{align*}
+	&\usup{(f,g) \in \Cc(\Xx) \times \Cc(\Yy)}
+	- \Dd_{\psi_1}^*(-f|\al) - \Dd_{\psi_2}^*(-g|\be)	+ 
+		\uinf{\pi \in \Mm_+^1(\Xx \times \Yy)} 
+		\dotp{c-f \oplus g}{\pi} + \dotp{-f}{\pi_1} + \dotp{-g}{\pi_1} \\
+	&= 	\usup{f \oplus g \leq c}
+	- \Dd_{\psi_1}^*(-f|\al) - \Dd_{\psi_2}^*(-g|\be).
+\end{align*}
+
+A generic regularization of this problem reads
+\eq{
+	\uinf{\pi \in \Mm_+^1(\Xx \times \Yy)} \int_{\Xx \times \Yy} c(x,y) \d\pi(x,y)
+		+ \Dd_{\psi_1}(\pi_1|\al) + \Dd_{\psi_2}(\pi_2|\be) + \epsilon \Dd_\phi(\pi|\al \otimes \be)
+}
+and its dual reads 
+\eq{
+	\usup{f,g}
+	- \Dd_{\psi_1}^*(-f|\al) - \Dd_{\psi_2}^*(-g|\be) + \epsilon \Dd_\phi^*\pa{ \frac{c-f\oplus g}{\epsilon} }.
+}
+When using $\Dd_\phi=\KL$, the primal dual relation reads $\pi=e^{\frac{f\oplus g - c}{\epsilon}}$ and when also considering $\Dd_{\psi_1}=\Dd_{\psi_2} = \tau \KL$, the dual reads
+\eq{
+	\usup{f,g}
+		- \tau \pa{ \dotp{e^{\frac{-f}{\tau}}}{\al} + \dotp{e^{\frac{-g}{\tau}}}{\be} - 2 }
+		- \epsilon \iint_{\Xx \times \Yy} e^{\frac{f\oplus g - c}{\epsilon}} \d \al \otimes \be + \epsilon.
+}
+
+Sikhorn iterations are obtained by minimizing iteratively with respect to $f$ and $g$, and reads in this special case
+\begin{align*}
+	f &= -\frac{\tau\epsilon}{\tau+\epsilon} \log\int_\Yy \exp\pa{ \frac{g(y) - c(\cdot,y)}{\epsilon} }  \d\be(y),  \\
+	g &= -\frac{\tau\epsilon}{\tau+\epsilon} \log\int_\Xx \exp\pa{ \frac{f(x) - c(x,\cdot)}{\epsilon} }  \d\al(x). \\
+\end{align*}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Gromov Wasserstein}
@@ -88,17 +137,6 @@ Indeed, successive linearizations of the objective function lead to consider the
 		\it{\C} \eqdef \nabla \Ee_{\distD,\distD'}(\it{\P}) = -\transp{\distD'} \it{\P} \distD, 
 }
 which can be interpreted as a mirror-descent scheme~\cite{2016-solomon-gw}. Each update can thus be solved using Sinkhorn iterations~\eqref{eq-sinkhorn} with cost $\it{\C}$. Figure~\eqref{fig-gw} illustrates the use of this entropic Gromov-Wasserstein to compute soft maps between domains. 
-
-
-\begin{figure}
-\centering
-\includegraphics[height=.22\linewidth]{gw/source}
-\includegraphics[height=.22\linewidth]{gw/target-surf}
-\includegraphics[height=.22\linewidth]{gw/target-2d}
-\caption{\label{fig-gw}
-Example of fuzzy correspondences computed by solving GW problem~\eqref{eq-gw-entropy} with Sinkhorn iterations~\eqref{eq-gw-sinkh}. Extracted from~\cite{2016-solomon-gw}.
-}
-\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

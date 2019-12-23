@@ -1,0 +1,38 @@
+%%
+% Game of life
+
+n = 64;
+
+X = zeros(n);
+
+if 0
+X(end/2-1:end/2+1,end/2-1:end/2+1) = randn(3)>0;
+X = randn(n)>0;
+else
+    X(end/2,end/2)=1;
+    X = imread('CA02.jpg');
+    X = (X(:,:,1)>128);
+    n = size(X,1);
+end
+
+
+clf;
+
+s = [2:n 1];
+t = [n 1:n-1];
+
+q = 1000;
+for it=1:q
+ 	% display
+    clf; 
+    imagesc(1-X'); axis tight;  axis equal;  axis off;
+    drawnow; 
+    colormap gray(256);
+    % save
+%    imwrite(Upsc(rescale(1-X'),2), [rep 'anim-' znum2str(it,3) '.png']);
+    % count #neighbor
+    M = X(s,s) + X(s,:) + X(s,t) + ...
+        X(:,s) + X(:,t) + ...
+        X(t,s) + X(t,:) + X(t,t);
+    X = ( (X==1) & ( M==2 | M==3 ) ) | ( (X==0) &  M==3  );
+end

@@ -6,7 +6,10 @@
 \section{Sinkhorn Divergences}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Duals of Sinkhorn}
+\subsection{Dual of Sinkhorn}
+
+%%%
+\paragraph{Discrete dual.}
 
 The following proposition details the dual problem associated to~\eqref{eq-regularized-discr}.
 
@@ -16,129 +19,240 @@ One has
 	\MKD_\C^\epsilon(\a,\b) = \umax{\fD \in \RR^n,\gD \in \RR^m}
 		 \dotp{\fD}{\a} + \dotp{\gD}{\b} 
 		% - \epsilon\sum_{i,j} e^{ \frac{\fD_i+\gD_j-\C_{i,j}}{\epsilon} }.
-		- \epsilon \dotp{e^{\fD/\epsilon} }{ \K e^{\gD/\epsilon}}.
+%		- \epsilon \dotp{e^{\fD/\epsilon} }{ \K e^{\gD/\epsilon}}.
+	- \epsilon \sum_{i,j} \exp\pa{
+		\frac{\fD_i+\gD_j-\C_{i,j}}{\epsilon}
+	} \a_i \b_j + \epsilon.
 } 
 %
 The optimal $(\fD,\gD)$ are linked to scalings $(\uD,\vD)$ appearing in~\eqref{eq-scaling-form} through 
 \eql{\label{eq-entropy-pd}
-	(\uD,\vD)=(e^{\fD/\epsilon},e^{\gD/\epsilon}).
+	(\uD,\vD)=(\a_i e^{\fD/\epsilon},\b_j e^{\gD/\epsilon}).
 }
 \end{prop}
 
 \begin{proof}
-We start from the end of the proof of Proposition~\ref{prop-regularized-primal}, which links the optimal primal solution $\P$ and dual multipliers $\fD$ and $\gD$ for the marginal constraints as $\P_{i,j}=e^{\fD_i/\varepsilon}e^{-\C_{i,j}/\varepsilon}e^{\gD_j/\varepsilon}$. Substituting in the Lagrangian $\Lag(\P,\fD,\gD)$ of Equation~\eqref{eq-sinkhorn-lagrangian} the optimal $\P$ as a function of $\fD$ and $\gD$, we obtain that the Lagrange dual function equals
-\eql{\label{eq-lagrange-dual-naive}
-	\fD,\gD \mapsto \dotp{e^{\fD/\epsilon}}{\left(\K\odot \C\right)e^{\gD/\epsilon}} - \epsilon \HD(\diag(e^{\fD/\epsilon}) \K \diag(e^{\gD/\epsilon})).
+We introduce Lagrange multiplier and consider
+\eq{
+	\umin{\P \geq 0} \umax{\fD,\gD} \dotp{\C}{\P} + \epsilon \KLD(\P|\a \otimes \b) + \dotp{\a-\P\ones}{\fD} + \dotp{\b-\P^\top\ones}{\gD}.
 }
-The entropy of $\P$ scaled by $\epsilon$, namely $\epsilon \dotp{\P}{\log \P - \ones_{n\times m}}$ can be stated explicitly as a function of $\fD,\gD, \C$
-\begin{align*}
-&\dotp{\diag(e^{\fD/\epsilon}) \K \diag(e^{\gD/\epsilon})}{\fD\transp{\ones_m}+\ones_n\transp{\gD}-\C-\epsilon\ones_{n\times m}}\\
-&= -\dotp{e^{\fD/\epsilon}}{\left(\K\odot \C\right)e^{\gD/\epsilon}} + \dotp{\fD}{\a}+ \dotp{\gD}{\b}-\epsilon \dotp{e^{\fD/\epsilon}}{\K e^{\gD/\epsilon}}
-\end{align*}
-therefore, the first term in~\eqref{eq-lagrange-dual-naive} cancels out with the first term in the entropy above. The remaining times are those displayed in~\eqref{eq-dual-formulation}.
+One can check that strong duality holds since the function is continuous and that one can exchange the min with the max to get
+\eq{ 
+	 \umax{\fD,\gD}  \dotp{\fD}{\a} + \dotp{\gD}{\b}
+	 -	 
+	 \epsilon \umin{\P \geq 0}
+	 	\dotp{\frac{\fD\oplus\gD-\C}{\epsilon}}{\P} - \KLD(\P|\a \otimes \b)
+		= 
+		\dotp{\fD}{\a} + \dotp{\gD}{\b} - \epsilon \KLD^*\pa{ \frac{\fD\oplus\gD-\C}{\epsilon}|\a \otimes \b }.
+}
+One concludes by using~\eqref{eq-legendre} for $\phi(r)=r \log(r)-r+1$
+\eq{
+	\KLD^*(H|\a \otimes \b) = \sum_{i,j} \phi^*(e^{H_{i,j}}) \a_i \b_j.
+}
+and we have after simple computation that $\phi^*(s)=e^s-1$.
 \end{proof}
 
-\todo{other duals}
+%%%
+\paragraph{Discret dual.}
 
+Since the dual problem~\eqref{eq-dual-formulation} is smooth, one can consider an alternating minimization. For a fixed $\gD$, one can minimize with respect to $\fD$, which leads to the following equation to be solved when zeroing the derivative with respect to $\fD$ 
+\eq{
+	\a_i - e^{\frac{\fD_i}{\epsilon}} \a_i \sum_j \exp\pa{
+		\frac{\gD_j-\C_{i,j}}{\epsilon}
+	} \b_j = 0
+}
+which leads to the explicit solution 
+\eq{
+	\fD_i = -\epsilon \log \sum_j \exp\pa{ \frac{\gD_j-\C_{i,j}}{\epsilon} } \b_j.
+}
+We conveniently introduce the soft-min operator of some vector $h \in \RR^m$
+\eq{
+	{\min}_{\b}^\epsilon(h) \eqdef -\epsilon \log \sum_j e^{-h_j/\epsilon} \b_j
+}
+which is a smooth approximation of the minimum operator, and the optimal $\fD$ for a fixed $\gD$ is computed by a soft version of the $c$-transform
+\eql{\label{eq-soft-c-1}
+	\fD_i = {\min}_{\b}^\epsilon( \C_{i,\cdot} - \gD ).
+} 
+In a similar way, the optimal $\gD$ for a fixed $\fD$ is
+\eql{\label{eq-soft-c-2}
+	\gD_j = {\min}_{\a}^\epsilon( \C_{\cdot,j} - \fD ).
+} 
+Exponentiating these iterations, one retrieves exactly Sinkhorn algorithm. These iterations are however unstable for small $\epsilon$. To be able to apply the algorithm in this regime, one needs to stabilize it using the celebrated log-sum-exp trick. It follows from noticing that similarly to the minimum operator, one has 
+\eq{
+	{\min}_{\b}^\epsilon(h-\text{cst})={\min}_{\b}^\epsilon(h)-\text{cst}
+}
+and to replace the computation of ${\min}_{\b}^\epsilon(h)$ by its stabilized version (equal when using infinite precision computation) ${\min}_{\b}^\epsilon(h-\min(h)) +  \min(h)$. 
+%%%
+\paragraph{Continuous dual and soft-transforms.}
 
 For generic (non-necessarily discrete) input measures $(\al,\be)$, the dual problem~\eqref{eq-dual-formulation} reads
-\begin{align*}
+\eql{\label{eq-dual-sinkh-cont}
 	\usup{\f,\g \in \Cc(\X)\times\Cc(\Y)} \int_\X \f(x)\d\al(x) + \int_\Y \g(x)\d\be(x) 
-		 - \epsilon \int_{\X\times\Y} e^{ \frac{-c(x,y)+f(x)+g(y)}{\epsilon} } \d\al(x)\d\be(y)
-\end{align*}
+		 - \epsilon \int_{\X\times\Y} \pa{e^{ \frac{f\oplus g-c}{\epsilon} }-1} \d\al \otimes \d\be
+}
 This corresponds to a smoothing of the constraint $\Potentials(\c)$ appearing in the original problem~\eqref{eq-dual-generic}, which is retrieved in the limit $\epsilon \rightarrow 0$.
-%
-Proving existence (\emph{i.e.} the sup is actually a max) of these Kantorovich potentials $(\f,\g)$ in the case of entropic transport is less easy than for classical OT (because one cannot use $c$-transform and potentials are not automatically Lipschitz). Proof of existence can be done using the convergence of Sinkhorn iterations, see~\cite{2016-chizat-sinkhorn} for more details.
 
+The corresponding soft $c$-transform, which minimize this dual problem with respect to either $f$ or $g$ reads 
+\begin{align*}
+	\foralls y \in \Y, \quad
+	\f^{\c,\epsilon}(y) &\eqdef - \epsilon \log\pa{ 
+			\int_{\X} e^{\frac{-\c(x,y) + \f(x)}{\epsilon}} \d\al(x)
+	},\\
+	\foralls x \in \X, \quad
+	\g^{\bar\c,\epsilon}(x) &\eqdef - \epsilon \log\pa{ 
+			\int_{\Y} e^{\frac{-\c(x,y) + \g(y)}{\epsilon}} \d\be(y)
+	}.
+\end{align*}
+In the case of discrete measures, on retrieves the formula~\eqref{eq-soft-c-1} and~\eqref{eq-soft-c-2}.
+
+We omit the details, but similarly to the unregularized case, one can define an entropic semi-discrete problem and develop stochastic optimization method to solve it. 
+
+%
+%Proving existence (\emph{i.e.} the sup is actually a max) of these Kantorovich potentials $(\f,\g)$ in the case of entropic transport is less easy than for classical OT (because one cannot use $c$-transform and potentials are not automatically Lipschitz). Proof of existence can be done using the convergence of Sinkhorn iterations, see~\cite{2016-chizat-sinkhorn} for more details.
+
+
+  
+\todo{dual potentials are convex functions for $W2_\eps$}
+
+\todo{sinkhorn between Gaussians is a Gaussian }
 
 \todo{Sinkhorn is smooth, computes is Eulerian gradient
   Lagrangian gradient
   Fitting, auto diff}
   
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-\paragraph{Soft $c$-transforms}
-
-\todo{Need full re-writing}
-
-A simple approach to solve the unconstrained maximization problem~\eqref{eq-dual-formulation} is to use an exact \emph{block coordinate ascent} strategy, namely to update alternatively $\fD$ and $\gD$ to cancel their gradients with respect to the objective of \eqref{eq-dual-formulation}. Indeed, one can easily notice that, writing $Q(\fD,\gD)$ for the objective of~\eqref{eq-dual-formulation} that 
-\begin{align}
-	\label{eq-dualupadate-sinkh-1}\nabla|_\fD\, Q(\fD,\gD) &=  \a - e^{\fD/\epsilon}\odot \left(\K e^{\gD/\epsilon}\right),\\
-	\label{eq-dualupadate-sinkh-2}\nabla|_\gD\, Q(\fD,\gD) &=  \b - e^{\gD/\epsilon}\odot \left(\K^T e^{\fD/\epsilon}\right).
-\end{align}
-Block coordinate ascent can therefore be implemented in a closed form by applying successively the following updates, starting from any arbitrary $\init{\gD}$, for $l\geq 0$,
-\begin{align}
-	\label{eq-slse-sinkh-1}\itt{\fD} &= \epsilon \log \a -\epsilon\log\left(\K e^{\it{\gD}/\epsilon}\right), \\
-	\label{eq-slse-sinkh-2}\itt{\gD} &= \epsilon \log \b- \epsilon\log\left(\transp{\K} e^{\itt{\fD}/\epsilon}\right).
-\end{align}
-Such iterations are mathematically equivalent to the Sinkhorn iterations~\eqref{eq-sinkhorn} when considering the primal-dual relations highlighted in~\eqref{eq-entropy-pd}. Indeed, we recover that at any iteration
-\eq{
-	(\it{\fD},\it{\gD}) = \epsilon ( \log(\it{\uD}), \log(\it{\vD}) ). 
-}
-
-
- 
- 
-Iterations~\eqref{eq-slse-sinkh-1} and~\eqref{eq-slse-sinkh-2} can be given an alternative interpretation, using the following notation. Given a vector $\z$ of real numbers we write $\smine\z$ for the \emph{soft-minimum} of its coordinates, namely
-$$
-\smine\z= -\epsilon \log \sum_i e^{-\z_i/\epsilon}.
-$$
-Note that $\smine(\z)$ converges to $\min\,\z$ for any vector $\z$ as $\epsilon\rightarrow 0$. Indeed, $\smine$ can be interpreted as a differentiable approximation of the $\min$ function. Using these notations, Equations~\eqref{eq-slse-sinkh-1} and~\eqref{eq-slse-sinkh-2} can be rewritten
-\begin{align}
-\label{eq-slse-smin-1}(\itt{\fD})_i &= \smine\, (\C_{ij}-\it{\gD}_j)_j + \epsilon \log \a_i, \\
-\label{eq-slse-smin-2}(\itt{\gD})_j &= \smine\, (\C_{ij}-\it{\fD}_i)_i + \epsilon \log \b_j.
-\end{align}
-Here the term $\smine\, (\C_{ij}-\it{\gD}_j)_j$ denotes the soft-minimum of all values of the $j$-th column of matrix $(\C-\ones_n (\it{\gD})^\top )$. To simplify notations, we introduce an operator that takes a matrix as input and outputs now a column vector of the soft-minimum values of its columns or rows. Namely, for any matrix $A\in\RR^{n\times m}$, we define
-\begin{align*}
-	\SMINEr(\A) \eqdef \pa{\smine \pa{\A_{i,j}}_j}_i\in\RR^n,\\ 
-	\SMINEc(\A) \eqdef \pa{\smine \pa{\A_{i,j}}_i}_j\in\RR^m.
-\end{align*}
-Note that these operations are equivalent to the entropic $\c$-transform introduced in~\S\ref{sec-semi-discr-entropy} (see in particular~\eqref{eq-sinkh-c-transf}).
-%
-Using these notations, Sinkhorn's iterates read
-\begin{align}
-	\label{eq-lse-dual-1}\itt{\fD} &= \SMINEr\, (\C-\ones_n\transp{\it{\gD}}) + \epsilon \log \a, \\
-	\label{eq-lse-dual-2}\itt{\gD} &= \SMINEc\, (\C-\it{\fD}\transp{\ones_m})  + \epsilon \log \b.
-\end{align}
-Note that as $\epsilon \rightarrow 0$, $\smine$ converges to $\min$, but the iterations do not converge anymore in the limit $\epsilon=0$, because alternate minimization does not converge for constrained problems (which is the case for the un-regularized dual~\eqref{eq-dual}).
-
-
-While mathematically equivalent to the Sinkhorn updates~\eqref{eq-sinkhorn}, iterations~\eqref{eq-slse-smin-1} and~\eqref{eq-slse-smin-2} suggest to use the \emph{log-sum-exp} stabilization trick to avoid underflow for small values of $\epsilon$. Writing $\underbar{z}=\min \z$, that trick suggests to evaluate $\smine \z$ as
-\eql{\label{eq-log-domain-min}
-	\smine \z = \underbar{z} -\epsilon \log \sum_i e^{-(\z_i-\underbar{z})/\epsilon}.
-}
-Instead of substracting $\underbar{z}$ to stabilize the log domain iterations as in~\eqref{eq-log-domain-min}, one can actually substract the previously computed scalings. 
-This leads to the following stabilized iteration
-\begin{align}
-	\label{eq-lse-sinkh-1}\itt{\fD} &= \SMINEr( \logP(\it{\fD},\it{\gD}))  - \it{\fD} + \epsilon\log(\a) \\
-	\label{eq-lse-sinkh-2}\itt{\gD} &= \SMINEc( \logP(\itt{\fD},\it{\gD})) - \it{\gD} + \epsilon \log(\b), 
-\end{align}
-where we defined
-\eq{
-	\logP(\fD,\gD) = \pa{\C_{i,j} - \fD_i - \gD_j}_{i,j}.
-}
-% The log-sum-exp operators are defined as
-% \begin{align*}
-% 	\foralls i \in \range{n}, \quad \LSE_1(\logP)_i &= \epsilon \log \sum_j \exp( \logP_{i,j} ), \\
-% 	\foralls j \in \range{m}, \quad \LSE_2(\logP)_j &= \epsilon \log \sum_i \exp( \logP_{i,j} ).
-% \end{align*}
-In contrast to the original iterations~\eqref{eq-sinkhorn}, these log-domain iterations~\eqref{eq-lse-sinkh-1} and~\eqref{eq-lse-sinkh-2} are stable for arbitrary $\epsilon>0$,
-because the quantity $\logP(\fD,\gD)$ stays bounded during the iterations. 
-The downside is that it requires $nm$ computations of $\exp$ at each step. 
-Computing a $\SMINEr$ or $\SMINEc$ is typically substantially slower than matrix multiplications, and requires computing line by line soft-minima of matrices $\logP$. There is therefore no efficient way to parallelize the application of Sinkhorn maps for several marginals simultaneously.
-%
-In Euclidean domain of small dimension, it is possible to develop efficient multiscale solvers with a decaying $\epsilon$ strategy to significantly speed up the computation using sparse grids~\cite{schmitzer2016stabilized}.
-
-
-\todo{dual potentials are convex functions for $W2_\eps$}
-
-\todo{sinkhorn between Gaussians is a Gaussian }
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Sinkhorn Divergences}
+\label{sec-sinkhorn-div}
 
-- Sinkhorn divergences:
-   interpolation property 
-   MMD, kernels 
-   no MMD can have a linear scaling (check uniqueness of OT as weak* such that $W(\delta_x,\delta_y)=d(x,y)$)
-   c-eps-transform gains regularity, hence sample complexity 
+
+%%%
+\paragraph{Entropic bias.}
+
+A major issue of the value of Sinkhorn problem~\eqref{eq-entropic-generic} is that $\MK_\c^\epsilon(\al,\be)>0$. So in particular, 
+\eq{
+	\al_\epsilon = \uargmin{\be} \MK_\c^\epsilon(\al,\be)
+}
+does not satisfy $\al_\epsilon=\al$ unless $\epsilon=0$. The following proposition shows that the bias induced by this entropic regularization has a catastrophic influence in the large $\epsilon$ limit.
+
+\begin{prop}
+	One has $\MK_\c^\epsilon(\al,\be) \rightarrow \int c \d\al \otimes \be$ as $\epsilon \rightarrow +\infty$.
+\end{prop}
+\begin{proof}	
+	The intuition of the proof follows from the fact that the optimal coupling converges to $\al \otimes \be$. 
+\end{proof}
+
+So in the large $\epsilon$ limit, $\MK_\c^\epsilon$ behaves like an inner product and not like a norm. For instance, in the case 
+\eq{
+	\al_\epsilon \rightarrow \umin{\be} \dotp{ \int c(x,\cdot) \d\al(x)}{\be} = \de_{y^\star(\al)}
+	\qwhereq
+	 y^\star(\al) = \uargmin{y} \int c(x,y) \d\al(x).
+}
+For instance, when $c(x,y)=\norm{x-y}^2$ then $\al_\epsilon$ collapses towards a Dirac located at the mean $\int x \d\al(x)$ of $\al$.
+
+%%%
+\paragraph{Sinkhorn divergences.}
+
+The usual way to go from an inner product to a norm is to use the polarization formula, we thus also consider for the Sinkhorn cost, in order to define the debiased Sinkhorn divergence
+\eq{
+	\bar\MK_\c^\epsilon(\al,\be) \eqdef 
+	\MK_\c^\epsilon(\al,\be) - \frac{1}{2} \MK_\c^\epsilon(\al,\al) - \frac{1}{2}\MK_\c^\epsilon(\al,\be).
+}
+It is not (yet) at all clear why this quantity should be positive. 
+
+Before going on, we prove a fundamental lemma which states that the dual cost has a simple form where the regularization vanish at a solution (and actually it vanishes also during Sinkhorn's iteration by the same proof).
+
+\begin{lem}
+	Denoting $(f_{\al,\be},g_{\al,\be})$ optimal dual potentials (which can be shown to be unique up to an additive constant), one has
+	\eql{\label{eq-formula-cost-dual}
+		\MK_\c^\epsilon(\al,\be) = \dotp{f_{\al,\be}}{\al} + \dotp{g_{\al,\be}}{\be}.
+	}
+\end{lem}
+\begin{proof}
+	We first notice that at optimality, the relation 
+	\eq{
+		f_{\al,\be} = -\epsilon\log\int_\Yy e^{\frac{g_{\al,\be}(y)-c(x,y)}{\epsilon}} \d\be(y)
+	}
+	after taking the exponential, equivalently reads
+	\eq{
+		1 = \int_\Yy e^{\frac{f_{\al,\be}(x) + g_{\al,\be}(y)-c(x,y)}{\epsilon}} \d\be(y)
+		\qarrq
+		\int_{\Xx\times\Yy} \pa{ e^{\frac{f_{\al,\be} \oplus g_{\al,\be}-c}{\epsilon}} -1  } \d\al \otimes \be = 0.
+	}
+	Plugging this in formula~\eqref{eq-dual-sinkh-cont}, one obtains the result.
+\end{proof}
+
+
+%
+Let us first show that its asymptotic makes sense.
+
+\begin{prop}
+	One has $\bar\MK_\c^\epsilon(\al,\be) \rightarrow \MK_\c(\al,\be)$ when $\epsilon\rightarrow 0$ and
+	\eq{
+		\bar\MK_\c^\epsilon(\al,\be) \rightarrow 
+		\frac{1}{2}\int -c \d(\al-\be) \otimes \d(\al-\be)
+		\qwhenq
+		\epsilon \rightarrow +\infty.
+	}	
+\end{prop}
+\begin{proof}For discrete measures, the convergence is already proved in Proposition~\eqref{eq-entropy-conv-2}, we now give a general treatment.
+	\textbf{Case $\epsilon \rightarrow 0$.} 
+	\todo{Do the proof of $\epsilon \rightarrow 0$ on non-discrete spaces}
+	\textbf{Case $\epsilon \rightarrow +\infty$.} We denote $(f_\epsilon,g_\epsilon)$ optimal dual potential. Optimality condition on $f_\epsilon$ (equivalently Sinkhorn fixed point on $f_\epsilon$) reads
+	\begin{align*}
+		f_\epsilon &= -\epsilon \log \int \exp\pa{ \frac{g_\epsilon(y) - c(\cdot,y)}{\epsilon} } \d \be(y)
+		=	-\epsilon \log \int \pa{ 1 + \frac{g_\epsilon(y) - c(\cdot,y)}{\epsilon} + o(1/\epsilon) } \d \be(y) \\		
+		&=	-\epsilon \int \pa{ \frac{g_\epsilon(y) - c(\cdot,y)}{\epsilon} + o(1/\epsilon) } \d \be(y)
+		= - \int g_\epsilon \d\be + \int c(\cdot,y) \d \be(y) + o(1).  
+	\end{align*}
+	Plugging this relation in the dual expression~\eqref{eq-formula-cost-dual}
+	\eq{
+		\MK_\c^\epsilon(\al,\be) = \int f_\epsilon \d\al + \int g_\epsilon \d \be = 
+		- \iint c(x,y) \d\al(x)\d\be(y) + o(1). 
+	}
+\end{proof}
+
+In the case where $-c$ defines a conditionnaly positive definite kernel, then $\bar\MK_\c^\epsilon(\al,\be)$ converges to the square of an Hilbertian kernel norm. A typical example is when $c(x,y)=\norm{x-y}^p$ for $0 < p < 2$, which corresponds to the so-called Energy distance kernel. This kernel norm is the dual of a homogeneous Sobolev norm.
+
+We now show that this debiased Sinkhorn divergence is positive.
+
+\begin{prop}
+	If $k(x,y)=e^{-c(x,y)/\epsilon}$ is positive definite, then $\bar\MK_\c^\epsilon(\al,\be) \geq 0$ and is zero if and only if $\al=\be$.
+\end{prop}
+
+\begin{proof}	
+	In the following, we denote $(f_{\al,\be},g_{\al,\be})$ optimal dual potential for the 
+	dual Schrodinger problem between $\al$ and $\be$.
+	We denote $f_{\al,\al}=g_{\al,\al}$ (one can assume they are equal by symmetry) the solution for the problem between $\al$ and itself. 
+	%
+	Using the suboptimal function $(f_{\al,\al},g_{\be,\be})$ in the dual maximization problem, and using relation~\eqref{eq-formula-cost-dual} for the simplified expression of the dual cost, on obtains
+	\eq{
+		\MK_\c^\epsilon(\al,\be) \geq \dotp{f_{\al,\al}}{\al} + \dotp{g_{\be,\be}}{\be}
+			 - \epsilon \dotp{ e^{\frac{f_{\al,\be} \oplus g_{\al,\be}-c}{\epsilon}} -1 }{\al \otimes \be}
+	}
+	But one has $\dotp{f_{\al,\al}}{\al} = \frac{1}{2}\MK_\c^\epsilon(\al,\al)$ and same for $\be$, so that the previous inequality equivalently reads
+	\eq{
+		\frac{1}{\epsilon} \bar \MK_\c^\epsilon(\al,\be) 
+			\geq 	1 - \dotp{ e^{\frac{f_{\al,\be} \oplus g_{\al,\be}-c}{\epsilon}} -1 }{\al \otimes \be}
+			= 1 - \dotp{\tilde\al}{\tilde\be}_{k}
+	}
+	where $\tilde\al=e^{f_{\al,\al}} \al$, $\tilde\be=e^{f_{\be,\be}} \be$
+	and we introduced the inner product (which is a valid one because $k$ is positive) 
+	$\dotp{\tilde\al}{\tilde\be}_{k} \eqdef \int k(x,y) \d\tilde\al(x) \d\tilde\be(y)$.
+	One note that Sinkhorn fixed point equation, once exponentiated, reads
+	$e^{f_{\al,\al}} \odot [ k( \tilde \al ) ] = 1$ and hence
+	\eq{
+		\norm{\tilde \al}_k^2 = \dotp{k(\tilde\al)}{\tilde\al}
+		= \dotp{e^{f_{\al,\al}} \odot k(\tilde\al)}{\al} = \dotp{1}{\al}=1
+	}
+	and similarly $\norm{\tilde \be}_k^2=1$. So by Cauchy-Schwartz, one has
+	$1 - \dotp{\tilde\al}{\tilde\be}_{k} \geq 0$.
+	% 
+	Showing strict positivity is more involved, and is not proved here. 
+\end{proof}
+
+One can furthermore show that this debiased divergence metrizes the convergence in law. 
+      
+
+   
+   

@@ -1,13 +1,15 @@
 %%
 % display of curve approximation using Fourier modes.
 
-name = 'triskel';
+name = 'elephant';
+
+name = 'horse';
 
 addpath('../toolbox/');
 rep = MkResRep(name);
 
 
-q = 512; 
+q = 512; cd 
 I = load_image(name, q);
 I = rescale(sum(I,3));
 
@@ -24,24 +26,27 @@ c = resample(c);
 
 % Fourier coefs
 P = 50; % # frame
-rmax = P;
+rmax = 40;
 cf = fft(c); 
 f = [0:p/2, -p/2+1:-1]';
 rlist = linspace(1,rmax,P);
+rlist = 1 + linspace(0,1,P).^2 * (rmax-1);
+
+
 for i=1:P
     t = (i-1)/(P-1); 
     r = rlist(i);
-    c1 = ifft( cf .* (abs(f)<=r) );
+    ri = floor(r); rf = r - ri;
+    M = double(abs(f)<=r);
+    J = find(abs(f)==ri+1);
+    M(J) = rf;    
+    c1 = ifft( cf .* M );
     clf;
     plot(c1([1:end 1]), 'Color',  [t 0 1-t], 'LineWidth', 2);
     axis equal; axis([0 1 0 1]); axis off; axis ij;
     drawnow;
-    saveas(gcf, [rep name '-' znum2str(i,3) '.png']);
+    saveas(gcf, [rep 'anim-' znum2str(i,3) '.png']);
 end
 
-s = (0:p-1)/p;
-fr = 3;
-plot( exp(2i*pi*s*fr) );
 
-
-% AutoCrop(rep, [name '-'])
+% AutoCrop(rep, ['anim-'])
