@@ -29,6 +29,9 @@ Dimensionality reduction is useful for vizualization. It can also be understood 
 %
 The simplest method is the Principal Component Analysis (PCA),  which performs an orthogonal linear projection on the principal axes (eigenvectors) of the covariance matrix.
 
+%%%
+\paragraph{Presentation of the method.}
+
 The empirical mean is defined as 
 \eq{
     \hat m \eqdef \frac{1}{n} \sum_{i=1}^n x_i \in \RR^p
@@ -70,11 +73,11 @@ Empirical covariance of the data and its associated singular values.
 \wrapf{ml/variance}{PCA main axes capture variance}
 The PCA ortho-basis, already introduced in Section~\ref{prop-svd}, corresponds to the right singular vectors of the centred data matrix, as defined using the (reduced) SVD decomposition
 \eq{
- 	\tilde X = U \diag(\si) V^*
+ 	\tilde X = \sqrt{n} U \diag(\si) V^*
 }
 where $U \in \RR^{n \times r}$ and $V \in \RR^{p \times r}$, and where $r=\rank(\tilde X) \leq \min(n,p)$. 
 %
-We denote $V=(v_k)_{k=1}^r$ the orthogonal columns (which forms a orthogonal system of eigenvectors of $\hat C$), $v_k \in \RR^p$. The intuition is that they are the main axes of ``gravity'' of the point cloud  $(x_i)_i$ in $\RR^p$.
+We denote $V=(v_k)_{k=1}^r$ the orthogonal columns (which forms an orthogonal system of eigenvectors of $\hat C = V \diag(\si^2) V^\top$), $v_k \in \RR^p$. The intuition is that they are the main axes of ``gravity'' of the point cloud  $(x_i)_i$ in $\RR^p$.
 %
 We assume the singular values are ordered, $\si_1 \geq \ldots \geq \si_r$, so that the first singular values capture most of the variance of the data. 
 
@@ -82,28 +85,16 @@ Figure~\ref{fig-cov} displays an example of covariance and its associated spectr
 IRIS dataset\footnote{\url{https://en.wikipedia.org/wiki/Iris_flower_data_set}} of Fisher. This dataset consists of 50 samples from each of three species of Iris (Iris setosa, Iris virginica and Iris versicolor). The dimensionality of the features is $p=4$, and the dimensions corresponds to the length and the width of the sepals and petals. 
 
 The PCA dimensionality reduction embedding $x_i \in \RR^p \mapsto z_i \in \RR^d$ in dimension $d \leq p$ is obtained by projecting the data on the first $d$ singular vector
-\eq{
+\eql{\label{eq-pca-1}
 	z_i \eqdef ( \dotp{x_i-m}{v_k} )_{k=1}^d \in \RR^d. 
 }
 From these low-dimensional embedding, one can reconstruct back an approximation as
-\eq{
+\eql{\label{eq-pca-2}
 	\tilde x_i \eqdef m+\sum_k z_{i,k} v_k \in \RR^p.
 }
 One has that $\tilde x_i = \Proj_{\tilde T}(x_i)$ where $\tilde T \eqdef m + \Span_{k=1}^d(v_k)$ is an affine space.
-%
-The following proposition shows that PCA is optimal in term of $\ell^2$ distance if one consider only affine spaces.
-
-\begin{prop}
-	One has
-	\eq{
-		(\tilde x,\tilde T) \in \uargmin{ (\bar x,\bar T) } \enscond{ \sum_i \norm{x_i - \bar x_i }^2 }{ \foralls i, \bar x_i \in \bar T }
-	}
-	where $\bar T$ is constrained to be a $d$-dimensional affine space. 
-\end{prop}
-
 
 Figure~\ref{fig-pca} shows an example of PCA for 2-D and 3-D vizualization.
-
 
 \begin{figure}
 \centering
@@ -117,6 +108,147 @@ Figure~\ref{fig-pca} shows an example of PCA for 2-D and 3-D vizualization.
 \end{figure}
 
 
+%%%
+\paragraph{Optimality analysis.}
+
+\wrapfSimple{ml/pca-maths/pca-maths-1}
+We now show that among all possible linear dimensionality reduction method, PCA is optimal in sense of $\ell^2$ error. 
+%
+To simplify, without loss of generality (since it can be subtracted from the data) we assume that empirical mean is zero $\hat m=0$ so that $X=\tilde X$. 
+
+We recall that $X=\sqrt{n} U \diag(\si) V^\top$ and $\hat C = \frac{1}{n} X^\top X = U \La U^\top$ where $\La = \diag(\la_i=\si_i^2)$, where $\la_1 \geq \ldots \geq \la_r$.  
+
+\wrapfSimple{ml/pca-maths/pca-maths-2}
+The following proposition shows that PCA is optimal in term of $\ell^2$ distance if one consider only affine spaces. This means that we consider the following compression/decompression to a dimension $k$ (i.e. dimensionality reduction and then expansion) 
+\eql{\label{eq-pca-nonconvex}
+	\umin{R,S} \enscond{
+		f(R,S) \eqdef \sum_i \norm{x_i-R S^\top x_i}_{\RR^p}^2
+		}{ R,S \in \RR^{p \times k} }
+}
+Note that this minimization is a priori not trivial to solve because, although $f(\cdot,S)$ and $f(R,\cdot)$ are convex, $f$ is not jointly convex. So iteratively minimizing on $R$ and $S$ might fail to converge to a global minimizer.
+%
+This section aims at proving the following theorem.
+
+\begin{thm}\label{thm-pca-optim}
+	A solution of~\eqref{eq-pca-nonconvex} is $S=R=V_{1:k} \eqdef [v_1,\ldots,v_k]$.
+\end{thm}
+
+Note that using such a compressor $R$ and decompressor $R=S$ corresponds exactly to the PCA method~\eqref{eq-pca-1} and~\eqref{eq-pca-2}.
+
+We first prove that one can restrain its attention to orthogonal projection matrix.
+
+\begin{lem}
+	One can assume $S=R$ and $S^\top S = \Id_{k\times k}$.
+\end{lem}
+\begin{proof}
+	We consider an arbitrary pair $(R,S)$. Since the matrix $R S^\top$ has rank $k' \leq k$, let $W \in \RR^{p \times k'}$ be an ortho-basis of $\Im(RS^\top)$, so that $W^\top W = \Id_{k' \times k'}$. We remark that 
+	\eq{
+		\uargmin{z} \norm{x-Wz}^2 = W^\top x
+	}
+	because the first order condition for this problem reads $W^\top(Wz-x)=0$.
+	%	
+	Hence, denoting $RS^\top x_i = Wz_i$ for some $z_i \in \RR^{k'}$
+	\eq{
+		f(R,S) = \sum_i \norm{x_i - RS^\top x_i}^2 = \sum_i \norm{x_i - W z_i}^2 \geq \sum_i \norm{x_i - W W^\top x_i}^2
+		\geq  f(\tilde W,\tilde W).
+	}
+	were we have extended $W$ in an orthogonal matrix $\tilde W \in \RR^{p \times k}$ where $\tilde W_{1:k'}=W$.
+\end{proof}
+
+\begin{lem}
+	Denoting $C \eqdef XX^\top \in \RR^{p \times p}$, an optimal $S$ is obtained by solving
+	\eq{
+		\umax{S \in \RR^{p \times k}} \enscond{\tr(S^\top C S^\top)}{ S^\top S=\Id_{k} }.
+	}
+\end{lem}
+\begin{proof}
+	Using the previous lemma, one can consider only $R=S$ with $S^\top S=\Id_{k}$ so that one needs to solve
+	\eq{
+		f(S,S) = \sum_i \norm{x_i SS^\top x_i}^2
+		= \sum_i \norm{x_i}^2 - 2 x_i^\top S S^\top x_i + x_i^\top S(S^\top S) S^\top x_i.
+	}
+	Using that $S^\top S=\Id_k$, one has
+	\eq{
+		f(S,S) = \text{cst} - \sum_i x_i^\top S S^\top x_i
+		= - \sum_i \tr(x_i^\top S S^\top x_i)
+		= - \sum_i \tr(S^\top x_i x_i^\top S )
+		= - \tr( S^\top (\sum_i x_i x_i^\top) S ).
+	}
+\end{proof}
+
+The next lemma provides an upper bound on the quantity being minimized as the solution of a convex optimization problem (a linear program). The proof of the theorem follows by showing that this upper bound is actually reached, which provides a certificate of optimality.  
+
+\begin{lem}\label{lem-upper-bound-pca}
+	Denoting $C=V \La V^\top$, one has 
+	\eql{\label{eq-variational-pca}
+		\tr(S^\top C S) \leq \umax{\be \in \RR^p}
+			\enscond{ \sum_{i=1}^p \la_i \be_i }{ 0 \leq \be \leq 1, \sum_i \be_i \leq k }
+			= \sum_{i=1}^k \la_i
+	}
+	i.e. the maximum on the right hand size is $\be=(1,\ldots,1,0,\ldots,0)$.
+\end{lem}
+\begin{proof}
+	We extend $V \in \RR^{p \times k}$ into an orthogonal matrix $\tilde V \in \RR^{p \times p}$ (i.e. $\tilde V_{1:r}=V$) such 
+	that $\tilde V\tilde V^\top = \tilde V^\top V = \Id_p$. Similarly we extend $\La$ into $\tilde\La$ by adding zeros, so that $C=\tilde V \tilde \La \tilde V^\top$.  One has
+	\eq{
+		\tr(S^\top C S) = \tr(S^\top \tilde V \tilde \La \tilde V^\top S)
+		= \tr(B^\top \La B) = \tr(\La BB^\top) = \sum_{i=1}^p \la_i \norm{b_i}^2
+		= \sum_i \la_i \be_i
+	}
+	where we denoted $B \eqdef V^\top S \in \RR^{p \times k}$, $(b_i)_{i=1}^p$ with $b_i \in \RR^k$ are the rows of $B$ and $\be_i \eqdef \norm{b_i}^2 \geq 0$.
+	%
+	One has
+	\eq{
+		B^\top B = S^\top \tilde V \tilde V^\top S = S^\top S = \Id_k, 
+	}
+	so that the columns of $B$ are orthogonal, and thus
+	\eq{
+		\sum_i \be_i = \sum_i \norm{b_i}^2 = \norm{B}_{\text{Fro}}^2 = \tr(B^\top B) = \tr(B^\top B) = k.
+	}		
+	
+	\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{10mm}}c@{\hspace{10mm}}c@{}}
+\includegraphics[width=.3\linewidth]{ml/pca-maths/pca-maths-3}&
+\includegraphics[width=.2\linewidth]{ml/pca-maths/pca-maths-4}&
+\includegraphics[width=.2\linewidth]{ml/pca-maths/pca-maths-5}
+\end{tabular}
+\caption{\label{fig-pca-var-proof}
+Left: proof of the rightmost inequality in~\eqref{eq-variational-pca}. Middle: matrix $B$, right: matrix $\tilde B$. 
+}
+\end{figure}
+
+
+	We extend the $k$ columns of $b$ into an orthogonal basis $\tilde B \in \RR^{p \times p}$ such that $\tilde B \tilde B^\top = \tilde B^\top \tilde = \Id_p$, so that 
+	\eq{
+		0 \leq \be_i = \norm{b_i}^2 \leq \norm{\tilde b_i}^2 = 1
+	}
+	and hence $(\be_i)_{i=1}^p$ satisfies the constraint of the considered optimization problem, hence $\tr(S^\top C S)$ 
+	is necessarily smaller than the maximum possible value. 
+	%
+	
+	For the proof of the second upper bound, we only verify it in 2D and 3D using a drawing, see Figure~\ref{fig-pca-var-proof}, left. 
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm-pca-optim}]
+	Setting $S=V_{1:k}=[v_1,\ldots,v_k]$, it satisfies $CS = V \La V^\top V_{1:k} = V_{1:k} \diag(\la_i)_{i=1}^k$ and hence
+	\eq{
+		\tr(S^\top C S) = \tr(S^\top S \diag(\la_i)_{i=1^k}) = \tr(\Id_k \diag(\la_i)_{i=1^k}) = \sum_{i=1}^k \la_i.
+	}
+	This value matches the right-most upper bound of Lemma~\ref{lem-upper-bound-pca}, which shows that this $S$ is optimal.
+\end{proof}
+
+
+%\begin{prop}
+%	One has
+%	\eq{
+%		(\tilde x,\tilde T) \in \uargmin{ (\bar x,\bar T) } \enscond{ \sum_i \norm{x_i - \bar x_i }^2 }{ \foralls i, \bar x_i \in \bar T }
+%	}
+%	where $\bar T$ is constrained to be a $d$-dimensional affine space. 
+%\end{prop}
+
+ 
+ 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Clustering and $k$-means}
@@ -173,12 +305,12 @@ Left: iteration of $k$-means algorithm. Right: histogram of points belonging to 
 %%%%
 \paragraph{$k$-means++}
 
-To obtain good results when using $k$-means, it is crucial to have an efficient initialization scheme. In practice, the best results are obtained by seeding them as far as possible from one another (a greedy strategy works great in practice). 
+To obtain good results when using $k$-means, it is crucial to have an efficient initialization scheme. In practice, the best results are obtained by seeding them as far as possible from one another (a greedy strategy works great in practice). 
 
-Quite surprisingly, there exists a randomized seeding strategy which can be shown to be close to optimal in term of value of $\Ee$, even without running the $k$-means iterations (although in practice it still needs to be used to polish the results). The corresponding $k$-means++ initialization is obtained by selecting $c_1$ uniformly at random among the $x_{i}$, and then assuming $c_\ell$ has been seeded, drawing $c_{\ell+1}$ among the sample according to the probability $\pi^{(\ell)}$ on $\{1,\ldots,n\}$ proportional to the square of the distance to the previously seeded points
+Quite surprisingly, there exists a randomized seeding strategy which can be shown to be close to optimal in term of value of $\Ee$, even without running the $k$-means iterations (although in practice it still needs to be used to polish the results). The corresponding $k$-means++ initialization is obtained by selecting $c_1$ uniformly at random among the $x_{i}$, and then assuming $c_\ell$ has been seeded, drawing $c_{\ell+1}$ among the sample according to the probability $\pi^{(\ell)}$ on $\{1,\ldots,n\}$ proportional to the squared inverse of the distance to the previously seeded points
 \eq{
 	\foralls i \in \{1,\ldots,n\}, \quad 
-	\pi^{(\ell)}_i \eqdef \frac{ d_i^2 }{ \sum_{j=1}^n d_j^{2} }
+	\pi^{(\ell)}_i \eqdef \frac{ 1/d_i^2 }{ \sum_{j=1}^n 1/d_j^{2} }
 	\qwhereq
 	d_j \eqdef \min_{1 \leq r \leq \ell-1} \norm{x_i-c_r}.
 }
@@ -309,7 +441,7 @@ Then one similarly defines the ideal parameter $\bar \be$ as in~\eqref{eq-consis
 %%
 \paragraph{Prediction vs. estimation risks.}
 
-In this parametric approach, one could be interested in also studying how close $\hat \th$ is to $\bar \th$. This can be measured by controlling how fast some estimation error $\norm{\hat\th-\bar\th}$ (for some norm $\norm{\cdot}$) goes to zero. Note however that in most cases, controlling the estimation error is more difficult than doing the same for the prediction error. In general, doing a good parameter estimation implies doing a good prediction, but the converse is not true. 
+In this parametric approach, one could be interested in also studying how close $\hat \th$ is to $\bar \th$. This can be measured by controlling how fast some estimation error $\norm{\hat\be-\bar\be}$ (for some norm $\norm{\cdot}$) goes to zero. Note however that in most cases, controlling the estimation error is more difficult than doing the same for the prediction error. In general, doing a good parameter estimation implies doing a good prediction, but the converse is not true. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -560,6 +692,39 @@ Another very popular (and very similar) approach is support vector machine (SVM)
 
 To simplify the expression, classes indexes are set to $y_i \in \Yy = \{-1,1\}$ in the following. Note that for logistic classification, the prediction function $f(\cdot,\be) \in [0,1]$ outputs the probability of belonging to the first class, and not the class indexes. With a slight abuse of notation, we still denote it as $f$. 
 
+
+%%%%
+\paragraph{Approximate risk minimization.}
+
+The hard classifier is defines from a linear predictor $\dotp{x}{\be}$ as $\sign(\dotp{x}{\be}) \in \{-1,+1\}$. The 0-1 loss error function (somehow the ``ideal'' loss) counts the number of miss-classifications, and can ideal classifier be computed as
+\eql{\label{eq-ideal-classif}
+	\umin{\be} \sum_{i=1}^n \ell_0(-y_i \dotp{x_i}{\be})
+} 
+where $\ell_0 = 1_{\RR^+}$. Indeed, miss classification corresponds to $\dotp{x_i}{w}$ and $y_i$ having different signs, so that in this case $\ell_0(-y_i \dotp{x_i}{w})=1$ (and 0 otherwise for correct classification).
+
+The function $\ell_0$ is non-convex and hence problem~\eqref{eq-ideal-classif} is itself non-convex, and in full generality, can be shown to be NP-hard to solve. One thus relies on some proxy, which are functions which upper-bounds $\ell_0$ and are convex (and sometimes differentiable). 
+
+The most celebrated proxy are 
+\eq{
+	\ell(u)=(1+u)_+ 
+	\qandq
+	\ell(u)=\log(1+\exp(u))/\log(2)
+}	
+which are respectively the hinge loss corresponds to support vector machine (SVM, and is non-smooth) and the logistic loss (which is smooth). The $1/\log(2)$ is just a constant which makes $\ell_0 \leq \ell$.
+% 
+AdaBoost is using $\ell(u)=e^u$.
+%
+Note that least square corresponds to using $\ell(u)=(1+u)^2$, but this is a poor proxy for $\ell_0$ for negative values, although it might works well in practice.
+% 
+Note that SVM is a non-smooth problem, which can be cast as a linear program minimizing the co-called classification margin 
+\eq{
+	\umin{u \geq 0, \be} \enscond{\sum_i u_i}{1+u_i=y_i \dotp{x_i}{\be} }.
+}	
+
+
+%%%%
+\paragraph{Logistic loss probabilistic interpretation.}
+
 Logistic classification can be understood as a linear model as introduced in Section~\ref{sec-linear-models}, although the decision function $f(\cdot,\be)$ is not linear. Indeed, one needs to ``remap'' the linear value $\dotp{x}{\be}$ in the interval $[0,1]$. In logistic classification, we define the predicted probability of $x$ belonging to class with label $-1$ as 
 \eql{\label{eq-two-class-logit-model}
 	f(x,\be) \eqdef \th(\dotp{x}{\be})
@@ -585,7 +750,7 @@ Intuitively, $\be/\norm{\be}$ controls the separating hyperplane direction, whil
 
 Note that $f(x,\be)$ can be interpreted as a single layer perceptron with a logistic (sigmoid) rectifying unit, more details on this in Chapter~\ref{c-deep-learning}. 
 
-Since the $(x_i,y_i)$ are modelled as i.i.d. variables, it makes sense to define $\hat \be$ from the observation using a maximum likelihood, assuming that each $y_i$ conditioned on $x_i$ is a Bernoulli variable with associated probability $(p_i,1-p_i)$ with $p_i=f(x_i,\be)$. The probability of observing $y_i \in \{0,1\}$ is thus, denoting $s_i=\dotp{x_i}{\be}$
+Since the $(x_i,y_i)$ are modeled as i.i.d. variables, it makes sense to define $\hat \be$ from the observation using a maximum likelihood, assuming that each $y_i$ conditioned on $x_i$ is a Bernoulli variable with associated probability $(p_i,1-p_i)$ with $p_i=f(x_i,\be)$. The probability of observing $y_i \in \{0,1\}$ is thus, denoting $s_i=\dotp{x_i}{\be}$
 \eq{
 	\PP(\yp=y_i|\xp=x_i) =p_i^{1-\bar y_i} (1-p_i)^{\bar y_i}
 	= \pa{
@@ -619,11 +784,14 @@ Problem~\eqref{eq-logistic-optim} is a smooth convex minimization. If $X$ is inj
 \centering
 \includegraphics[width=.4\linewidth]{ml/classif/losses}
 \caption{\label{fig-losses}
-Comparison of loss functions. 
+Comparison of loss functions.  \todo{Re-do the figure, it is not correct, they should upper bound $\ell_0$}
 }
 \end{figure}
 
 Figure~\eqref{fig-losses} compares the binary (ideal) 0-1 loss, the logistic loss and the hinge loss (the one used for SVM).
+
+%%%
+\paragraph{Gradient descent method.}
 
 Re-writing the energy to minimize
 \eq{
@@ -735,7 +903,7 @@ Once $D$ matrix is computed, the gradient of $\Ee$ is computed as
 \eq{
 	 \nabla \Ee(\be) =  \frac{1}{n} X^* ( \text{SM}(X \be) - D ).  
 }
-and one can minimize $\Ee$ using for instance a gradient descent scheme.
+and one can minimize $\Ee$ using for instance a gradient descent scheme.
 
 To illustrate the method, we use a dataset of $n$ images of size $p = 8 \times 8$, representing digits from 0
 to 9 (so there are $k=10$ classes).
@@ -774,7 +942,11 @@ The general rule of thumb is that any machine learning algorithm which only make
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Reproducing Kernel Hilbert Space}
 
-We consider a general lifting $\phi : x \in \RR^p \rightarrow \bar x = \phi(x) \in \Hh$ where $\Hh$ is a Hilbert space. We denote $\bar X = ( \bar x_i^* \eqdef \phi(x_i)^* )_{i=1}^n$ the ``matrix'' where each row is a lifted feature $\phi(x_i)$. For instance, if $\Hh=\RR^{\bar p}$ is finite dimensional, one can view this as a matrix $\bar X \in \RR^{n \times \bar p}$, but the rows of the matrix can be infinite dimensional vectors.
+We consider a general lifting $\phi : x \in \RR^p \rightarrow \bar x = \phi(x) \in \Hh$ where $\Hh$ is a Hilbert space. 
+%
+A typical example of lift for $1-D$ values $p=1$ is $\phi(x) = (1,x,x^2,\ldots,x^k) \in \RR^k$ to perform polynomial regression (this can be extended to any dimension $p$ using higher dimensional polynomials).
+%
+We denote $\bar X = ( \bar x_i^* \eqdef \phi(x_i)^* )_{i=1}^n$ the ``matrix'' where each row is a lifted feature $\phi(x_i)$. For instance, if $\Hh=\RR^{\bar p}$ is finite dimensional, one can view this as a matrix $\bar X \in \RR^{n \times \bar p}$, but the rows of the matrix can be infinite dimensional vectors.
 
 The following proposition is the crux of the RKHS approaches. When using a regularization which is a squared Euclidean norm, $\norm{\cdot}_\Hh^2$, it states that the solutions actually belongs to a data-driven linear sub-space of dimension $n$. Although the proof is straightforward, its implications are very profound, since it leads to tractable algorithms even when using an infinite dimensional lifting space $\Hh$. as we elaborate next. It is often called the ``representer'' theorem in RKHS theory. 
 
@@ -911,7 +1083,7 @@ Non-linear classification using a Gaussian kernel.
 %%
 \paragraph{Kernelized nearest-neihbors. }
 
-It is also possible to extend nearest neighbor classification (as detailed in Section~\ref{sec-nn-classif}) and regression over a lifted space by making use only of kernel evaluation, simply noticing that
+It is also possible to extend nearest neighbor classification (as detailed in Section~\ref{sec-nn-classif}) and regression over a lifted space by making use only of kernel evaluation, simply noticing that
 \eq{
 	\norm{\phi(x_i)-\phi(x_j)}_\Hh^2 = \kappa(x_i,x_i)+\kappa(x_j,x_j) - 2 \kappa(x_i,x_j).	
 }

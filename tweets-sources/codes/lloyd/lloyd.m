@@ -68,10 +68,9 @@ end
 
 k = size(Y0,2);
 
-niter = 500;
-q = 80;
-disp_list = unique( round( 1+(niter-1)*linspace(0,1,q).^5 ) );
-
+niter = 200;
+q = 100;
+disp_list = unique( round( 1+(niter-1)*linspace(0,1,q).^3 ) );
 kdisp = 1;
 
 % coloring
@@ -114,16 +113,30 @@ for it=1:niter
         axis equal; 
         plot([0 1 1 0 0], [0 0 1 1 0], 'k', 'LineWidth', 2);
         axis off;  drawnow;
-        saveas(gcf, [repsvg 'iter-' znum2str(kdisp,2)], 'png');
+        saveas(gcf, [repsvg 'voronoi-' znum2str(kdisp,2)], 'png');
+        % didplay delaunay
+        clf;
+        T = delaunay(Y(1,:),Y(2,:));
+        clf; hold on;
+        triplot( T, Y(2,:), Y(1,:), '-', 'color', [1 1 1]*.5, 'LineWidth', 2, 'MarkerSize', 25 );
+        axis equal; axis([0 1 0 1]);  axis off;
+        for m=1:k
+            plot(Y(2,m), Y(1,m), '.', 'MarkerSize', 25, 'Color', .8*C(m,:));
+        end
+        plot([0 1 1 0 0], [0 0 1 1 0], 'k', 'LineWidth', 2);
+        saveas(gcf, [repsvg 'delaunay-' znum2str(kdisp,2)], 'png');
         %
         kdisp = kdisp+1;
     end
     % New centroids
     for l=1:k
         for r=1:2
-            Y(r,l) = sum(X(r,I==l) .* mu(I==l)') / sum(mu(I==l));
+            Y1(r,l) = sum(X(r,I==l) .* mu(I==l)') / sum(mu(I==l));
         end
     end
+    % update, can be slowed down
+    tau = 0.8;
+    Y = (1-tau)*Y1 + tau*Y;
 end
 
 % AutoCrop(repsvg, 'iter-') 

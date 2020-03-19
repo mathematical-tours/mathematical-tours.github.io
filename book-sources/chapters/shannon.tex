@@ -139,13 +139,13 @@ If there is a step discontinuities, then there is Gibbs oscillations preventing 
 
 The poisson formula connects the Fourier transform and the Fourier series to sampling and periodization operators.
 %
-For some function $h(t)$ defined on $\RR$ (typically the goal is to apply this to $h=\hat f$), its periodization reads
+For some function $h(\om)$ defined on $\RR$ (typically the goal is to apply this to $h=\hat f$), its periodization reads
 \eql{\label{eq-periodizing}
-	h_P(t) \eqdef \sum_n h(t-2\pi n).
+	h_P(\om) \eqdef \sum_n h(\om-2\pi n).
 } 
 This formula makes sense if $h \in L^1(\RR)$, and in this case $\norm{h_P}_{L^1(\TT)} \leq \norm{h}_{L^1(\RR)}$ (and there is equality for positive functions). 
 %
-The Poisson formula, stated in Proposition~\ref{prop-poisson} bellow, corresponds to proving that the following diagram
+The Poisson formula, stated in Proposition~\ref{prop-poisson} bellow, corresponds to proving that the following diagram
 \eq{
 	\begin{array}{rcccl}
 						& f(x)  &  \overset{\Ff}{\longrightarrow} &  \hat f(\om) &\\
@@ -266,7 +266,7 @@ This theorem also explains what happens if $\hat f$ is not supported in $[-\pi/s
 
 Once the signal have been sampled to obtain a discrete vector, in order to store it and transmit it, it is necessary to quantize the value to some finite precision. 
 % 
-Section~\ref{sec-transform-coding} presents transform coding, which is an efficient family of compression schemes which operate the quantization over some transformed domain (which correspond to applying a linear transform, usually orthogonal, to the sampled values). This is useful to enhance the performance of the source coding scheme. It is however common to operate directly the quantization over the sampled value. 
+Section~\ref{sec-transform-coding} presents transform coding, which is an efficient family of compression schemes which operate the quantization over some transformed domain (which correspond to applying a linear transform, usually orthogonal, to the sampled values). This is useful to enhance the performance of the source coding scheme. It is however common to operate directly the quantization over the sampled value. 
 
 Considering for instance a step size $s=1/N$, one samples $(u_n \eqdef f(n/N))_{n=1}^{N} \in \RR^N$ to obtain a finite dimensional data vector of length $N$. Note that dealing with finite data corresponds to restricting the function $f$ to some compact domain (here $[0,1]$) and is contradictory with Shannon sampling theorem, since a function $f$ cannot have a compact support in both space and frequency (so perfect reconstruction never holds when using finite storage).
 
@@ -334,42 +334,6 @@ Left: complete tree of all codes of length 3; right: example of prefix code.
 
 This tree-based representation is useful to decode a binary stream by simply performing tree traversal. One follows the tree, from top to bottom, and outputs a symbol each time a leaf is reached (and then re-start at the top). 
 
-The following fundamental lemma describes the set of prefix codes using an inequality.
-
-\begin{lem}[Kraft inequality]\label{lem-kraft}
-	(i) For a code $c$, if there exists a tree $T$ such that $c=\text{Leaves}(T)$ then
-	\eql{\label{eq-kraft-ineg}
-		\sum_k 2^{-|c_k|} \leq 1.
-	}
-	(ii) Conversely, if $(\ell_k)_k$ are such that
-	\eql{\label{eq-kraft-ineg-2}
-		\sum_k 2^{-\ell_k} \leq 1
-	}
-	then there exists a code $c=\text{Leaves}(T)$ such that $|c_k|=\ell_k$.
-\end{lem} 
-
-\begin{proof}
-	$\Rightarrow$ We suppose $c=\text{Leaves}(T)$. We denote $m=\max_k |c_k|$ and consider the full binary tree.
-	%
-	Bellow each $c_k$, one has a sub-tree of height $m-|c_k|$, see Figure~\ref{fig-fourier-wav}, left. This sub-tree has $2^{m-|c_k|}$ leaves. Since all these sub-trees do not overlap, the total number of leaf do not exceed the total number of leaves $2^m$ of the full binary tree, hence
-	\eq{
-		\sum_k 2^{m-|c_k|} \leq 2^m, 
-	}
-	hence~\eqref{eq-kraft-ineg}. 
-	
-	\myfigure{
-	\image{1-shannon}{.35}{kraft-ineq-1}\quad
-	\image{1-shannon}{.45}{kraft-ineq-2}
-}{%
-	Left: full binary tree obtained by completing the tree associated to the code $(c_1=0, c_2=10, c_3=110, c_4=111)$. 
-	%
-	Right: packing sub-trees associated to code length to form the left part of the full tree. %	
-}{fig-fourier-wav}
-
-	
-	$\Leftarrow$ Conversely, we assume~\eqref{eq-kraft-ineg} holds. Without loss of generality, we assume that $|c_1| \geq \ldots \geq |c_K|$. We start by putting a sub-tree of height $2^{m-|c_1|}$. Since the second tree is smaller, one can put it immediately aside, and continue this way, see Figure~\ref{fig-fourier-wav}, right. Since  $\sum_k 2^{m-|c_k|} \leq 2^m$, this ensure that we can stack side-by-side all these sub-tree, and this defines a proper sub-tree of the full binary tree. 
-\end{proof}
-
 
 %%
 \paragraph{Probabilistic modeling.}
@@ -388,7 +352,7 @@ The entropy of such an histogram is
 }
 with the convention $0\log_2(0)=0$. 
 
-Denoting $h(u)=-u \log(u)$, $h'(u)=-\log(u)-1$, $h''(u)=-1/u<0$ so that $H$ is strictly concave. The definition of the entropy extends to continuous density $f(x)$ for $x$ on some measure space with reference measure $\d x$ (e.g. Lebesgue on $\RR^d$) by setting $H(f)=-\int f(x) \log(f(x)) \d x$. 
+Denoting $h(u)=-u \log_2(u)$, $h'(u) \propto -\log(u)-1$, $h''(u) \propto -1/u<0$ so that $H$ is strictly concave. The definition of the entropy extends to continuous density $f(x)$ for $x$ on some measure space with reference measure $\d x$ (e.g. Lebesgue on $\RR^d$) by setting $H(f) \eqdef -\int f(x) \log(f(x)) \d x$. 
 
 \myfigure{
 \tabquatre{
@@ -403,7 +367,7 @@ $H(p)=0$ & $H(p)=\log_2(2)=1$ &  $H(p) = 1.62$
 \myfigure{
 	\image{1-shannon}{.35}{entropy-extrema}
 }{%
-	Linked extra for the entropy. %	
+	Linked extrema for the entropy. %	
 }{fig-entropy-extrema}
 
 
@@ -416,13 +380,21 @@ $H(p)=0$ & $H(p)=\log_2(2)=1$ &  $H(p) = 1.62$
 
 
 \begin{proof}
+	First one notes that $-x\log_2(x) \geq 0$ for $x \in [0,1]$ (see figure above), so that $H \geq 0$.
+	% 
 	We consider the following constrained optimization problem
 	\eq{
-		\min_p \enscond{ f(p) }{ g(p) = \sum_k p_k =1 }
+		\max_{p \geq 0} \enscond{ H(p) }{ g(p) = \sum_k p_k =1 }
 	}
-	where $f=-H$, see Fig.~\ref{fig-entropy-extrema}. According to the linked extrema theorem, at an optimum $p^\star$, $\nabla f(p^\star)=\la \nabla g(p^\star)$ for some $\la \in \RR$, so that here $\log(p_k^\star)+1 = \la$, i.e. $p_k^\star=c$ is constant, and since 
-	$\sum_k p_k^\star=1$, 	
-	one has $p_k^*=1/K$ and thus $H(p)=\log_2(K)$.
+	see Fig.~\ref{fig-entropy-extrema}.
+	%
+	First we show that maximizers $p^\star$ are necessarily reached on the interior of the domain, i.e. $p^\star>0$.
+	%
+	If $p_k^\star=0$ for some $k$, necessarily there exists $\ell \neq k$ such that $p_\ell^\star>0$ (since $p^\star$ cannot be zero), and we study the function 
+	$t \geq 0 \mapsto \phi(t) = - ( t \log(t) + (p_\ell^\star-t) \log(p_\ell^\star-t) )$. One shows that it is strictly increasing for $t$ near zero, so that $p^\star$ cannot be a maximum.	
+	%
+	The function $H$ is smooth on the interior of its domain of definition, so that 
+	at an optimum $p^\star>0$, $\nabla H(p^\star)=\la \nabla g(p^\star) = \la (1,\ldots,1)^\top$ for some $\la \in \RR$, so that here $-\log(p_k^\star)-1 = \la$, i.e. $p_k^\star=c$ is constant, and since  $\sum_k p_k^\star=1$, one has $p_k^*=1/K$ and thus $H(p)=\log_2(K)$.
 \end{proof}
 
 
@@ -449,7 +421,45 @@ Shannon theorem of entropic coding, proved bellow, give both lower and upper bou
 	}
 \end{thm} 
 
+Before proving this theorem, we prove Kraft inequality, which describes the set of prefix codes using an inequality.
+
+\begin{lem}[Kraft inequality]\label{lem-kraft}
+	(i) For a code $c$, if there exists a tree $T$ such that $c=\text{Leaves}(T)$ then
+	\eql{\label{eq-kraft-ineg}
+		\sum_k 2^{-|c_k|} \leq 1.
+	}
+	(ii) Conversely, if $(\ell_k)_k$ are such that
+	\eql{\label{eq-kraft-ineg-2}
+		\sum_k 2^{-\ell_k} \leq 1
+	}
+	then there exists a code $c=\text{Leaves}(T)$ such that $|c_k|=\ell_k$.
+\end{lem} 
+
 \begin{proof}
+	$\Rightarrow$ We suppose $c=\text{Leaves}(T)$. We denote $m=\max_k |c_k|$ and consider the full binary tree.
+	%
+	Bellow each $c_k$, one has a sub-tree of height $m-|c_k|$, see Figure~\ref{fig-fourier-wav}, left. This sub-tree has $2^{m-|c_k|}$ leaves. Since all these sub-trees do not overlap, the total number of leaf do not exceed the total number of leaves $2^m$ of the full binary tree, hence
+	\eq{
+		\sum_k 2^{m-|c_k|} \leq 2^m, 
+	}
+	hence~\eqref{eq-kraft-ineg}.
+	
+	\myfigure{
+	\image{1-shannon}{.35}{kraft-ineq-1}\quad
+	\image{1-shannon}{.45}{kraft-ineq-2}
+}{%
+	Left: full binary tree obtained by completing the tree associated to the code $(c_1=0, c_2=10, c_3=110, c_4=111)$. 
+	%
+	Right: packing sub-trees associated to code length to form the left part of the full tree. %	
+}{fig-fourier-wav}
+
+	
+	$\Leftarrow$ Conversely, we assume~\eqref{eq-kraft-ineg} holds. Without loss of generality, we assume that $|c_1| \geq \ldots \geq |c_K|$. We start by putting a sub-tree of height $2^{m-|c_1|}$. Since the second tree is smaller, one can put it immediately aside, and continue this way, see Figure~\ref{fig-fourier-wav}, right. Since  $\sum_k 2^{m-|c_k|} \leq 2^m$, this ensure that we can stack side-by-side all these sub-tree, and this defines a proper sub-tree of the full binary tree. 
+\end{proof}
+
+
+
+\begin{proof}[Shannon theorem]
 	First, we consider the following optimization problem
 	\eql{\label{eq-proof-shannon}
 		\umin{ \ell = (\ell_k)_k } \enscond{ f(\ell) \eqdef \sum_k \ell_k p_k }{ g(\ell) \eqdef  \sum_k 2^{-\ell_k} \leq 1 }.

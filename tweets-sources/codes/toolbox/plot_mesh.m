@@ -174,7 +174,7 @@ if ~isempty(normal)
     hold off;
 end
 
-cameramenu;
+% camlight;
 set_view(name, view_param);
 shading(shading_type);
 % camlight; %% BUG WITH PYTHON

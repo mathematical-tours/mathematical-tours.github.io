@@ -7,11 +7,7 @@ AutoCrop(rep, 'anim-'); %=  to crop the image generated using saveas
 % create save repertory
 addpath('../toolbox/');
 rep = MkResRep();
-mysaveas = @(name,it)saveas(gcf, [rep name '-' znum2str(it,3) '.png']);
-
-% OLD
-rep = '../results/soft-max/';
-[~,~] = mkdir(rep);
+mysaveas = @(it)saveas(gcf, [rep 'anim-' znum2str(it,3) '.png']);
 
 saveas(gcf, [rep name znum2str(it,3) '.png'], 'png');
 imwrite(rescale(f), [rep name znum2str(it,3) '.png']);
