@@ -1,0 +1,236 @@
+% !TEX root = ../optim-ml/OptimML.tex
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Regularization}
+
+When the number $n$ of sample is not large enough with respect to the dimension $p$ of the model, it makes sense to regularize the empirical risk minimization problem. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Penalized Least Squares}
+
+For the sake of simplicity, we focus here on regression and consider
+\eql{\label{eq-regul-ls}
+	\umin{x \in \RR^p} f_\la(x) \eqdef \frac{1}{2}\norm{Ax-y}^2 + \la R(x) 
+}
+where $R(x)$ is the regularizer and $\la\geq 0$ the regularization parameter. 
+%
+The regularizer enforces some prior knowledge on the weight vector $x$ (such as small amplitude or sparsity, as we detail next) and $\la$ needs to be tuned using cross-validation.
+
+We assume for simplicity that $R$ is positive and coercive, i.e. $R(x) \rightarrow +\infty$ as $\norm{x} \rightarrow +\infty$. 
+%
+The following proposition that in the small $\la$ limit, the regularization select a sub-set of the possible minimizer. This is especially useful when $\ker(A) \neq 0$, i.e. the equation $Ax=y$ has an infinite number of solutions.
+
+\begin{prop}
+	If $(x_{\la_k})_k$ is a sequence of minimizers of $f_\la$, then this sequence is bounded, and any accumulation $x^\star$ is a solution of the constrained optimization problem
+	\eql{\label{eq-regul-constr}
+		\umin{Ax=y} R(x).
+	}
+\end{prop}
+
+
+\begin{proof}
+	Let $x_0$ be so that $Ax_0=y$, then by optimality of $x_{\la_k}$
+	\eql{\label{eq-ineq-proof-regul}
+			\frac{1}{2}\norm{Ax_{\la_k}-y}^2 + \la_k R(x_{\la_k}) \leq \la_k R(x_0).
+	}
+	Since all the term are positive, one has $R(x_{\la_k}) \leq  R(x_0)$ so that $(x_{\la_k})_k$ is bounded by coercivity of $R$.
+	%
+	Then also $\norm{Ax_{\la_k}-y} \leq \la_k R(x_0)$, and passing to the limit, one obtains $Ax^\star = y$.
+	%
+	And passing to the limit in $R(x_{\la_k}) \leq R(x_0)$ one has $R(x^\star) \leq R(x_0)$ which shows that $x^\star$ is a solution of~\eqref{eq-regul-constr}. 
+\end{proof}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Ridge Regression}
+
+Ridge regression is by far the most popular regularizer, and corresponds to using $R(x)=\norm{x}^2_{\RR^p}$. Since it is strictly convex, the solution of~\eqref{eq-regul-ls} is unique
+\eq{
+	x_\la \eqdef \uargmin{x \in \RR^p} f_\la(x) = \frac{1}{2} \norm{Ax-y}^2_{\RR^n} + \la \norm{x}^2_{\RR^p}.
+}
+One has 
+\eq{
+	\nabla f_\la(x) = A^\top (Ax_\la - y) + \la x_\la = 0
+}
+so that $x_\la$ depends linearly on $y$ and can be obtained by solving a linear system. The following proposition shows that there are actually two alternate formula.
+
+\begin{prop}
+	One has
+	\begin{align}
+		x_\la &= (A^\top A + \la \Id_p)^{-1} A^\top y,  \label{eq-regul-ls-1} \\
+			 &= A^\top (A A^\top + \la \Id_n)^{-1} y. \label{eq-regul-ls-2} 
+	\end{align}
+\end{prop}
+
+\begin{proof}
+	Denoting $B \eqdef (A^\top A + \la \Id_p)^{-1} A^\top$ and $C \eqdef A^\top (A A^\top + \la \Id_n)^{-1}$, 
+	one has $(A^\top A + \la \Id_p) B = A^\top$ while 
+	\eq{
+		(A^\top A + \la \Id_p) C = (A^\top A + \la \Id_p) A^\top (A A^\top + \la \Id_n)^{-1}
+		= A^\top (A A^\top  + \la \Id_n) (A A^\top + \la \Id_n)^{-1}
+		= A^\top.
+	}
+	Since $A^\top A + \la \Id_p$ is invertible, this gives the desired result.
+\end{proof}
+
+The solution of these linear systems can be computed using either a direct method such as Cholesky factorization or an iterative method such as a conjugate gradient (which is vastly superior to the vanilla gradient descent scheme).
+
+If $n>p$, then one should use~\eqref{eq-regul-ls-1} while if $n<p$ one should rather use~\eqref{eq-regul-ls-2}.  
+
+%%%%
+\paragraph{Pseudo-inverse.}
+
+As $\la \rightarrow 0$, then $x_\la \rightarrow x_0$ which is, using~\eqref{eq-regul-constr}
+\eq{
+	\uargmin{Ax=y}\norm{x} .
+}
+If $\ker(A)=\{0\}$ (overdetermined setting), $A^\top A \in \RR^{p \times p}$ is an invertible matrix, and $(A^\top A + \la \Id_p)^{-1} \rightarrow (A^\top A)^{-1}$, so that 
+\eq{
+	x_0 = A^+ y \qwhereq A^+ \eqdef (A^\top A)^{-1}A^\top .
+}
+Conversely, if $\ker(A^\top)=\{0\}$, or equivalently $\Im(A)=\RR^n$ (undertermined setting) then one has 
+\eq{
+	x_0 = A^+ y \qwhereq A^+ \eqdef A^\top (AA^\top)^{-1}.
+}	 
+In the special case $n=p$ and $A$ is invertible, then both definitions of $A^+$ coincide, and $A^+=A^{-1}$. In the general case (where $A$ is neither injective nor surjective), $A^+$ can be computed using the Singular Values Decomposition (SVD). The matrix $A^+$ is often called the Moore-Penrose pseudo-inverse.
+
+\myfigure{
+\image{variational}{1}{sparsity-lq-balls}
+}{%
+	$\ell^q$ balls $\enscond{x}{\sum_k |x_k|^q \leq 1}$ for varying $q$.
+}{fig-sparsity-lq}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Lasso}
+
+The Lasso corresponds to using a $\ell^1$ penalty 
+\eq{
+	R(x) = \norm{x}_1 \eqdef \sum_{k=1}^p |x_k|.
+}
+The underlying idea is that solutions $x_\la$ of a Lasso problem
+\eq{
+	x_\la \in \uargmin{x \in \RR^p} f_\la(x) = \frac{1}{2} \norm{Ax-y}^2_{\RR^n} + \la \norm{x}_1
+}
+are sparse, i.e. solutions $x_\la$ (which might be non-unique) have many zero entries. 
+%
+To get some insight about this, Fig.~\ref{fig-sparsity-lq} display the $\ell^q$ ``balls'' which shrink toward the axes as $q \rightarrow 0$ (thus enforcing more sparsity) but are non-convex for $q<1$.
+
+
+This can serve two purposes: (i) one knows before hand that the solution is expected to be sparse, which is the case for instance in some problems in imaging, (ii) one want to perform model selection by pruning some of the entries in the feature (to have simpler predictor, which can be computed more efficiently at test time, or that can be more interpretable).
+%
+For typical ML problems though, the performance of the Lasso predictor is usually not better than the one obtained by Ridge.
+
+Minimizing $f(x)$ is still a convex problem, but $R$ is non-smooth, so that one cannot use a gradient descent. 
+%
+Section~\ref{sec-ista} shows how to modify the gradient descent to cope with this issue. 
+%
+In general, solutions $x_\la$ cannot be computed in closed form, excepted when the design matrix $A$ is orthogonal.
+
+
+
+\myfigure{
+\image{sparse-reg}{.19}{var-l1-1}
+\image{sparse-reg}{.19}{var-l1-2}
+\image{sparse-reg}{.19}{var-l1-3}
+\image{sparse-reg}{.19}{var-l1-4}
+}{%	
+	Evolution with $\la$ of the function $F(x) \eqdef \frac{1}{2}\norm{\cdot-y}^2+\la |\cdot|$. %	
+}{fig-varspars}
+
+
+\begin{prop}\label{prop-soft-tresdh}
+	When $n=p$ and $A=\Id_n$, one has
+	\eq{
+		\uargmin{x \in \RR^p} \frac{1}{2}\norm{x-y}^2 + \la\norm{x_1} = S_\la(x) 
+		\qwhereq
+		S_\la(x) = ( \sign(x_k) \max(|x_k|-\la,0)  )_k
+	}
+\end{prop}
+\begin{proof}
+	One has $f_\la(x) = \sum_k \frac{1}{2}(x_k-y_k)^2 + \la |x_k|$, so that one needs to find the minimum of the 1-D
+	function $x \in \RR \mapsto \frac{1}{2}(x-y)^2 + \la |x|$. 
+	%
+	We can do this minimization ``graphically'' as shown on Fig.~\ref{fig-varspars}. 
+	%	
+	For $x>0$, one has $F'(x)=x-y+\la$ wich is $0$ at $x=y-\la$.
+	The minimum is at $x=y-\la$ for $\la \leq y$, and stays at $0$ for all $\la>y$. 
+	%
+	The problem is symmetric with respect to the switch $x \mapsto -x$.
+\end{proof}
+
+Here, $S_\la$ is the celebrated soft-thresholding non-linear function.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Iterative Soft Thresholding}
+\label{sec-ista}
+
+
+We now derive an algorithm using a classical technic of surrogate function minimization. 
+%
+We aim at minimizing
+\eq{
+	f(x) \eqdef \frac{1}{2} \norm{y-Ax}^2 + \la \norm{x}_1
+}
+and we introduce for any fixed $x'$ the function 
+\eq{
+	f_\tau(x,x') \eqdef f(x) - \frac{1}{2}\norm{Ax-Ax'}^2 + \frac{1}{2\tau}\norm{x-x'}^2.
+}
+We notice that $f_\tau(x,x)=0$ and one the quadratic part of this function reads 
+\eq{
+	K(x,x') \eqdef - \frac{1}{2}\norm{Ax-Ax'}^2 + \frac{1}{2\tau}\norm{x-x'} = 
+	\frac{1}{2}\dotp{ \pa{\frac{1}{\tau}\Id_N-A^\top A} (x-x') }{x-x'}.
+}
+This quantity $K(x,x')$ is positive if $\la_{\max}(A^\top A) \leq 1/\tau$ (maximum eigenvalue), i.e. $\tau \leq 1/\norm{A}_{\text{op}}^2$, where we recall that $\norm{A}_{\text{op}} = \si_{\max}(A)$ is the operator (algebra) norm.
+%
+This shows that $f_\tau(x,x')$ is a valid surrogate functional, in the sense that
+\eq{
+	f(x) \leq f_\tau(x,x'), \quad
+	f_\tau(x,x')=0, \qandq
+	f(\cdot)-f_\tau(\cdot,x') \text{ is smooth.} 
+}
+We also note that this majorant $f_\tau(\cdot,x')$ is convex.
+%
+This leads to define
+\eql{\label{eq-ista-surrog}
+	x_{k+1} \eqdef \uargmin{x} f_{\tau}(x,x_k)
+}
+which by construction satisfies 
+\eq{
+	f(x_{k+1}) \leq f(x_k).
+}
+
+\begin{prop}
+	The iterates $x_k$ defined by~\eqref{eq-ista-surrog} satisfy
+	\eql{\label{eq-ista}
+		x_{k+1} = S_{\la\tau}\pa{
+			x_k - \tau A^\top( A x_k - y ) 
+		}
+	}
+	where $S_\la(x) = (  s_\la(x_m) )_m$ where $s_\la(r) = \sign(r) \max(|r|-\la,0)$ is the soft thresholding operator.
+\end{prop}
+\begin{proof}
+	One has 
+	\begin{align*}
+		f_\tau(x,x') 
+			&= \frac{1}{2}\norm{Ax-y}^2 - \frac{1}{2}\norm{Ax-Ax'}^2 + \frac{1}{2\tau}\norm{x-x'}^2 + \la \norm{x}_1 \\
+			& = C + \frac{1}{2}\norm{Ax}^2-\frac{1}{2}\norm{Ax}^2+\frac{1}{2\tau}\norm{x}^2
+			- \dotp{Ax}{y} + \dotp{Ax}{Ax'} - \frac{1}{\tau}\dotp{x}{x'}
+			+ \la \norm{x}_1 \\
+			& = C + \frac{1}{2\tau}\norm{x}^2 + \dotp{x}{ -A^\top y+AA^\top x'-\frac{1}{\tau}x' } + \la \norm{x}_1 \\
+			&= C' + \frac{1}{\tau}
+				\pa{
+					\frac{1}{2}\norm{x-(x'-\tau A^\top(Ax'-y))}^2
+					+ \tau \la \norm{x}_1.
+				}
+	\end{align*}
+	Proposition~\eqref{prop-soft-tresdh} shows that the minimizer of $f_\tau(x,x')$ is thus 
+	indeed $S_{\la\tau}( x' - \tau A^\top( A x' - y ) )$ as claimed.
+\end{proof}
+
+Equation~\eqref{eq-ista} defines the iterative soft-thresholding algorithm. It follows from a valid convex surrogate function if $\tau \leq 1/\norm{A}^2$, but one can actually shows that it converges to a solution of the Lasso as soon as $\tau < 2/\norm{A}^2$, which is exactly as for the classical gradient descent. 
+
+

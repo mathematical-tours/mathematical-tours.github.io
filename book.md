@@ -36,3 +36,14 @@ Chapters Available as Individual PDFs
 - [Compressed Sensing](book-sources/chapters-pdf/compressed-sensing.pdf)
 - [Machine Learning](book-sources/chapters-pdf/machine-learning.pdf)
 - [Deep-Learning](book-sources/chapters-pdf/deep-learning.pdf)
+
+Optimization for Machine Learning
+----------------
+
+Dedicated course notes covering specifically optimization and its applications in ML is [available as a separate PDF file](book-sources/optim-ml/OptimML.pdf).
+
+
+Optimal Transport
+----------------
+
+Dedicated course notes covering specifically optimal transport is [available as a separate PDF file](book-sources/optimal-transport/CourseOT.pdf). You can also check [the dedicated book](https://optimaltransport.github.io/) for a more detailed treatment of the algorithmic aspects. 
