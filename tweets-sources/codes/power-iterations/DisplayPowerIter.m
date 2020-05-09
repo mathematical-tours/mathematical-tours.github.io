@@ -28,8 +28,9 @@ A = real(V*D*inv(V));
 V = real(V);
 end
 
-r = 1/1.05;
+r = 1*1.05;
 t = 0.03*pi;
+
 A = [1 0 0; 0 r*cos(t) r*sin(t); 0 -r*sin(t) r*cos(t)];
 v = [1 0 0]';
 
@@ -58,5 +59,5 @@ for it=1:q
     drawnow;
     u = A*u;
     u = u./sqrt(sum(u.^2));
-   mysaveas(it);
+    mysaveas(it);
 end

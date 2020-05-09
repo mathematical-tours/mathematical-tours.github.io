@@ -1,8 +1,8 @@
 %%
 % Display roots of polynomials
 
-intmode = 'linear';
 intmode = 'circle';
+intmode = 'linear';
 
 if not(exist('test'))
     test=0;
@@ -12,7 +12,7 @@ test = test+1;
 rep = ['../results/poly-interp/' num2str(test) '-' intmode '/'];
 [~,~] = mkdir(rep);
 
-d = 7; % degree
+d = 10; % degree
 
 
 % click and play
@@ -25,10 +25,11 @@ for k=1:2
     for i=1:d
         axis([-1 1 -1 1]);
         [a,b,button] = ginput(1);
-        plot(a,b, '.', 'MarkerSize', 15);
         if button==3
+            d = i-1; 
             break;
         end
+        plot(a,b, '.', 'MarkerSize', 15);
         z0{k}(end+1) = a+1i*b;
     end
     z0{k} = z0{k}(:);
@@ -65,6 +66,7 @@ for i=1:m
     % p = p/p(end);
     
     % display interpolating curve
+    if 0
     t = linspace(0,1,100);
     clf; hold on;
     for s=1:d
@@ -80,8 +82,12 @@ for i=1:m
     plot(p, 'k.', 'MarkerSize', 30);
     axis tight; axis equal; box on; 
     set(gca, 'FontSize', 20); % set(gca,'XTick',[-1 0 1], 'YTick',[-1 0 1]);
-    saveas(gcf, [rep 'roots-' num2str(i) '.png'], 'png');
+    drawnow;
+    % saveas(gcf, [rep 'roots-' num2str(i) '.png'], 'png');
+    end
     
+    
+    if 1
     % display root   
     F = polyval(p,Z);
     R = roots(p);
@@ -97,5 +103,6 @@ for i=1:m
     axis([-u u -u u]);
     axis off; axis equal;
     drawnow;
-    saveas(gcf, [rep 'anim-' num2str(i) '.png'], 'png');
+    % saveas(gcf, [rep 'anim-' num2str(i) '.png'], 'png');
+    end
 end

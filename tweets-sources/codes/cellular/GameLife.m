@@ -1,7 +1,7 @@
 %%
 % Game of life
 
-n = 64;
+n = 64*4;
 
 X = zeros(n);
 
@@ -37,12 +37,12 @@ while true
 end
 end
 
-X = rand(n)>.8;
+X = rand(n)>.5;
 
 s = [2:n 1];
 t = [n 1:n-1];
 
-q = 90;
+q = 9000;
 Xdraw = zeros(n);
 for it=1:q
  	% display
@@ -52,7 +52,7 @@ for it=1:q
     drawnow; 
     colormap gray(256);
     % save
-    imwrite(rescale(Upsc(rescale(1-Xdraw'),2)), [rep 'anim-' znum2str(it,3) '.png']);
+    % imwrite(rescale(Upsc(rescale(1-Xdraw'),2)), [rep 'anim-' znum2str(it,3) '.png']);
     % count #neighbor
     M = X(s,s) + X(s,:) + X(s,t) + ...
         X(:,s) + X(:,t) + ...

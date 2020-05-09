@@ -147,7 +147,6 @@ box on;  axis off;
 
 
 % resample a curve using a fixed number of points
-
 curvabs = @(c)[0;cumsum( 1e-5 + abs(c(1:end-1)-c(2:end)) )];
 resample1 = @(c,d,p)interp1(d/d(end),c,(0:p-1)'/p, 'linear');
 resample = @(c,p)resample1( [c;c(1)], curvabs( [c;c(1)] ),p );
@@ -161,3 +160,18 @@ set(groot,'defaultAxesColorOrder',co);
 
 % Arrows
 quiver(X,Y,v(:,:,1), v(:,:,2), 'k');
+
+
+% animate points in a square with bouncing
+rand('state', 123); randn('state', 123);
+k = 50; x = rand(k,1)+1i*rand(k,1);
+eta = .02; v = randn(k,1) + 1i*randn(k,1); v = eta*v./abs(v);
+q = 120;
+for it=1:q
+    % DO HERE STUFF
+    x = x + v;
+    I = find( real(x)<0 | real(x)>1 );
+    v(I) = -real(v(I)) + 1i*imag(v(I));
+    I = find(  imag(x)<0 | imag(x)>1 );
+    v(I) = real(v(I)) - 1i*imag(v(I));
+end

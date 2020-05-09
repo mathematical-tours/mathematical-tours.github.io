@@ -1,0 +1,111 @@
+  ***************************************************************************
+  * All the software  contained in this library  is protected by copyright. *
+  * Permission  to use, copy, modify, and  distribute this software for any *
+  * purpose without fee is hereby granted, provided that this entire notice *
+  * is included  in all copies  of any software which is or includes a copy *
+  * or modification  of this software  and in all copies  of the supporting *
+  * documentation for such software.                                        *
+  ***************************************************************************
+  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED *
+  * WARRANTY. IN NO EVENT, NEITHER  THE AUTHORS, NOR THE PUBLISHER, NOR ANY *
+  * MEMBER  OF THE EDITORIAL BOARD OF  THE JOURNAL  "NUMERICAL ALGORITHMS", *
+  * NOR ITS EDITOR-IN-CHIEF, BE  LIABLE FOR ANY ERROR  IN THE SOFTWARE, ANY *
+  * MISUSE  OF IT  OR ANY DAMAGE ARISING OUT OF ITS USE. THE ENTIRE RISK OF *
+  * USING THE SOFTWARE LIES WITH THE PARTY DOING SO.                        *
+  ***************************************************************************
+  * ANY USE  OF THE SOFTWARE  CONSTITUTES  ACCEPTANCE  OF THE TERMS  OF THE *
+  * ABOVE STATEMENT.                                                        *
+  ***************************************************************************
+
+   AUTHOR:
+
+       YVES LUCET
+       SIMON FRASER UNIVERSITY, CANADA
+       E-MAIL: lucet@cecm.sfu.ca
+
+   REFERENCE:
+
+    -  FASTER THAN THE FAST LEGENDRE TRANSFORM, THE LINEAR-TIME
+       LEGENDRE TRANSFORM
+       NUMERICAL ALGORITHMS, 16 (1997), PP. 171-185
+
+   SOFTWARE REVISION DATE:
+
+       VER 1.0 SEPTEMBER 19, 1997
+
+   SOFTWARE LANGUAGE:
+
+       MATLAB
+
+List of included files:
+
+AREADME.1ST             LLTdemo_exa5_f.m
+Contents.m              LLTdemo_exa5_thetat.m
+LFt.m                   LLTdemo_exa6_Fdec.m
+LFtdirect.m             LLTdirect.m
+LLT.m                   bb.m
+LLTd.m                  fusion.m
+LLTd2D.m                fusionca.m
+LLTdemo.m               fusionma.m
+LLTdemo_exa1.m          infconvd.m
+LLTdemo_exa2.m          test_LLTd.m
+LLTdemo_exa3.m          test_LLTd_u.m
+LLTdemo_exa4_duxy.m     test_bb.m
+LLTdemo_exa4_uxy.m      test_fusion.m
+
+The linear-time algorithm is coded with the following functions:
+
+LFt.m 		--> Compute the discrete Legendre Transform of a function
+LLTd.m 		--> Compute the discrete Legendre Transform of discrete data
+LLTd2D.m 	--> Compute the discrete Legendre Transform of
+			discrete data corresponding to a bivariate
+			function.
+
+For comparison purposes, straight computation may be done with the
+following functions:
+LFtdirect.m 	--> Compute the discrete Legendre Transform of a function
+LLTdirect.m 	--> Compute the discrete Legendre Transform of discrete data
+
+Two additional functions may be called directly:
+bb.m		--> Compute the convex hull of discrete data
+infconvd.m	--> Compute the inf-convolution of discrete data
+
+The fusion-type functions are called internally: they are the core of
+the linear-time algorithm. Two functions are proposed:
+fusionma.m	--> use matlab syntax to speed up computations
+fusionca.m	--> classical programming, affine parts are removed
+fusion.m	--> switch between one of the above.
+
+All remaining files are test files:
+test_fusion.m		--> test and compare fusionma.m with fusionca.m
+test_LLTd.m		--> compare straigh computation versus the
+			LLT algorithm
+test_bb.m		--> test the bb.m function
+LLTdemo.m		--> demo of the LLT package
+
+
+Now about name of the variables I use. Primal points are stored as
+(X(i),Y(i)) where Y(i)=u(X(i)) -- we compute the conjugate of u. The
+vector S stores the slopes. Remember that both X and S MUST be
+increasing. The primal slopes are named C where
+C=(YY(2:h)-YY(1:h-1))./(XX(2:h)-XX(1:h-1));
+
+The vector H stores indices where the maximum is attained in the
+conjugate. In other words,
+Conjuguee(S(j))=max_i [S(j)*X(i)-Y(i)]=S(j)*X(H(j,1))-Y(H(j,1))
+
+Since after using bb.m, there are at most 2 indices where this maximum
+is attained, we choose to take a 2 column vector for H. If H(j,2)~=0
+then the maximum is attained at both H(j,1) and H(j,2), otherwise it
+is only attained at H(j,1).
+
+
+Finally let us keep in mind that the core of the algorithm are
+functions fusionma.m or fusionca.m. The function fusionma.m uses the
+BUILT-IN sort function. Hence it is much faster than the linear-time
+function fusionca.m which uses a for-loop. However I do not know how
+the sort function is coded, so I cannot say whether it has a
+linear-time complexity. Anyway, fusionma.m is faster than fusionca.m
+because it only uses matrix computation (beware that this is a typical
+matlab feature: in any non matrix optimized language it will not be
+the case). The test file test_fusion.m compares both functions.

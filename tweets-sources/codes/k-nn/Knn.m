@@ -27,7 +27,7 @@ end
 
 % re-sample with noise
 s = .06;
-n = 100; % #sample per distributions
+n = 200; % #sample per distributions
 for i=1:2
     p = size(X{i},2);
     Y{i} = [];
@@ -39,7 +39,7 @@ end
 
 
 % Knn on a grid
-q = 256;
+q = 256*2;
 u = linspace(0,1,q);
 [V,U] = meshgrid(u,u);
 Z = [U(:) V(:)]';
@@ -50,24 +50,25 @@ Ic = (I<=n);
 NNk = @(k)reshape(sum(Ic(:,1:k),2)/k, [q q]);
 
 col = {'b' 'r'};
-ms = 25;
-
-% 0 1 2 3 
-    
-klist = [1 2 3 4 5 10 20];
+ms = 15;
 klist = 1:50;
 for i=1:length(klist)
     k = klist(i);
+
     R = NNk(k);
     %
     T = (1/2:1:k-1/2)/k;
     if k==1
         T = [1/2 1/2];
     end
+    %
+    m = linspace(0,1,k+1)';
+    CM = m*[.5 .5 1] + (1-m)*[1 .5 .5];
+    %
     clf; hold on;
     imagesc(u,u,R');
-    contour(u,u,R', T, 'k');
-    colormap(summer(k+1));
+    contour(u,u,R', T ,'k'); %
+    colormap(CM);
     caxis([0 1]);
     axis image; axis off;
     %
@@ -75,8 +76,9 @@ for i=1:length(klist)
         plot(Y{i}(1,:), Y{i}(2,:), '.', 'color', col{i}, 'MarkerSize', ms);
     end
     axis equal; axis([0 1 0 1]); axis off;
-	saveas(gcf, [rep 'knn-' znum2str(k,2) '.png'], 'png');
+    drawnow;
+	saveas(gcf, [rep 'anim-' znum2str(k,2) '.png'], 'png');
 end
 
-% AutoCrop(rep, 'knn-'); 
+% AutoCrop(rep, 'anim-'); 
 

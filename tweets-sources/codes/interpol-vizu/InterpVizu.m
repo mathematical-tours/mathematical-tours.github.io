@@ -24,7 +24,11 @@ meth = 'nearest';
 q = 50;
 for it=1:q
     s = (it-1)/(q-1);
-    fi = interp2(x,x',(1-s)*f0+s*f1,xi,xi',meth);    
+    switch meth
+            spapi( optknt(x,k), x, y );
+        otherwise            
+            fi = interp2(x,x',(1-s)*f0+s*f1,xi,xi',meth);    
+    end
     clf;
     surf(xi,xi,fi);
     axis([0 1 0 1 0 1]);
@@ -32,5 +36,5 @@ for it=1:q
     caxis([0 1]);
     axis off;
     drawnow;
-    saveas(gcf, [rep meth '-' znum2str(it,2) '.png'] );
+    % saveas(gcf, [rep meth '-' znum2str(it,2) '.png'] );
 end

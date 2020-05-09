@@ -1,4 +1,4 @@
-% !TEX root = ../FundationsDataScience.tex
+% !TEX root = ../optim-ml/OptimML.tex
 
 %%% SECTION PART OF optim-smooth.tex
 
@@ -14,13 +14,17 @@ We consider $f : \RR^p \rightarrow \RR$ and want to derive a method to evaluate 
 \eq{
  	\frac{1}{\epsilon}(f(x+\epsilon \de_1)-f(x), \ldots,f(x+\epsilon \de_p)-f(x))^\top	\approx \nabla f(x)
 }
-requires $p+1$ evaluations of $f$. For a large $p$, this is prohibitive. The method we  describe in this section (the so-called reverse mode automatic differentiation) has in most cases a cost proportional to a single evaluation of $f$. 
+requires $p+1$ evaluations of $f$, where we denoted $\de_k=(0,\ldots,0,1,0,\ldots,0)$ where the $1$ is at index $k$. 
+%
+For a large $p$, this is prohibitive. The method we  describe in this section (the so-called reverse mode automatic differentiation) has in most cases a cost proportional to a single evaluation of $f$. 
+%
+This type of method is similar to symbolic calculus in the sense that it provides (up to machine precision) exact gradient computation. But symbolic calculus does not takes into account the underlying algorithm which compute the function, while automatic differentiation factorizes the computation of the derivative according to an efficient algorithm.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Computational Graphs}
 
-We consider a generic function $f(x)$ where $x=(x_1,\ldots,x_s)$ are the input variables. We assume that $f$ is implemented in an algorithm, with intermediate variable $(x_{s+1},\ldots,x_t$ where $t$ is the total number of variables. The output is $x_t$, and we thus denote $x_t=f(x)$ this function. We denote $x_k \in \RR^{n_k}$ the dimensionality of the variables. The goal is to compute the derivatives $\pd{f(x)}{x_k} \in \RR^{n_t \times n_k}$ for $k=1,\ldots,s$. For the sake of simplicity, one can assume in what follows that $n_k=1$ so that all the involved quantities are scalar (but if this is not the case, beware that the order of multiplication of the matrices of course matters).
+We consider a generic function $f(x)$ where $x=(x_1,\ldots,x_s)$ are the input variables. We assume that $f$ is implemented in an algorithm, with intermediate variable $(x_{s+1},\ldots,x_t)$ where $t$ is the total number of variables. The output is $x_t$, and we thus denote $x_t=f(x)$ this function. We denote $x_k \in \RR^{n_k}$ the dimensionality of the variables. The goal is to compute the derivatives $\pd{f(x)}{x_k} \in \RR^{n_t \times n_k}$ for $k=1,\ldots,s$. For the sake of simplicity, one can assume in what follows that $n_k=1$ so that all the involved quantities are scalar (but if this is not the case, beware that the order of multiplication of the matrices of course matters).
 
 \begin{figure}
 \centering
@@ -37,6 +41,8 @@ A numerical algorithm can be represented as a succession of functions of the for
 where $f_k$ is a function which only depends on the previous variables, see Fig.~\ref{fig-compgraph}. One can represent this algorithm using a directed acyclic graph (DAG), linking the variables involved in $f_k$ to $x_k$. The node of this graph are thus conveniently ordered by their indexing, and the directed edges only link a variable to another one with a strictly larger index.
 %
 The evaluation of $f(x)$ thus corresponds to a forward traversal of this graph. 
+% 
+Note that the goal of automatic differentiation is not to define an efficient computational graph, it is up to the user to provide this graph. Computing an efficient graph associated to a mathematical formula is a complicated combinatorial problem, which still has to be solved by the user. Automatic differentiation thus leverage the availability of an efficient graph to provide an efficient algorithm to evaluate derivatives. 
 
 
 
@@ -44,8 +50,6 @@ The evaluation of $f(x)$ thus corresponds to a forward traversal of this graph.
 \subsection{Forward Mode of Automatic Differentiation}
 
 The forward mode correspond to the usual way of computing differentials. It compute the derivative $\pd{x_k}{x_1}$ of all variables $x_k$ with respect to $x_1$. One then needs to repeat this method $p$ times to compute all the derivative with respect to $x_1,x_2,\ldots,x_p$ (we only write thing for the first variable, the method being of course the same with respect to the other ones).
-
-
 
 \newcommand{\bk}[1]{\left[#1\right]}
 \newcommand{\pdb}[2]{\bk{\pd{#1}{#2}}}
@@ -82,8 +86,43 @@ Example of a simple computational graph.
 \end{figure}
 
 
+%%%
+\paragraph{Simple example.}
 
 
+We consider the fonction 
+\eql{\label{eq-simple-func-autodiff}
+ 	f(x,y) = y\log(x)+\sqrt{y\log(x)}
+} 
+whose computational graph is displayed on Figure~\ref{fig-dag-example-simple}. The iterations of the forward mode to compute the derivative with respect to $x$ read
+\begin{align*}
+		\pd{x}{x} &= 1,  \quad \pd{y}{x} = 0 \\
+		\pd{a}{x} &= \bk{\pd{a}{x}} \pd{x}{x} = \frac{1}{x} \pd{x}{x} &
+			\{x \mapsto a = \log(x)\}\\
+		\pd{b}{x} &= \bk{\pd{b}{a}} \pd{a}{x}  + \bk{\pd{b}{y}} \pd{y}{x}  = y \pd{a}{x} + 0 &
+			\{(y,a) \mapsto b=ya\}\\
+		\pd{c}{x} &= \bk{\pd{c}{b}} \pd{b}{x}  = \frac{1}{2\sqrt{b}} \pd{b}{x}&
+			\{b \mapsto c=\sqrt{b}\} \\
+		\pd{f}{x} &= \bk{\pd{f}{b}} \pd{b}{x} + \bk{\pd{f}{c}} \pd{c}{x}  = 1\pd{b}{x} + 1\pd{c}{x}&
+			\{(b,c) \mapsto f=b+c\}
+\end{align*}
+One needs to run another forward pass to compute the derivative with respect to $y$
+\begin{align*}
+		\pd{x}{y} &= 0,  \quad \pd{y}{y} = 1 \\
+		\pd{a}{y} &= \bk{\pd{a}{x}} \pd{x}{y} = 0 &
+			\{x \mapsto a = \log(x)\}\\
+		\pd{b}{y} &= \bk{\pd{b}{a}} \pd{a}{y}  + \bk{\pd{b}{y}} \pd{y}{y}  = 0 + a \pd{y}{y}  &
+			\{(y,a) \mapsto b=ya\}\\
+		\pd{c}{y} &= \bk{\pd{c}{b}} \pd{b}{y}  = \frac{1}{2\sqrt{b}} \pd{b}{y}&
+			\{b \mapsto c=\sqrt{b}\} \\
+		\pd{f}{y} &= \bk{\pd{f}{b}} \pd{b}{y} + \bk{\pd{f}{c}} \pd{c}{y}  = 1\pd{b}{y} + 1\pd{c}{y}&
+			\{(b,c) \mapsto f=b+c\}
+\end{align*}
+
+
+
+
+\if 0
 %%%
 \paragraph{Simple example.}
 
@@ -137,7 +176,35 @@ whose computational graph is displayed on Figure~\ref{fig-dag-example-complex}. 
 		\pd{f}{x} &= \pdb{f}{s}\pd{s}{x} + \pdb{f}{u}\pd{u}{x} = 1 \pd{s}{x} - 1 \pd{u}{x} &
 			\{ (s,u) \mapsto f = s-u \}
 \end{align*}
+\fi
 
+
+%%%
+\paragraph{Dual numbers.}
+
+A convenient way to implement this forward pass is to make use of so called ``dual number'', which is an algebra over the real  where the number have the form $x + \epsilon x'$ where $\epsilon$ is a symbol obeying the rule that $\epsilon^2=0$. Here $(x,x') \in \RR^2$ and $x'$ is intended to store a derivative with respect to some input variable. These number thus obeys the following arithmetic operations
+\eq{
+	(x+\epsilon x')(y+\epsilon y') = xy + \epsilon (x y' + y x')
+	\qandq
+	\frac{1}{x+\epsilon x'} = \frac{1}{x}-\epsilon \frac{x'}{x^2}. 
+}
+If $f$ is a polynomial or a rational function, from these rules one has that 
+\eq{
+	f(x+\epsilon) = f(x) + \epsilon f'(x).
+}
+For a more general basic function $f$, one needs to overload it so that
+\eq{
+	f(x+\epsilon x') \eqdef f(x) + \epsilon f'(x) x'.
+}
+Using this definition, one has that 
+\eq{
+	(f \circ g)(x+\epsilon ) = f(g(x)) + \epsilon f'(g(x))g'(x)
+}
+which corresponds to the usual chain rule. More generally, if $f(x_1,\ldots,x_s)$ is a function implemented using these overloaded basic functions, one has  
+\eq{
+	f(x_1+\epsilon,x_2,\ldots,x_s) = f(x_1,\ldots,x_s) + \epsilon \pd{f}{x_1}(x_1,\ldots,x_s)
+}
+and this evaluation is equivalent to applying the forward mode of automatic differentiation to compute $\pd{f}{x_1}(x_1,\ldots,x_s)$ (and similarly for the other variables).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,14 +248,20 @@ In general, when $n_t=1$, the backward is the optimal way to compute the gradien
 We consider once again the fonction $f(x)$ of~\eqref{eq-simple-func-autodiff}, the iterations of the reverse mode read
 \begin{align*}
 		\pd{f}{f} &= 1 &\\
-		\pd{f}{z} &= \pd{f}{f} \pdb{f}{z} = \pd{f}{f} 1 &
-			\{z \mapsto f = x+z\}\\
-		\pd{f}{y} &= \pd{f}{z} \pdb{z}{y} + \pd{f}{f} \pdb{f}{y} = \pd{f}{z} \frac{1}{2\sqrt{y}} + \pd{f}{f} 1 & 
-			\{ y \mapsto z=\sqrt{y}, y \mapsto f=y+z\} \\
-		\pd{f}{x} &= \pd{f}{y} \pdb{y}{x} = \pd{f}{y} \frac{1}{x} & 
-			\{ x \mapsto y=\log(x)\}
+		\pd{f}{c} &= \pd{f}{f} \pdb{f}{c} = \pd{f}{f} 1 &
+			\{ c \mapsto f = b+c\}\\
+		\pd{f}{b} &= \pd{f}{c} \pdb{c}{b} + \pd{f}{f} \pdb{f}{b} = \pd{f}{c} \frac{1}{2\sqrt{b}} + \pd{f}{f} 1 & 
+			\{ b \mapsto c=\sqrt{b}, b \mapsto f=b+c\} \\
+		\pd{f}{a} &= \pd{f}{b} \pdb{b}{a} = \pd{f}{b} y & 
+			\{ a \mapsto b=y a\} \\
+		\pd{f}{y} &= \pd{f}{b} \pdb{b}{y} = \pd{f}{b} a & 
+			\{ y \mapsto b=ya\} \\
+		\pd{f}{x} &= \pd{f}{a} \pdb{a}{x} = \pd{f}{a} \frac{1}{x} & 
+			\{ x \mapsto a=\log(x)\}
 \end{align*}
+The advantage of the reverse mode is that a single traversal of the computational graph allows to compute both derivatives with respect to $x,y$, while the forward more necessitates two passes.
 
+\if 0
 %%%
 \paragraph{More complex example.}
 
@@ -216,32 +289,32 @@ We consider once again the fonction $f(x)$ of~\eqref{eq-cpx-func-autodiff}, the 
 			= \pd{f}{y} 2x + \pd{f}{r} \frac{1}{x+z}  &
 			\{x \mapsto y=x^2, x \mapsto r=\log(x+z)\}		
 \end{align*}
-
+\fi
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Feed-forward Architectures}
+\subsection{Feed-forward Compositions}
 
 The simplest computational graphs are purely feedforward, and corresponds to the computation of 
 \eql{\label{eq-simple-lin-dag}
-	f = f_{t-1} \circ f_{t-2} \circ \ldots \circ f_2 \circ f_1
+	f = f_{t} \circ f_{t-1} \circ \ldots \circ f_2 \circ f_1
 }
-for functions $f_k : \RR^{n_k} \rightarrow \RR^{n_{k+1}}$.
+for functions $f_k : \RR^{n_{k-1}} \rightarrow \RR^{n_{k}}$.
 
-The forward function evaluation algorithm initializes $x_0=x$ and then computes
+The forward function evaluation algorithm initializes $x_0=x \in \RR^{n_0}$ and then computes
 \eq{
-	\foralls k=1, \ldots, t-1, \quad x_{k+1} = f_k(x_k)
+	\foralls k=1, \ldots, t, \quad x_{k} = f_k(x_{k-1})
 }
 where at the output, one retrieves $f(x) = x_t$.
 
-Denoting $A_k \eqdef \partial f_k(x_k) \in \RR^{n_{k+1} \times n_k}$ the Jacobian, one has
+Denoting $A_k \eqdef \partial f_k(x_{k-1}) \in \RR^{n_{k} \times n_{k-1}}$ the Jacobian, one has
 \eq{
-	\partial f(x) = A_{t-1} \times A_{t-2} \times \ldots A_2 \times A_1.
+	\partial f(x) = A_{t} \times A_{t-2} \times \ldots A_2 \times A_1.
 }
 The forward (resp. backward) mode corresponds to the computation of the product of the Jacobian from right to left (resp. left to right) 
 \begin{align*}
-	\partial f(x) &= A_{t-1} \times \pa{  A_{t-2} \times \pa{ \ldots \times \pa{ A_3 \times \pa{ A_2 \times A_1 } } } }, \\
-	\partial f(x) &= \pa{ \pa{ \pa{ \pa{ A_{t-1} \times A_{t-2} }  \times A_{t-3} } \times \ldots } \times A_2 } \times A_1.
+	\partial f(x) &= A_{t} \times \pa{  A_{t-1} \times \pa{ \ldots \times \pa{ A_3 \times \pa{ A_2 \times A_1 } } } }, \\
+	\partial f(x) &= \pa{ \pa{ \pa{ \pa{ A_{t} \times A_{t-1} }  \times A_{t-2} } \times \ldots } \times A_2 } \times A_1.
 \end{align*}
 
 
@@ -251,7 +324,7 @@ The forward (resp. backward) mode corresponds to the computation of the product 
 \quad\quad
 \includegraphics[width=.35\linewidth]{auto-diff/matrix-backward} 
 \caption{\label{fig-matrix-mult}
-Complexity of forward (left) and backward (right) modes for feedforward graphs.
+Complexity of forward (left) and backward (right) modes for feedforward graphs.  \todo{redo the figure}
 }
 \end{figure}
 
@@ -259,15 +332,234 @@ We note that the computation of the product $A \times B$ of $A \in \RR^{n \times
 %
 As shown on Figure~\ref{fig-matrix-mult}, the complexity of the forward and backward modes are
 \eq{
-	n_1 \sum_{k=2}^{t-1} n_k n_{k+1}
+	n_0 \sum_{k=1}^{t-1} n_k n_{k+1}
 	\qandq
-	n_t \sum_{k=1}^{t-2} n_k n_{k+1}
+	n_t \sum_{k=0}^{t-2} n_k n_{k+1}
 }
-So if $n_t \ll n_1$ (which is the typical case in ML scenario where $n_t=1$) then the backward mode is cheaper. 
+So if $n_t \ll n_0$ (which is the typical case in ML scenario where $n_t=1$) then the backward mode is cheaper. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Feed-forward Architecture}
+
+We can generalize the previous example to account for feed-forward architectures, such as neural networks, which are of the form
+\eql{\label{eq-feednets}
+	\foralls k=1, \ldots, t, \quad x_{k} = f_k(x_{k-1},\th_{k-1})
+}
+where $\th_{k-1}$ is a vector of parameters and $x_0 \in \RR^{n_0}$ is given. The function to minimize has the form
+\eql{\label{eq-loss-feedf}
+	f(\th) \eqdef L(x_t)
+}
+where $L : \RR^{n_t} \rightarrow \RR$ is some loss function (for instance a least square or logistic prediction risk) and $\th=(\th_k)_{k=0}^{t-1}$.
+
+
+One can use the reverse mode automatic differentiation to compute the gradient of $f$ by computing successively the gradient with respect to all $(x_k,\th_k)$. One initialize
+\eq{
+	\nabla_{x_t} f = \nabla L(x_t) 	
+}
+and then recurse from $k=t-1$ to $0$
+\eql{\label{eq-backprop-discr}
+	z_{k-1} = [\partial_x f_k(x_{k-1},\th_{k-1})]^\top z_k
+	\qandq
+	\nabla_{\th_{k-1}} f = [\partial_\th f_k(x_{k-1},\th_{k-1})]^\top (\nabla_{x_{k}} f)
+}
+where we denoted $z_k \eqdef \nabla_{x_{k}} f(\th)$ the gradient with respect to $x_{k}$.
+
+%%%
+\paragraph{Multilayers perceptron.}
+
+For instance, feedforward deep network (fully connected for simplicity) corresponds to using 
+\eql{\label{eq-mlp-func}
+	\foralls x_{k-1} \in \RR^{n_{k-1}}, \quad
+	f_k(x_{k-1},\th_{k-1}) = \rho( \th_{k-1} x_{k-1} )
+} 
+where $\th_{k-1} \in \RR^{n_{k} \times n_{k-1}}$ are the neuron's weights and $\rho$ a fixed pointwise linearity.
+%
+One has, for a vector $z_k \in \RR^{n_k}$ (typically equal to $\nabla_{x_{k}} f$)
+\eq{
+	\left\{
+	\begin{matrix}
+	[\partial_x f_k(x_{k-1},\th_{k-1})]^\top (z_k) = \th_{k-1}^\top w_k z_k, \\
+	[\partial_\th f_k(x_{k-1},\th_{k-1})]^\top (z_k) = w_k x_{k-1}^\top
+	\end{matrix}
+	\right.
+	\qwhereq
+	w_k \eqdef \diag(\rho'(\th_{k-1} x_{k-1})).
+}
+
+
+%%%
+\paragraph{Link with adjoint state method.}
+
+One can interpret~\eqref{eq-feednets} as a time discretization of a continuous ODE. 
+%
+One imposes that the dimension $n_k=n$ is fixed, and denotes $x(t) \in \RR^n$ a continuous time evolution, so that $x_{k} \rightarrow x(k \tau)$ when $k \rightarrow +\infty$ and $k \tau \rightarrow t$. 
+%
+Imposing then the structure
+\eql{\label{eq-flow-eq}
+	f_k(x_{k-1},\th_{k-1}) = x_{k-1} + \tau u(x_{k-1},\th_{k-1}, k\tau)
+}
+where $u(x,\th,t) \in \RR^n$ is a parameterized vector field, as $\tau \rightarrow 0$, one obtains the non-linear ODE
+\eql{\label{eq-ode-structure}
+	\dot x(t) = u(x(t),\th(t),t)
+}
+with $x(t=0)=x_0$.
+
+Denoting $z(t) = \nabla_{x(t)} f(\th)$ the ``adjoint'' vector field, the discrete equations~\eqref{eq-backprop-discr} becomes the so-called adjoint equations, which is a linear ODE 
+\eq{
+	\dot z(t)  =  - [\partial_x u(x(t),\th(t),t)]^\top z(t)
+	\qandq
+	\nabla_{\th(t)} f(\th) = [\partial_\th u(x(t),\th(t),t)]^\top z(t).
+}
+Note that the correct normalization is $\frac{1}{\tau} \nabla_{\th_{k-1}} f  \rightarrow \nabla_{\th(t)} f(\th)$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Recurrent Architectures}
+
+Recurrent networks are obtained by using the same parameter $\th=\th_k$ and $f_k=h$ recursively in~\eqref{eq-mlp-func}, so that 
+\eql{\label{eq-feednets-recur}
+	\foralls k=1, \ldots, t, \quad x_{k} = h(x_{k-1},\th).
+}
+We consider a real valued function of the form
+\eq{
+	f(\th) = L(x_t,\th)
+}
+so that here the final loss depends on $\th$ (which is thus more general than~\eqref{eq-loss-feedf}).
+%
+The back-propagation then operates as 
+\eql{\label{eq-backprop-discr}
+	\nabla_{x_{k-1}} f = [\partial_x h(x_{k-1},\th)]^\top \nabla_{x_{k}} f
+	\qandq
+	\nabla_{\th} f = 
+		\nabla_\th L(x_t,\th) + 
+		\sum_k [\partial_\th h(x_{k-1},\th)]^\top \nabla_{x_{k}} f.
+}
+Similarly, writing $h(x,\th) = x + \tau u(x,\th)$, letting $(k,k\tau) \rightarrow (+\infty,t)$, one obtains the forward non-linear ODE with a time-stationary vector field
+\eq{
+	\dot x(t) = u(x(t),\th)
+}
+and the following linear backward adjoint equation, for $f(\th)=L(x(T),\th)$
+\eq{
+	\dot z(t)  =  - [\partial_x u(x(t),\th)]^\top z(t)
+	\qandq
+	\nabla_{\th} f(\th) = \nabla_\th L(x(T),\th) + \int_0^T [\partial_\th f(x(t),\th)]^\top z(t) \d t.
+}
+with $z(0) = \nabla_x L(x_t,\th)$. 
+
+
+%%%%%
+\paragraph{Mitigating memory requirement. }
+
+The main issue of applying this backpropagation method to compute $\nabla f(\th)$ is that it requires a large memory to store all the iterates $(x_k)_{k=0}^t$. A workaround is to use checkpointing, which stores some of these intermediate results and re-run partially the forward algorithm to reconstruct missing values during the backward pass. Clever hierarchical method perform this recursively in order to only require $\log(t)$ stored values and a $\log(t)$ increase on the numerical complexity. 
+
+In some situation, it is possible to avoid the storage of the forward result, if one assume that the algorithm can be run backward. This means that there exists some functions $g_k$ so that 
+\eq{
+	x_{k} = g_k(x_{k+1},\ldots,x_t).
+}
+In practice, this function typically also depends on a few extra variables, in particular on the input values $(x_0,\ldots,x_s)$.
+
+An example of this situation is when one can split the (continuous time) variable as $x(t)=(r(t),s(t))$ and the vector field $u$ in the continuous ODE~\eqref{eq-ode-structure} has a symplectic structure of the form $u((r,s),\th,t) = ( F(s,\th,t),G(r,\th,t) )$. One can then use a leapfrog integration scheme, which defines  
+\eq{
+	r_{k+1} = r_k + \tau F(s_k,\th_k,\tau k)
+	\qandq
+	s_{k+1} = s_k + \tau F(r_{k+1},\th_{k+1/2},\tau (k+1/2)).
+}
+One can reverse these equation exactly as
+\eq{
+	s_k = s_{k+1} - \tau F(r_{k+1},\th_{k+1/2},\tau (k+1/2)).
+	\qandq
+	r_k = r_{k+1}  - \tau F(s_k,\th_k,\tau k). 
+}
+
+%%%%%
+\paragraph{Fixed point maps}
+
+In some applications (some of which are detailed bellow), the iterations $x_k$ converges to some $x^\star(\th)$ which is thus a fixed point 
+\eq{
+	x^\star(\th) = h(x^\star(\th),\th). 
+}
+Instead of applying the back-propagation to compute the gradient of $f(\th) = L(x_t,\th)$, one can thus apply the implicit function theorem to compute the gradient of $f^\star(\th) = L(x^\star(\th),\th)$. Indeed, one has
+\eql{\label{eq-impl-func-formula}
+	\nabla f^\star(\th) = [\partial x^\star(\th)]^\top( \nabla_x L(x^\star(\th),\th) )
+		 + \nabla_\th L(x^\star(\th),\th).
+}
+Using the implicit function theorem one can compute the Jacobian as
+\eq{
+	\partial x^\star(\th) =  - \pa{  \pd{h}{x}(x^\star(\th),\th) }^{-1}  \pd{h}{\th}(x^\star(\th),\th). 
+}
+In practice, one replace in these formulas $x^\star(\th)$ by $x_t$, which produces an approximation of $\nabla f(\th)$. 
+%
+The disadvantage of this method is that it requires the resolution of a linear system, but its advantage is that it bypass the memory storage issue of the backpropagation algorithm.
 
 
 
+%%%%%
+\paragraph{Argmin layers}
 
+One can define a mapping from some parameter $\th$ to a point $x(\th)$ by solving a parametric optimization problem
+\eq{
+	x(\th) = \uargmin{x} \Ee(x,\th).
+}
+The simplest approach to solve this problem is to use a gradient descent scheme, $x_0=0$ and
+\eq{
+	x_{k+1} = x_k - \tau \nabla \Ee(x_k,\th). 
+}
+This has the form~\eqref{eq-flow-eq} when using the vector field $u(x,\th) = \nabla \Ee(x_k,\th)$. 
+
+Using formula~\eqref{eq-impl-func-formula} in this case where $h=\nabla \Ee$, one obtains
+\eq{
+	\nabla f^\star(\th) = -\pa{ \frac{\partial^2 \Ee}{\partial x \partial \th}(x^\star(\th),\th) }^\top 
+		\pa{  \pdd{\Ee}{x}(x^\star(\th),\th) }^{-1}
+		( \nabla_x L(x^\star(\th),\th) )
+		 + \nabla_\th L(x^\star(\th),\th)
+}
+
+In the special case where the function $f(\th)$ is the minimized function itself, i.e. $f(\th)=\Ee(x^\star(\th),\th)$, i.e. $L=\Ee$, then one can apply the implicit function theorem formula~\eqref{eq-impl-func-formula}, which is much simpler since in this case $\nabla_x L(x^\star(\th),\th)=0$ so that 
+\eql{\label{eq-danskin}
+	\nabla f^\star(\th) = \nabla_\th L(x^\star(\th),\th). 
+}
+This result is often called Danskin theorem or the envelope theorem. 
+
+
+%%%%%
+\paragraph{Sinkhorn's algorithm}
+
+Sinkhorn algorithm approximates the optimal distance between two histograms $a \in \RR^n$ and $b \in \RR^m$ using the following recursion on multipliers, initialized as $x_0 \eqdef (u_0,v_0) = (1_n,1_m)$
+\eq{
+	u_{k+1} = \frac{a}{K v_k}, \qandq
+	v_{k+1} = \frac{b}{K^\top u_k}.
+}
+where $\frac{\cdot}{\cdot}$ is the pointwise division and $K \in \RR_+^{n \times m}$ is a kernel.
+%
+Denoting $\th=(a,b) \in \RR^{n+m}$ and $x_k=(u_k,v_k) \in \RR^{n+m}$, the OT distance is then approximately equal to 
+\eq{
+	f(\th) = \Ee(x_t,\th) \eqdef \dotp{a}{\log(u_t)} + \dotp{b}{\log(v_t)} - \epsilon \dotp{K u_t}{v_t}. 
+}
+Sinkhorn iteration are alternate minimization to find a minimizer of $\Ee$. 
+
+Denoting  $\Kk \eqdef \begin{pmatrix} 0 & K \\ K^\top & 0 \end{pmatrix} \in \RR^{(n+m) \times (n+m)}$, one can re-write these iterations in the form~\eqref{eq-feednets-recur} using 
+\eq{
+	h(x,\th) = \frac{\th}{\Kk x}
+	\qandq
+	L(x_t,\th) = \Ee(x_t,\th)  = \dotp{\th}{\log(x_t)} - \epsilon \dotp{K u_t}{v_t}. 
+}
+One has the following differential operator 
+\eq{
+	[\partial_x h(x,\th)]^\top = -\Kk^\top \diag\pa{\frac{\th}{(\Kk x)^2}}, \quad
+	[\partial_\th h(x,\th)]^\top = \diag\pa{\frac{1}{\Kk x}}, \quad
+}
+\eq{
+	\nabla_x L(x,\th) = ??, \quad
+	\nabla_\th L(x,\th) = ??. 
+}
+Similarly as for the argmin layer, at convergence $x_k \rightarrow x^\star(\th)$, one finds a minimizer of $\Ee$, so that $\nabla_x L(x^\star(\th),\th)=0$ and thus the gradient of $f^\star(\th)=\Ee(x^\star(\th),\th)$ can be computed using~\eqref{eq-danskin} i.e.
+\eq{
+	\nabla f^\star(\th) = \log(x^\star(\th)).
+}
+
+
+
+\if 0
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Multilayer Perceptron}
 \label{sec-autodiff-mlp}
@@ -299,13 +591,13 @@ The gradient of with respect to the weight matrices are obtained by also applyin
  \eq{
  	\nabla_{W_{k}} f = (\nabla_{b_k} f) a_{k-1}^\top.
 }
-
+\fi 
 
 \begin{figure}
 \centering
 \includegraphics[width=.6\linewidth]{auto-diff/mlp.pdf} 
 \caption{\label{fig-mlp}
-Computational graph for a MLP.
+Computational graph for a MLP. \todo{redo the figure}
 }
 \end{figure}
 

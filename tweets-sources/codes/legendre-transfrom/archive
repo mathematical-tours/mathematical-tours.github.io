@@ -1,0 +1,1580 @@
+#! /bin/sh
+# This is a shell archive.  Remove anything before this line, then unpack
+# it by saving it into a file and typing "sh file".  To overwrite existing
+# files, type "sh file -c".  You can also feed this as standard input via
+# unshar, or by typing "sh <file", e.g..  If this archive is complete, you
+# will see the following message at the end:
+#		"End of shell archive."
+# Contents:  AREADME.1ST Contents.m LFt.m LFtdirect.m LLT.m LLTd.m
+#   LLTd2D.m LLTdemo.m LLTdemo_exa1.m LLTdemo_exa2.m LLTdemo_exa3.m
+#   LLTdemo_exa4_duxy.m LLTdemo_exa4_uxy.m LLTdemo_exa5_f.m
+#   LLTdemo_exa5_thetat.m LLTdemo_exa6_Fdec.m LLTdirect.m bb.m
+#   fusion.m fusionca.m fusionma.m infconvd.m test_LLTd.m
+#   test_LLTd_u.m test_bb.m test_fusion.m
+# Wrapped by michela@coco on Tue Apr 21 13:21:36 1998
+PATH=/bin:/usr/bin:/usr/ucb ; export PATH
+if test -f 'AREADME.1ST' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'AREADME.1ST'\"
+else
+echo shar: Extracting \"'AREADME.1ST'\" \(4829 characters\)
+sed "s/^X//" >'AREADME.1ST' <<'END_OF_FILE'
+X  ***************************************************************************
+X  * All the software  contained in this library  is protected by copyright. *
+X  * Permission  to use, copy, modify, and  distribute this software for any *
+X  * purpose without fee is hereby granted, provided that this entire notice *
+X  * is included  in all copies  of any software which is or includes a copy *
+X  * or modification  of this software  and in all copies  of the supporting *
+X  * documentation for such software.                                        *
+X  ***************************************************************************
+X  * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED *
+X  * WARRANTY. IN NO EVENT, NEITHER  THE AUTHORS, NOR THE PUBLISHER, NOR ANY *
+X  * MEMBER  OF THE EDITORIAL BOARD OF  THE JOURNAL  "NUMERICAL ALGORITHMS", *
+X  * NOR ITS EDITOR-IN-CHIEF, BE  LIABLE FOR ANY ERROR  IN THE SOFTWARE, ANY *
+X  * MISUSE  OF IT  OR ANY DAMAGE ARISING OUT OF ITS USE. THE ENTIRE RISK OF *
+X  * USING THE SOFTWARE LIES WITH THE PARTY DOING SO.                        *
+X  ***************************************************************************
+X  * ANY USE  OF THE SOFTWARE  CONSTITUTES  ACCEPTANCE  OF THE TERMS  OF THE *
+X  * ABOVE STATEMENT.                                                        *
+X  ***************************************************************************
+X
+X   AUTHOR:
+X
+X       YVES LUCET
+X       SIMON FRASER UNIVERSITY, CANADA
+X       E-MAIL: lucet@cecm.sfu.ca
+X
+X   REFERENCE:
+X
+X    -  FASTER THAN THE FAST LEGENDRE TRANSFORM, THE LINEAR-TIME
+X       LEGENDRE TRANSFORM
+X       NUMERICAL ALGORITHMS, 16 (1997), PP. 171-185
+X
+X   SOFTWARE REVISION DATE:
+X
+X       VER 1.0 SEPTEMBER 19, 1997
+X
+X   SOFTWARE LANGUAGE:
+X
+X       MATLAB
+X
+XList of included files:
+X
+XAREADME.1ST             LLTdemo_exa5_f.m
+XContents.m              LLTdemo_exa5_thetat.m
+XLFt.m                   LLTdemo_exa6_Fdec.m
+XLFtdirect.m             LLTdirect.m
+XLLT.m                   bb.m
+XLLTd.m                  fusion.m
+XLLTd2D.m                fusionca.m
+XLLTdemo.m               fusionma.m
+XLLTdemo_exa1.m          infconvd.m
+XLLTdemo_exa2.m          test_LLTd.m
+XLLTdemo_exa3.m          test_LLTd_u.m
+XLLTdemo_exa4_duxy.m     test_bb.m
+XLLTdemo_exa4_uxy.m      test_fusion.m
+X
+XThe linear-time algorithm is coded with the following functions:
+X
+XLFt.m 		--> Compute the discrete Legendre Transform of a function
+XLLTd.m 		--> Compute the discrete Legendre Transform of discrete data
+XLLTd2D.m 	--> Compute the discrete Legendre Transform of
+X			discrete data corresponding to a bivariate
+X			function.
+X
+XFor comparison purposes, straight computation may be done with the
+Xfollowing functions:
+XLFtdirect.m 	--> Compute the discrete Legendre Transform of a function
+XLLTdirect.m 	--> Compute the discrete Legendre Transform of discrete data
+X
+XTwo additional functions may be called directly:
+Xbb.m		--> Compute the convex hull of discrete data
+Xinfconvd.m	--> Compute the inf-convolution of discrete data
+X
+XThe fusion-type functions are called internally: they are the core of
+Xthe linear-time algorithm. Two functions are proposed:
+Xfusionma.m	--> use matlab syntax to speed up computations
+Xfusionca.m	--> classical programming, affine parts are removed
+Xfusion.m	--> switch between one of the above.
+X
+XAll remaining files are test files:
+Xtest_fusion.m		--> test and compare fusionma.m with fusionca.m
+Xtest_LLTd.m		--> compare straigh computation versus the
+X			LLT algorithm
+Xtest_bb.m		--> test the bb.m function
+XLLTdemo.m		--> demo of the LLT package
+X
+X
+XNow about name of the variables I use. Primal points are stored as
+X(X(i),Y(i)) where Y(i)=u(X(i)) -- we compute the conjugate of u. The
+Xvector S stores the slopes. Remember that both X and S MUST be
+Xincreasing. The primal slopes are named C where
+XC=(YY(2:h)-YY(1:h-1))./(XX(2:h)-XX(1:h-1));
+X
+XThe vector H stores indices where the maximum is attained in the
+Xconjugate. In other words,
+XConjuguee(S(j))=max_i [S(j)*X(i)-Y(i)]=S(j)*X(H(j,1))-Y(H(j,1))
+X
+XSince after using bb.m, there are at most 2 indices where this maximum
+Xis attained, we choose to take a 2 column vector for H. If H(j,2)~=0
+Xthen the maximum is attained at both H(j,1) and H(j,2), otherwise it
+Xis only attained at H(j,1).
+X
+X
+XFinally let us keep in mind that the core of the algorithm are
+Xfunctions fusionma.m or fusionca.m. The function fusionma.m uses the
+XBUILT-IN sort function. Hence it is much faster than the linear-time
+Xfunction fusionca.m which uses a for-loop. However I do not know how
+Xthe sort function is coded, so I cannot say whether it has a
+Xlinear-time complexity. Anyway, fusionma.m is faster than fusionca.m
+Xbecause it only uses matrix computation (beware that this is a typical
+Xmatlab feature: in any non matrix optimized language it will not be
+Xthe case). The test file test_fusion.m compares both functions.
+END_OF_FILE
+if test 4829 -ne `wc -c <'AREADME.1ST'`; then
+    echo shar: \"'AREADME.1ST'\" unpacked with wrong size!
+fi
+# end of 'AREADME.1ST'
+fi
+if test -f 'Contents.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'Contents.m'\"
+else
+echo shar: Extracting \"'Contents.m'\" \(1008 characters\)
+sed "s/^X//" >'Contents.m' <<'END_OF_FILE'
+X% Legendre-Fenchel Computation Package
+X% Version 1.0  19-Sept.-97.
+X% Copyright (c) 1997 by Yves Lucet.
+X%
+X%
+X% Legendre-Fenchel computation routines.
+X%
+X%   LFt       - Compute the Legendre Transform of a function with the LLT
+X%   LLTd      - Compute the Legendre Transform of discrete data
+X%   LLTd2D    - Compute the Legendre Transform of discrete data
+X%		corresponding to a bivariate function
+X%   LFtdirect - Compute the Legendre Transform of a function directly
+X%   LLTdirect - Compute the Legendre Transform of discrete data directly
+X%
+X%
+X% Convex computation routines.
+X%
+X%   bb        - Compute the convex hull of discrete data
+X%   infconvd  - Compute the inf-convolution of convex discrete data
+X%
+X%
+X% Auxiliary routines required by some of the above routines.
+X%
+X%   fusion    - Switch to fusionma. It can easily be modified to
+X%		switch to fusionca.
+X%   fusionma  - Use matlab syntax to quickly merge two increasing sequences.
+X%   fusionca  - Classical programming to merge two increasing sequences.
+X%
+END_OF_FILE
+if test 1008 -ne `wc -c <'Contents.m'`; then
+    echo shar: \"'Contents.m'\" unpacked with wrong size!
+fi
+# end of 'Contents.m'
+fi
+if test -f 'LFt.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LFt.m'\"
+else
+echo shar: Extracting \"'LFt.m'\" \(1540 characters\)
+sed "s/^X//" >'LFt.m' <<'END_OF_FILE'
+Xfunction [S,conjuguee] = LFt(F,a,b,n,c,d,m)
+X% LFt		Compute numerically the convex conjugate of a
+X%		univariate function given as a separate file.
+X%		It evaluate the function F.m at n equidistant points
+X%		on [a,b] and return its conjugate at m (or less)
+X%		equidistant points on [c,d]. It runs in linear time.
+X%
+X% Usage:
+X%  [S,conjuguee] = LFt(F,a,b,n,c,d,m)
+X%
+X% Input parameters:
+X%  F - a string containing the name of the function.
+X%  a,b - real number with [a,b] being the interval on which the
+X%	function is sampled at n points (a<b).
+X%  n - number of points to sampled the function.
+X%  c,d - real numbers with [c,d] being the interval on which we want
+X%	to know the conjugate.
+X%  m - number of points at which the conjugate is computed.
+X%
+X%
+X% Output parameter:
+X%  S - Slopes needed to define the conjugate. Removing affine parts
+X%	may result in needing less than m slopes. This is a column
+X%	vector.
+X%  conjuguee - numerical values of the conjugate at slopes S. This is
+X%	a column vector.
+X%
+X% Functions called:
+X%  LLTd - Compute the discrete Legendre transform.
+X%
+X% Example:
+X%  LFt('f',-2,2,30,-3,3,20) % where file f.m contains the following
+X%			    % data:	function ff=f(x)
+X%			    %		 if abs(x)>2,
+X%			    %		   ff=(x^2-4)^2;
+X%			    %		 else ff=0;
+X%			    %		 end;
+X%			    %		end
+X%
+X%
+X
+XX=[a:(b-a)/(n-1):b]'; % Generate the primal points
+Xfor i=1:size(X,1), Y(i)=feval(F,X(i));end; % sample the function
+XY=Y';
+XS=[c:(d-c)/(m-1):d]'; % Generate the slopes
+X
+X[S,conjuguee] = LLTd(X,Y,S); % Compute the discrete Legendre Transform
+X
+END_OF_FILE
+if test 1540 -ne `wc -c <'LFt.m'`; then
+    echo shar: \"'LFt.m'\" unpacked with wrong size!
+fi
+# end of 'LFt.m'
+fi
+if test -f 'LFtdirect.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LFtdirect.m'\"
+else
+echo shar: Extracting \"'LFtdirect.m'\" \(1508 characters\)
+sed "s/^X//" >'LFtdirect.m' <<'END_OF_FILE'
+Xfunction [S,conjuguee] = LFtdirect(F,a,b,n,c,d,m)
+X% LFtdirect	Compute numerically the convex conjugate of a
+X%		univariate function given as a separate file.
+X%		It evaluate the function F.m at n equidistant points
+X%		on [a,b] and return its conjugate at m (or less)
+X%		equidistant points on [c,d]. It runs in quadratic
+X%		time.
+X%
+X% Usage:
+X%  [S,conjuguee] = LFtdirect(F,a,b,n,c,d,m)
+X%
+X% Input parameters:
+X%  F - a string containing the name of the function.
+X%  a,b - real number with [a,b] being the interval on which the
+X%	function is sampled at n points (a<b).
+X%  n - number of points to sampled the function.
+X%  c,d - real numbers with [c,d] being the interval on which we want
+X%	to know the conjugate.
+X%  m - number of points at which the conjugate is computed.
+X%
+X%
+X% Output parameter:
+X%  S - Slopes needed to define the conjugate. Removing affine parts
+X%	may result in needing less than m slopes. This is a column
+X%	vector.
+X%  conjuguee - numerical values of the conjugate at slopes S. This is
+X%	a column vector.
+X%
+X% Example:
+X%  LFt('f',-2,2,30,-3,3,20) % where file f.m contains the following
+X%			    % data:	function ff=f(x)
+X%			    %		 if abs(x)>2,
+X%			    %		   ff=(x^2-4)^2;
+X%			    %		 else ff=0;
+X%			    %		 end;
+X%			    %		end
+X%
+X%
+X
+XX=[a:(b-a)/(n-1):b]'; % Generate the primal points
+Xfor i=1:size(X,1), Y(i)=feval(F,X(i));end; % sample the function
+XY=Y';
+XS=[c:(d-c)/(m-1):d]'; % Generate the slopes
+X
+Xconjuguee = max(X * S' - Y* ones(size(S))' )'; % Compute the discrete Legendre Transform
+X
+END_OF_FILE
+if test 1508 -ne `wc -c <'LFtdirect.m'`; then
+    echo shar: \"'LFtdirect.m'\" unpacked with wrong size!
+fi
+# end of 'LFtdirect.m'
+fi
+if test -f 'LLT.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLT.m'\"
+else
+echo shar: Extracting \"'LLT.m'\" \(1400 characters\)
+sed "s/^X//" >'LLT.m' <<'END_OF_FILE'
+X% Legendre-Fenchel Computation Package
+X% Version 1.0  19-Sept.-97.
+X% Copyright (c) 1997 by Yves Lucet.
+X%
+X%
+X% Legendre-Fenchel computation routines.
+X%
+X%   LFt       - Compute the Legendre Transform of a function with the LLT
+X%   LLTd      - Compute the Legendre Transform of discrete data
+X%   LLTd2D    - Compute the Legendre Transform of discrete data
+X%		corresponding to a bivariate function
+X%   LFtdirect - Compute the Legendre Transform of a function directly
+X%   LLTdirect - Compute the Legendre Transform of discrete data directly
+X%
+X%
+X% Convex computation routines.
+X%
+X%   bb        - Compute the convex hull of discrete data
+X%   infconvd  - Compute the inf-convolution of convex discrete data
+X%
+X%
+X% Auxiliary routines required by some of the above routines.
+X%
+X%   fusion    - Switch to fusionma. It can easily be modified to
+X%		switch to fusionca.
+X%   fusionma  - Use matlab syntax to quickly merge two increasing sequences.
+X%   fusionca  - Classical programming to merge two increasing sequences.
+X%
+X% Test and demo functions.
+X%
+X%   LLTdemo   - Demo of the use of the LLT package. It shows how
+X%		to use LFt.m, LLTd.m, LLTd2D.m, infconv.m.
+X%   test_LLTd - Test file for LFt.m, LLTd.m and LLTd2D.m. It
+X%		shows they take linear-time and compar them to
+X%		straight computation.
+X%   test_bb   - Graphical test of the bb.m function.
+X%   test_fusion - Comparison of fusionma.m with fusionca.m
+X%
+X%
+END_OF_FILE
+if test 1400 -ne `wc -c <'LLT.m'`; then
+    echo shar: \"'LLT.m'\" unpacked with wrong size!
+fi
+# end of 'LLT.m'
+fi
+if test -f 'LLTd.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTd.m'\"
+else
+echo shar: Extracting \"'LLTd.m'\" \(1860 characters\)
+sed "s/^X//" >'LLTd.m' <<'END_OF_FILE'
+Xfunction [SS,Conj]=LLTd(X,Y,S)
+X% LLTd		Compute numerically the discrete Legendre transform
+X%		of a set of planar points (X(i),Y(i)) at
+X%		slopes S, i.e., Conj(j)=max_{i}[S(j)*X(i)-Y(i)].
+X%		It uses the Linear-time Legendre Transform algorithm
+X%		to speed up computations.
+X%
+X%		All slopes not needed to build the affine interpolation may be
+X%		removed by using fusionca.m instead of fusionma.m in
+X%		fusion.m but computation time will take longer (SS may
+X%		then be smaller than S).
+X%
+X% Usage:
+X%  [SS,Conj]=LLTd(X,Y,S)
+X%
+X% Input parameters:
+X%  X,Y - Column vectors. Usually Y(i)=f(X(i))
+X%  S - Column vector. We want to know the conjugate at S(j)
+X%
+X%
+X% Output parameter:
+X%  SS - Slopes needed to define the conjugate. Removing affine parts
+X%	(by using fusionca.m instead of fusionma.m in fusion.m) may
+X%	result in needing less slopes. This is a column vector.
+X%  Conj - numerical values of the conjugate at slopes SS. This is
+X%	a column vector.
+X%
+X% Functions called:
+X%  bb - Compute the planar convex hull.
+X%  fusion - sort two increasing sequences of slopes. This is the core
+X%  of the LLT algorithm.
+X%
+X% Being called by:
+X%  LFt - Compute the conjugate of a function.
+X%
+X% Example:
+X%  X=[-5:0.5:5]'
+X%  Y=X.^2
+X%  S=(Y(2:size(Y,1))-Y(1:size(Y,1)-1))./(X(2:size(X,1))-X(1:size(X,1)-1))
+X%  [SS Conj]=LLTd(X,Y,S)
+X
+X
+X[XX,YY]=bb(X,Y); % Compute the convex hull (input sensitive algorithm).
+X
+Xh=size(XX,1);
+XC=(YY(2:h)-YY(1:h-1))./(XX(2:h)-XX(1:h-1)); % Compute the slopes associated
+X					    % with the primal points
+X
+X[SS,H]=fusion(C,S);
+X% Merge sequences C and S. Edit fusion.m to emphasize computation
+X% speed (use fusionma.m) or to emphasize compression of output data (use
+X% fusionca.m).
+X%% j=H(i,1) is the first indice of the point X(j) such that the line
+X%% with slope S(i) supports the epigraph of the function at X(j).
+X
+XConj=SS.*XX(H(:,1)) -YY(H(:,1));
+X
+END_OF_FILE
+if test 1860 -ne `wc -c <'LLTd.m'`; then
+    echo shar: \"'LLTd.m'\" unpacked with wrong size!
+fi
+# end of 'LLTd.m'
+fi
+if test -f 'LLTd2D.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTd2D.m'\"
+else
+echo shar: Extracting \"'LLTd2D.m'\" \(1287 characters\)
+sed "s/^X//" >'LLTd2D.m' <<'END_OF_FILE'
+Xfunction Conj2D=LLTd2D(X1,X2,Y,S1,S2)
+X% LLTd2D	Compute numerically the discrete Legendre transform of
+X%		a function defined on the plane: Y=f(X1(i),X2(j))
+X%		at slopes (S1(l),S2(k)), i.e., it gives
+X%		Conj2D(l,k)=max_{i,j}[S1(l)*X1(i)+S2(k)*X2(j)-Y(i,j)].
+X%		It uses the univariate Linear-time Legendre Transform
+X%		algorithm with the factorization
+X%		f^*(s1,s2)=sup_x1[s1 x1 + sup_x2 [s2 x2 -f(x1,x2)]]
+X%		with Y(i1,i2)=f(X1(i1),X2(i2)), to speed up
+X%		computations.
+X%
+X% Usage:
+X%  Conj2D=LLTd2D(X1,X2,Y,S1,S2)
+X%
+X% Input parameters:
+X%  X1,X2 - Column vectors. Usually Y(i1,i2)=f(X1(i1),X2(i2)).
+X%  Y - Matrix of real numbers.
+X%  S1,S2 - Column vectors. We want to know the conjugate at (S1(l),S2(k)).
+X%
+X%
+X% Output parameter:
+X%  Conj2D - numerical values of the conjugate at (S1(l),S2(k)). This is
+X%	a matrix.
+X%
+X% Functions called:
+X%  LLTd - Compute the univariate discrete Legendre transform.
+X%
+X% Example:
+X%  X1=[-5:0.5:5]'
+X%  X2=X1
+X%  Y=(X1*X2').^2
+X%  S1=[-200:20:200]';
+X%  S2=S1
+X%  Conj2D=LLTd2D(X1,X2,Y,S1,S2)
+X%  mesh(S1,S2,Conj2D)
+X%
+X
+Xn1=size(X1,1);n2=size(X2,1);
+Xm1=size(S1,1);m2=size(S2,1);
+X
+X% loop for each x1 in X1
+Xfor i1=1:n1,
+X  [S,Vt]=LLTd(X2,Y(i1,:),S2);
+X  Vs2(i1,:)=-Vt';
+Xend;
+X
+X% loop for each s2 in S2
+Xfor j2=1:m2,
+X  [S,Vt]=LLTd(X1,Vs2(:,j2),S1);
+X  Conj2D(:,j2)=Vt;
+Xend;
+END_OF_FILE
+if test 1287 -ne `wc -c <'LLTd2D.m'`; then
+    echo shar: \"'LLTd2D.m'\" unpacked with wrong size!
+fi
+# end of 'LLTd2D.m'
+fi
+if test -f 'LLTdemo.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdemo.m'\"
+else
+echo shar: Extracting \"'LLTdemo.m'\" \(5139 characters\)
+sed "s/^X//" >'LLTdemo.m' <<'END_OF_FILE'
+Xecho off
+X%%
+X%% Demo-script for the Linear-time Legendre Transform (Yves Lucet - 09/05/97)
+X%%
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+Xclc, home
+X
+Xecho on
+X
+X%% This is a script file to demonstrate the use of the LLT package
+X%% which computes the discrete Legendre Transform in linear time.
+X%% It shows how to use LFt.m, LLTd.m, LLTd2D.m, infconv.m
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%First Test%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X% test procedure for Figure 6. The conjugate u^* of u cannot be
+X% explicitly written with standard functions. So one has to use
+X% numerical computation
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+Xecho off
+Xclear all;
+Xn=1000;m=1000;
+X[S Cu]=LFt('LLTdemo_exa3',1e-6,10,n,-10,10,m);
+X
+Xhold off;clf;plot(S,Cu,'r');
+X
+Xecho on
+Xpause  %% press any key to continue
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%First Test bis %%%%%%%%%%%%%%%%%%%%%%%%%%%
+X% The same computation can be done knowing only a sample of a function
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Xecho off
+Xclear all;
+Xn=1000;m=1000;
+X
+Xa=1e-6;b=10;c=-10;d=10;
+XX=[a:(b-a)/(n-1):b]'; % Generate the primal points
+Xfor i=1:size(X,1), Y(i)=feval('LLTdemo_exa3',X(i));end; % sample the function
+XY=Y';
+XS=[c:(d-c)/(m-1):d]'; % Generate the slopes
+X
+X[S Cu] = LLTd(X,Y,S);
+X
+Xhold on;plot(S,Cu,'b');
+X
+Xecho on
+Xpause  %% press any key to continue
+X
+X
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Second Test%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X% test procedure for Figure 7: Two-dimensional computation of a
+X% nonsmooth conjugate
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Xecho off
+X
+Xclear all;
+Xa=1.3;comp=25;
+X
+XX1=[-a:2*a/(comp-1):a]';
+XX2=X1;
+XS1=[LLTdemo_exa4_duxy(-a,0):(LLTdemo_exa4_duxy(a,0)-LLTdemo_exa4_duxy(-a,0))/(comp-1):LLTdemo_exa4_duxy(a,0)]';
+XS2=[LLTdemo_exa4_duxy(0,-a):(LLTdemo_exa4_duxy(0,a)-LLTdemo_exa4_duxy(0,-a))/(comp-1):LLTdemo_exa4_duxy(0,a)]';
+Xn1=size(X1,1);
+Xn2=size(X2,1);
+Xm1=size(S1,1);
+Xm2=size(S2,1);
+X
+Xfor i1=1:n1,
+X  for i2=1:n2,
+X	    Y(i1,i2)=LLTdemo_exa4_uxy(X1(i1),X2(i2));
+X  end;
+Xend;
+X
+XCu=LLTd2D(X1,X2,Y,S1,S2);
+X
+Xfigure(1);hold off;clf;surf(S1,S2,Cu);view(-70,15);
+X
+Xecho on
+Xpause  %% press any key to continue
+X
+X
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Third Test%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X% test procedure for Figure 8: Solution of a Hamilton--Jacobi equation
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+Xecho off
+X
+Xclear all;
+Xglobal t;
+Xn1=50;n2=50;m=50;nt=10;
+X
+XX1=[-6:12/n1:6]';
+Xi1=17;i2=33;
+X
+X% We take more points in the neighborhood of the critical
+X% points: -2 and 2. In addition, X1 is increasing.
+XX1=[X1(1:i1-1);[X1(i1):(X1(i1+1)-X1(i1))/(n1-1):X1(i1+1)]';...
+XX1(i1+2:i2-1);[X1(i2):(X1(i2+1)-X1(i2))/(n1-1):X1(i2+1)]';X1(i2+2:n2)];
+X
+Xfor i=1:size(X1,1),
+X  Y1(i,1)=feval('LLTdemo_exa5_f',X1(i));
+Xend;
+X
+Xh=size(X1,1);
+XPf=(Y1(2:h)-Y1(1:h-1))./(X1(2:h)-X1(1:h-1));
+X
+Xclear XX Ms;
+XT=[0.4:4/nt:4]';
+Xcompt=1;
+Xfor t=0.4:4/nt:4,
+X  disp(nt+1-compt);
+X  compt=compt+1;
+X
+X  % Here the critical points are -t and t
+X  X2=[-t:2*t/(n2-1):t]';
+X  X2=[[X2(1):(X2(2)-X2(1))/(n2-1):X2(2)]';X2(3:n2-2);...
+X  [X2(n2-1):(X2(n2)-X2(n2-1))/(n2-1):X2(n2)]'];
+X
+X  for i=1:size(X1,1),
+X	    Y2(i,1)=feval('LLTdemo_exa5_thetat',X2(i));
+X  end;
+X
+X  h=size(X2,1);
+X  Pg=(Y2(2:h)-Y2(1:h-1))./(X2(2:h)-X2(1:h-1));
+X
+X  % We build the slopes. S is strictly increasing
+X  S=sort([Pf;Pg]);
+X  S1(1)=S(1);
+X  for i=2:1:size(S,1),
+X	    if S(i)>S1(size(S1,1)),
+X	      S1(size(S1,1)+1,1)=S(i);
+X	    end;
+X  end;
+X  S=S1;
+X
+X  Yr=infconvd(X1,Y1,X2,Y2,S);
+X  X=sort([X1;X2]);
+X  if t==T(1), Xt0=X;end;
+X  XX(:,compt)=X;
+X  Ms(:,compt)=Yr; % Store slice t
+Xend;
+X
+X% We deal with the first slice (t=0) to obtain the same number of points
+X% in Ms(:,1) and in Ms(:,i), i>1
+Xfor i=1:size(Xt0,1),
+X  Y1(i,1)=feval('LLTdemo_exa5_f',Xt0(i));
+Xend;
+X
+XXX(:,1)=Xt0;
+XMs(:,1)=Y1;
+X
+Xfigure(1);hold off;clf;
+XTT=ones(size(XX,1),1)*[0 T'];
+Xsurf(XX,TT,Ms);view(120,30);hold on;
+Xtitle('F(x,t)');xlabel('x');ylabel('t');
+X
+Xecho on
+Xpause  %% press any key to continue
+X
+X
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Fourth Test%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X% test procedure for Figure 9: Deconvolution computation
+X% We compute Dec(x):=sup_y[g(y)-f(y-x)]=(g^*-f^*)^*(x)
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Xecho off
+X
+Xclear all;
+Xglobal a c;
+Xn=1000;m=1000;Sb=100;
+X
+Xa=1;c=2;
+X[S Cf]=LFt('LLTdemo_exa6_Fdec',1,3,n,-Sb,Sb,m);
+XXf=[1:2/n:3]';
+Xfor i=1:n+1,
+X  Yf(i)=LLTdemo_exa6_Fdec(Xf(i));
+Xend;
+XYf=Yf';
+X
+Xa=3;c=4;
+X[S Cg]=LFt('LLTdemo_exa6_Fdec',1,7,n,-Sb,Sb,m);
+XXg=[1:6/n:7]';
+Xfor i=1:n+1,
+X  Yg(i)=LLTdemo_exa6_Fdec(Xg(i));
+Xend;
+XYg=Yg';
+X
+XX=[0:4/n:4]';
+XC=Cg-Cf;
+X[X Dec]=LLTd(S,C,X);
+X
+Xfigure(1);hold off;clf;plot(X,Dec);hold on;plot(Xf,Yf);
+Xplot(Xg,Yg);text(6,-1,'g(x)');text(4.5,0,'h(x)');
+Xtext(3,0.25,'f(x)');
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+END_OF_FILE
+if test 5139 -ne `wc -c <'LLTdemo.m'`; then
+    echo shar: \"'LLTdemo.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdemo.m'
+fi
+if test -f 'LLTdemo_exa1.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdemo_exa1.m'\"
+else
+echo shar: Extracting \"'LLTdemo_exa1.m'\" \(87 characters\)
+sed "s/^X//" >'LLTdemo_exa1.m' <<'END_OF_FILE'
+Xfunction halfsqr=LLTdemo_exa1(x)
+X% Compute 1/2* x^2 for any matrix x
+Xhalfsqr=x.^2 /2;
+X
+END_OF_FILE
+if test 87 -ne `wc -c <'LLTdemo_exa1.m'`; then
+    echo shar: \"'LLTdemo_exa1.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdemo_exa1.m'
+fi
+if test -f 'LLTdemo_exa2.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdemo_exa2.m'\"
+else
+echo shar: Extracting \"'LLTdemo_exa2.m'\" \(85 characters\)
+sed "s/^X//" >'LLTdemo_exa2.m' <<'END_OF_FILE'
+Xfunction uqua=LLTdemo_exa2(x)
+X%Compute the square norm of a matrix x
+Xuqua=1/2*x'*x;
+X
+END_OF_FILE
+if test 85 -ne `wc -c <'LLTdemo_exa2.m'`; then
+    echo shar: \"'LLTdemo_exa2.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdemo_exa2.m'
+fi
+if test -f 'LLTdemo_exa3.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdemo_exa3.m'\"
+else
+echo shar: Extracting \"'LLTdemo_exa3.m'\" \(103 characters\)
+sed "s/^X//" >'LLTdemo_exa3.m' <<'END_OF_FILE'
+Xfunction u=LLTdemo_exa3(x)
+X% Compute x.^2 /2+x.* log(x)-x for x a real number.
+Xu=x.^2 /2+x.* log(x)-x;
+END_OF_FILE
+if test 103 -ne `wc -c <'LLTdemo_exa3.m'`; then
+    echo shar: \"'LLTdemo_exa3.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdemo_exa3.m'
+fi
+if test -f 'LLTdemo_exa4_duxy.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdemo_exa4_duxy.m'\"
+else
+echo shar: Extracting \"'LLTdemo_exa4_duxy.m'\" \(130 characters\)
+sed "s/^X//" >'LLTdemo_exa4_duxy.m' <<'END_OF_FILE'
+Xfunction duxy=LLTdemo_exa4_duxy(x,y)
+X% Compute 4*x*(x^2-1)^2+y, this is the derivative of LLTdemo_exa4_uxy
+Xduxy=4*x*(x^2-1)^2+y;
+X
+END_OF_FILE
+if test 130 -ne `wc -c <'LLTdemo_exa4_duxy.m'`; then
+    echo shar: \"'LLTdemo_exa4_duxy.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdemo_exa4_duxy.m'
+fi
+if test -f 'LLTdemo_exa4_uxy.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdemo_exa4_uxy.m'\"
+else
+echo shar: Extracting \"'LLTdemo_exa4_uxy.m'\" \(87 characters\)
+sed "s/^X//" >'LLTdemo_exa4_uxy.m' <<'END_OF_FILE'
+Xfunction uxy=LLTdemo_exa4_uxy(x,y)
+X% Compute (x^2-1)^2+1/2*y^2
+Xuxy=(x^2-1)^2+1/2*y^2;
+X
+END_OF_FILE
+if test 87 -ne `wc -c <'LLTdemo_exa4_uxy.m'`; then
+    echo shar: \"'LLTdemo_exa4_uxy.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdemo_exa4_uxy.m'
+fi
+if test -f 'LLTdemo_exa5_f.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdemo_exa5_f.m'\"
+else
+echo shar: Extracting \"'LLTdemo_exa5_f.m'\" \(137 characters\)
+sed "s/^X//" >'LLTdemo_exa5_f.m' <<'END_OF_FILE'
+Xfunction f=LLTdemo_exa5_f(x)
+X% Compute for x a real number: if abs(x)>2, f=(x^2-4)^2; else f=0;
+Xif abs(x)>2, f=(x^2-4)^2; else f=0;end;
+X
+END_OF_FILE
+if test 137 -ne `wc -c <'LLTdemo_exa5_f.m'`; then
+    echo shar: \"'LLTdemo_exa5_f.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdemo_exa5_f.m'
+fi
+if test -f 'LLTdemo_exa5_thetat.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdemo_exa5_thetat.m'\"
+else
+echo shar: Extracting \"'LLTdemo_exa5_thetat.m'\" \(255 characters\)
+sed "s/^X//" >'LLTdemo_exa5_thetat.m' <<'END_OF_FILE'
+Xfunction thetat=LLTdemo_exa5_thetat(x)
+X%Compute abs(x)<=t, thetat=t*(1-sqrt(1-(x/t)^2)); else thetat=inf;
+X% x is a real number. t is a global parameter and a real number.
+Xglobal t;
+Xif abs(x)<=t,
+X	thetat=t*(1-sqrt(1-(x/t)^2));
+Xelse
+X	thetat=inf;
+Xend
+X
+X
+X
+END_OF_FILE
+if test 255 -ne `wc -c <'LLTdemo_exa5_thetat.m'`; then
+    echo shar: \"'LLTdemo_exa5_thetat.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdemo_exa5_thetat.m'
+fi
+if test -f 'LLTdemo_exa6_Fdec.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdemo_exa6_Fdec.m'\"
+else
+echo shar: Extracting \"'LLTdemo_exa6_Fdec.m'\" \(526 characters\)
+sed "s/^X//" >'LLTdemo_exa6_Fdec.m' <<'END_OF_FILE'
+Xfunction Fdec=LLTdemo_exa6_Fdec(x)
+X% LLTdemo_exa6_Fdec	When x belongs to [c-a,c+a], computes the lower
+X%			part of a circle of radius a centered in c,
+X%			otherwise returns infinity.
+X%
+X% Usage:
+X%  Fdec=LLTdemo_exa6_Fdec(x)
+X%
+X% Input parameters:
+X%  x - real number
+X%
+X%  Global parameter:
+X%  a - radius of the circle
+X%  c - center of the circle
+X%
+X% Output parameter:
+X%  Fdec - Lower part of the circle or infinity. This is a real
+X%	number.
+X%
+X
+Xglobal a c;
+Xif abs(x-c)<=a,
+X	Fdec=-sqrt(a^2-(x-c)^2);
+Xelse
+X	Fdec=inf;
+Xend;
+X
+END_OF_FILE
+if test 526 -ne `wc -c <'LLTdemo_exa6_Fdec.m'`; then
+    echo shar: \"'LLTdemo_exa6_Fdec.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdemo_exa6_Fdec.m'
+fi
+if test -f 'LLTdirect.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'LLTdirect.m'\"
+else
+echo shar: Extracting \"'LLTdirect.m'\" \(885 characters\)
+sed "s/^X//" >'LLTdirect.m' <<'END_OF_FILE'
+Xfunction [SS,Conj]=LLTdirect(X,Y,S)
+X% LLTdirect	Compute numerically the discrete Legendre transform
+X%		of a set of planar points (X(i),Y(i)) at
+X%		slopes S, i.e., Conj(j)=max_{i}[S(j)*X(i)-Y(i)].
+X%		It uses straight computation for a quadratic-time
+X%		algorithm.
+X%
+X%
+X% Usage:
+X%  [SS,Conj]=LLTdirect(X,Y,S)
+X%
+X% Input parameters:
+X%  X,Y - Column vectors. Usually Y(i)=f(X(i))
+X%  S - Column vector. We want to know the conjugate at S(j)
+X%
+X%
+X% Output parameter:
+X%  SS - This column vector equals S. It is only for coherency with the
+X%	LLTd.m function.
+X%  Conj - numerical values of the conjugate at slopes SS. This is
+X%	a column vector.
+X%
+X%
+X% Example:
+X%  X=[-5:0.5:5]'
+X%  Y=X.^2
+X%  S=(Y(2:size(Y,1))-Y(1:size(Y,1)-1))./(X(2:size(X,1))-X(1:size(X,1)-1))
+X%  [SS Conj]=LLTdirect(X,Y,S)
+X
+X
+XSS=S; % For compatibility with the LLTd function only.
+XConj = max(X * S' - Y* ones(size(S))' )';
+X
+END_OF_FILE
+if test 885 -ne `wc -c <'LLTdirect.m'`; then
+    echo shar: \"'LLTdirect.m'\" unpacked with wrong size!
+fi
+# end of 'LLTdirect.m'
+fi
+if test -f 'bb.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'bb.m'\"
+else
+echo shar: Extracting \"'bb.m'\" \(1507 characters\)
+sed "s/^X//" >'bb.m' <<'END_OF_FILE'
+Xfunction [bbx,bby] = bb (X,Y)
+X% bb		Compute the planar convex hull of the set (X(i),Y(i)).
+X%		By requesting X to be sorted we obtain a linear-time
+X%		algorithm.
+X%
+X% Usage:
+X%  [bbx,bby] = bb (X,Y)
+X%
+X% Input parameters:
+X%  X,Y - Column vectors of same size. (X(i),Y(i)) is the planar set
+X%	whose convex hull we compute. X must be sorted increasingly
+X%	with distinct points: X(i)<X(i+1).
+X%
+X%
+X% Output parameter:
+X%  bbx,bby - Verteces of the convex hull. Obviously bbx is a subset of
+X%	X and bby a subset of Y. Column vectors.
+X%
+X%
+X% Being called by:
+X%  LLTd - Compute the discrete Legendre transform.
+X%
+X% Example:
+X%  X=[-2:0.25:2]'
+X%  Y=(X.^2-ones(size(X))).^2
+X%  [bbx,bby]=bb(X,Y)
+X%  plot(X,Y,'x');hold on;plot(bbx,bby,'o');
+X%
+X% bb uses the Beneat-Beyond algorithm [Preparata and Shamos,
+X% Computational Geometry, Springer Verlag, 1990]
+X
+X% Initialisation
+Xn=size(X,1);
+XI=[1:n];v=2;CX=NaN*ones(n,1);CY=CX;
+XCX(1:2)=[X(1);X(2)];CY(1:2)=[Y(1);Y(2)];
+Xv=2;
+X
+X% We look at each point only once, this gives the linear-time
+X% algorithm.
+Xfor i=3:n,
+X  y=((CY(v)-CY(v-1))/(CX(v)-CX(v-1)))*(X(i)-CX(v))+CY(v);
+X  while (v>2 & Y(i)<=y),
+X	% We erase points which are not vertices of the convex hull
+X	v=v-1;
+X	y=((CY(v)-CY(v-1))/(CX(v)-CX(v-1)))*(X(i)-CX(v))+CY(v);
+X  end
+X  if v>2
+X	if Y(i)==y
+X	  CX(v)=X(i);CY(v)=Y(i);
+X	else
+X	  CX(v+1)=X(i);
+X	  CY(v+1)=Y(i);
+X	  v=v+1;
+X	end
+X  else
+X	if Y(i)>y % Trivial convex hull
+X	  CX(3)=X(i);CY(3)=Y(i);v=3;
+X	else
+X	  CX(2)=X(i);CY(2)=Y(i);
+X	end
+X  end;
+Xend
+Xbbx=CX(1:v);bby=CY(1:v);
+X
+END_OF_FILE
+if test 1507 -ne `wc -c <'bb.m'`; then
+    echo shar: \"'bb.m'\" unpacked with wrong size!
+fi
+# end of 'bb.m'
+fi
+if test -f 'fusion.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'fusion.m'\"
+else
+echo shar: Extracting \"'fusion.m'\" \(1806 characters\)
+sed "s/^X//" >'fusion.m' <<'END_OF_FILE'
+Xfunction [fS,fH]=fusion(C,S)
+X% fusion	merge two increasing sequences.
+X%		fusion(C,S) gives the resulting slopes fS and
+X%		indices fH where each slope support the epigraph.
+X%		All in all, it amounts to finding the first indice i
+X%		such that C(i-1)<=S(j)<C(i)
+X%
+X% 		This function uses matlab syntax to speed up
+X%		computation, see fusionca.m for a more classical
+X%		programming of the same function
+X%
+X%		All slopes not needed to build the affine interpolation may be
+X%		removed by using fusionca.m instead of fusionma.m but
+X%		computation time will take longer (SS may then be
+X%		smaller than S).
+X%
+X% Usage:
+X%  [fS,fH]=fusion(C,S)
+X%
+X% Input parameters:
+X%  C,S - Increasing column vectors. We want to know the conjugate at
+X%	S(j). C gives the slope of planar input points.
+X%
+X%
+X% Output parameter:
+X%  fS - Slopes supporting the epigraph. This is a subset of S.
+X%  fH - Index at which the slope support the epigraph.
+X%
+X%
+X% Functions called (choose one from the two):
+X%  fusionca - sorting algorithm programmed in matlab. It gives a
+X%	linear-time algorithm and gives only the minimum number of
+X%	points to built an affine interpolation of the conjugate. This
+X%	is the function describe in the article [Faster than the Fast
+X%	Legendre Transform, the Linear-time Legendre Transform, Y. Lucet].
+X%  fusionma - use matlab sort function (which is built-in) to speed up
+X%	computations but do not remove points belonging to affine
+X%	parts of the conjugate.
+X%
+X% Being called by:
+X%  LLTd - Compute the discrete Legendre transform.
+X%
+X% Example:
+X%  X=[-5:0.5:5]'
+X%  Y=X.^2
+X%  C=(Y(2:size(Y,1))-Y(1:size(Y,1)-1))./(X(2:size(X,1))-X(1:size(X,1)-1))
+X%  S=C-0.25*ones(size(C))
+X%  [fS,fH]=fusion(C,S)
+X
+X[fS,fH]=fusionma(C,S);	%use fusionca for removing points belonging to
+X			% affine parts (output sensitive algorithm).
+X
+END_OF_FILE
+if test 1806 -ne `wc -c <'fusion.m'`; then
+    echo shar: \"'fusion.m'\" unpacked with wrong size!
+fi
+# end of 'fusion.m'
+fi
+if test -f 'fusionca.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'fusionca.m'\"
+else
+echo shar: Extracting \"'fusionca.m'\" \(2795 characters\)
+sed "s/^X//" >'fusionca.m' <<'END_OF_FILE'
+Xfunction [fS,fH]=fusionca(C,S)
+X% fusionca	merge two increasing sequences.
+X%		fusionca(C,S) gives the resulting slopes fS and
+X%		indices fH where each slope support the epigraph.
+X%		All in all, it amounts to finding the first indice i
+X%		such that C(i-1)<=S(j)<C(i)
+X%
+X%		All slopes not needed to build the affine interpolation are
+X%		removed (SS may then be	smaller than S). For faster
+X%		computation use fusionma.m (it uses matlab built in
+X%		sort function to speed up computations).
+X%
+X% Usage:
+X%  [fS,fH]=fusionca(C,S)
+X%
+X% Input parameters:
+X%  C,S - Increasing column vectors. We want to know the conjugate at
+X%	S(j). C gives the slope of planar input points.
+X%
+X%
+X% Output parameter:
+X%  fS - Slopes supporting the epigraph. This is a subset of S. Column vector.
+X%  fH - Index at which the slope support the epigraph. It is a
+X%	two-column matrix. Indeed, a slope S(j) may touch at, at most, two
+X%	points (since C and S are increasing) which would be X(fH(j,1)) and
+X%	X(fH(j,1)). Of course, in most applications we only need to know one
+X%	point. However there are cases where one would like to know both points.
+X%
+X% Being called by:
+X%  fusion - Choose either of fusionca.m or fusionma.m
+X%
+X% Example:
+X%  X=[-5:0.5:5]'
+X%  Y=X.^2
+X%  C=(Y(2:size(Y,1))-Y(1:size(Y,1)-1))./(X(2:size(X,1))-X(1:size(X,1)-1))
+X%  S=C-0.25*ones(size(C))
+X%  [fS,fH]=fusionca(C,S)
+X
+X
+X% initialisation steps
+Xn=size(C,1)-1;m=size(S,1);
+Xi=1;j=1;
+XfS=[S(1);S(2)];
+X
+X% We deal with the first slope
+Xwhile S(j)>C(i), i=i+1; end
+X
+Xif S(j)==C(i)
+X  fH=[i i+1];
+X  i=i+1;
+Xelse
+X  fH=[i 0];
+Xend
+X
+X% We deal with the second slope
+Xj=j+1;
+Xwhile S(j)>C(i), i=i+1; end
+X
+Xif S(j)==C(i)
+X  fH(2,1:2)=[i i+1];
+X  i=i+1;
+Xelse
+X  fH(2,1:2)=[i 0];
+Xend
+X
+Xj=j+1;
+XS(size(S,1)+1)=0; %Useful to make the last test of the loop
+X
+X% Now we deal with the remaining slopes
+Xwhile (j<=m & i<=n+1 & S(j)<=C(n+1)),
+X  while S(j)>C(i), i=i+1; end
+X  if fH(size(fH,1)-1,2)==0
+X	indice=fH(size(fH,1)-1,1);
+X  else
+X	indice=fH(size(fH,1)-1,2);
+X  end
+X
+X  if S(j)==C(i)
+X	if indice<i
+X	  fH(size(fH,1)+1,:)=[i i+1];
+X	  fS(size(fS,1)+1)=S(j);
+X	  i=i+1;
+X	else
+X	  fH(size(fH,1),:)=[i i+1];
+X	  fS(size(fS,1))=S(j);
+X	  i=i+1;
+X	end
+X  elseif indice<i
+X	fH(size(fH,1)+1,:)=[i 0];
+X	fS(size(fS,1)+1)=S(j);
+X  else
+X	fH(size(fH,1),:)=[i 0];
+X	fS(size(fS,1))=S(j);
+X  end
+Xj=j+1;
+Xend
+X
+X% Now we deal with the lastest slopes. Removing affine parts
+X% may allow us to skip some primal points.
+Xif  (j<=m & i<=n+1 & S(j)>C(n+1))
+X  fH(size(fH,1)+1,:)=[size(C,1)+1 0];
+X  fS(size(fS,1)+1)=S(j);
+X  j=j+1;
+Xend
+X
+Xif j<=m
+X  if fH(size(fH,1)-1,2)==0
+X	indice=fH(size(fH,1)-1,1);
+X  else
+X	indice=fH(size(fH,1)-1,2);
+X  end
+X  if indice<size(C,1)+1
+X	fH(size(fH,1)+1,:)=[size(C,1)+1 0];
+X	fS(size(fS,1)+1)=S(size(S,1)-1);
+X  else
+X	fH(size(fH,1),:)=[size(C,1)+1 0];
+X	fS(size(fS,1)+1)=S(size(S,1)-1);
+X  end
+Xend
+X
+END_OF_FILE
+if test 2795 -ne `wc -c <'fusionca.m'`; then
+    echo shar: \"'fusionca.m'\" unpacked with wrong size!
+fi
+# end of 'fusionca.m'
+fi
+if test -f 'fusionma.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'fusionma.m'\"
+else
+echo shar: Extracting \"'fusionma.m'\" \(1694 characters\)
+sed "s/^X//" >'fusionma.m' <<'END_OF_FILE'
+Xfunction [fS,fH]=fusionma(C,S)
+X% fusionma	merge two increasing sequences.
+X%		fusionma(C,S) gives the resulting slopes fS and
+X%		indices fH where each slope support the epigraph.
+X%		All in all, it amounts to finding the first indice i
+X%		such that C(i-1)<=S(j)<C(i)
+X%
+X% 		This function uses matlab syntax to speed up
+X%		computation, see fusionca.m for a more classical
+X%		programming of the same function
+X%
+X%		All slopes not needed to build the affine interpolation may be
+X%		removed by using fusionca.m instead of fusionma.m but
+X%		computation time will take longer (SS may then be
+X%		smaller than S).
+X%
+X% Usage:
+X%  [fS,fH]=fusionma(C,S)
+X%
+X% Input parameters:
+X%  C,S - Increasing column vectors. We want to know the conjugate at
+X%	S(j). C gives the slope of planar input points.
+X%
+X%
+X% Output parameter:
+X%  fS - Slopes supporting the epigraph. This is a subset of S. Column vector.
+X%  fH - Index at which the slope support the epigraph. Column vector.
+X%
+X%
+X% Being called by:
+X%  fusion - Choose either of fusionca.m or fusionma.m
+X%
+X% Example:
+X%  X=[-5:0.5:5]'
+X%  Y=X.^2
+X%  C=(Y(2:size(Y,1))-Y(1:size(Y,1)-1))./(X(2:size(X,1))-X(1:size(X,1)-1))
+X%  S=C-0.25*ones(size(C))
+X%  [fS,fH]=fusionma(C,S)
+X
+X% The BUILT-IN sort function is faster than
+X%looking at each slope with a for loop
+X[Z I]=sort([C;S]);
+X
+XI=find(I>size(C,1));
+XJ=I(2:size(I,1))-I(1:size(I,1)-1);
+XK=J-ones(size(J));
+XL= cumsum(K)+ones(size(K));
+X
+XH=[I(1) L'+I(1)-1]';
+XfS=S;fH=H;
+X
+X% This (may be) obscure computation ONLY aims at using Matlab syntax
+X% to do exactly the same as fusionca.m whose programming sticks to the
+X% LLT as written in ["Faster than the Fast Legendre Transform, the
+X% Linear-time Legendre Transform", Y. Lucet]
+END_OF_FILE
+if test 1694 -ne `wc -c <'fusionma.m'`; then
+    echo shar: \"'fusionma.m'\" unpacked with wrong size!
+fi
+# end of 'fusionma.m'
+fi
+if test -f 'infconvd.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'infconvd.m'\"
+else
+echo shar: Extracting \"'infconvd.m'\" \(1154 characters\)
+sed "s/^X//" >'infconvd.m' <<'END_OF_FILE'
+Xfunction infconv = infconvd(Xf,Yf,Xg,Yg,S)
+X% infconvd	compute the inf-convolution of two convex functions f
+X%		and g satisfying Yf=f(Xf) and Yg=g(Xg). The
+X%		inf-convolution is computed by using the formula:
+X%		infd(f,g)(x):=inf_{y}[f(y)+g(x-y)]=(f^*+g^*)^*.
+X%
+X%
+X% Usage:
+X%  infconv = infconvd(Xf,Yf,Xg,Yg,S)
+X%
+X% Input parameters:
+X%  Xf,Yf - Column vectors. Usually Yf(i)=f(Xf(i))
+X%  Xg,Yg - Column vectors. Usually Yg(i)=g(Xg(i))
+X%  S - Column vector. We want to know the infconvolution at S(j)
+X%
+X%
+X% Output parameter:
+X%  infconv - Infconvolution of both functions. This is a column
+X%	vector.
+X%
+X% Functions called:
+X%   LLTd - Compute the discrete Legendre transform.
+X%
+X%
+X% Example:
+X%  X=[-5:0.5:5]';S=X;
+X%  Yf=0.5*X.^2;Yg=Yf;
+X%  infconv=infconvd(X,Yf,X,Yg,S)
+X
+Xm=size(S,1);n=size(Xf,1);
+X[Sf,Cf]=LLTd(Xf,Yf,S);
+X[Sg,Cg]=LLTd(Xg,Yg,S);
+X
+X% Check that Sf=Sg
+Xif (size(Sf,1)~=size(S,1))|(size(Sg,1)~=size(S,1)),
+X  error('Error : use fusionma.m instead of fusionca.m in fusion.m');
+Xend;
+X
+XX=sort([Xf;Xg]);
+XY=Cf+Cg;
+X% The sort function is faster than a
+X% for-loop. Anyway, by using a for-loop,
+X% sorting can be done in linear-time.
+X[SS,infconv]=LLTd(S,Y,X);
+X
+END_OF_FILE
+if test 1154 -ne `wc -c <'infconvd.m'`; then
+    echo shar: \"'infconvd.m'\" unpacked with wrong size!
+fi
+# end of 'infconvd.m'
+fi
+if test -f 'test_LLTd.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'test_LLTd.m'\"
+else
+echo shar: Extracting \"'test_LLTd.m'\" \(3862 characters\)
+sed "s/^X//" >'test_LLTd.m' <<'END_OF_FILE'
+Xclc, home
+Xecho on
+X%%
+X%% Test file for LFt.m, LLTd.m, and LLTd2D.
+X%% We show that both functions take linear time
+X%% for computing one-variable (see test 1) or two-variable
+X%% conjugate (see test 2).
+X%% Test 3 compars LLTd.m (our improve algorithm) with
+X%% LLTdirect.m (straight computation)
+X%%
+X%% Test-script for the Linear-time Legendre Transform (Yves Lucet - 09/05/97)
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%First Test%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X% test procedure for Figure 4: Linear computation time of the LLT when
+X% the function u is univariate and n,m are in  [25,300]
+X% To generate Figure 4 in the article take m=[250:250:3000] and
+X% n=[250:250:3000] but this can take some time on some computers.
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+Xecho off
+Xclear all;
+Xdisp('m');
+Xcomn=1;comm=1;
+X
+Xfor m=[25:25:300],
+X  for n=[25:25:300],
+X	    t1=cputime;
+X	    LFt('LLTdemo_exa1',-10,10,n,-5,5,m);
+X	    CPUllt=cputime-t1;
+X	    T(comn,comm)=CPUllt;
+X	    comn=comn+1;
+X  end;
+X  disp((300-m)/25);
+X  comn=1;
+X  comm=comm+1;
+Xend;
+X
+Xhold off;figure(1);clf;surf(T);view(60,30);
+Xhold on;xlabel('n');ylabel('m');zlabel('CPU time in s.');
+X
+Xecho on
+Xpause  %% press any key to continue
+X
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Second Test%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X% test procedure for Figure 5: Linear computation time of the LLT when
+X% the function is bivariate and n_i=m_j
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+Xecho off
+Xclear all;
+Xa=10;
+Xcompteur=1;
+X
+Xecho on
+Xn=500:250:3000; %use n=500:250:10000; to obtain Figure 5 in the article
+Xecho off
+X
+Xfor i=1:size(n,2),
+X  comp=round(sqrt(n(i)));
+X  disp(size(n,2)-i);
+X  X1=[-a:2*a/(comp-1):a]';
+X  X2=X1;
+X  S1=X1;S2=S1; % since uqua^*=uqua we can take S_i=X_i
+X  n1=size(X1,1);
+X  n2=size(X2,1);
+X  m1=size(S1,1);
+X  m2=size(S2,1);
+X  for i1=1:n1,
+X	      for i2=1:n2,
+X		Y(i1,i2)=LLTdemo_exa2([X1(i1);X2(i2)]);
+X	      end;
+X  end;
+X
+X  t1=cputime;
+X  LLTd2D(X1,X2,Y,S1,S2);
+X  CPUllt=cputime-t1;
+X  T(compteur)=CPUllt;
+X  compteur=compteur+1;
+Xend;
+X
+Xfigure(1);hold off;clf;plot(n',T);hold on;plot(n',T,'+');
+Xxlabel('n');ylabel('CPU in s.');
+X
+Xecho on
+Xpause  %% press any key to continue
+X
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Third Test%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X% We compar straight computation as done with LLTdirect.m versus the
+X% Linear-time algorithm as done with LLTd.m
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+Xecho off
+Xglobal m0 ctps cfps;
+X
+Xctps=0;cfps=0;erreur=0;comn=1;comm=1;
+Xclear Temps Fl Tempsc Flc;
+X
+Xdisp('   m   & CPU LLT &CPUdirect&  flops LLT & flops direct');
+X
+Xfor m=[20:20:60],
+X  for n=[20:20:100],
+X	X=[10/n:1/n:10]';
+X	Y=test_LLTd_u(X);
+X	S=-5+[10/m:1/m:10]';
+X
+X	F=flops;t=cputime;
+X	 [S1 C1]=LLTd(X,Y,S); %% Computation of the conjugate
+X	CPU=cputime-t;F=flops-F;
+X
+X	Fc=flops;tc=cputime;
+X	 [S2 C2]=LLTdirect(X,Y,S);%% Computation of the conjugate
+X	CPUc=cputime-tc;Fc=flops-Fc;
+X
+X	Temps(comn,comm)=CPU;Fl(comn,comm)=F;
+X	Tempsc(comn,comm)=CPUc;Flc(comn,comm)=Fc;
+X	comn=comn+1;
+X
+X	Er(comn,comm)=max(C1-C2);
+X  end;
+X  disp([sprintf('%5.0f  & %7.2f & %7.2f & %10.0f & %10.0f ',m,sum(Temps(:,comm)),sum(Tempsc(:,comm)),sum(Fl(:,comm)),sum(Flc(:,comm)))]);
+X  comn=1;comm=comm+1;
+Xend;
+X
+Xdisp([sprintf('Maximal error between both algorithms: %2.8g',max(max(Er)))]);
+X
+Xhold off;figure(1);clf;
+Xsubplot(2,2,1);surf(Temps);view(30,30);title('LLT CPU time');
+Xsubplot(2,2,2);surf(Fl);view(-20,30);title('LLT Flops');
+X
+Xsubplot(2,2,3);surf(Tempsc);view(30,30);title('Straight computation CPU time');
+Xsubplot(2,2,4);surf(Flc);view(-20,30);title('Straight computation Flops');
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+END_OF_FILE
+if test 3862 -ne `wc -c <'test_LLTd.m'`; then
+    echo shar: \"'test_LLTd.m'\" unpacked with wrong size!
+fi
+# end of 'test_LLTd.m'
+fi
+if test -f 'test_LLTd_u.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'test_LLTd_u.m'\"
+else
+echo shar: Extracting \"'test_LLTd_u.m'\" \(123 characters\)
+sed "s/^X//" >'test_LLTd_u.m' <<'END_OF_FILE'
+Xfunction u=test_LLTd_u(x)
+X% Compute x.^2 /2+x.* log(x)-x where x should be a positive real number
+Xu=x.^2 /2+x.* log(x)-x;
+X
+END_OF_FILE
+if test 123 -ne `wc -c <'test_LLTd_u.m'`; then
+    echo shar: \"'test_LLTd_u.m'\" unpacked with wrong size!
+fi
+# end of 'test_LLTd_u.m'
+fi
+if test -f 'test_bb.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'test_bb.m'\"
+else
+echo shar: Extracting \"'test_bb.m'\" \(1076 characters\)
+sed "s/^X//" >'test_bb.m' <<'END_OF_FILE'
+Xclc, home
+Xecho on
+X%
+X% Graphical test of the bb.m function which computes the planar convex
+X% hull of a set of points.
+X%
+X% Test-script for the Linear-time Legendre Transform (Yves Lucet - 09/05/97)
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Xecho off
+X
+Xglobal m0;comp=1;
+Xclear Temps Fl;
+X  echo on
+X  %% press any key after a line is displayed to continue
+X  echo off
+X
+X
+Xdisp('    n  &  CPU bb & flops bb   ');
+X
+Xfor p=[10:10:100],	%[100:200:5000]
+X  X=[-2:4/(p-1):2]';
+X  Y=p*randn(p,1);% Take a random vector
+X
+X  F=flops;t=cputime;
+X   [l1 l2]=bb(X,Y);
+X  CPU=cputime-t;F=flops-F;
+X
+X  Temps(comp)=CPU;
+X  Fl(comp)=F;
+X  comp=comp+1;
+X
+X  figure(2);clf;
+X  plot(X,Y);hold on;plot(X,Y,'o');
+X  plot(l1,l2);plot(l1,l2,'+');
+X  title('Convex hull of random points');
+X
+X  disp([sprintf('%5.0f  & %7.2f & %10.2f & %2.8f',p,CPU,F)]);
+X  pause
+Xend;
+X
+Xhold off;figure(1);clf;
+Xsubplot(1,2,1);plot(Temps,'+');hold on;plot(Temps);title('BB CPU time');
+Xsubplot(1,2,2);plot(Fl,'+'); hold on;plot(Fl);title('BB Flops');
+X
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+END_OF_FILE
+if test 1076 -ne `wc -c <'test_bb.m'`; then
+    echo shar: \"'test_bb.m'\" unpacked with wrong size!
+fi
+# end of 'test_bb.m'
+fi
+if test -f 'test_fusion.m' -a "${1}" != "-c" ; then
+  echo shar: Will not clobber existing file \"'test_fusion.m'\"
+else
+echo shar: Extracting \"'test_fusion.m'\" \(2052 characters\)
+sed "s/^X//" >'test_fusion.m' <<'END_OF_FILE'
+Xclc, home
+Xecho on
+X%%
+X%% Test file for fusionca.m and fusionma.m
+X%% Comparison of fusionma.m with fusionca.m
+X%%
+X%% Test-script for the Linear-time Legendre Transform (Yves Lucet - 09/05/97)
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+Xecho off
+X
+X% Beware that taking random numbers affects the computation time.
+X% Indeed if s_1<...<s_m<c_1<...<c_p, both functions are very fast
+X% (since they do not look at all slopes S). Unfortunately, this case gives
+X% poor numerical accuracy.
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X
+Xclear Temps Tempsca Fl Flca;
+X
+Xcomp=1;disp('    q  &  CPU    & CPUc    &  flops_ma   & flops_ca   ');
+X
+X
+X%for p=[500:250:5000],
+Xfor p=[10:10:100],
+X%  C=sort(normrnd(1,1,p,1));
+X
+X  C=sort(randn(p,1));
+X  % the choice S=sort(normrnd(1,1,p,1)); would only give an EXPECTED
+X  % linear computation time, so we do not take random slopes.
+X  S=(C(1:size(C,1)-1)+C(2:size(C,1)))./2;
+X
+X  Fma=flops;tma=cputime;
+X   [l1 l2]=fusionma(C,S);
+X  CPUma=cputime-tma;Fma=flops-Fma;
+X
+X  Fca=flops;tca=cputime;
+X   [l1ca l2ca]=fusionca(C,S);
+X  CPUca=cputime-tca;Fca=flops-Fca;
+X
+X  Tempsma(comp)=CPUma;Flma(comp)=Fma;
+X  Tempsca(comp)=CPUca;Flca(comp)=Fca;
+X  comp=comp+1;
+X  disp([sprintf('%5.0f  & %7.2f & %7.2f & %10.0f & %10.0f ',p,CPUma,CPUca,Fma,Fca)]);
+Xend;
+X
+Xhold off;clf;
+Xn=[10:10:100];%n=[500:250:5000];
+Xsubplot(2,2,1);plot(n,Tempsma,'+');hold on;
+Xplot(n,Tempsma);title('CPU time for fusionma');
+Xsubplot(2,2,2);plot(n,Flma,'+'); hold on;
+Xplot(n,Flma);title('Flops for fusionma');
+X
+Xsubplot(2,2,3);plot(n,Tempsca,'+');hold on;
+Xplot(n,Tempsca);title('CPU time for fusionca');
+Xsubplot(2,2,4);plot(n,Flca,'+'); hold on;
+Xplot(n,Flca);title('Flops for fusionca');
+Xclear n;
+X
+Xecho on
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+X% From the test above, we deduce that fusionca takes less flops than
+X% fusionma, netherveless fusionma is faster because it is a matlab
+X% built-in function.
+X%
+X%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Xecho off
+X
+END_OF_FILE
+if test 2052 -ne `wc -c <'test_fusion.m'`; then
+    echo shar: \"'test_fusion.m'\" unpacked with wrong size!
+fi
+# end of 'test_fusion.m'
+fi
+echo shar: End of shell archive.
+exit 0
+
+ Michela Redivo-Zaglia
+ Universita` di Padova - Dipartimento di Elettronica e Informatica
+ Via G. Gradenigo 6/A  - 35131 Padova - Italy
+
+ Phone ++39-49-8277625                    e-mail: michela@dei.unipd.it
+ Fax   ++39-49-8277699
