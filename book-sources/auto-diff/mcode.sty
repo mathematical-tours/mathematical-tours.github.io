@@ -1,0 +1,198 @@
+%%
+%%   This is file `mcode.sty'
+%%
+%%   It is supposed to help you easily include MATLAB source code
+%%   into LaTeX document, but have it nicely highlighted, unsing
+%%   the great listings package.
+%%
+%%   PLEASE NOTE that this package does nothing but spare you some
+%%   configurations in setting up the listings package.  ALL the
+%%   work is done by that package!  Thus, refer your questions to
+%%   the listings package documentation.
+%%
+%%   Usage: You have three ways of including your MATLAB code. As
+%%   environment, as inline object and directly from an external
+%%   file.
+%%
+%%   1) Environment:
+%%
+%%          \begin{lstlisting}
+%%             YOUR CODE HERE
+%%          \end{lstlisting}
+%%
+%%
+%%   2) Inline object:
+%%
+%%          Bla bla \mcode{CODEFRAGMENT} bla bla.
+%%
+%%
+%%   3) Include external file (in environment form)
+%%
+%%          \lstinputlisting{YOUR-FILE.m}
+%%
+%%
+%%   For your convenience, this package has the following options:
+%%
+%%   -  bw  if you intend to print the document (highlighting done
+%%          via text formatting (bold, italic) and shades of gray)
+%%   
+%%   -  numbered  if you want line numbers
+%%
+%%   -  framed  if you want a frame around the source code blocks
+%%
+%%   -  final  if you have ``gloablly'' set the draft option, the
+%%          listings package will not output the code at all.  to
+%%          force it to do so anyway, load this package with the
+%%          final option (passes the ``final'' on to listings).
+%%
+%%   For example, you may use: \usepackage[numbered,framed]{mcode}
+%%   in your document preamble.
+%%   
+%%   Note: inside code blocks you can escape to LaTeX math mode
+%%   by using § LaTeX Code §, which is especially useful in
+%%   comments for putting nicely typeset equations etc.
+%%
+%%   A nice feature of the listings package is that you can re-
+%%   place certain strings by LaTeX strings; this is used for
+%%   some relation symbols, see below...
+%%
+%%   Feel free to edit things, and refer to the listings package 
+%%   documentation for more infos.
+%%
+%%   Author: Florian Knorn, floz@gmx.de
+%%
+%%   Version history:
+%%      1.3  --  Purely cosmetic (source tabs replaced by spaces)
+%%      1.2  --  Added \lstset{showstringspaces=false}
+%%      1.1  --  Added \mcode command and [final] option
+%%      1.0  --  Release
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%            D O N ' T    T O U C H    T H I S                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\fileversion{1.3}
+\def\filedate{2008/08/28}
+
+\typeout{Package: `mcode' \fileversion\space <\filedate>}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mcode}[\filedate\space\fileversion]
+
+% for bw-option
+\newif\ifbw
+\DeclareOption{bw}{\bwtrue}
+\ifbw\typeout{mcode: settings optimized for printing!}
+\else\typeout{mcode: settings optimized for display!}\fi
+
+% numbered option
+\newif\ifnumbered
+\DeclareOption{numbered}{\numberedtrue}
+
+% final option
+\newif\iffinal
+\DeclareOption{final}{\finaltrue}
+
+% for framed option
+\newif\ifframed
+\DeclareOption{framed}{\framedtrue}
+
+\DeclareOption*{% default
+  \PackageWarning{mcode}{Unknown option `\CurrentOption' !}%
+}
+\ProcessOptions
+
+% with this command, you can typeset syntax highlighted mcode ``inline'',
+% for example when you talk about \mcode{for}--loops ...
+\newcommand{\mcode}[1]{\lstinline[basicstyle=\lstbasicfont]|#1|}
+
+% check if color command exists
+\ifx\color\undefined%
+  \RequirePackage{color}%
+\fi
+
+% check if listings has been loaded
+\ifx\lstset\undefined%
+  \iffinal
+    \RequirePackage[final]{listings}
+  \else
+    \RequirePackage{listings}
+  \fi
+\fi
+
+% check if textcomp has been loaded (this package is needed 
+% for upright quotes '' (instead of typographic ones `´)...
+\ifx\textasciigrave\undefined% 
+  \RequirePackage{textcomp}%
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%              C U S T O M I S E   B E L O W                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% define the wanted font for all highlightings here
+\def\lstbasicfont{\fontfamily{pcr}\selectfont}
+
+% now let's define our own version of matlab highlighting
+\lstdefinelanguage{matlabfloz}{%
+  alsoletter={...},%
+  morekeywords={%                             % keywords
+  break,case,catch,continue,elseif,else,end,for,function,global,%
+  if,otherwise,persistent,return,switch,try,while,...},%
+  comment=[l]\%,%                             % comments
+  morecomment=[l]...,%                        % comments
+  morestring=[m]',%                           % strings 
+}[keywords,comments,strings]%
+
+
+\ifbw % use font formating and gray 'colors'
+  \lstset{language=matlabfloz,                % use our version of highlighting
+    keywordstyle=\bfseries,                   % keywords in bold
+    commentstyle=\color[gray]{0.6}\itshape,   % comments light gray and italic
+    stringstyle=\color[gray]{0.5}             % strings darker gray
+  }
+\else% notbw => use colors : )
+  \lstset{language=matlabfloz,                % use our version of highlighting
+    keywordstyle=\color[rgb]{0,0,1},          % keywords
+    commentstyle=\color[rgb]{0.133,0.545,0.133},  % comments
+    stringstyle=\color[rgb]{0.627,0.126,0.941}% strings
+  } 
+\fi%bw
+
+\lstset{%
+  basicstyle={\lstbasicfont\footnotesize},    % use font and smaller size
+  showstringspaces=false,                     % do not emphasize spaces in strings
+  tabsize=4,                                  % number of spaces of a TAB
+  mathescape=true,escapechar=§,               % escape to latex with §...§
+  upquote=true,                               % upright quotes
+  aboveskip={1.5\baselineskip},               % a bit of space above
+  columns=fixed,                              % nice spacing
+  %
+  % the following is for replacing some matlab relations like >= or ~=
+  % by the corresponding LaTeX symbols, which are much easier to read ...
+  literate=%
+    {~}{{$\neg$}}1 %            \neg
+    {<=}{{\tiny$\leq$}}1 %      \leq
+    {>=}{{\tiny$\geq$}}1 %      \geq
+    {~=}{{\tiny$\neq$}}1 %      \neq
+    {delta}{{\tiny$\Delta$}}1%  \Delta
+}
+
+\ifnumbered% numbered option
+  \lstset{%
+    numbersep=3mm, numbers=left, numberstyle=\tiny, % number style
+  }
+\fi
+
+\ifframed%   framed option
+  \lstset{%
+    frame=single,                             % frame
+  }
+  \ifnumbered%
+    \lstset{%
+      framexleftmargin=6mm, xleftmargin=6mm   % tweak margins
+    }
+  \fi
+\fi
+
+\endinput
+%% End of file `mcode.sty'.

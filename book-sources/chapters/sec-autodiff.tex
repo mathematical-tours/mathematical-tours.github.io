@@ -3,12 +3,11 @@
 %%% SECTION PART OF optim-smooth.tex
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Automatic Differentiation}
 
-The main computational bottleneck of these gradient descent methods (batch or stochastic) is the computation of gradients $\nabla f(x)$. We have seen that for simple functionals, such as those encountered in ERM for linear models, and also for MLP with a single hidden layer (see Section~\ref{}), it is possible to compute these gradients in closed form, and that the main computational burden is the evaluation of matrix-vector products. For more complicated functionals (such as those involving deep networks), computing the formula for the gradient quickly becomes cumbersome. Even worse: computing these gradients using the usual chain rule formula is sub-optimal. This section presents a method to compute recursively in an optimal manner these gradients. The purpose of this approach is to automatize this computational step.  
+The main computational bottleneck of gradient descent methods (batch or stochastic) is the computation of gradients $\nabla f(x)$. For simple functionals, such as those encountered in ERM for linear models, and also for MLP with a single hidden layer, it is possible to compute these gradients in closed form, and that the main computational burden is the evaluation of matrix-vector products. For more complicated functionals (such as those involving deep networks), computing the formula for the gradient quickly becomes cumbersome. Even worse: computing these gradients using the usual chain rule formula is sub-optimal. We presents methods to compute recursively in an optimal manner these gradients. The purpose of this approach is to automatize this computational step.  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Finite Differences and Symbolic Calculus}
 
 We consider $f : \RR^p \rightarrow \RR$ and want to derive a method to evaluate $\nabla f : \RR^p \mapsto \RR^p$. Approximating this vector field using finite differences, i.e. introducing $\epsilon>0$ small enough and computing 
 \eq{
@@ -28,7 +27,7 @@ We consider a generic function $f(x)$ where $x=(x_1,\ldots,x_s)$ are the input v
 
 \begin{figure}
 \centering
-\includegraphics[width=.5\linewidth]{auto-diff/comp-graph}
+\includegraphics[width=.7\linewidth]{auto-diff/comp-graph}
 \caption{\label{fig-compgraph}
 A computational graph.
 }
@@ -54,7 +53,16 @@ The forward mode correspond to the usual way of computing differentials. It comp
 \newcommand{\bk}[1]{\left[#1\right]}
 \newcommand{\pdb}[2]{\bk{\pd{#1}{#2}}}
 
-\wrapfSimple{auto-diff/forward-mode.pdf}
+\begin{figure}
+\centering
+\includegraphics[width=.4\linewidth]{auto-diff/forward-mode}
+\quad
+\includegraphics[width=.4\linewidth]{auto-diff/backward-mode}
+\caption{\label{fig-forward-backward}
+Relation between the variable for the forward (left) and backward (right) modes.
+}
+\end{figure}
+
 The method initialize the derivative of the input nodes 
 \eq{
 	\pd{x_1}{x_1} = \Id_{n_1 \times n_1}, \quad 
@@ -68,8 +76,7 @@ The method initialize the derivative of the input nodes
 	= \sum_{\ell \in \text{father}(k)} \bk{\pd{x_k}{x_\ell}} \times \pd{x_\ell}{x_1}
 	= \sum_{\ell \in \text{father}(k)} \pd{f_k}{x_\ell}(x_1,\ldots,x_{k-1}) \times \pd{x_\ell}{x_1}.
 }
-
-The notation ``$\text{father}(k)$'' denotes the nodes $\ell<k$ of the graph that are connected to $k$.
+The notation ``$\text{father}(k)$'' denotes the nodes $\ell<k$ of the graph that are connected to $k$, see Figure~\ref{fig-forward-backward}, left. 
 %
 Here the quantities being computed (i.e. stored in computer variables) are the derivatives $\pd{x_\ell}{x_1}$, and $\times$ denotes in full generality matrix-matrix multiplications.
 %
@@ -77,13 +84,6 @@ We have put in $[\ldots]$ an informal notation, since here $\pd{x_k}{x_\ell}$ sh
 
 Assuming all the involved functions $\pd{f_k}{x_k}$ have the same complexity (which is likely to be the case if all the $n_k$ are for instance scalar or have the same dimension), and that the number of father node is bounded, one sees that the complexity of this scheme is $p$ times the complexity of the evaluation of $f$ (since this needs to be repeated $p$ times for $\pd{}{x_1},\ldots,\pd{}{x_p}$). For a large $p$, this is prohibitive. 
 
-\begin{figure}
-\centering
-\includegraphics[width=.6\linewidth]{auto-diff/example-simple}
-\caption{\label{fig-dag-example-simple}
-Example of a simple computational graph.
-}
-\end{figure}
 
 
 %%%
@@ -121,6 +121,13 @@ One needs to run another forward pass to compute the derivative with respect to 
 
 
 
+\begin{figure}
+\centering
+\includegraphics[width=.6\linewidth]{auto-diff/example-simple}
+\caption{\label{fig-dag-example-simple}
+Example of a simple computational graph.
+}
+\end{figure}
 
 \if 0
 %%%
@@ -212,7 +219,8 @@ and this evaluation is equivalent to applying the forward mode of automatic diff
 
 Instead of evaluating the differentials $\pd{x_k}{x_1}$ which is problematic for a large $p$, the reverse mode evaluates the differentials  $\pd{x_t}{x_k}$, i.e. it computes the derivative of the output node with respect to the all the inner nodes. 
 
-\wrapfSimple{auto-diff/backward-mode.pdf}
+
+
 The method initialize the derivative of the final node
 \eq{
 	\pd{x_t}{x_t} = \Id_{n_t \times n_t}, 
@@ -225,7 +233,7 @@ and then iteratively makes use,  from the last node to the first, of the followi
 	= \sum_{m \in \text{son}(k)} \pd{x_t}{x_m} \times \pd{f_m(x_1,\ldots,x_m)}{x_k}.
 }
 %
-The notation ``$\text{father}(k)$'' denotes the nodes $\ell<k$ of the graph that are connected to $k$.
+The notation ``$\text{father}(k)$'' denotes the nodes $\ell<k$ of the graph that are connected to $k$, see Figure~\ref{fig-forward-backward}, right. 
 
 %%%
 \paragraph{Back-propagation.}
@@ -309,7 +317,7 @@ where at the output, one retrieves $f(x) = x_t$.
 
 Denoting $A_k \eqdef \partial f_k(x_{k-1}) \in \RR^{n_{k} \times n_{k-1}}$ the Jacobian, one has
 \eq{
-	\partial f(x) = A_{t} \times A_{t-2} \times \ldots A_2 \times A_1.
+	\partial f(x) = A_{t} \times A_{t-1} \times \ldots A_2 \times A_1.
 }
 The forward (resp. backward) mode corresponds to the computation of the product of the Jacobian from right to left (resp. left to right) 
 \begin{align*}
@@ -320,11 +328,11 @@ The forward (resp. backward) mode corresponds to the computation of the product 
 
 \begin{figure}
 \centering
-\includegraphics[width=.35\linewidth]{auto-diff/matrix-forward} 
-\quad\quad
-\includegraphics[width=.35\linewidth]{auto-diff/matrix-backward} 
+\includegraphics[width=.42\linewidth]{auto-diff/matrix-forward} 
+\qquad
+\includegraphics[width=.45\linewidth]{auto-diff/matrix-backward} 
 \caption{\label{fig-matrix-mult}
-Complexity of forward (left) and backward (right) modes for feedforward graphs.  \todo{redo the figure}
+Complexity of forward (left) and backward (right) modes for composition of functions. 
 }
 \end{figure}
 
@@ -350,10 +358,19 @@ where $\th_{k-1}$ is a vector of parameters and $x_0 \in \RR^{n_0}$ is given. Th
 \eql{\label{eq-loss-feedf}
 	f(\th) \eqdef L(x_t)
 }
-where $L : \RR^{n_t} \rightarrow \RR$ is some loss function (for instance a least square or logistic prediction risk) and $\th=(\th_k)_{k=0}^{t-1}$.
+where $L : \RR^{n_t} \rightarrow \RR$ is some loss function (for instance a least square or logistic prediction risk) and $\th=(\th_k)_{k=0}^{t-1}$. Figure~\ref{fig-mlp}, top, displays the associated computational graph.
 
 
-One can use the reverse mode automatic differentiation to compute the gradient of $f$ by computing successively the gradient with respect to all $(x_k,\th_k)$. One initialize
+\begin{figure}
+\centering
+\includegraphics[width=.7\linewidth]{auto-diff/archi-feedforward} 
+\caption{\label{fig-mlp}
+Computational graph for a feedforward architecture.
+}
+\end{figure}
+
+
+One can use the reverse mode automatic differentiation to compute the gradient of $f$ by computing successively the gradient with respect to all $(x_k,\th_k)$. One initializes
 \eq{
 	\nabla_{x_t} f = \nabla L(x_t) 	
 }
@@ -424,8 +441,17 @@ We consider a real valued function of the form
 \eq{
 	f(\th) = L(x_t,\th)
 }
-so that here the final loss depends on $\th$ (which is thus more general than~\eqref{eq-loss-feedf}).
-%
+so that here the final loss depends on $\th$ (which is thus more general than~\eqref{eq-loss-feedf}).  Figure~\ref{fig-recur}, bottom, displays the associated computational graph.
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.7\linewidth]{auto-diff/archi-recurrent}
+\caption{\label{fig-recur}
+Computational graph for a recurrent architecture.
+}
+\end{figure}
+
 The back-propagation then operates as 
 \eql{\label{eq-backprop-discr}
 	\nabla_{x_{k-1}} f = [\partial_x h(x_{k-1},\th)]^\top \nabla_{x_{k}} f
@@ -462,11 +488,11 @@ An example of this situation is when one can split the (continuous time) variabl
 \eq{
 	r_{k+1} = r_k + \tau F(s_k,\th_k,\tau k)
 	\qandq
-	s_{k+1} = s_k + \tau F(r_{k+1},\th_{k+1/2},\tau (k+1/2)).
+	s_{k+1} = s_k + \tau G(r_{k+1},\th_{k+1/2},\tau (k+1/2)).
 }
 One can reverse these equation exactly as
 \eq{
-	s_k = s_{k+1} - \tau F(r_{k+1},\th_{k+1/2},\tau (k+1/2)).
+	s_k = s_{k+1} - \tau G(r_{k+1},\th_{k+1/2},\tau (k+1/2)).
 	\qandq
 	r_k = r_{k+1}  - \tau F(s_k,\th_k,\tau k). 
 }
@@ -546,12 +572,12 @@ Denoting  $\Kk \eqdef \begin{pmatrix} 0 & K \\ K^\top & 0 \end{pmatrix} \in \RR^
 One has the following differential operator 
 \eq{
 	[\partial_x h(x,\th)]^\top = -\Kk^\top \diag\pa{\frac{\th}{(\Kk x)^2}}, \quad
-	[\partial_\th h(x,\th)]^\top = \diag\pa{\frac{1}{\Kk x}}, \quad
+	[\partial_\th h(x,\th)]^\top = \diag\pa{\frac{1}{\Kk x}}.
 }
-\eq{
-	\nabla_x L(x,\th) = ??, \quad
-	\nabla_\th L(x,\th) = ??. 
-}
+%\eq{
+%	\nabla_x L(x,\th) = ??, \quad
+%	\nabla_\th L(x,\th) = ??. 
+%}
 Similarly as for the argmin layer, at convergence $x_k \rightarrow x^\star(\th)$, one finds a minimizer of $\Ee$, so that $\nabla_x L(x^\star(\th),\th)=0$ and thus the gradient of $f^\star(\th)=\Ee(x^\star(\th),\th)$ can be computed using~\eqref{eq-danskin} i.e.
 \eq{
 	\nabla f^\star(\th) = \log(x^\star(\th)).
@@ -593,12 +619,5 @@ The gradient of with respect to the weight matrices are obtained by also applyin
 }
 \fi 
 
-\begin{figure}
-\centering
-\includegraphics[width=.6\linewidth]{auto-diff/mlp.pdf} 
-\caption{\label{fig-mlp}
-Computational graph for a MLP. \todo{redo the figure}
-}
-\end{figure}
 
 
