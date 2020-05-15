@@ -73,8 +73,8 @@ C = distmat(xy{1}',xy{2}').^2;
 if use_lsap
     C1 = int32( round(C*1e6) );
     [J,varrho,u,v] = hungarianLSAP(C1);
-    I = (1:N(1))'; 
-    gammaij = ones(N(1),1)/N(1);    
+    I = (1:N(1))';
+    gammaij = ones(N(1),1)/N(1);
 else
     [cost,gamma] = mexEMD(a,b,C);
     [I,J,gammaij] = find(gamma);
@@ -95,17 +95,17 @@ for k=1:length(tlist)
         s = ones(Nt,1)*20; % size
         col = cat(2,(xy{1}(I,:)), ones(Nt,1));
         % col = cat(2,cos(10*pi*xy{1}(I,:)), ones(Nt,1));
-        
-        u = xy{1}(I,1); v = xy{1}(I,2); 
+
+        u = xy{1}(I,1); v = xy{1}(I,2);
         m = 6;
-        
+
         t = (mod(u*m,1)<.5 ) == (mod(v*m,1)<.5);
         t = rescale( cos(10*pi*u)  .* sin(10*pi*v) );
 
         t = xy{2}(J,1);
-        
+
         col = (1-t)*[1 0 0] + t*[0 0 1];
-        
+
         clf; scatter( Xt(:,2), Xt(:,1), s, col, 'filled' );
         axis equal; axis([0 1 0 1]); box on; set(gca, 'XTick', [], 'YTick', []);
         axis ij;

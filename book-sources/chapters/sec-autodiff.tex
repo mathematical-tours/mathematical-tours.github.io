@@ -1,4 +1,4 @@
-% !TEX root = ../optim-ml/OptimML.tex
+% !TEX root = ../auto-diff/AutoDiff.tex
 
 %%% SECTION PART OF optim-smooth.tex
 
@@ -390,7 +390,7 @@ For instance, feedforward deep network (fully connected for simplicity) correspo
 	\foralls x_{k-1} \in \RR^{n_{k-1}}, \quad
 	f_k(x_{k-1},\th_{k-1}) = \rho( \th_{k-1} x_{k-1} )
 } 
-where $\th_{k-1} \in \RR^{n_{k} \times n_{k-1}}$ are the neuron's weights and $\rho$ a fixed pointwise linearity.
+where $\th_{k-1} \in \RR^{n_{k} \times n_{k-1}}$ are the neuron's weights and $\rho$ a fixed pointwise linearity, see Figure~\ref{fig-mlp-param}.
 %
 One has, for a vector $z_k \in \RR^{n_k}$ (typically equal to $\nabla_{x_{k}} f$)
 \eq{
@@ -403,6 +403,15 @@ One has, for a vector $z_k \in \RR^{n_k}$ (typically equal to $\nabla_{x_{k}} f$
 	\qwhereq
 	w_k \eqdef \diag(\rho'(\th_{k-1} x_{k-1})).
 }
+
+\begin{figure}
+\centering
+\includegraphics[width=.6\linewidth]{auto-diff/network-mlp} 
+\caption{\label{fig-mlp-param}
+Multi-layer perceptron parameterization.
+}
+\end{figure}
+
 
 
 %%%
@@ -433,7 +442,7 @@ Note that the correct normalization is $\frac{1}{\tau} \nabla_{\th_{k-1}} f  \ri
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Recurrent Architectures}
 
-Recurrent networks are obtained by using the same parameter $\th=\th_k$ and $f_k=h$ recursively in~\eqref{eq-mlp-func}, so that 
+Parametric recurrent functions are obtained by using the same parameter $\th=\th_k$ and $f_k=h$ recursively in~\eqref{eq-mlp-func}, so that 
 \eql{\label{eq-feednets-recur}
 	\foralls k=1, \ldots, t, \quad x_{k} = h(x_{k-1},\th).
 }
@@ -446,7 +455,7 @@ so that here the final loss depends on $\th$ (which is thus more general than~\e
 
 \begin{figure}
 \centering
-\includegraphics[width=.7\linewidth]{auto-diff/archi-recurrent}
+\includegraphics[width=.6\linewidth]{auto-diff/archi-recurrent}
 \caption{\label{fig-recur}
 Computational graph for a recurrent architecture.
 }
@@ -465,12 +474,33 @@ Similarly, writing $h(x,\th) = x + \tau u(x,\th)$, letting $(k,k\tau) \rightarro
 	\dot x(t) = u(x(t),\th)
 }
 and the following linear backward adjoint equation, for $f(\th)=L(x(T),\th)$
-\eq{
+\eql{\label{eq-jacobian-mlp}
 	\dot z(t)  =  - [\partial_x u(x(t),\th)]^\top z(t)
 	\qandq
 	\nabla_{\th} f(\th) = \nabla_\th L(x(T),\th) + \int_0^T [\partial_\th f(x(t),\th)]^\top z(t) \d t.
 }
 with $z(0) = \nabla_x L(x_t,\th)$. 
+
+%%%%%
+\paragraph{Residual recurrent networks. }
+
+A recurrent network is defined using
+\eq{
+	h(x,\th) = x + W_2^\top \rho( W_1 x )
+}
+as displayed on Figure~\ref{fig-recurrent-param}, where $\th = (W_1, W_2) \in (\RR^{n \times q})^2$ are the weights and $\rho$ is a pointwise non-linearity. The number $q$ of hidden neurons can be increased to approximate more complex functions. 
+%
+In the special case where $W_2=- \tau W_1$, and $\rho=\psi'$, then this is a special case of an argmin layer~\eqref{eq-argmin-layer} to minimize the function $\Ee(x,\th) = \psi( W_1 x )$ using gradient descent, where $\psi(u)=\sum_i \psi(u_i)$ is a separable function.
+%
+The Jacobians $\partial_\th h$ and $\partial_x h$ are computed similarly to~\eqref{eq-jacobian-mlp}.
+
+\begin{figure}
+\centering
+\includegraphics[width=.5\linewidth]{auto-diff/network-recur} 
+\caption{\label{fig-recurrent-param}
+Recurrent residual perceptron parameterization.
+}
+\end{figure}
 
 
 %%%%%
@@ -527,7 +557,7 @@ One can define a mapping from some parameter $\th$ to a point $x(\th)$ by solvin
 	x(\th) = \uargmin{x} \Ee(x,\th).
 }
 The simplest approach to solve this problem is to use a gradient descent scheme, $x_0=0$ and
-\eq{
+\eql{\label{eq-argmin-layer}
 	x_{k+1} = x_k - \tau \nabla \Ee(x_k,\th). 
 }
 This has the form~\eqref{eq-flow-eq} when using the vector field $u(x,\th) = \nabla \Ee(x_k,\th)$. 
@@ -582,42 +612,6 @@ Similarly as for the argmin layer, at convergence $x_k \rightarrow x^\star(\th)$
 \eq{
 	\nabla f^\star(\th) = \log(x^\star(\th)).
 }
-
-
-
-\if 0
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Multilayer Perceptron}
-\label{sec-autodiff-mlp}
-
-
-We consider a feedforward deep network (fully connected for simplicity), initialized as $a_0=a$ and defined through 
-\eql{\label{eq-mlp-def}
-	\foralls k=1,\ldots,t, \quad \choice{
-		b_k \eqdef W_k a_{k-1} \\
-		a_k \eqdef \rho(b_k) 
-		}
-} 
-where $\rho$ is a point wise non-linearity (so $\rho(u)$ actually denoted $(\rho(u_i))_i$), $W_k \in \RR^{n_k \times n_{k-1}}$ are the weight to be trained, and the final output is set as, for $W=(W_1,\ldots,W_t)$, 
-\eq{
-	f(W) \eqdef \ell(b_t,y)
-}
-where $\ell : \RR \times \RR \rightarrow 0$ is some loss function. Figure~\ref{fig-mlp} displays the computational graph.
-
-The backward automatic differentiation method (aka back-propagation) proceeds by first computing the $(a_k)_{k=1}^t$ by forward evaluation, and then intializing the gradient vector
-\eq{
-	\nabla_{b_t} f = \ell'(b_t,y)
-}
-where $\ell'$ is the derivative with respect to the first variable, and then applying the adjoint on the chain rule of $a_{k-1} \mapsto b_k  = W_k a_{k-1}\mapsto a_k = \rho(b_k)$
-\begin{align*}
-	\nabla_{b_{k}} f &= \diag(\rho'(b_k)) \nabla_{a_k} f \\
-	\nabla_{a_{k-1}} f &= W_k^\top b_{k}
-\end{align*}
-The gradient of with respect to the weight matrices are obtained by also applying the adjoint on the chain rule, but this time to of $W_k \mapsto b_k  = W_k a_{k-1}$
- \eq{
- 	\nabla_{W_{k}} f = (\nabla_{b_k} f) a_{k-1}^\top.
-}
-\fi 
 
 
 
