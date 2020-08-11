@@ -1,0 +1,33 @@
+%%
+% kaczmarz iterative projection vizualization.
+
+% number of constraints 
+k = 7;
+% angle of the constraints
+t = cumsum([rand(k,1)+2]); t = -(pi*.5*rand/k) + (t/t(end)*pi);
+
+dotp = @(x,y)real(x.*conj(y));
+
+n = 10; 
+x = .3 + 3*rand(n,1) + .3 * 1i*randn(n,1);
+% x = randn(n,1) + 1i*randn(n,1);
+
+q = 40;
+
+col = distinguishable_colors(n);
+
+for it=1:q    
+    s = mod(it,k-1)+1; % #constraint
+    clf; hold on;
+    for i=1:k % display constraints
+        plot([-2 2]*exp(1i*t(i)), 'k', 'LineWidth', 1);
+    end
+    plot([-2 2]*exp(1i*t(s)), 'k', 'LineWidth', 5);
+    % projection on constraint
+    x(:,end+1) = x(:,end) - dotp(x(:,end),1i*exp(1i*t(s))) * 1i*exp(1i*t(s));
+    plot(transpose(x), '.-', 'LineWidth', 2, 'MarkerSize', 10);
+    for j=1:n
+        plot(x(:,end), '.', 'MarkerSize', 30, 'color', col(i,:));
+    axis equal; axis([-1 1 -1 1]); axis off;
+    drawnow;
+end

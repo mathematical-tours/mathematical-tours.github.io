@@ -2,8 +2,7 @@
 % Display of Brownian motion.
 
 addpath('../toolbox/');
-rep = '../results/brownian/';
-[~,~] = mkdir(rep);
+rep = MkResRep();
 
 P = 1024*2; % #points
 K = 10;  % #trajectory
@@ -13,6 +12,7 @@ lw = 2;
 
 %%
 % brownian motion
+
 Bc = brownian_bridge(P,1,sigma);
 clf;
 plot_colored(Bc,alph,lw);

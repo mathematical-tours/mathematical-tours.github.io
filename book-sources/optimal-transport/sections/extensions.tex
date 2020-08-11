@@ -8,19 +8,82 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Dynamical formulation}
 
-\todo{Write me.}
+We consider $\Xx=\RR^d$ with squared Euclidean cost $c(x,y)=\norm{x-y}^2$.
+%
+For a vector field $v$, one has under some weak regularity condition, that 
+\eq{
+	\Wass_2^2(\al, (\Id+t v)_\sharp \al) = t \norm{v}_{L^2(\be)}^2 + o(t)
+	\qwhereq
+	\norm{v}_{L^2(\be)}^2 = \int \norm{v(x)}^2 \d\be(x).
+}
+In some sense, assimilating the space of vector fields as a tangent space of measures, the Wasserstein space is similar to a Riemannian metric, where the norm on the tangent plane is the weighted $L^2(\be)$ norm. 
+
+Associated to this, following Benamou and Brenier, one can compute the Wasserstein distance as the length of a ``geodesic'' path $\rho_t$ between $\al$ and $\be$, which reads
+\eql{\label{eq-dynamic-non-convex}
+	\Wass_2^2(\al, \be) = 
+	\uinf{(\rho,v) \in \Cc} \enscond{
+		\int_0^1 \int_{\RR^d} \norm{v_t(x)}^2 \d \rho_t(x) \d t
+		}{ \rho_0=\al, \rho_1=\be}
+}
+where $\Cc$ is the set of vector fields and measures satisfying in the weak sense the continuity equation
+\eq{
+	\pd{\rho_t}{t}(x) + \text{div}(\rho_t v_t)(x) = 0
+}
+which means that the mass of $\rho_t$ is advected along the field $v_t$.
+%
+The path of measure $t \mapsto \rho_t$ is equal to the displacement interpolation. 
+%
+In fact, one can show that the optimal $v_t$ is constant in time, and the Monge map is $T(x)=x+v(x)$, so that $\rho_t$ matches the displacement interpolation is $\rho_t = ((1-t)\Id+t \T)_\sharp \al$.
+
+Problem~\eqref{eq-dynamic-non-convex} is non-convex, but Benamou and Brenier proposed to make the change of variable $m=\rho v$ (the so-called ``momentum''), so that one needs to solve the following convex problem
+\eql{\label{eq-dynamic-convex}
+	\Wass_2^2(\al, (\Id+t v)_\sharp \al) = 
+	\uinf{(\rho,v) \in \tilde\Cc} \enscond{
+		\int_0^1 \int_{\RR^d} J\Big(\frac{\d m_t}{\d x}(x), \frac{\d \rho_t}{\d x}(x)\Big) \d x \d t
+		}{ \rho_0=\al, \rho_1=\be}
+}
+where $J$ is the convex function
+\eq{
+	\foralls (a,b) \in \RR^d \times \RR^+, \quad
+	J(a,b) = \choice{
+		\frac{\norm{a}^2}{b} \qifq b \neq 0\\
+		0 \qifq (a,b)=0, \\
+		+\infty \quad\text{otherwise}, 
+	}
+}
+and the constraint set is now the linear space of pairs $(\rho,m)$ satisfying
+\eq{
+	\pd{\rho_t}{t}(x) + \text{div}(m_t)(x) = 0.
+}
+Since $J$ is positively 1-homogeneous, problem~\eqref{eq-dynamic-convex} is independent of the choice of a reference measure $\d x$.
+%
+Numerically, one can approximate problem~\eqref{eq-dynamic-convex} using finite element or finite difference, which result in a non-smooth finite-dimensional convex optimization problem, which in turn can be solved using proximal methods. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Unbalanced OT}
 \label{sec-unbalanced}
 
-We consider the following ``unbalanced'' generalization of OT
-\eq{
-	\uinf{\pi \in \Mm_+^1(\Xx \times \Yy)} \int_{\Xx \times \Yy} c(x,y) \d\pi(x,y)
+
+%%%
+\paragraph{Relaxed formulation}
+
+We consider the following ``unbalanced'' generalization of OT for $(\al,\be) \in \Mm_+^1(\Xx) \times \Mm_+^1(\Yy)$
+\eql{\label{eq-unbalanced-primal}
+	\text{UW}_c(\al,\be)= \uinf{\pi \in \Mm_+^1(\Xx \times \Yy)} \int_{\Xx \times \Yy} c(x,y) \d\pi(x,y)
 		+ \Dd_{\psi_1}(\pi_1|\al) + \Dd_{\psi_2}(\pi_2|\be)
 }
 for entropy function $\psi_1,\psi_2$.
+%
+This corresponds to somehow relaxing the exact conservation of mass $(\pi_1,\pi_2)=(\al,\be)$ using a ``soft'' penalty function using divergence functionals.
+%
+The following proposition states the dual problem.
 
+\begin{prop}One has equality between~\eqref{eq-unbalanced-primal} and
+	\eq{
+		\text{\upshape UW}_c(\al,\be)=\usup{f \oplus g \leq c} - \Dd_{\psi_1}^*(-f|\al) - \Dd_{\psi_2}^*(-g|\be).
+	}
+\end{prop}
+\begin{proof}
 One gets a dual by using the formula~\eqref{eq-legendre} for the dual of a divergence
 \begin{align*}
 	\uinf{\pi \in \Mm_+^1(\Xx \times \Yy)} \usup{(f,g) \in \Cc(\Xx) \times \Cc(\Yy)}
@@ -35,6 +98,112 @@ Exchanging the min and the max gives
 	&= 	\usup{f \oplus g \leq c}
 	- \Dd_{\psi_1}^*(-f|\al) - \Dd_{\psi_2}^*(-g|\be).
 \end{align*}
+\end{proof}
+
+
+%%%
+\paragraph{Reverse formulation}
+
+In order to study the metric property of this formulation, we follow Liero, Mielke and Savare, which consider a series of equivalent formulations. 
+%
+Assuming for simplicity that $(\pi_1,\pi_2)$ have densities with respect to $(\al,\be)$ and vice-versa, one can write the following factorization formula
+\begin{align*}
+	& \int_{\Xx \times \Yy} c(x,y) \d\pi(x,y)
+		+ \Dd_{\psi_1}(\pi_1|\al) + \Dd_{\psi_2}(\pi_2|\be) \\
+		=&
+	\int_{\Xx \times \Yy} \pa{ c(x,y)  + 
+		\psi_1\pa{ \frac{\d\pi_1}{\d\al}(x) } \frac{\d\al}{\d\pi_1}(x) + 
+		\psi_2\pa{ \frac{\d\pi_2}{\d\be}(y) } \frac{\d\be}{\d\pi_2}(y)
+	} \d\pi(x,y).
+\end{align*}
+More rigorously, we introduce the following functional
+\eq{
+	\foralls (c,r,s) \in \RR^3, \quad
+	L_c(r,s) \eqdef c + r\psi_1(1/r) + s\psi_2(1/s), 
+}
+where we implicitly assume that $r\psi_1(1/r) = (\psi_1')^\infty$ when $r=0$, 
+one has 
+\eq{
+	\text{UW}_c(\al,\be) = \uinf{\pi \in \Mm_+^1(\Xx \times \Yy)}
+	 \int L_{c(x,y)}( F(x),G(y) ) \d\pi(x,y)
+	 + \psi_1(0) \pi_1^\bot(\Xx)
+	 + \psi_2(0) \pi_2^\bot(\Yy)
+}
+where we denoted $F=\frac{\d\pi_1}{\d\al}$, $G=\frac{\d\pi_2}{\d\be}$ and the associated Lebesgue decomposition reads
+\eq{
+	\pi_1 = F  \frac{\d\pi_1}{\d\al} + \pi_1^\bot
+	\qandq
+	\pi_2 = G  \frac{\d\pi_2}{\d\be} + \pi_2^\bot.
+} 
+
+%%%
+\paragraph{Homogeneous formulation}
+
+The second formulation is obtained by introducing the perspective transform of $L_c$
+\eq{
+	H_c(r,s) \eqdef \uinf{\th>0} \th L_c(r/\th,s/\th).
+}
+This function $H_c$ is positively 1-homogeneous.
+%
+The homogeneous formulation is then 
+\eql{\label{eq-homogeneous}
+	\text{HW}_c(\al,\be) = \uinf{\pi \in \Mm_+^1(\Xx \times \Yy)}
+	 \int H_{c(x,y)}( F(x),G(y) ) \d\pi(x,y)
+	 + \psi_1(0) \pi_1^\bot(\Xx)
+	 + \psi_2(0) \pi_2^\bot(\Yy).
+}
+One automatically has $\text{HW} \leq \text{UW}$ since $H_c \leq L_c$ (by taking $\th=1$). The more remarkable and non trivial property is that in fact 
+\eq{
+	\text{HW} = \text{UW}. 
+}	
+
+%%%
+\paragraph{Conic lifting}
+
+We now suppose $\Xx=\Yy$ and $\psi_1=\psi_2=\psi$.
+%
+The last formulation is obtained by lifting the above optimization problem on the cone space $\mathfrak{C}[\Xx] \eqdef (\Xx \times \RR_+) / \sim$   associated to $\Xx$ (and similarly for $\Yy$). Here, the equivalence relation $\sim$ ``glue'' together all the points $(x,0)$ which are often called the ``apex'' of the cone. For some exponent $p \geq 1$, we define the following functional 
+\eq{
+	\De((x,r),(y,s)) \eqdef H_{c(x,y)}(r^p,s^p)^{1/p}.
+}
+The interesting case is when $c$ and $p$ are chosen so that $\De$ defines a distance on $\mathfrak{C}[\Xx]$. Here are three examples:
+\begin{itemize}
+	\item $\Dd_\psi=\KL$, $p=2$ and $c(x,y)=-\log \cos^2(d(x,y) \wedge \frac{\pi}{2})$ in which case $\De$ is the so-called cone metric associated to $d$ and reads
+		\eq{
+			\De((x,r),(y,s))^2 = r^2+s^2-2rs \cos( d(x,y) \wedge \frac{\pi}{2} ).
+		}
+		This corresponds to the so-called ``Hellinger-Kantorovitch''--`Wasserstein-Fisher-Rao'' setup.
+	\item $\Dd_\psi=\KL$, $p=2$ and $c(x,y)=d(x,y)^2$, so that 
+		\eq{
+			\De((x,r),(y,s))^2 = r^2+s^2-2rs e^{-d(x,y)/2}.
+		}
+		This corresponds to the so-called ``Gaussian Hellinger'' setup.
+	\item $\Dd_\psi=\TV$, $p=1$ and $c(x,y)=d(x,y)$, so that 
+		\eq{
+			\De((x,r),(y,s)) = r+s-(r \wedge s)(2-d(x,y))_+.
+		}
+		This corresponds to the so-called ``partial transport'' setup.
+\end{itemize}
+The homogeneous formulation~\eqref{eq-homogeneous} is then relaxed as an OT-type problem on the cone
+\eq{
+	\text{CW}(\al,\be) = \uinf{ \ga \in \Mm_+(\mathfrak{C}[\Xx]^2) }
+		\enscond{
+			\int \De((x,r),(y,s))^p \d\ga((x,r),(y,s))
+		}{
+			\int r^p \d \ga_1(\cdot,r) = \al, \:
+			\int s^p \d \ga_2(\cdot,s) = \be
+		}.
+}
+The following theorem summarize the key results.
+
+\begin{thm}
+	One has $\text{\upshape UW}=\text{\upshape HW}=\text{\upshape CW}$. If $\De$ is a distance, so is {\upshape CW}$^{1/p}$. 
+\end{thm}
+
+
+%%%
+\paragraph{Entropic regularization}
+
 
 A generic regularization of this problem reads
 \eq{
@@ -52,7 +221,6 @@ When using $\Dd_\phi=\KL$, the primal dual relation reads $\pi=e^{\frac{f\oplus 
 		- \tau \pa{ \dotp{e^{\frac{-f}{\tau}}}{\al} + \dotp{e^{\frac{-g}{\tau}}}{\be} - 2 }
 		- \epsilon \iint_{\Xx \times \Yy} e^{\frac{f\oplus g - c}{\epsilon}} \d \al \otimes \be + \epsilon.
 }
-
 Sikhorn iterations are obtained by minimizing iteratively with respect to $f$ and $g$, and reads in this special case
 \begin{align*}
 	f &= -\frac{\tau\epsilon}{\tau+\epsilon} \log\int_\Yy \exp\pa{ \frac{g(y) - c(\cdot,y)}{\epsilon} }  \d\be(y),  \\
@@ -64,51 +232,95 @@ Sikhorn iterations are obtained by minimizing iteratively with respect to $f$ an
 \subsection{Gromov Wasserstein}
 
 
+%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Discrete setting} 
+
+
 Optimal transport needs a ground cost $\C$ to compare histograms $(\a,\b)$, it can thus not be used if the histograms are not defined on the same underlying space, or if one cannot pre-register these spaces to define a ground cost. 
 %
 To address this issue, one can instead only assume a weaker assumption, namely that one has at its disposal two matrices $\distD \in \RR^{n \times n}$ and $\distD' \in \RR^{m \times m}$ that represent some relationship between the points on which the histograms are defined. A typical scenario is when these matrices are (power of) distance matrices.
 %
 The Gromov-Wasserstein problem reads
 \eql{\label{eq-gw-def}
-	\GWD( (\a,\distD), (\b,\distD') )^2 \eqdef
+	\GWD( (\a,\distD), (\b,\distD') )^p \eqdef
 	\umin{ \P \in \CouplingsD(\a,\b) } 
 		\Ee_{\distD,\distD'}(\P) \eqdef 
-		\sum_{i,j,i',j'} |\distD_{i,i'} - \distD'_{j,j'}|^2 \P_{i,j}\P_{i',j'}.  
+		\sum_{i,j,i',j'} \De(\distD_{i,i'},\distD'_{j,j'})^q \P_{i,j}\P_{i',j'}, 
 }
+where $p \geq 1$ and $\De$ is a distance on $\RR$, typically $\De(u,v)=|u-v|$.
+%
 This is a non-convex problem, which can be recast as a Quadratic Assignment Problem (QAP)~\cite{loiola-2007} and is in full generality NP-hard to solve for arbitrary inputs. 
 %
 It is in fact equivalent to a graph matching problem~\cite{lyzinski-2015} for a particular cost.
 
-One can show that $\GWD$ satisfies the triangular inequality, and in fact it defines a distance between metric spaces equipped with a probability distribution (here assumed to be discrete in definition~\eqref{eq-gw-def}) up to isometries preserving the measures.
+One can show that $\GWD$ satisfies the triangular inequality, and in fact it defines a distance between metric spaces equipped with a probability distribution (here assumed to be discrete in definition~\eqref{eq-gw-def}) up to isometries preserving the measures, as detailed below.
 %
 This distance was introduced and studied in details by Memoli in~\cite{memoli-2011}. An in-depth mathematical exposition (in particular, its geodesic structure and gradient flows) is given in~\cite{SturmGW}. See also~\cite{schmitzer2013modelling} for applications in computer vision.
 %
 This distance is also tightly connected with the Gromov-Hausdorff distance~\cite{gromov-2001} between metric spaces, which have been used for shape matching~\cite{memoli-2007,bronstein-2010}. 
 
 
-
 %%%%%%%%%%%%%%%%%%%%%
-\begin{rem}{Gromov-Wasserstein distance}
-	The general setting corresponds to computing couplings between metric measure spaces $(\X,\dist_\X,\al_\X)$
-	and $(\Y,\dist_\Y,\al_\Y)$ where $(\dist_\X,\dist_\Y)$ are distances and $(\al_\X,\al_\Y)$ are measures on their respective spaces.
+\paragraph{General setting} 
+
+The general setting corresponds to computing couplings between metric measure spaces $\XX=(\X,\dist_\X,\al)$
+	and $\YY=(\Y,\dist_\Y,\be)$ where $(\dist_\X,\dist_\Y)$ are distances and $(\al,\be)$ are measures on their respective spaces.
+	%
+	One needs to restrict the space to be complete and separable in order to be able to apply the gluing lemma and construct isometries bellow.
 	%
 	One defines 
 	\begin{align}
 		\label{eq-gw-generic}
-		\GW( (\al_\X,\dist_\X), (\al_\Y,\dist_\Y) )^2 \eqdef 
-		\umin{ \pi \in \CouplingsD(\al_\X,\al_Y) } 
+		\GW( \XX,\YY )^p \eqdef 
+		\umin{ \pi \in \CouplingsD(\al,\be) } 
 		\int_{\X^2 \times \Y^2}
-		| \dist_\X(x,x')-\dist_\Y(y,y') |^2
+		 \De(\dist_\X(x,x'),\dist_\Y(y,y'))^p
 		\d\pi(x,y)\d\pi(x',y').
 	\end{align}
-	$\GW$ defines a distance between metric measure spaces up to isometries, where one says that $(\al_\X,\dist_\X)$ and $(\al_\Y,\dist_\Y) $ are isometric if there exists $\phi : \X \rightarrow \Y$ such that $\phi_{\sharp}\al_\X=\al_\Y$ and $\dist_\Y(\phi(x),\phi(x'))=\dist_\X(x,x')$.
-\end{rem}
+ 
+In the following, one says that $\XX$ and $\YY$ are isometric mm-spaces if there exists $\phi : \X \rightarrow \Y$ such that $\phi_{\sharp}\al=\be$ and which is a bijective isometry between the supports of $\al$ and $\be$, i.e. $\dist_\Y(\phi(x),\phi(x'))=\dist_\X(x,x')$ on the support of $\al$.
+ 
+
+\begin{thm}
+	$\GW$ defines a distance between metric measure spaces up to isometries
+\end{thm}
+\begin{proof}
+	If $\GW( \XX,\YY )=0$ then if $\pi$ is an optimal plan, we have $\pi \otimes \pi$-almost everywhere that $d_\Xx(x,x')=d_\Yy(y,y')$.
+	%
+	We show that $\XX$ and $\YY$ are isometric by showing that they are both isometric to a third space $\ZZ \eqdef (\Zz \eqdef \X \times \Y,\dist_\Zz,\pi)$
+	where 
+	\eql{
+		\dist_\Zz((x,y),(x',y')) \eqdef \frac{1}{2} \dist_\X(x,x') + \frac{1}{2} \dist_\Y(y,y').
+	}
+	We now show that $\psi : (x,y) \in \Zz \mapsto x \in \Xx$ is a bijective isometry between $\supp(\pi)$ and $\supp(\al)$.
+	% 
+	One has, for $(x,y) \in \supp(\pi)$, $d_\Xx(x,x')=d_\Yy(y,y')$ and thus
+	\eq{
+		\dist_\Xx(\psi(x,y),\psi(x',y')) = \dist_\Xx(x,x') = d_\Yy(y,y') = d_\Zz((x,y),(x',y')), 
+	}
+	thus $\psi$ is an isometry, hence injective. We now show surjectivity, i.e. for $x \in \supp(\al)$, we need to construct $y$ such that $(x,y) \in \supp(\pi)=\Zz$. Indeed, since $\psi_\sharp \pi = \al$, there exists a sequence $(x_k,y_k) \in \supp(\pi)$ such that $x_k \rightarrow y_k$.
+	%
+	Since $d_\Xx(x_k,x_{k'})=d_\Yy(y_k,y_{k'})$ the sequence $(y_k)_k$ is Cauchy, and since $\supp(\pi)$ is closed, it is complete and thus $(x_k,y_k)$ is converging to some $(x,y) \in \Zz$. 
+		
+	Given an optimal $\pi$ and $\xi$ between three spaces $(\Xx,\Yy,\Zz)$ with measures $(\al,\be,\ga)$, we use the gluing Lemma~\ref{lem-gluing-general} to define $\si$ with marginals $(P_{\Xx,\Yy})_\sharp \si = \pi$ and $(P_{\Yy,\Zz})_\sharp \si = \xi$. 
+	We denote $\rho \eqdef (P_{\Xx,\Zz})_\sharp \si$ the composition of the two coupling, so that
+	$$\begin{aligned}
+		\GW( \XX,\ZZ ) & \leq \Big( \int_{\Xx \times \Zz} \De(\dist_\Xx(x,x'),\dist_\Zz(z,z'))^p \d\rho(x,z)\d\rho(x',z') \Big)^{1/p}  
+			\\
+		 &\leq \Big( \int_{\Xx \times \Yy \times \Zz} ( \De(\dist_\Xx(x,x'),\dist_\Yy(y,y')) + \De(\dist_\Yy(y,y'),\dist_\Zz(z,z')) )^p \d\si(x,y,z) \d\si(x',y',z')\Big)^{1/p} \\
+		 &\leq \Big( \int_{\Xx \times \Yy \times \Zz} \De(\dist_\Xx(x,x'),\dist_\Yy(y,y'))^p \d\si(x,y,z) \d\si(x',y',z')\Big)^{1/p} \\
+		 &\qquad + 
+		 \Big( \int_{\Xx \times \Yy \times \Zz} \De(\dist_\Yy(y,y'),\dist_\Zz(z,z'))^p \d\si(x,y,z) \d\si(x',y',z')\Big)^{1/p}
+		  \\
+		  &= \GW( \XX,\YY ) + \GW( \YY,\ZZ ), 
+	\end{aligned}$$
+	where the first inequality is the sub-optimality of $\rho$, the second is the triangular inequality of $\De$, 
+	and the third is the Minkowski inequality.
+\end{proof}
+
+
 %%%%%%%%%%%%%%%%%%%%%
-
-
-
-%%%%%%%%%%%%%%%%%%%%%
-\begin{rem}{Gromov-Wasserstein geodesics}
+\begin{rem}[Gromov-Wasserstein geodesics]
 The space of metric spaces (up to isometries) endowed with this $\GW$ distance~\eqref{eq-gw-generic} has a geodesic structure. \cite{SturmGW} shows that the geodesic between  $(\X_0,\dist_{\X_0},\al_0)$ and $(\X_1,\dist_{\X_1},\al_1)$ can be chosen to be 
 $t \in [0,1] \mapsto (\X_0 \times \X_1,\dist_t,\pi^\star)$ where $\pi^\star$ is a solution of~\eqref{eq-gw-generic} and for all $((x_0,x_1), (x_0',x_1')) \in (\X_0 \times \X_1)^2$, 
 \eq{
@@ -121,6 +333,10 @@ A heuristic approach is used in~\cite{peyre2016gromov} to define geodesics and b
 \end{rem}
 %%%%%%%%%%%%%%%%%%%%%
 
+\paragraph{Entropic regularization and iterative solver}
+
+We consider the case $p=1$, $\De(u,v)=|u-v|$.
+%
 To approximate the computation of $\GWD$, and to help convergence of minimization schemes to better minima, one can consider the entropic regularized variant
 \eql{\label{eq-gw-entropy}
 	\umin{ \P \in \CouplingsD(\a,\b) } 
@@ -140,8 +356,10 @@ which can be interpreted as a mirror-descent scheme~\cite{2016-solomon-gw}. Each
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if 0
 \subsection{Quantum OT}
 
 Static formulation.
 
 Gurvits algorithm, Q-sinkhorn.
+\fi

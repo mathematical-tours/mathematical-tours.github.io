@@ -119,7 +119,7 @@ camlight; drawnow;
 m = C(2,1);  c = C(:,2:m+1); c = c(1,:)'+1i*c(2,:)';
 
 % colormap interpolating between two colors (here a color and white)
-m = linspace(0,1,r+1)';
+m = linspace(0,1,r-1)';
 CM = m*[s 0 1-s] + (1-m)*[1 1 1];
 
 % display an image using a masking region

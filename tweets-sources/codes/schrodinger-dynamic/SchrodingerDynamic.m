@@ -2,8 +2,10 @@
 % test to display Brownian bridge interpolation.
 
 
+
 addpath('../toolbox/');
 rep = MkResRep();
+mysaveas = @(it)saveas(gcf, [rep 'anim-' znum2str(it,3) '.png']);
 
 % number of points
 N = 6;
@@ -65,14 +67,14 @@ elist = .003 + .4*linspace(0,1,q).^2;
 for it=1:q
     epsilon = elist(it);
     
-    options.niter = 5000;
+    options.niter = 40000;
     [u,v,gamma,Wprimal,Wdual,err] = sinkhorn_log(mu,nu,c,epsilon,options);
     
     %%
     % Display results using Brownian Bridges
     
     sigma = .08*sqrt(epsilon);
-    if epsilon<.01
+    if it==1 % epsilon<.01
         sigma=0;
     end
     
