@@ -19,11 +19,18 @@ The Kullback-Leibler divergence is defined as
 }
 with the convention $0\log(0)=0$ and $\KLD(\P|\Q)=+\infty$ if there exists some $(i,j)$ such that $\Q_{i,j}=0$ but $\P_{i,j} \neq 0$. 
 %
-The special case $\KLD(\P|\ones)$ corresponds to minus the Shannon-Boltzmann entropy. 
+The special case $\KLD(\P|\ones_{n \times m})$ corresponds to minus the Shannon-Boltzmann entropy
+\eq{
+	\HD( \P ) = -\KLD(\P|\ones_{n \times m}) = -\sum_{i,j} \P_{i,j} \log(\P_{i,j}). 
+}
 %
 The function $\KLD(\cdot|\Q)$ is strongly convex, because its hessian is $\partial^2 \KLD(\P|\Q)=\diag(1/\P_{i,j})$ and $\P_{i,j} \leq 1$. 
 %
-Note that since in what follows $\P$ and $\Q$ are actually probability distributions, one has $\KLD(\P|\Q) \eqdef \sum_{i,j}  \P_{i,j} \log\pa{\frac{\P_{i,j}}{\Q_{i,j}}}$, but considering the extra terms gives cleaner expressions, in particular $\nabla \KLD(\P|\Q) = \log(\P/\Q)$ and duality formula reads more nicely. And for later, it will be important to have this normalization when considering unbalanced OT (see Section~\ref{sec-unbalanced}).
+Note that since in what follows $\P$ and $\Q$ are actually probability distributions, one has 
+\eq{
+	\KLD(\P|\Q) = \sum_{i,j}  \P_{i,j} \log\pa{\frac{\P_{i,j}}{\Q_{i,j}}},
+} 
+but considering the extra terms gives cleaner expressions, in particular $\nabla \KLD(\P|\Q) = \log(\P/\Q)$ and duality formula reads more nicely. And for later, it will be important to have this normalization when considering unbalanced OT (see Section~\ref{sec-unbalanced}).
 
 $\KL$ is a particular instance (and actually the unique case) of both a $\phi$-divergence (as defined in Section~\ref{sec-phi-div}) and a Bregman divergence. This unique property is at the heart of the fact that this regularization leads to elegant algorithms and a tractable mathematical analysis. One thus has $\KLD(\P|\Q) \geq 0$ and  $\KLD(\P|\Q)=0$ if and only if $\P=\Q$ (see Proposition~\ref{phi-div-positive}).
 
@@ -59,7 +66,9 @@ This follows from
 } 
 \end{proof}
 
-This choice of normalization is however important to deal with situation where the support of $\a$ and $\b$ can change, and in particular when later we will deal with possibly continuous distribution. It also affect the values of the cost $\MKD_\C^\epsilon(\a,\b)$ and this normalization will be instrumental to define a proper Sinkhorn divergence. 
+In the case where $\a_i>0$ and $\b_j>0$ (full support histogram), one could thus replace the reference measure $\a \otimes \b$ by $\ones_{n \times m}$, and thus regularize using the penalty $\HD(\P)$ in place of $\KL(\P|\a \otimes \b)$, resulting in the same solution.
+%
+The choice of using the reference measure $\a \otimes \b$ is however important to deal with situation where the support of $\a$ and $\b$ can change (so that some coordinate of $\a$ or $\b$ might vanish), and more importantly in the following section which dealds with possibly continuous distributions. Note that it also affect the values of the cost $\MKD_\C^\epsilon(\a,\b)$.
 
 
 % Figure~\ref{fig-impact-eps} illustrates the effect of the entropy to regularize a linear program over the simples $\simplex_3$ (which can thus be visualized as a triangle in 2-D). Note how the entropy pushes the original LP solution away from the boundary of the triangle. The optimal $\P_\epsilon$ progressively moves toward an ``entropic center'' of the triangle. This is further detailed in the proposition below. The convergence of the solution of that regularized problem towards an optimal solution of the original linear program has been studied by~\cite{CominettiAsympt}.
@@ -116,18 +125,18 @@ One has
  	}
  	Since $\HD$ is continuous, taking the limit $\ell \rightarrow +\infty$ in this expression shows that 
  	$\dotp{\C}{\P^\star} = \dotp{\C}{\P}$ so that $\P^\star$ is a feasible point of~\eqref{eq-entropy-conv-1}. Furthermore, dividing by $\epsilon_\ell$ in~\eqref{eq-proof-gamma-conv} and taking the limit shows that 
- 	$\KLD(\P|\a \otimes \b) \leq \KLD(\P^\star|\a \otimes \b)$, which shows that $\P^\star$ is a solution of~\eqref{eq-entropy-conv-1}. Since the solution $\P_0^\star$ to this program is unique by strict convexity of $\KL(\cdot|\a \otimes \b)$, one has $\P^\star = \P_0^\star$, and the whole sequence is converging. 
+ 	$\KLD(\P|\a \otimes \b) \leq \KLD(\P^\star|\a \otimes \b)$, which shows that $\P^\star$ is a solution of~\eqref{eq-entropy-conv-1}. Since the solution $\P_0^\star$ to this program is unique by strict convexity of $\KLD(\cdot|\a \otimes \b)$, one has $\P^\star = \P_0^\star$, and the whole sequence is converging. 
 	
 	
 	\textbf{Case $\epsilon \rightarrow +\infty$.} Evaluating at $\a \otimes \b$ the energy, one has
 	\eq{
-		\dotp{\C}{\P_\epsilon} + \epsilon \KL(\P_\epsilon|\al \otimes \be) \leq \dotp{\C}{\al \otimes \be} + \epsilon \times 0
+		\dotp{\C}{\P_\epsilon} + \epsilon \KLD(\P_\epsilon|\a \otimes \b) \leq \dotp{\C}{\a \otimes \b} + \epsilon \times 0
 	}
 	and since $\dotp{\C}{\P_\epsilon} \geq 0$, this leads to
 	\eq{
-		\KL(\P_\epsilon|\al \otimes \be) \leq \epsilon^{-1} \dotp{\C}{\al \otimes \be} \leq \frac{\norm{\C}_\infty}{\epsilon}
+		\KLD(\P_\epsilon|\a \otimes \b) \leq \epsilon^{-1} \dotp{\C}{\a \otimes \b} \leq \frac{\norm{\C}_\infty}{\epsilon}
 	}
-	so that $\KL(\P_\epsilon|\al \otimes \be) \rightarrow 0$ and thus $\P_\epsilon \rightarrow \al \otimes \be$ since $\KL$ is a valid divergence.
+	so that $\KLD(\P_\epsilon|\a \otimes \b) \rightarrow 0$ and thus $\P_\epsilon \rightarrow \a \otimes \b$ since $\KLD$ is a valid divergence.
 \end{proof}
 
 
@@ -199,12 +208,17 @@ The following proposition shows that the solution of~\eqref{eq-regularized-discr
 $\P$ is the unique solution to~\eqref{eq-regularized-discr} if and only if there exists  $(\uD,\vD) \in \RR_+^n \times \RR_+^m$ such that 
 \eql{\label{eq-scaling-form}
 	\foralls (i,j) \in \range{n} \times \range{m}, \quad \P_{i,j} = \uD_i \K_{i,j} \vD_j
+	\qwhereq \K_{i,j} \eqdef e^{-\frac{-\C_{i,j}}{\epsilon}}, 
 }
-and $\P \in \Couplings(\a,\be)$.
+and $\P \in \Couplings(\a,\b)$.
 \end{prop} 
 
 \begin{proof} 
-Introducing two dual variables $\fD\in\RR^n,\gD\in\RR^m$ for each marginal constraint, the Lagrangian of~\eqref{eq-regularized-discr} reads
+Without loss of generality, we assume $\a_i,\b_j>0$ (otherwise, we can set the corresponding $\uD_i$ or $\vD_j$ to 0).
+
+The first thing to prove is that if $\P^\star$ is the solution (which is unique by strict convexity of the entropy) then $\P_{i,j}^\star>0$ for all $(i,j)$. Indeed, if $\P_{i,j}^\star=0$, then we can consider $\P_t = (1-t)\P^\star + t \a \otimes \b$, which satisfies the marginal constraint for $t \in [0,1]$. One then check that, denoting $\Ee(\P) \eqdef \dotp{\P}{\C}+\KLD(\P|\a \otimes \b)$ the objective function, and $f(t) \eqdef \Ee(\P_t)$, then $f'(0) = -\infty$, so that for $t$ small enough, $\Ee(\P_t)<\Ee(\P^\star)$ which is a contradiction.
+
+We can thus ignore the positivity constraint when introducing two dual variables $\fD\in\RR^n,\gD\in\RR^m$ for each marginal constraint, so that the Lagrangian of~\eqref{eq-regularized-discr} reads
 \eq{\label{eq-sinkhorn-lagrangian}
 	\Lag(\P,\fD,\gD)= \dotp{\P}{\C} + \epsilon \KLD(\P|\a \otimes \b) + \dotp{\fD}{\a - \P\ones_m} + \dotp{\gD}{\b - \transp{\P}\ones_n}.
 }

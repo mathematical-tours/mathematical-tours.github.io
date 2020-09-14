@@ -24,7 +24,7 @@ for L=0:Lmax
         view(3); camlight; 
         set(gca, 'CameraViewAngle', 10)
         drawnow;
-        saveas(gcf, [rep 'spharm-' num2str(L) '-' num2str(M) '.png' ]);
+        % saveas(gcf, [rep 'spharm-' num2str(L) '-' num2str(M) '.png' ]);
     end
 end
 
