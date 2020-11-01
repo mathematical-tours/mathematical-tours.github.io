@@ -1,0 +1,579 @@
+ 
+\chapter{\Matlab{} Programs}
+ 
+ 
+Here is the set of \Matlab{} programs mentioned in the previous chapters. Each \listingterme{} constitutes a separate file. Most of them are \textit{procedures}, this means that these programs must be copied into a file with the same name. For example, the procedure \texttt{fht} is written in the file \texttt{fht.m}.
+ 
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - FWT algorithm                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{FWT Algorithm}
+% \addcontentsline{toc}{section}{FWT algorithm}
+\label{sect1-listing-fwt}
+ 
+\index{Algorithm!FWT} \index{FWT} The \listingterme{} \texttt{fwt} is a \Matlab{} implementation of the \textit{fast Walsh transform} algorithm presented in Paragraph~\ref{sect2-fwt}. It is recursive, but does not use additional memory, so is relatively efficient. Note that up to a factor of $ 1 / N $, the Walsh transform is its own inverse, so the routine does not include a parameter to calculate the inverse transform (just divide the result by $ N $) .
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = fwt (x)} \\
+\texttt{N = length (x); \textit{\% N must be a power of 2}} \\
+\texttt{\pif{} (N == 1) y = x; \preturn{}; \pend{};} \\
+\texttt{P = N / 2;} \\
+\texttt{x = [fwt (x (1: P)); fwt (x ((P + 1): N))];} \\
+\texttt{y = zeros (N, 1);} \\
+\texttt{y (1: P) = x (1: P) + x ((P + 1): N);} \\
+\texttt{y ((P + 1): N) = x (1: P) - x ((P + 1): N);} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape fwt}}
+ 
+\label{listing-fwt}
+\end{listing}
+ 
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - FHT algorithm                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{FHT Algorithm}
+% \addcontentsline{toc}{section}{FHT algorithm}
+\label{sect1-listing-fht}
+ 
+\index{Algorithm!FHT} \index{FHT} The paragraph \ref{sect2-algo-de-calcul-hartley}, explains the operation of the \textit{fast Hartley transform} algorithm. Here is a \Matlab{} implementation of this algorithm. \begin{rs}
+\item Procedure \texttt{fht} (\listingterme{} \ref{listing-fht}): the FHT algorithm itself. To calculate the inverse Hartley transform, just use the \texttt{fht} routine and divide the result by $ N $, the length of the sample.
+\item Procedure \texttt{operator\_chi} (\listingterme{} \ref{listing-operator_chi}): used to calculate the operator $ \chi_N^x $.
+\item Procedure \texttt{fht\_convol} (\listingterme{} \ref{listing-fht_convol}): used to calculate the convolution of two real signals using the FHT algorithm.
+\end{rs}
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = fht (f)} \\
+\texttt{\textit{\% N must be a power of 2}} \\
+\texttt{N = length (f); N1 = N / 2;} \\
+\texttt{\pif{} (N == 1) y = f; \preturn{}; \pend{};} \\
+\texttt{y = zeros (size (f));} \\
+\texttt{\textit{\% construction of the two sub-vectors}} \\
+\texttt{f\_p = f(1: 2: N); f\_i = f(2: 2: N);} \\
+\texttt{\textit{\% recursive calls}} \\
+\texttt{f\_p = fht (f\_p); f\_i = fht (f\_i);} \\
+\texttt{\textit{\% application of the chi operator}} \\
+\texttt{f\_i = operator\_chi (f\_i, 0.5);} \\
+\texttt{\textit{\% mix of the two results}} \\
+\texttt{y (1: N1) = f\_p + f\_i; y ((N1 + 1): N) = f\_p - f\_i;} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape fht}}
+ 
+\label{listing-fht}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = operator\_chi (a, x)} \\
+\texttt{N = length (a); a\_inv = [a (1); a (N: -1: 2)];} \\
+\texttt{y = a. * cos (2 * pi * x * (0: N-1) '/ N) + a\_inv. * sin (2 * pi * x * (0: N-1)' / NOT );}\\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape operator\_chi}}
+ 
+\label{listing-operator_chi}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = fht\_convol (x, y)} \\
+\texttt{\textit{\% N must be a power of 2}} \\
+\texttt{N = length (x); y = zeros (size (x));} \\
+\texttt{a = fht (x); b = fht (y);} \\
+\texttt{a\_inv = [a (1); a (N: -1: 2)];} \\
+\texttt{b\_inv = [b (1); b (N: -1: 2)];} \\
+\texttt{y = 0.5 * (a. * b - a\_inv. * b\_inv + a. * b\_inv + a\_inv. * b);} \\
+\texttt{y = fht (y) / N;} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape fht\_convol}}
+ 
+\label{listing-fht_convol}
+\end{listing}
+ 
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - FFT algorithm                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{FFT Algorithm}
+% \addcontentsline{toc}{section}{FFT algorithm}
+\label{sect1-listing-fft}
+ 
+Here are the different implementations of the FFT algorithm presented in detail in paragraphs \ref{sect2-present-algo-fft}, \ref{sect2-impl-concrete} and \ref{sect2-frequency-decimation}. \begin{rs}
+\item Procedure \texttt{fft\_rec} (\listingterme{} \ref{listing-fft-rec}): naive and recursive version of the algorithm (temporal decimation).
+\item Procedure \texttt{fft\_dit} (\listingterme{} \ref{listing-fft_dit}): efficient implementation (both in memory use and in speed) of the algorithm (non-recursive and temporal decimation).
+\item Procedure \texttt{fft\_dif} (\listingterme{} \ref{listing-fft_dif}): frequency decimation version of the algorithm.
+\item Procedure \texttt{operator\_s} (\listingterme{} \ref{listing-operator_s}): implementation of the operator $ \mathcal{S} $.
+\item Procedure \texttt{rev\_bits} (\listingterme{} \ref{listing-rev_bits}): classifies the vector according to the reverse direction of the index bits.
+\item Procedure \texttt{rev\_index} (\listingterme{} \ref{listing-rev_index}): calculate the integer obtained by inverting the bits of another integer.
+\end{rs} It should be borne in mind that these \Matlab{} programs are primarily intended for teaching. The implementation is far from being as efficient as those that can be achieved in a fast language (eg in C). There is a lot of software available on the internet which is very powerful, for example \textit{FFTW} \cite{fftw-software}.
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = fft\_rec (f, dir)} \\
+\texttt{\textit{\% N must be a power of 2}} \\
+\texttt{N = length (f); N1 = N / 2;} \\
+\texttt{\pif{} (N == 1) y = f; \preturn{} \pend{};} \\
+\texttt{y = zeros (size (f));} \\
+\texttt{\textit{\% construction of the two sub-vectors}} \\
+\texttt{f\_p = f(1: 2: N); f\_i = f(2: 2: N);} \\
+\texttt{\textit{\% recursive calls}} \\
+\texttt{f\_p = fft\_rec (f\_p, dir);} \\
+\texttt{f\_i = fft\_rec (f\_i, dir);} \\
+\texttt{\textit{\% application of the S operator}} \\
+\texttt{f\_i = operator\_s (f\_i, dir * 0.5);} \\
+\texttt{\textit{\% mix of the two results}} \\
+\texttt{y (1: N1) = f\_p + f\_i; y ((N1 + 1): N) = f\_p - f\_i;} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape fft\_rec}}
+ 
+\label{listing-fft-rec}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = fft\_dit (f, dir)} \\
+\texttt{\textit{\% N must be a power of 2}} \\
+\texttt{N = length (f); ldn = floor (log2 (N));} \\
+\texttt{f = rev\_bits (f);} \\
+\texttt{\pfor ldm = 1: ldn} \\
+\quad \texttt{m = 2{\hatverb} ldm; m1 = m / 2;} \\
+\quad \texttt{\pfor j = 0: m1-1} \\
+\quad \quad \texttt{e = exp (-dir * 2.0i * pi * j / m);} \\
+\quad \quad \texttt{\pfor r = 0: m: Nm} \\
+\quad \quad \quad \texttt{u = f(r + j + 1); v = f(r + j + m1 + 1) * e;} \\
+\quad \quad \quad \texttt{f(r + j + 1) = u + v; f(r + j + m1 + 1) = u - v;} \\
+\quad \quad \texttt{\pend} \\
+\quad \texttt{\pend} \\
+\texttt{\pend} \\
+\texttt{y = f;} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape fft\_dit}}
+ 
+\label{listing-fft_dit}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = fft\_dif(f, dir)} \\
+\texttt{\textit{\% N must be a power of 2}} \\
+\texttt{N = length (f); ldn = floor (log2 (N));} \\
+\texttt{\pfor ldm = ldn: -1: 1} \\
+\quad \texttt{m = 2{\hatverb} ldm; m1 = m / 2;} \\
+\quad \texttt{\pfor j = 0: m1-1} \\
+\quad \quad \texttt{e = exp (-dir * 2.0i * pi * j / m);} \\
+\quad \quad \texttt{\pfor r = 0: m: N-1} \\
+\quad \quad \quad \texttt{u = f(r + j + 1); v = f(r + j + m1 + 1);} \\
+\quad \quad \quad \texttt{f(r + j + 1) = u + v; f(r + j + m1 + 1) = (uv) * e;} \\
+\quad \quad \texttt{\pend} \\
+\quad \texttt{\pend} \\
+\texttt{\pend} \\
+\texttt{\textit{\% put the transformed vector back in the correct order}} \\
+\texttt{y = rev\_bits (f);} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape fft\_dif}}
+ 
+\label{listing-fft_dif}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = operator\_s (a, x)} \\
+\texttt{N = length (a);} \\
+\texttt{y = a. * exp (-2.0i * x * (0: N-1) '* pi / N);} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape operator\_s}}
+ 
+\label{listing-operator_s}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = rev\_bits (x)} \\
+\texttt{n = length (x); t = floor (log2 (n)); y = zeros (n, 1);} \\
+\texttt{\pfor i = 0: n-1} \\
+\quad \texttt{j = rev\_index (t, i); y (j + 1) = x (i + 1);} \\
+\texttt{\pend} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape rev\_bits}}
+ 
+\label{listing-rev_bits}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = rev\_index (t, index)} \\
+\texttt{y = 0; tmp = index;} \\
+\texttt{\pfor i = 0: t-1} \\
+\quad \texttt{bit = mod (tmp, 2);} \\
+\quad \texttt{tmp = floor (tmp / 2);} \\
+\quad \texttt{y = y * 2 + bit;} \\
+\texttt{\pend} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape rev\_index}}
+ 
+\label{listing-rev_index}
+\end{listing}
+ 
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - Multiplication of large integers by FFT                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{Multiplication of large integers by FFT}
+% \addcontentsline{toc}{section}{Multiplication of large integers by FFT}
+\label{sect1-listing-mult-integers}
+ 
+\index{Integer!multiplication} The following \Matlab{} programs allow you to multiply large integers represented by their decomposition in a given $ b $ base. \begin{rs}
+\item Procedure \texttt{mult\_entiers} (\listingterme{} \ref{listing-mult-integers}): allows to multiply two integers represented as vectors. We must of course provide the base used.
+\item Procedure \texttt{number2vector} (\listingterme{} \ref{listing-number2vector}): practical function which allows to pass from the representation in the form of an integer to the representation in the form of a vector (of limited interest however , because \Matlab{} does not handle integers of arbitrary size).
+\item Procedure \texttt{vector2number} (\listingterme{} \ref{listing-vector2number}): inverse function of the previous one.
+\item File \texttt{test\_mult\_entiers.m} (\listingterme{} \ref{listing-test-mult-integers}): small test program.
+\end{rs}
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction r = mult\_integer (x, y, b)} \\
+\texttt{N = length (x);} \\
+\texttt{\textit{\% add zeros for acyclic convolution}} \\
+\texttt{x = [x; zeros (N, 1)]; y = [y; zeros (N, 1)];} \\
+\texttt{\textit{\% calculate the convolution}} \\
+\texttt{r = round (real (ifft (fft (x). * fft (y))));} \\
+\texttt{\pfor i = 1: 2 * N-1 \textit{\% remove the retainers}} \\
+\quad \texttt{q = floor (r (i) / b);} \\
+\quad \texttt{r (i) = r (i) -q * b; r (i + 1) = r (i + 1) + q;} \\
+\texttt{\pend} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape mult\_entiers}}
+ 
+\label{listing-mult-integers}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = number2vector (x, b)} \\
+\texttt{N = floor (log (x) / log (b)) +1; y = zeros (N, 1);} \\
+\texttt{\pfor i = 1: N} \\
+\quad \texttt{q = floor (x / b); y (i) = x - q * b; x = q;} \\
+\texttt{\pend} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape number2vector}}
+ 
+\label{listing-number2vector}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = vector2number (v, b)} \\
+\texttt{N = length (v); y = sum (v. * (b.{\hatverb} (0: N-1) '));} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{Procedure \texttt{\upshape vector2number}}
+ 
+\label{listing-vector2number}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+ 
+ 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{x = 262122154512154212; y = 314134464653513212;} \\
+\texttt{b = 20; \textit{\% the base}} \\
+\texttt{xx = number2vector (x, b); yy = number2vector (y, b);} \\
+\texttt{zz = mult\_integers (xx, yy, b); z = vector2number (zz, b);} \\
+\texttt{z - x * y \textit{\% the result must be zero}} \\
+\end{tabular}
+}
+ 
+\noindent \end{footnotesize}
+ 
+\caption{File \texttt{test\_mult\_entiers.m}}
+ 
+\label{listing-test-mult-integers}
+\end{listing}
+ 
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - Solving the Poisson equation                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{Solving the Poisson equation}
+% \addcontentsline{toc}{section}{Solving the Poisson equation}
+\label{sect1-listing-fish}
+ 
+Here are the different files to implement the resolution of the Poisson equation described in Paragraph~\ref{sect2-resol-eq-Poisson}. \begin{rs}
+\item File \texttt{poisson.m} (\listingterme{} \ref{fish-listing}): main file, builds the different matrices, calculates the FFTs in 2D and solves the convolution equation.
+\item Procedure \texttt{f} (\listingterme{} \ref{listing-f}): the right side of the equation. This is the function $ f(x, \, y) = (x^2 + y^2) e^{xy} $. It is calculated so that the solution is known in advance.
+\item Procedure \texttt{sol} (\listingterme{} \ref{listing-sol}): the exact solution of the equation (we cheat a bit, we use an equation for which we already know the solution!). We took $ s (x, \, y) = e^{xy} $. Its Laplacian is therefore the function $ f $ of the file \texttt{fm}.
+\item Procedure \texttt{u\_0y}, \texttt{u\_1y.m}, \texttt{u\_x0.m} and \texttt{u\_x1.m} (\listingterme{} type: \ref{listing-u_0y}): value of the solution $ u $ on each of the edges $ x = 0 $, $ x = 1 $, $ y = 0 $ and $ y = 1 $. We only reported the \listingterme{} of the \texttt{u\_0y.m} function, the others being written in the same way.
+\end{rs} The choice of the solution function is perfectly arbitrary; we can make tests with other functions (taking care to update the value of the Laplacian in the \texttt{fm} file). One will be able to make tests with conditions on the arbitrary edge (but one will not have any more exact solution of reference ...). Likewise, it is easy to change the precision of the resolution to observe the convergence of the error made by the finite difference method.
+
+\begin{listing} 
+\begin{footnotesize}
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\textit{\% some constants}} \\
+\texttt{N = 30; h = 1 / N; nb\_iter = 30;} \\
+\texttt{M = zeros (N + 1, N + 1); f\_val = zeros (N-1, N-1);} \\
+\texttt{\textit{\% we start with x = h (only the center points)}} \\
+\texttt{\pfor i = 1: N-1 \textit{\% calculation of the right hand side}} \\
+\quad \texttt{\pfor j = 1: N-1} \\
+\quad \quad \texttt{x = i * h; y = j * h;} \\
+\quad \quad \texttt{f\_val (i, j) = f(x, y);} \\
+\quad \texttt{\pend} \\
+\texttt{\pend} \\
+\texttt{\pfor i = 1: N-1 \textit{\% addition of boundary terms}} \\
+\quad \texttt{x = i * h;} \\
+\quad \texttt{f\_val (i, 1) = f\_val (i, 1) - 1 / h{\hatverb} 2 * f\_0y (x);} \\
+\quad \texttt{f\_val (i, N-1) = f\_val (i, N-1) - 1 / h{\hatverb} 2 * f\_1y (x);} \\
+\quad \texttt{f\_val (1, i) = f\_val (1, i) - 1 / h{\hatverb} 2 * f\_x0 (x);} \\
+\quad \texttt{f\_val (N-1, i) = f\_val (N-1, i) - 1 / h{\hatverb} 2 * f\_x1 (x);} \\
+\texttt{\pend} \\
+\texttt{\textit{\% we make the matrix odd}} \\
+\texttt{ff = [zeros (N-1,1), f\_val, zeros (N-1,1), - f\_val (:, N-1: -1: 1)];} \\
+\texttt{ff = [zeros (1,2 * N); ff; zeros (1.2 * N); -ff(N-1: -1: 1,:)];} \\
+\texttt{ff = fft2 (ff); \textit{\% we calculate the FFT}} \\
+\texttt{d = -4 / h{\hatverb} 2 * sin ((0: 2 * N-1) * pi / (2 * N)).{\hatverb} 2;} \\
+\texttt{\pfor i = 1: 2 * N \textit{\% system resolution d * u + u * d = ff}} \\
+\quad \texttt{\pfor j = 1: 2 * N} \\
+\quad \quad \texttt{s = d (i) + d (j);} \\
+\quad \quad \texttt{\pif{} (s == 0) s = 1; \pend{}; \textit{\% avoid division by 0}} \\
+\quad \quad \texttt{ff(i, j) = ff(i, j) / s;} \\
+\quad \texttt{\pend} \\
+\texttt{\pend} \\
+\texttt{ff = real (ifft2 (ff)); \textit{\% we calculate the inverse transform}} \\
+\texttt{\textit{\% we extract the solution}} \\
+\texttt{u = zeros (N + 1, N + 1); u (2: N, 2: N) = ff(2: N, 2: N);} \\
+\texttt{\pfor i = 1: N + 1 \textit{\% we put the boundary terms}} \\
+\quad \texttt{x = (i-1) * h;} \\
+\quad \texttt{u (i, 1) = f\_0y (x); u (i, N + 1) = f\_1y (x);} \\
+\quad \texttt{u (1, i) = f\_x0 (x); u (N + 1, i) = f\_x1 (x);} \\
+\texttt{\pend} \\
+\texttt{surf(u); title ('Resolution by FFT');} \\
+\end{tabular}
+}
+\noindent \end{footnotesize}
+ 
+\caption{File \texttt{poisson.m}}
+ 
+\label{fish-listing}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction r = f(x, y)} \\
+\texttt{r = (x{\hatverb} 2 + y{\hatverb} 2) * exp (x * y);} \\
+\end{tabular}
+}
+\noindent \end{footnotesize}
+\caption{Procedure \texttt{\upshape f}}
+\label{listing-f}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction r = sol (x, y)} \\
+\texttt{r = exp (x * y);} \\
+\end{tabular}
+}
+\noindent \end{footnotesize}
+\caption{Procedure \texttt{\upshape sol}}
+\label{listing-sol}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction r = f\_0y (y)} \\
+\texttt{r = sol (0, y);} \\
+\end{tabular}
+}
+\noindent \end{footnotesize}
+\caption{Procedure \texttt{\upshape u\_0y}}
+\label{listing-u_0y}
+\end{listing}
+ 
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - Solving the heat equation                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{Solving the heat equation}
+% \addcontentsline{toc}{section}{Solving the heat equation}
+\label{sect1-listing-heat}
+ 
+The programs which follow allow to solve the heat equation by the method described in Paragraph~\ref{sect2-resol-eq-heat}. \begin{rs}
+\item File \texttt{heat.m} (\listingterme{} \ref{heat-listing}): calculate the solution of the equation for different time values by calling the \listingterme{} \texttt{solve\_eq. m}, then draw the evolution of the solution.
+\item Procedure \texttt{solve\_eq} (\listingterme{} \ref{listing-solve_eq}): solve the heat equation for a given time by calculating the Fourier coefficients by FFT.
+\item Procedure \texttt{f} (\listingterme{} \ref{listing-f-heat}): the initial distribution of heat at time $ t = 0 $. We have taken here a step function (therefore discontinuous).
+\end{rs} Of course, it is easy to modify these programs, especially to experiment with different initial conditions, as well as with other values of the time parameter.
+
+\begin{listing} \begin{footnotesize} 
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\textit{\% number of interpolation points for the calculation of the integral}} \\
+\texttt{M = 2{\hatverb} 8; h = 1 / M;} \\
+\texttt{\textit{\% value of f at interpolation points}} \\
+\texttt{f\_val = zeros (M, 1);} \\
+\texttt{\pfor{} (i = 1: M) f\_val (i) = f((i-1) * h); \pend{};} \\
+\texttt{\textit{\% calculation of the fft}} \\
+\texttt{dft\_val = fft (f\_val);} \\
+\texttt{\textit{\% calculation of the fourier coefficients}} \\
+\texttt{fcoef = zeros (M, 1);} \\
+\texttt{\pfor n = 1: M} \\
+\quad \texttt{i = 1 + mod (- (n-1), M); \textit{\% we must reverse the clues}} \\
+\quad \texttt{fcoef(n) = h * dft\_val (i);} \\
+\texttt{\pend} \\
+\texttt{\textit{\% draw an evolution of the solution}} \\
+\texttt{\pfor t = [0.01,0.02,0.03,0.04,0.05,0.06]} \\
+\quad \texttt{xx = [xx, real (solve\_eq (0, fcoef))];} \\
+\texttt{\pend} \\
+\texttt{plot (xx);} \\
+\end{tabular}
+}
+\noindent \end{footnotesize}
+\caption{File \texttt{heat.m}}
+\label{heat-listing}
+\end{listing}
+
+\begin{listing} \begin{footnotesize}
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction u = solve\_eq (t, fcoef\_val)} \\
+\texttt{prec = 300; h = 1 / prec; \textit{\% plot precision}} \\
+\texttt{u = zeros (prec + 1, 1);} \\
+\texttt{M = length (fcoef\_val); \textit{\% size of solution}} \\
+\texttt{v = [0: M / 2, -M / 2 + 1: -1] '; \textit{\% coefficient frequencies}} \\
+\texttt{\textit{\% calculate the solution}} \\
+\texttt{\pfor i = 0: prec} \\
+\quad \texttt{x = i * h;} \\
+\quad \texttt{w = exp (-2.0 * pi * pi * t * v. * v + 2.0i * pi * x * v). * fcoef\_val;} \\
+\quad \texttt{u (i + 1) = sum (w);} \\
+\texttt{\pend} \\
+\end{tabular}
+}
+\noindent \end{footnotesize}
+\caption{Procedure \texttt{\upshape solve\_eq}}
+\label{listing-solve_eq}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+\noindent
+{\upshape
+\begin{tabular}{l} \texttt{\pfunction y = f(x)} \\
+\texttt{\pif{} (x <0.3) y = 0;} \\
+\texttt{\pelseif{} (x <0.7) y = 1;} \\
+\texttt{\pelse y = 0;} \\
+\texttt{\pend} \\
+\end{tabular}
+} 
+\noindent \end{footnotesize}
+\caption{Procedure \texttt{\upshape f}}
+\label{listing-f-heat}
+\end{listing}
+

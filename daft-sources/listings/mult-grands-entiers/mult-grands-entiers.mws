@@ -1,0 +1,81 @@
+{VERSION 5 0 "IBM INTEL NT" "5.0" }
+{USTYLETAB {CSTYLE "Maple Input" -1 0 "Courier" 0 1 255 0 0 1 0 1 0 0 
+1 0 0 0 0 1 }{CSTYLE "2D Math" -1 2 "Times" 0 1 0 0 0 0 0 0 2 0 0 0 0 
+0 0 1 }{CSTYLE "2D Comment" 2 18 "" 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 }
+{CSTYLE "2D Output" 2 20 "" 0 1 0 0 255 1 0 0 0 0 0 0 0 0 0 1 }
+{CSTYLE "" -1 256 "Helvetica" 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 }
+{PSTYLE "Normal" -1 0 1 {CSTYLE "" -1 -1 "Times" 1 12 0 0 0 1 2 2 2 2 
+2 2 1 1 1 1 }1 1 0 0 0 0 1 0 1 0 2 2 0 1 }{PSTYLE "Maple Output" -1 
+11 1 {CSTYLE "" -1 -1 "Times" 1 12 0 0 0 1 2 2 2 2 2 2 1 1 1 1 }3 3 0 
+0 0 0 1 0 1 0 2 2 0 1 }{PSTYLE "Normal" -1 256 1 {CSTYLE "" -1 -1 "Tim
+es" 1 12 0 0 0 1 2 2 2 2 2 2 1 1 1 1 }3 1 0 0 0 0 1 0 1 0 2 2 0 1 }
+{PSTYLE "Normal" -1 257 1 {CSTYLE "" -1 -1 "Helvetica" 1 12 0 0 0 1 2 
+1 2 2 2 2 1 1 1 1 }3 1 0 0 0 0 1 0 1 0 2 2 0 1 }}
+{SECT 0 {EXCHG {PARA 0 "" 0 "" {TEXT -1 43 "D\351finition des param
+\350tres de la transform\351e" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 50 "s := 4;\nn := 2^s;\nm := 2^(2^(s-1)) + 1;\nzeta := 2;" }}{PARA 
+11 "" 1 "" {XPPMATH 20 "6#>%\"sG\"\"%" }}{PARA 11 "" 1 "" {XPPMATH 20 
+"6#>%\"nG\"#;" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%\"mG\"$d#" }}{PARA 
+11 "" 1 "" {XPPMATH 20 "6#>%%zetaG\"\"#" }}}{EXCHG {PARA 0 "" 0 "" 
+{TEXT -1 26 "Sous-proc\351dure r\351cursive :" }}}{EXCHG {PARA 0 "> " 
+0 "" {MPLTEXT 1 0 630 "FFT_rec := proc(f, signe, racine)\n    local nn
+, n1, s, t, res;\n    nn := nops(f); n1 := nn/2; # taille du vecteur\n
+    if nn=1 then RETURN(f) end if; # fin de l'algorithme\n    # constr
+uction des deux sous-vecteurs de taille n1\n    s := [ seq(f[2*k+1], k
+=0..n1-1) ];\n    t := [ seq(f[2*k], k=1..n1) ];\n    # calcul des deu
+x sous-FFT :\n    s := FFT_rec(s, signe, racine^2 mod m);\n    t := FF
+T_rec(t, signe, racine^2 mod m);\n    # mixage des deux r\351sultats\n
+    res := [ seq( s[k]+racine^(-signe*(k-1))*t[k] mod m,  k=1..n1 ) ];
+\n    res := [ op(res), seq( s[k]-racine^(-signe*(k-1))*t[k] mod m,  k
+=1..n1 ) ];\n    RETURN(res);\nend proc:" }}}{EXCHG {PARA 0 "" 0 "" 
+{TEXT -1 72 "Proc\351dure principale  (attention, le nom FFT est prot
+\351g\351 en Maple ...) :" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+142 "xFFT := proc(f, signe)\n    local res;\n    res := FFT_rec(f,sign
+e,2);\n    if signe=-1 then res := 1/n*res mod m;\n    else res; end i
+f\nend proc:" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 132 "hasard := \+
+rand(0..m-1):\nx := [seq( hasard(), i=1..n )];\ny := xFFT(x,+1); \neva
+lb( x = xFFT(y,-1) ); # On retombe bien sur nos pattes." }}{PARA 11 "
+" 1 "" {XPPMATH 20 "6#>%\"xG72\"$<#\"$?\"\"$]#\"#b\"$3\"\"#U\"$Y#\"$A
+\"\"$%>\"$'=\"\"&\"#y\"$g\"\"#c\"$N\"\"$\\#" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#>%\"yG72\"$n\"\"$#>\"#z\"\"\"\"$,\"\"$,#\"$\">\"$P\"\"$
+]\"\"$5\"\"$F\"\"$.#\"$U#\"#!*\"$v\"\"#@" }}{PARA 11 "" 1 "" {XPPMATH 
+20 "6#%%trueG" }}}{EXCHG {PARA 256 "" 0 "" {TEXT 256 48 "LE SCRIPT 'mu
+lt-grands-entiers.msw' COMMENCE ICI" }}}{EXCHG {PARA 0 "" 0 "" 
+{XPPEDIT 18 0 "b;" "6#%\"bG" }{TEXT -1 40 " d\351signe la base de calc
+ul. Il faut que " }{XPPEDIT 18 0 "n(b-1)^2 < m;" "6#2*$-%\"nG6#,&%\"bG
+\"\"\"F*!\"\"\"\"#%\"mG" }{TEXT -1 2 ". " }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 33 "b := floor( evalf(sqrt(m/n))+1 ):" }}}{EXCHG {PARA 0 
+"" 0 "" {TEXT -1 34 "Calcule le produit point \340 point :" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 61 "cw_mult := proc(a,b)\n   [seq( a[i]
+*b[i], i=1..n )]:\nend proc:" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 33 "T
+ransforme un entier en vecteur :" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 234 "number2vector := proc(x)\n    local N, res, i, r, q,
+ xx:\n    N := floor( log(x)/log(b) )+1;\n    res := []: xx := x:\n   \+
+ for i from 1 to N do\n        xx := iquo(xx,b,'r'):\n        res := [
+op(res), r]:\n    end:\n    RETURN(res):\nend proc:" }}}{EXCHG {PARA 
+0 "" 0 "" {TEXT -1 33 "Transforme un vecteur en entier :" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 71 "vector2number := proc(v)\n    add(v
+[k]*b^(k-1), k=1..nops(v));\nend proc:" }}}{EXCHG {PARA 0 "" 0 "" 
+{TEXT -1 35 "Calcule le produit de convolution :" }}}{EXCHG {PARA 0 ">
+ " 0 "" {MPLTEXT 1 0 74 "convol := proc(f,g)\n    xFFT( cw_mult(xFFT(f
+,1),xFFT(g,1)), -1):\nend proc:" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 
+80 "Calcule le produit de deux entiers repr\351sent\351s sous forme de
+ vecteurs de taille " }{XPPEDIT 18 0 "n;" "6#%\"nG" }{TEXT -1 17 ".\nA
+ttention, les " }{XPPEDIT 18 0 "n;" "6#%\"nG" }{TEXT -1 54 "/2 derni
+\350res entr\351es des vecteurs doivent \352tre nulles." }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 200 "prod_entiers := proc(x,y)\n    loc
+al res, i:\n    res := convol(x,y):\n    for i from 1 to n-1 do\n     \+
+   res[i] := irem(res[i],b,'q'):\n     \011  res[i+1] := res[i+1]+q;\n
+    end:\n    RETURN(res):\nend proc:" }}}{EXCHG {PARA 0 "" 0 "" 
+{TEXT -1 9 "Un test :" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 281 "h
+asard := rand(0..b-1):\nxx := [seq( hasard(), i=1..n/2 ), seq(0, i=1..
+n/2)]; \nyy := [seq( hasard(), i=1..n/2 ), seq(0, i=1..n/2)]; \nx := v
+ector2number(xx): y := vector2number(yy);\nzz := prod_entiers(xx,yy);
+\nevalb( vector2number(zz) = x*y ); # doit faire 0 si tout se passe bi
+en ..." }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%#xxG72\"\"%\"\"!F'\"\"$F(
+\"\"\"F'F&F'F'F'F'F'F'F'F'" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%#yyG72
+\"\"$\"\"!\"\"%\"\"\"F(\"\"#F&F'F'F'F'F'F'F'F'F'" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#>%\"yG\"&`e&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%#zzG7
+2\"\"#F&\"\"\"F'\"\"$F(F&F&F'\"\"!F(F(F&\"\"%F&F)" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#%%trueG" }}}}{MARK "0 0 0" 43 }{VIEWOPTS 1 1 0 1 1 
+1803 1 1 1 1 }{PAGENUMBERS 0 1 2 33 1 1 }

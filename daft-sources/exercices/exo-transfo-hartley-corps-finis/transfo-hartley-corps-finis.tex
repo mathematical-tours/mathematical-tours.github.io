@@ -1,0 +1,104 @@
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{\pwith(numtheory): n := 16: p := 5:
+liste_div := op(Factor( cyclotomic(n,X) ) mod p ):
+P := liste_div[1];
+\palias( zeta = RootOf(P) ): # racine nième primitive
+g := 2: # 2 est une racine carrée de -1 modulo 5}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{P := X^4+3;}{%
+\[
+P := X^{4} + 3
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{cas := \pproc{}(x)
+     1/2*( zeta^(x)*(1-g) + zeta^(-x)*(1+g) );
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Transformée de Hartley, version 
+\mapleinline{inert}{2d}{O(n^2);}{%
+$\mathrm{O}(n^{2})$%
+} :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{Hartley := \pproc{}(f)
+\quad \plocal res, formule;
+\quad formule := 'f[l+1]*cas((k-1)*l)';
+\quad res := [ seq( sum( formule, 'l'=0..n-1 ) mod p , k=1..n)  ];     
+\quad \preturn(Normal(res) mod p);
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Test simple :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{hasard := rand(0..(p-1)):
+x := [seq( hasard(), i=1..n )];
+y := simplify(Hartley(x));  # Hartley(x) n'est plus dans F_p.
+evalb( x = Hartley(y)/n mod p ); # doit être égal.}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{x := [0, 1, 1, 1, 2, 2, 1, 4, 0, 1, 2, 0, 1, 0, 2, 0];}{%
+\[
+x := [0, \,1, \,1, \,1, \,2, \,2, \,1, \,4, \,0, \,1, \,2, \,0, 
+\,1, \,0, \,2, \,0]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{y := [3, 3*zeta^2+4+4*zeta+3*zeta^3, 2+4*zeta^2, 1+4*zeta^3+3*zeta^2,
+3, 2*zeta^2+2*zeta+zeta^3+4, 2, 2*zeta^3+2*zeta^2+1, 0,
+zeta+2*zeta^3+3*zeta^2+4, 2+zeta^2, zeta^3+3*zeta^2+1, 1,
+3*zeta+4*zeta^3+2*zeta^2+4, 2, 2*zeta^2+3*zeta^3+1];}{%
+\maplemultiline{
+y := [3, \,3\,\zeta ^{2} + 4 + 4\,\zeta  + 3\,\zeta ^{3}, \,2 + 4
+\,\zeta ^{2}, \,1 + 4\,\zeta ^{3} + 3\,\zeta ^{2}, \,3, \,2\,
+\zeta ^{2} + 2\,\zeta  + \zeta ^{3} + 4, \,2,  \\
+2\,\zeta ^{3} + 2\,\zeta ^{2} + 1, \,0, \,\zeta  + 2\,\zeta ^{3}
+ + 3\,\zeta ^{2} + 4, \,2 + \zeta ^{2}, \,\zeta ^{3} + 3\,\zeta 
+^{2} + 1, \,1, \,3\,\zeta  + 4\,\zeta ^{3} + 2\,\zeta ^{2} + 4, 
+ \\
+2, \,2\,\zeta ^{2} + 3\,\zeta ^{3} + 1] }
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{true;}{%
+\[
+\mathit{true}
+\]
+%
+}
+\end{maplelatex}
+\end{maplegroup}

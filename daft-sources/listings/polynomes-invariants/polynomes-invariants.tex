@@ -1,0 +1,145 @@
+\begin{maplegroup}
+\begin{flushleft}
+Applique une matrice a un polynome :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{action_matrice := \pproc{}(A,p)
+\quad \plocal g,v,m;
+\quad v := array([[x],[y]]);
+\quad m := evalm(A&*v);
+\quad g := subs (\{x=m[1,1],y=m[2,1]\},p);
+\quad \preturn{}(g)
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Un exemple invariant :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{A:=1/sqrt(2)*matrix(2,2,[[1,1],[1,-1]]);
+expand( action_matrice(A,x^2+y^2) );}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{A := 1/2*sqrt(2)*matrix([[1, 1], [1, -1]]);}{%
+\[
+A := {\displaystyle \frac {1}{2}} \,\sqrt{2}\, \left[ 
+{\begin{array}{rr}
+1 & 1 \\
+1 & -1
+\end{array}}
+ \right] 
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{x^2+y^2;}{%
+\[
+x^{2} + y^{2}
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule l'opérateur de Reynolds :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{operateur_reynolds := \pproc{}(G,p)
+\quad \plocal i,r;  
+\quad r := (1/nops(G))*sum('action_matrice(G[k],p)','k'=1..nops(G));
+\quad \preturn{}(r)
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule des générateurs de l'anneau des invariants :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{polynomes_invariants := \pproc{}(G)
+\quad \plocal i,j,r;
+\quad r := [];
+\quad \pfor i \pfrom 1 \pto nops(G) \pdo
+\quad \pfor j \pfrom 0 \pto i \pdo
+\quad \quad r := [op(r),expand(operateur_reynolds(G,x^j*y^(i-j)))];
+\quad \pend \pdo{}: \pend \pdo{}:
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Un exemple en rapport aux codes auto-duaux, pour le cas où 2 divise
+les poids des mots du code :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{B:=matrix(2,2,[[-1,0],[0,-1]]):
+G:=[A,-A,B,-B]:
+polynomes_invariants( G, 4 );}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{[0, 0, 1/4*x^2-1/2*x*y+3/4*y^2, 1/4*x^2-1/4*y^2+1/2*x*y,
+3/4*x^2+1/2*x*y+1/4*y^2, 0, 0, 0, 0,
+1/8*x^4-1/2*x^3*y+3/4*x^2*y^2-1/2*x*y^3+5/8*y^4,
+1/8*x^4-1/4*x^3*y+3/4*x*y^3-1/8*y^4, 1/8*x^4+1/4*x^2*y^2+1/8*y^4,
+1/8*x^4+3/4*x^3*y-1/4*x*y^3-1/8*y^4,
+5/8*x^4+1/2*x^3*y+3/4*x^2*y^2+1/2*x*y^3+1/8*y^4];}{%
+\maplemultiline{
+[0, \,0, \,{\displaystyle \frac {1}{4}} \,x^{2} - {\displaystyle 
+\frac {1}{2}} \,x\,y + {\displaystyle \frac {3}{4}} \,y^{2}, \,
+{\displaystyle \frac {1}{4}} \,x^{2} - {\displaystyle \frac {1}{4
+}} \,y^{2} + {\displaystyle \frac {1}{2}} \,x\,y, \,
+{\displaystyle \frac {3}{4}} \,x^{2} + {\displaystyle \frac {1}{2
+}} \,x\,y + {\displaystyle \frac {1}{4}} \,y^{2}, \,0, \,0, \,0, 
+\,0,  \\
+{\displaystyle \frac {1}{8}} \,x^{4} - {\displaystyle \frac {1}{2
+}} \,x^{3}\,y + {\displaystyle \frac {3}{4}} \,x^{2}\,y^{2} - 
+{\displaystyle \frac {1}{2}} \,x\,y^{3} + {\displaystyle \frac {5
+}{8}} \,y^{4}, \,{\displaystyle \frac {1}{8}} \,x^{4} - 
+{\displaystyle \frac {1}{4}} \,x^{3}\,y + {\displaystyle \frac {3
+}{4}} \,x\,y^{3} - {\displaystyle \frac {1}{8}} \,y^{4},  \\
+{\displaystyle \frac {1}{8}} \,x^{4} + {\displaystyle \frac {1}{4
+}} \,x^{2}\,y^{2} + {\displaystyle \frac {1}{8}} \,y^{4}, \,
+{\displaystyle \frac {1}{8}} \,x^{4} + {\displaystyle \frac {3}{4
+}} \,x^{3}\,y - {\displaystyle \frac {1}{4}} \,x\,y^{3} - 
+{\displaystyle \frac {1}{8}} \,y^{4},  \\
+{\displaystyle \frac {5}{8}} \,x^{4} + {\displaystyle \frac {1}{2
+}} \,x^{3}\,y + {\displaystyle \frac {3}{4}} \,x^{2}\,y^{2} + 
+{\displaystyle \frac {1}{2}} \,x\,y^{3} + {\displaystyle \frac {1
+}{8}} \,y^{4}] }
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}

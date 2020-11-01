@@ -205,6 +205,8 @@ Beware that $\nabla f(x)$ can exist without $f$ being differentiable. Differenti
 } 
 %
 Here $R(\epsilon) = o(\norm{\epsilon})$ denotes a quantity which decays faster than $\epsilon$ toward $0$, i.e. $\frac{R(\epsilon)}{\norm{\epsilon}} \rightarrow 0$ as $\epsilon \rightarrow 0$. Existence of partial derivative corresponds to $f$ being differentiable along the axes, while differentiability should hold for any converging sequence of $\epsilon\rightarrow 0$ (i.e. not along along a fixed direction). 
+%
+A counter example in 2-D is $f(x)=\frac{2 x_1 x_2 (x_1+x_2)}{x_1^2+x_2^2}$ with $f(0)=0$, which is affine with different slope along each radial lines.
 
 Also, $\nabla f(x)$ is the only vector such that the relation~\eqref{eq-grad-dfn}. This means that a possible strategy to both prove that $f$ is differentiable and to obtain a formula for $\nabla f(x)$ is to show a relation of the form 
 \eq{
@@ -662,7 +664,7 @@ Note that a function of the form $\frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b}$ is con
 	%
 	The optimal value is reached at $\tau^\star = \frac{2}{L+\mu}$ and then 
 	\eq{
-		h(\tau^\star) = \left|.1 - \frac{2L}{L+\mu} \right| = \frac{L-\mu}{L+\mu}.
+		h(\tau^\star) = \left|1 - \frac{2L}{L+\mu} \right| = \frac{L-\mu}{L+\mu}.
 	}
 \end{proof}
 
@@ -691,7 +693,7 @@ If $\ker(A) \neq \{0\}$, then $C$ is not definite positive (some of its eigenval
 One can however still show a linear rate, by showing that actually the iterations $x_k$ are orthogonal to $\ker(A)$ and redo the above proof replacing $\mu$ by the smaller non-zero eigenvalue of $C$. This analysis however leads to a very poor rate $\rho$ (very close to 1) because $\mu$ can be arbitrary close to 0. Furthermore, such a proof does not extends to non-quadratic functions. It is thus necessary to do a different theoretical analysis, which only shows a sublinear rate on the objective function $f$ itself rather than on the iterates $x_k$.  
 
 \begin{prop}\label{prop-graddesc-quad-sublin}
-	For $f(x)=\dotp{Cx}{x}-\dotp{b}{x}$, assuming the eigenvalue of $C$ are bounded by $L$, then if $0<\tau_k=\tau < 2/L$ is constant, then
+	For $f(x)=\dotp{Cx}{x}-\dotp{b}{x}$, assuming the eigenvalue of $C$ are bounded by $L$, then if $0<\tau_k=\tau < 1/L$ is constant, then
 	\eq{
 		f(x_k)-f(x^\star) \leq \frac{\text{\upshape dist}(x_0,\argmin f)^2}{\tau 8 k}.
 	}
@@ -708,36 +710,40 @@ One can however still show a linear rate, by showing that actually the iteration
 	}
 	Now one has
 	\eq{
-		\frac{1}{2}\dotp{C(x_k-x^\star}{x_k-x^\star} = 
+		\frac{1}{2}\dotp{C(x_k-x^\star)}{x_k-x^\star} = 
 		\frac{1}{2}\dotp{Cx_k}{x_k} 
 		- \dotp{Cx_k}{x^\star}
 		+ \frac{1}{2} \dotp{Cx^\star}{x^\star}
 	}
 	and we have $\dotp{Cx_k}{x^\star} = \dotp{x_k}{Cx^\star} = \dotp{x_k}{b}$
-	and also $\dotp{Cx^\star}{x^\star} = \dotp{x^\star}{x}$ so that
+	and also $\dotp{Cx^\star}{x^\star} = \dotp{x^\star}{b}$ so that
 	\eq{
 		\frac{1}{2}\dotp{C(x_k-x^\star}{x_k-x^\star} = 
 		\frac{1}{2}\dotp{Cx_k}{x_k} - \dotp{x_k}{b}
 		+ \frac{1}{2} \dotp{x^\star}{b}
-		= f(x_k)-f(x^\star)
+		= f(x_k)+ \frac{1}{2} \dotp{x^\star}{b}. % -f(x^\star)
 	}
-	where we have used the fact that
+	Note also that 
 	\eq{
-		f(x^\star) = \frac{1}{2}\dotp{(A^\top A) (A^\top A)^{-1} b}{(A^\top A)^{-1} b} - \dotp{(A^\top A)^{-1} b}{b}
-		\qarrq
-		\frac{1}{2} \dotp{x^\star}{b} = -f(x^\star).	
+		f(x^\star) = \frac{1}{2}\frac{Cx^\star}{x^\star} - \dotp{x^\star}{b} = \frac{1}{2}\dotp{x^\star}{b} -\dotp{x^\star}{b}  = -\frac{1}{2}\dotp{x^\star}{b}.
+	}
+	This shows that 
+	\eq{
+		\frac{1}{2}\dotp{C(x_k-x^\star}{x_k-x^\star} =f(x_k)-f(x^\star).
 	}
 	This thus implies 
 	\eq{
 		f(x_k)-f(x^\star) = 
 		\frac{1}{2}\dotp{(\Id_p-\tau C)^k C (\Id_p-\tau C)^k (x_0-x^\star)}{x_0-x^\star}
-		\leq \frac{\si_{\max}(M_k)}{2} \umin{x^\star} \norm{x_0-x^\star}^2
+		\leq \frac{\si_{\max}(M_k)}{2}  \norm{x_0-x^\star}^2
 	}
 	where we have denoted
 	\eq{
 		M_k \eqdef (\Id_p-\tau C)^k C (\Id_p-\tau C)^k.
 	}
-	One has 
+	Since $x^\star$ can be chosen arbitrary, one can replace $\norm{x_0-x^\star}$ by $\text{\upshape dist}(x_0,\argmin f)$.
+	%
+	One has, for any $\ell$, the following bound 
 	\eq{
 		\si_\ell(M_k) = \si_\ell(C) (1-\tau \si_\ell(C))^{2k}
 			\leq \frac{1}{\tau 4 k}

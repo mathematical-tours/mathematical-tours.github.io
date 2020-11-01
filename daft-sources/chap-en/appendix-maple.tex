@@ -1,0 +1,150 @@
+ 
+\chapter{Programs \Maple{}}
+\label{appendix-software-resources}
+ 
+\index{Maple@\Maple{}} This chapter brings together all the \Maple{} programs in the book. Each program is a separate \texttt{.dsw} file. They have often been cut into several pieces for the sake of clarity.
+
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - Transform over a finite field                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{Transform over a finite field}
+% \addcontentsline{toc}{section}{Transform over a finite field}
+\label{sect1-listing-transform-finite-body}
+ 
+\index{Finite body} The file \texttt{fft-finite-body.msw} successively realizes \begin{enumerate}
+\item a search for irreducible factors of $ X^n-1 $ over a finite field $ \FF_p $ (we have taken $ p = 2 $). With the command \texttt{alias}, we name $ \alpha $ a primitive root of the unit.
+\item a naive implementation of the Fourier transform on the cyclotomic field $ \FF_{p^r} $. In the case where $ n $ is of the form $ 2^s $, it is possible to implement a recursive version of the algorithm. This is done for the Fourier transform on a ring, appendix \ref{sect1-listing-transform-ring}.
+\item a test on a randomly drawn $ f \in \FF_p^n $ vector. We can see that $ \wh{f} \notin \FF_p^n $, since we have to do the calculations in a cyclotomic extension of $ \FF_p $.
+\end{enumerate}
+\begin{listing} \begin{footnotesize}
+\input{listings/fft-corps-fini/fft-corps-fini}
+% \vskip -3mm
+\end{footnotesize}
+ 
+\caption{File \texttt{fft-finite-body.msw}}
+ 
+\label{listing-fft-finite-body}
+\end{listing}
+ 
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - Transform on a ring                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{Transform on a ring}
+% \addcontentsline{toc}{section}{Transform on a ring}
+\label{sect1-listing-transform-ring}
+ 
+ 
+\index{Ring} The \Maple{} \texttt{fft-ring.msw} program calculates a transform of size $ n $ to value in a ring $ \ZZ/m \ZZ $ for a judiciously chosen integer $ m $ ( in accordance with the explanations given in Paragraph~\ref{sect1-calculations-ring}). We chose $ n $ of the form $ 2^s $, which allows to implement a recursive algorithm of type FFT. We use an intermediate function, \texttt{FFT \_rec}, which allows to update the main root of the unit with each call.
+ 
+ 
+ 
+\begin{listing} \begin{footnotesize}
+\input{listings/fft-anneau/fft-anneau}
+% \vskip -3mm
+\end{footnotesize}
+ 
+\caption{File \texttt{fft-ring.msw}}
+ 
+\label{listing-fft-ring}
+\end{listing}
+ 
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - Multiplication of large integers                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{Multiplication of large integers}
+% \addcontentsline{toc}{section}{Multiplication of large integers}
+\label{sect1-listing-mult-large-integers-ring}
+ 
+ 
+\index{Integer!multiplication} The \Maple{} \texttt{mult-large-integers.mws} program allows you to calculate the product of two integers represented by their decomposition in a given base $ b $. This program uses the constants $ n $ and $ m $ as well as the function \texttt{xFFT} which is in the file \texttt{fft-ring.msw}, \ref{listing-fft-ring}. Here are the different things that can be found in this program. \begin{enumerate}
+\item We first calculate an optimal value of $ b $, so as to satisfy $ n (b-1)^2 <m $.
+\item Then several very useful functions are defined (to pass from the representation in the form of number to that in the form of vector).
+\item The \texttt{prod \_entiers} function calculates the convolution product of the two vectors, then propagates the carry.
+\item Finally, a test is performed. Of course, the usefulness of these functions is to multiply whole numbers that \Maple{} cannot handle (because they are too large), which is not the case in this test (because we make \Maple{check } that the product is right).
+\end{enumerate}
+ 
+ 
+ 
+\begin{listing} \begin{footnotesize}
+\input{listings/mult-grands-entiers/mult-grands-entiers}
+% \vskip -3mm
+\end{footnotesize}
+ 
+\caption{File \texttt{mult-large-integers.msw}}
+ 
+\label{listing-mult-large-integers}
+\end{listing}
+ 
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% section - Decoding BCH codes                           
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+% ------------------------------------------------- -----
+\section{Decoding BCH codes}
+% \addcontentsline{toc}{section}{Decoding BCH codes}
+\label{sect1-listing-decoding-bch}
+ 
+ 
+\index{BCH} \index{Decoding} This \Maple{} program uses the \texttt{FFT} function defined in the \ref{sect1-listing-transform-finite-body} program. This procedure should therefore be copied at the start of the program. The program has been split into three parts: \begin{rs}
+\item Part 1 (program \ref{listing-decodage-bch-1}): search for the irreducible factors of $ X^n-1 $ on $ \FF_2 $, and construction of the generator polynomial of the BCH code.
+\item Part 2 (program \ref{listing-decodage-bch-2}): definition of routines to manipulate code words both in the form of vectors and polynomials, to generate words at random.
+\item Part 3 (program \ref{listing-decodage-bch-3}): the first part of the decoding algorithm, we calculate the values of $ \sigma_1, \ldots, \, \sigma_t $.
+\item Part 4 (program \ref{listing-decodage-bch-4}): the second part of the decoding algorithm, we calculate the values of $ \wh{\epsilon_0}, \, \wh{\epsilon_{2t + 1}}, \ldots, \, \wh{\epsilon_{n-1}} $.
+\end{rs}
+ 
+ 
+ 
+\begin{listing} \begin{footnotesize}
+\input{listings/decodage-bch/decodage-bch-1}
+% \vskip -3mm
+\end{footnotesize}
+ 
+\caption{File \texttt{decoding-bch.msw} part 1}
+ 
+\label{listing-decodage-bch-1}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+\input{listings/decodage-bch/decodage-bch-2}
+% \vskip -3mm
+\end{footnotesize}
+ 
+\caption{File \texttt{decoding-bch.msw} part 2}
+ 
+\label{listing-decodage-bch-2}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+\input{listings/decodage-bch/decodage-bch-3}
+% \vskip -3mm
+\end{footnotesize}
+ 
+\caption{File \texttt{decoding-bch.msw} part 3}
+ 
+\label{listing-decodage-bch-3}
+\end{listing}
+ 
+\begin{listing} \begin{footnotesize}
+\input{listings/decodage-bch/decodage-bch-4}
+% \vskip -3mm
+\end{footnotesize}
+ 
+\caption{File \texttt{decoding-bch.msw} part 4}
+ 
+\label{listing-decodage-bch-4}
+\end{listing}
+

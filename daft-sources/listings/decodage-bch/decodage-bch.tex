@@ -1,0 +1,751 @@
+%% Created by Maple 7.00 (IBM INTEL NT)
+%% Source Worksheet: decodage-bch.mws
+%% Generated: Sun Aug 24 18:38:58 2003
+\documentclass{article}
+\usepackage{maple2e}
+ \def\emptyline{\vspace{12pt}}
+\DefineParaStyle{Maple Output}
+\DefineParaStyle{Maple Output}
+\DefineParaStyle{Normal}
+\DefineParaStyle{Normal}
+\DefineCharStyle{2D Comment}
+\DefineCharStyle{2D Math}
+\DefineCharStyle{2D Output}
+\begin{document}
+\pagestyle{empty}
+\begin{maplegroup}
+\begin{flushleft}
+Procédure FFT (ne fait pas partie du script, mais de celui
+"fft-corps-fini.dsw").
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{p := 2:
+TFD := proc(f, signe)
+     local res, formule;
+     # pour plus de lisibilité, on écrit à part la formule de TFD :
+     formule := 'f[l+1]*( Normal( alpha^(signe*(k-1)*l) ) mod 2)';
+     res := [ seq( Normal( sum( formule, 'l'=0..n-1 ) ) mod p ,
+k=1..n)  ];     
+     if signe=-1 then res := 1/n*res mod p end if;
+     RETURN(Normal(res) mod p);
+end proc:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{center}
+\textbf{Debut du script}
+\end{center}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+\mapleinline{inert}{2d}{r;}{%
+$r$%
+} : degrés des facteurs irréductibles de 
+\mapleinline{inert}{2d}{X^n-1;}{%
+$X^{n} - 1$%
+} sur 
+\mapleinline{inert}{2d}{F[2];}{%
+${F_{2}}$%
+} ; 
+\mapleinline{inert}{2d}{t;}{%
+$t$%
+} : capacité de correction.
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{with(numtheory): with(linalg):
+n := 15: t := 3: delta:=2*t+1:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Liste des facteurs de 
+\mapleinline{inert}{2d}{X^n-1;}{%
+$X^{n} - 1$%
+}choix d'un facteur irréductible de degré 
+\mapleinline{inert}{2d}{r;}{%
+$r$%
+} et de la racine primive associée :
+On constate que 
+\mapleinline{inert}{2d}{r;}{%
+$r$%
+} est bien l'ordre de 
+\mapleinline{inert}{2d}{p;}{%
+$p$%
+} dans (Z/nZ)*.
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{liste_div := op(Factor( X^n-1 ) mod 2 ):
+P := liste_div[2];
+alias( alpha = RootOf(P) ):}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{P := X^4+X^3+1;}{%
+\[
+P := X^{4} + X^{3} + 1
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le polynôme générateur du code de distance prescrite 
+\mapleinline{inert}{2d}{2*t+1;}{%
+$2\,t + 1$%
+}, le PPCM des polynômes minimaux des 
+\mapleinline{inert}{2d}{alpha^i;}{%
+$\alpha ^{i}$%
+}, pour 
+\mapleinline{inert}{2d}{i = 1;}{%
+$i=1$%
+} ... 
+\mapleinline{inert}{2d}{2*t;}{%
+$2\,t$%
+}
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{calc_gen := proc()
+        local result, Q, i, liste_pol_rest: 
+        result := P: # on sait déjà que P est dans le PPCM
+        liste_pol_rest := \{liste_div\} minus \{P\}:
+        # alpha^2 est racine de P, donc on peut le sauter
+        for i from 3 to 2*t do  
+        for Q in liste_pol_rest do
+        if Eval(Q, X=alpha^i) mod 2 = 0 then
+        result := result*Q:
+        liste_pol_rest:=liste_pol_rest minus \{Q\}: break:
+        end if: end do: end do:
+        result := Expand(result) mod 2
+ end proc:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Polynôme générateur et dimension du code :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{G := sort( calc_gen() ); d := n - degree(G);}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{G := X^10+X^9+X^8+X^6+X^5+X^2+1;}{%
+\[
+G := X^{10} + X^{9} + X^{8} + X^{6} + X^{5} + X^{2} + 1
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{d := 5;}{%
+\[
+d := 5
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{center}
+\textbf{[...] Suite du script précédent}
+\end{center}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le mot de taille 
+\mapleinline{inert}{2d}{n;}{%
+$n$%
+} (liste de 0/1) correspondant à un polynôme de degré 
+\mapleinline{inert}{2d}{n-1;}{%
+$n - 1$%
+}
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{Mot := proc(Q)
+    [seq( coeff(Q, X,it), it=0..n-1 )]
+end proc:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le polynôme de degré 
+\mapleinline{inert}{2d}{n-1;}{%
+$n - 1$%
+} correspondant à un mot de taille 
+\mapleinline{inert}{2d}{n;}{%
+$n$%
+}
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{Pol := proc(mot)
+     sum(mot[it]*X^(it-1), it=1..n);
+end proc:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le syndrôme d'indice 
+\mapleinline{inert}{2d}{i;}{%
+$i$%
+}, i.e. 
+\mapleinline{inert}{2d}{P(alpha^i);}{%
+$\mathrm{P}(\alpha ^{i})$%
+} :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{Syndi := proc(pol, i)
+     Eval(pol, X = alpha^i) mod 2;
+end proc: }{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule un vecteur aléatoire avec nb\_erreurs erreurs
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{Aleat := proc(nb_erreurs)
+     local hasard:
+     hasard := rand(1..(n-1)):
+     Mot( add(X^hasard(), i=1..nb_erreurs) mod 2 );    
+end proc:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule un mot du code au hasard
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{MotCode := proc()
+     local Q;
+     Q := Randpoly(d-1, X) mod 2;
+     Q := Expand( Q*G ) mod 2;
+     Mot(Q);
+end proc:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+On simule une transmition avec erreur :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{mot_code := MotCode();
+mot_transmis := mot_code + Aleat(3) mod 2;
+p_recu := Pol(mot_transmis);}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{mot_code := [0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1];}{%
+\[
+\mathit{mot\_code} := [0, \,1, \,1, \,1, \,1, \,0, \,0, \,0, \,1
+, \,0, \,0, \,1, \,1, \,0, \,1]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{mot_transmis := [0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0];}{%
+\[
+\mathit{mot\_transmis} := [0, \,1, \,1, \,1, \,1, \,0, \,0, \,0, 
+\,1, \,0, \,0, \,0, \,0, \,0, \,0]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{p_recu := X+X^2+X^3+X^4+X^8;}{%
+\[
+\mathit{p\_recu} := X + X^{2} + X^{3} + X^{4} + X^{8}
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{center}
+\textbf{[...] Suite du script précédent}
+\end{center}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+\textbf{{\large 1ère partie : }}Résolution des équations pour 
+\mapleinline{inert}{2d}{i = n-t;}{%
+$i=n - t$%
+} ... 
+\mapleinline{inert}{2d}{n-1;}{%
+$n - 1$%
+} pour trouver 
+\mapleinline{inert}{2d}{sigma;}{%
+$\sigma $%
+}[1] ... 
+\mapleinline{inert}{2d}{sigma;}{%
+$\sigma $%
+}[t]
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule de l'équation polynomiale à résoudre (attention, on note la 
+\mapleinline{inert}{2d}{epsilon;}{%
+$\varepsilon $%
+} \textit{transformée de Fourier} de l'erreur) :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{eqn := ( 1 + add( sigma[i]*Z^i, i=1..t ) )*( add( epsilon[n-i]*Z^i,
+i=1..n ) ):
+eqn := rem(eqn,Z^n-1,Z,'q');  # l'équation est modulo Z^n-1}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{eqn :=
+(sigma[1]*epsilon[2]+sigma[3]*epsilon[4]+epsilon[1]+sigma[2]*epsilon[3
+])*Z^14+(sigma[3]*epsilon[5]+epsilon[2]+sigma[1]*epsilon[3]+sigma[2]*e
+psilon[4])*Z^13+(epsilon[3]+sigma[2]*epsilon[5]+sigma[1]*epsilon[4]+si
+gma[3]*epsilon[6])*Z^12+(sigma[3]*epsilon[7]+sigma[2]*epsilon[6]+sigma
+[1]*epsilon[5]+epsilon[4])*Z^11+(sigma[1]*epsilon[6]+epsilon[5]+sigma[
+3]*epsilon[8]+sigma[2]*epsilon[7])*Z^10+(sigma[1]*epsilon[7]+sigma[3]*
+epsilon[9]+epsilon[6]+sigma[2]*epsilon[8])*Z^9+(sigma[3]*epsilon[10]+s
+igma[2]*epsilon[9]+sigma[1]*epsilon[8]+epsilon[7])*Z^8+(sigma[1]*epsil
+on[9]+epsilon[8]+sigma[2]*epsilon[10]+sigma[3]*epsilon[11])*Z^7+(epsil
+on[9]+sigma[1]*epsilon[10]+sigma[2]*epsilon[11]+sigma[3]*epsilon[12])*
+Z^6+(sigma[2]*epsilon[12]+epsilon[10]+sigma[1]*epsilon[11]+sigma[3]*ep
+silon[13])*Z^5+(sigma[1]*epsilon[12]+epsilon[11]+sigma[3]*epsilon[14]+
+sigma[2]*epsilon[13])*Z^4+(sigma[1]*epsilon[13]+sigma[2]*epsilon[14]+e
+psilon[12]+sigma[3]*epsilon[0])*Z^3+(sigma[1]*epsilon[14]+epsilon[13]+
+sigma[3]*epsilon[1]+sigma[2]*epsilon[0])*Z^2+(epsilon[14]+sigma[1]*eps
+ilon[0]+sigma[3]*epsilon[2]+sigma[2]*epsilon[1])*Z+sigma[3]*epsilon[3]
++epsilon[0]+sigma[2]*epsilon[2]+sigma[1]*epsilon[1];}{%
+\maplemultiline{
+\mathit{eqn} := ({\sigma _{1}}\,{\varepsilon _{2}} + {\sigma _{3}
+}\,{\varepsilon _{4}} + {\varepsilon _{1}} + {\sigma _{2}}\,{
+\varepsilon _{3}})\,Z^{14} + ({\sigma _{3}}\,{\varepsilon _{5}}
+ + {\varepsilon _{2}} + {\sigma _{1}}\,{\varepsilon _{3}} + {
+\sigma _{2}}\,{\varepsilon _{4}})\,Z^{13} \\
+\mbox{} + ({\varepsilon _{3}} + {\sigma _{2}}\,{\varepsilon _{5}}
+ + {\sigma _{1}}\,{\varepsilon _{4}} + {\sigma _{3}}\,{
+\varepsilon _{6}})\,Z^{12} + ({\sigma _{3}}\,{\varepsilon _{7}}
+ + {\sigma _{2}}\,{\varepsilon _{6}} + {\sigma _{1}}\,{
+\varepsilon _{5}} + {\varepsilon _{4}})\,Z^{11} \\
+\mbox{} + ({\sigma _{1}}\,{\varepsilon _{6}} + {\varepsilon _{5}}
+ + {\sigma _{3}}\,{\varepsilon _{8}} + {\sigma _{2}}\,{
+\varepsilon _{7}})\,Z^{10} + ({\sigma _{1}}\,{\varepsilon _{7}}
+ + {\sigma _{3}}\,{\varepsilon _{9}} + {\varepsilon _{6}} + {
+\sigma _{2}}\,{\varepsilon _{8}})\,Z^{9} \\
+\mbox{} + ({\sigma _{3}}\,{\varepsilon _{10}} + {\sigma _{2}}\,{
+\varepsilon _{9}} + {\sigma _{1}}\,{\varepsilon _{8}} + {
+\varepsilon _{7}})\,Z^{8} + ({\sigma _{1}}\,{\varepsilon _{9}} + 
+{\varepsilon _{8}} + {\sigma _{2}}\,{\varepsilon _{10}} + {\sigma
+ _{3}}\,{\varepsilon _{11}})\,Z^{7} \\
+\mbox{} + ({\varepsilon _{9}} + {\sigma _{1}}\,{\varepsilon _{10}
+} + {\sigma _{2}}\,{\varepsilon _{11}} + {\sigma _{3}}\,{
+\varepsilon _{12}})\,Z^{6} + ({\sigma _{2}}\,{\varepsilon _{12}}
+ + {\varepsilon _{10}} + {\sigma _{1}}\,{\varepsilon _{11}} + {
+\sigma _{3}}\,{\varepsilon _{13}})\,Z^{5} \\
+\mbox{} + ({\sigma _{1}}\,{\varepsilon _{12}} + {\varepsilon _{11
+}} + {\sigma _{3}}\,{\varepsilon _{14}} + {\sigma _{2}}\,{
+\varepsilon _{13}})\,Z^{4} + ({\sigma _{1}}\,{\varepsilon _{13}}
+ + {\sigma _{2}}\,{\varepsilon _{14}} + {\varepsilon _{12}} + {
+\sigma _{3}}\,{\varepsilon _{0}})\,Z^{3} \\
+\mbox{} + ({\sigma _{1}}\,{\varepsilon _{14}} + {\varepsilon _{13
+}} + {\sigma _{3}}\,{\varepsilon _{1}} + {\sigma _{2}}\,{
+\varepsilon _{0}})\,Z^{2} + ({\varepsilon _{14}} + {\sigma _{1}}
+\,{\varepsilon _{0}} + {\sigma _{3}}\,{\varepsilon _{2}} + {
+\sigma _{2}}\,{\varepsilon _{1}})\,Z + {\sigma _{3}}\,{
+\varepsilon _{3}} + {\varepsilon _{0}} \\
+\mbox{} + {\sigma _{2}}\,{\varepsilon _{2}} + {\sigma _{1}}\,{
+\varepsilon _{1}} }
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule les équations à résoudre, liste les valeurs de 
+\mapleinline{inert}{2d}{epsilon;}{%
+$\varepsilon $%
+} connues, pour 
+\mapleinline{inert}{2d}{i = 1;}{%
+$i=1$%
+} ... 
+\mapleinline{inert}{2d}{2*t;}{%
+$2\,t$%
+}, puis évalue les équations :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{list_eqn1 := \{seq( coeff(eqn,Z,i), i=n-t..n-1 )\}:
+epsilon_connu := \{seq( epsilon[i] = Syndi(p_recu,i), i=1..2*t )\};
+eqn_eval1 := eval(list_eqn1, epsilon_connu);}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{epsilon_connu := \{epsilon[2] = alpha^3+alpha^2, epsilon[1] =
+alpha^3, epsilon[6] = alpha^3+1, epsilon[5] = 1, epsilon[4] =
+alpha^3+alpha^2+alpha+1, epsilon[3] = alpha^3+alpha+1\};}{%
+\maplemultiline{
+\mathit{epsilon\_connu} :=  \\
+\{{\varepsilon _{2}}=\alpha ^{3} + \alpha ^{2}, \,{\varepsilon _{
+1}}=\alpha ^{3}, \,{\varepsilon _{6}}=\alpha ^{3} + 1, \,{
+\varepsilon _{5}}=1, \,{\varepsilon _{4}}=\alpha ^{3} + \alpha ^{
+2} + \alpha  + 1, \,{\varepsilon _{3}}=\alpha ^{3} + \alpha  + 1
+\} }
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{eqn_eval1 :=
+\{sigma[1]*(alpha^3+alpha^2+alpha+1)+alpha^3+alpha+1+sigma[3]*(alpha^3
++1)+sigma[2],
+sigma[2]*(alpha^3+alpha^2+alpha+1)+alpha^3+alpha^2+sigma[3]+sigma[1]*(
+alpha^3+alpha+1),
+alpha^3+sigma[3]*(alpha^3+alpha^2+alpha+1)+sigma[2]*(alpha^3+alpha+1)+
+sigma[1]*(alpha^3+alpha^2)\};}{%
+\maplemultiline{
+\mathit{eqn\_eval1} := \{{\sigma _{1}}\,(\alpha ^{3} + \alpha ^{2
+} + \alpha  + 1) + \alpha ^{3} + \alpha  + 1 + {\sigma _{3}}\,(
+\alpha ^{3} + 1) + {\sigma _{2}},  \\
+{\sigma _{2}}\,(\alpha ^{3} + \alpha ^{2} + \alpha  + 1) + \alpha
+ ^{3} + \alpha ^{2} + {\sigma _{3}} + {\sigma _{1}}\,(\alpha ^{3}
+ + \alpha  + 1),  \\
+\alpha ^{3} + {\sigma _{3}}\,(\alpha ^{3} + \alpha ^{2} + \alpha 
+ + 1) + {\sigma _{2}}\,(\alpha ^{3} + \alpha  + 1) + {\sigma _{1}
+}\,(\alpha ^{3} + \alpha ^{2})\} }
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Met sous forme matricielle les équations :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{m1 := matrix(t,t):
+b1 := vector(t):
+i := 1:
+for eq in eqn_eval1 do
+   for j from 1 to t do
+       m1[i,j] := coeff(eq,sigma[j],1);
+   end do:
+   b1[i] := eval( eq, [seq(sigma[k]=0,k=1..t)] );
+   i := i+1:
+end do:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule les valeurs de 
+\mapleinline{inert}{2d}{sigma;}{%
+$\sigma $%
+} en résolvant le système :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{sigma_val := Linsolve(m1,b1) mod 2:
+sigma_connu := \{ seq(sigma[i]=sigma_val[i], i = 1..t) \};}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{sigma_connu := \{sigma[1] = alpha^3+1, sigma[2] =
+alpha^3+alpha^2+alpha, sigma[3] = alpha^2+1\};}{%
+\[
+\mathit{sigma\_connu} := \{{\sigma _{1}}=\alpha ^{3} + 1, \,{
+\sigma _{2}}=\alpha ^{3} + \alpha ^{2} + \alpha , \,{\sigma _{3}}
+=\alpha ^{2} + 1\}
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{center}
+\textbf{[...] Suite du script précédent}
+\end{center}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+\textbf{{\large 2e partie : }}Résolution des équations pour 
+\mapleinline{inert}{2d}{i = 0;}{%
+$i=0$%
+} ... 
+\mapleinline{inert}{2d}{n-2*t-1;}{%
+$n - 2\,t - 1$%
+} pour trouver 
+\mapleinline{inert}{2d}{epsilon;}{%
+$\varepsilon $%
+}[0], 
+\mapleinline{inert}{2d}{epsilon;}{%
+$\varepsilon $%
+}[2t+1] ... 
+\mapleinline{inert}{2d}{epsilon;}{%
+$\varepsilon $%
+}[n-1]
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule les équations pour 
+\mapleinline{inert}{2d}{i = 0;}{%
+$i=0$%
+} ... 
+\mapleinline{inert}{2d}{n-2*t-1;}{%
+$n - 2\,t - 1$%
+}, puis les évalue :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{list_eqn2 := \{seq( coeff(eqn,Z,i), i=0..n-2*t-1 )\}:
+eqn_eval2 := eval(list_eqn2, epsilon_connu):
+eqn_eval2 := eval(eqn_eval2, sigma_connu);}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{eqn_eval2 :=
+\{(alpha^3+alpha^2+alpha)*epsilon[14]+epsilon[12]+(alpha^3+1)*epsilon[
+13]+(alpha^2+1)*epsilon[0],
+epsilon[14]+(alpha^3+1)*epsilon[0]+(alpha^2+1)*(alpha^3+alpha^2)+(alph
+a^3+alpha^2+alpha)*alpha^3,
+epsilon[13]+(alpha^3+1)*epsilon[14]+(alpha^3+alpha^2+alpha)*epsilon[0]
++(alpha^2+1)*alpha^3,
+epsilon[0]+(alpha^3+alpha^2+alpha)*(alpha^3+alpha^2)+(alpha^3+alpha+1)
+*(alpha^2+1)+(alpha^3+1)*alpha^3,
+epsilon[11]+(alpha^2+1)*epsilon[14]+(alpha^3+alpha^2+alpha)*epsilon[13
+]+(alpha^3+1)*epsilon[12],
+epsilon[10]+(alpha^3+1)*epsilon[11]+(alpha^2+1)*epsilon[13]+(alpha^3+a
+lpha^2+alpha)*epsilon[12],
+epsilon[8]+(alpha^3+1)*epsilon[9]+(alpha^3+alpha^2+alpha)*epsilon[10]+
+(alpha^2+1)*epsilon[11],
+(alpha^2+1)*epsilon[12]+(alpha^3+alpha^2+alpha)*epsilon[11]+(alpha^3+1
+)*epsilon[10]+epsilon[9],
+(alpha^2+1)*epsilon[10]+epsilon[7]+(alpha^3+alpha^2+alpha)*epsilon[9]+
+(alpha^3+1)*epsilon[8]\};}{%
+\maplemultiline{
+\mathit{eqn\_eval2} := \{\mathrm{\%1}\,{\varepsilon _{14}} + {
+\varepsilon _{12}} + (\alpha ^{3} + 1)\,{\varepsilon _{13}} + (
+\alpha ^{2} + 1)\,{\varepsilon _{0}},  \\
+{\varepsilon _{14}} + (\alpha ^{3} + 1)\,{\varepsilon _{0}} + (
+\alpha ^{2} + 1)\,(\alpha ^{3} + \alpha ^{2}) + \mathrm{\%1}\,
+\alpha ^{3},  \\
+{\varepsilon _{13}} + (\alpha ^{3} + 1)\,{\varepsilon _{14}} + 
+\mathrm{\%1}\,{\varepsilon _{0}} + (\alpha ^{2} + 1)\,\alpha ^{3}
+,  \\
+{\varepsilon _{0}} + \mathrm{\%1}\,(\alpha ^{3} + \alpha ^{2}) + 
+(\alpha ^{3} + \alpha  + 1)\,(\alpha ^{2} + 1) + (\alpha ^{3} + 1
+)\,\alpha ^{3},  \\
+{\varepsilon _{11}} + (\alpha ^{2} + 1)\,{\varepsilon _{14}} + 
+\mathrm{\%1}\,{\varepsilon _{13}} + (\alpha ^{3} + 1)\,{
+\varepsilon _{12}}, \,{\varepsilon _{10}} + (\alpha ^{3} + 1)\,{
+\varepsilon _{11}} + (\alpha ^{2} + 1)\,{\varepsilon _{13}} + 
+\mathrm{\%1}\,{\varepsilon _{12}},  \\
+{\varepsilon _{8}} + (\alpha ^{3} + 1)\,{\varepsilon _{9}} + 
+\mathrm{\%1}\,{\varepsilon _{10}} + (\alpha ^{2} + 1)\,{
+\varepsilon _{11}}, \,(\alpha ^{2} + 1)\,{\varepsilon _{12}} + 
+\mathrm{\%1}\,{\varepsilon _{11}} + (\alpha ^{3} + 1)\,{
+\varepsilon _{10}} + {\varepsilon _{9}},  \\
+(\alpha ^{2} + 1)\,{\varepsilon _{10}} + {\varepsilon _{7}} + 
+\mathrm{\%1}\,{\varepsilon _{9}} + (\alpha ^{3} + 1)\,{
+\varepsilon _{8}}\} \\
+\mathrm{\%1} := \alpha ^{3} + \alpha ^{2} + \alpha  }
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Met sous forme matricielle les équations :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{# les indices de epsilon a calculer
+epsilon_indices := [0,seq(i, i=2*t+1..n-1)]: 
+m2 := matrix(n-2*t,n-2*t):
+b2 := vector(n-2*t):
+i := 1:
+for eq in eqn_eval2 do
+   j:= 1:
+   for index in epsilon_indices do
+       m2[i,j] := coeff(eq,epsilon[index],1):
+       j := j+1;
+   end do:
+   b2[i] := eval( eq, [epsilon[0]=0, seq(epsilon[k]=0,k=2*t+1..n-1)]
+);
+   i := i+1:
+end do:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule les valeurs de 
+\mapleinline{inert}{2d}{epsilon;}{%
+$\varepsilon $%
+}[0], 
+\mapleinline{inert}{2d}{epsilon;}{%
+$\varepsilon $%
+}[2t+1] ... 
+\mapleinline{inert}{2d}{epsilon;}{%
+$\varepsilon $%
+}[n-1], puis regroupe toutes les valeurs : 
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{epsilon_val := Linsolve(m2,b2) mod 2:
+epsilon_val := [epsilon_val[1], seq(Syndi(p_recu,it),it=1..2*t),
+seq(epsilon_val[it],it=2..n-2*t)];}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{epsilon_val := [1, alpha^3, alpha^3+alpha^2, alpha^3+alpha+1,
+alpha^3+alpha^2+alpha+1, 1, alpha^3+1, alpha^3+alpha+1, alpha^3+alpha,
+alpha^3+alpha^2+alpha, 1, alpha^3+alpha^2+alpha, alpha^3+alpha^2+1,
+alpha^3+alpha^2+1, alpha^3+1];}{%
+\maplemultiline{
+\mathit{epsilon\_val} := [1, \,\alpha ^{3}, \,\alpha ^{3} + 
+\alpha ^{2}, \,\alpha ^{3} + \alpha  + 1, \,\alpha ^{3} + \alpha 
+^{2} + \alpha  + 1, \,1, \,\alpha ^{3} + 1, \,\alpha ^{3} + 
+\alpha  + 1, \,\alpha ^{3} + \alpha ,  \\
+\alpha ^{3} + \alpha ^{2} + \alpha , \,1, \,\alpha ^{3} + \alpha 
+^{2} + \alpha , \,\alpha ^{3} + \alpha ^{2} + 1, \,\alpha ^{3} + 
+\alpha ^{2} + 1, \,\alpha ^{3} + 1] }
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+On peut maintenant déterminer l'erreur par transformée de Fourier
+inverse :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{erreurs := Normal( TFD(epsilon_val,-1) ) mod 2;
+mot_corrige := mot_transmis - erreurs mod 2:
+evalb( mot_corrige = mot_code );}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{erreurs := [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1];}{%
+\[
+\mathit{erreurs} := [0, \,0, \,0, \,0, \,0, \,0, \,0, \,0, \,0, 
+\,0, \,0, \,1, \,1, \,0, \,1]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{true;}{%
+\[
+\mathit{true}
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\end{document}
+%% End of Maple 7.00 Output

@@ -1,0 +1,127 @@
+\begin{maplegroup}
+\begin{flushleft}
+$r$ : degrés des facteurs irréductibles de 
+\mapleinline{inert}{2d}{X^n-1;}{%
+$X^{n} - 1$%
+} sur 
+\mapleinline{inert}{2d}{F[2];}{%
+$\FF_2$%
+} ; 
+\mapleinline{inert}{2d}{t;}{%
+$t$%
+} : capacité de correction.
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{\pwith{}(numtheory): \pwith{}(linalg):
+n := 15: t := 3: delta:=2*t+1:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Liste des facteurs de 
+\mapleinline{inert}{2d}{X^n-1;}{%
+$X^{n} - 1$%
+}choix d'un facteur irréductible de degré 
+\mapleinline{inert}{2d}{r;}{%
+$r$%
+} et de la racine primive associée :
+on constate que 
+\mapleinline{inert}{2d}{r;}{%
+$r$%
+} est bien l'ordre de 
+\mapleinline{inert}{2d}{p;}{%
+$p$%
+} dans $(\ZZ/n\ZZ)^*$.
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{liste_div := op(Factor( X^n-1 ) mod 2 ):
+P := liste_div[2];
+alias( alpha = RootOf(P) ):}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{P := X^4+X^3+1;}{%
+\[
+P := X^{4} + X^{3} + 1
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le polynôme générateur du code de distance prescrite 
+\mapleinline{inert}{2d}{2*t+1;}{%
+$2\,t + 1$%
+}, le PPCM des polynômes minimaux des 
+\mapleinline{inert}{2d}{alpha^i;}{%
+$\alpha ^{i}$%
+}, pour 
+\mapleinline{inert}{2d}{i = 1;}{%
+$i=1,\ldots,\,2t$%
+} 
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{calc_gen := \pproc{}()
+\quad \plocal result, Q, i, liste_pol_rest: 
+\quad result := P: # on sait déjà que P est dans le PPCM
+\quad liste_pol_rest := \{liste_div\} minus \{P\}:
+\quad # alpha^2 est racine de P, donc on peut le sauter
+\quad \pfor i \pfrom 3 to 2*t \pdo  
+\quad \pfor Q \pin liste_pol_rest \pdo
+\quad \quad \pif Eval(Q, X=alpha^i) mod 2 = 0 \pthen
+\quad \quad result := result*Q:
+\quad \quad liste_pol_rest:=liste_pol_rest minus \{Q\}: break:
+\quad \pend \pif: \pend \pdo: \pend \pdo:
+\quad result := Expand(result) mod 2
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Polynôme générateur et dimension du code :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{G := sort( calc_gen() ); d := n - degree(G);}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{G := X^10+X^9+X^8+X^6+X^5+X^2+1;}{%
+\[
+G := X^{10} + X^{9} + X^{8} + X^{6} + X^{5} + X^{2} + 1
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{d := 5;}{%
+\[
+d := 5
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}

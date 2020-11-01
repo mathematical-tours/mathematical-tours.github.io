@@ -6,7 +6,10 @@ vmax = 1;
 % Pinsker inequality.
 for it=1:q
     s=Pint(it,:);
-    A = reshape(abs( TV(s,S) ./ sqrt(2*KL( s, S )) ), [n n]);
+    U = TV(s,S) ./ sqrt(2*KL( s, S ));     % pinsker
+    U = TV(s,S) ./ ( 2*sqrt(1-exp(-KL( s, S ))));  % Bretagnolle and Huber
+    A = reshape(abs(U), [n n]);
+    % 
     A(Sigma==1) = min(A(Sigma==1),vmax)/vmax; % for KL
     % turn into color image
     I = 1+floor(clamp(A)*(r-1));
@@ -22,7 +25,8 @@ for it=1:q
     plot( s(1) + s(2)*exp(1i*pi/3), 'r.', 'MarkerSize', 25 );
     axis image; axis off;
     drawnow;
-    mysaveas('pinsker', it);
+    % mysaveas('pinsker', it);
+    mysaveas('Bretagnolle', it);
 end
 
 return;

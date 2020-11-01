@@ -1,0 +1,149 @@
+\begin{maplegroup}
+\begin{center}
+\textbf{[...] Suite du script précédent}
+\end{center}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le mot de taille 
+\mapleinline{inert}{2d}{n;}{%
+$n$%
+} (liste de 0/1) correspondant à un polynôme de degré 
+\mapleinline{inert}{2d}{n-1;}{%
+$n - 1$%
+}
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{Mot := \pproc{}(Q)
+\quad [seq( coeff(Q, X,it), it=0..n-1 )]
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le polynôme de degré 
+\mapleinline{inert}{2d}{n-1;}{%
+$n - 1$%
+} correspondant à un mot de taille 
+\mapleinline{inert}{2d}{n;}{%
+$n$%
+}
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{Pol := \pproc{}(mot)
+\quad sum(mot[it]*X^(it-1), it=1..n);
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le syndrôme d'indice 
+\mapleinline{inert}{2d}{i;}{%
+$i$%
+}, i.e. 
+\mapleinline{inert}{2d}{P(alpha^i);}{%
+$\mathrm{P}(\alpha ^{i})$%
+} :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{Syndi := \pproc{}(pol, i)
+\quad Eval(pol, X = alpha^i) mod 2;
+\pend \pproc{}: }{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule un vecteur aléatoire avec \texttt{nb\_erreurs} erreurs
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{Aleat := \pproc{}(nb_erreurs)
+\quad \plocal hasard:
+\quad hasard := rand(1..(n-1)):
+\quad Mot( add(X^hasard(), i=1..nb_erreurs) mod 2 );    
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule un mot du code au hasard
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{MotCode := \pproc{}{}()
+\quad \plocal Q;
+\quad Q := Randpoly(d-1, X) mod 2;
+\quad Q := Expand( Q*G ) mod 2;
+\quad Mot(Q);
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+On simule une transmission avec erreur :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{mot_code := MotCode();
+mot_transmis := mot_code + Aleat(3) mod 2;
+p_recu := Pol(mot_transmis);}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{mot_code := [0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1];}{%
+\[
+\mathit{mot\_code} := [0, \,1, \,1, \,1, \,1, \,0, \,0, \,0, \,1
+, \,0, \,0, \,1, \,1, \,0, \,1]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{mot_transmis := [0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0];}{%
+\[
+\mathit{mot\_transmis} := [0, \,1, \,1, \,1, \,1, \,0, \,0, \,0, 
+\,1, \,0, \,0, \,0, \,0, \,0, \,0]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{p_recu := X+X^2+X^3+X^4+X^8;}{%
+\[
+\mathit{p\_recu} := X + X^{2} + X^{3} + X^{4} + X^{8}
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}

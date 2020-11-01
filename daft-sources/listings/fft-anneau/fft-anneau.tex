@@ -1,0 +1,108 @@
+\begin{maplegroup}
+\begin{flushleft}
+Définition des paramètres de la transformée
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{s := 4: n := 2^s: m := 2^(2^(s-1)) + 1:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Sous-procédure récursive :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{FFT_rec := \pproc{}(f, signe, zeta)
+\quad \plocal nn, n1, s, t, r;
+\quad nn := nops(f); n1 := nn/2; # taille du vecteur
+\quad \pif nn=1 \pthen \preturn{}(f) \pend \pif; # fin de l'algorithme
+\quad # construction des deux sous-vecteurs de taille n1
+\quad s := [ seq(f[2*k+1], k=0..n1-1) ];
+\quad t := [ seq(f[2*k], k=1..n1) ];
+\quad # calcul des deux sous-FFT :
+\quad s := FFT_rec(s, signe, zeta^2 mod m);
+\quad t := FFT_rec(t, signe, zeta^2 mod m);
+\quad # mixage des deux résultats
+\quad a := seq( s[k]+zeta^(-signe*(k-1))*t[k] mod m, k=1..n1 );
+\quad b := seq( s[k]-zeta^(-signe*(k-1))*t[k] mod m, k=1..n1 );
+\quad r := [a,b];
+\quad \preturn{}(r);
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Procédure principale  (attention, le nom FFT est protégé en \Maple{} ...)
+:
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{xFFT := \pproc{}(f, signe)
+\quad \plocal r;
+\quad r := FFT_rec(f,signe,2);
+\quad \pif signe=-1 \pthen r := 1/n*r mod m;
+\quad \pelse r; \pend \pif
+\pend \pproc{}: }{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Un test :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{hasard := rand(0..m-1):
+x := [seq( hasard(), i=1..n )];
+y := xFFT(x,+1); 
+evalb( x = xFFT(y,-1) ); # On retombe bien sur nos pattes.}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{x := [179, 220, 230, 218, 49, 253, 197, 218, 67, 177, 136, 127, 190,
+106, 210, 255];}{%
+\[
+x := [179, \,220, \,230, \,218, \,49, \,253, \,197, \,218, \,67, 
+\,177, \,136, \,127, \,190, \,106, \,210, \,255]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{y := [5, 250, 28, 179, 190, 157, 195, 216, 198, 11, 13, 43, 5, 59,
+49, 238];}{%
+\[
+y := [5, \,250, \,28, \,179, \,190, \,157, \,195, \,216, \,198, 
+\,11, \,13, \,43, \,5, \,59, \,49, \,238]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{true;}{%
+\[
+\mathit{true}
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}

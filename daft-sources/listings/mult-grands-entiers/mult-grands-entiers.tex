@@ -1,0 +1,178 @@
+\begin{maplegroup}
+\begin{flushleft}
+$b$ désigne la base de calcul. Il faut que 
+\mapleinline{inert}{2d}{n(b-1)^2 < m;}{%
+$n(b - 1)^{2} < m$%
+}. 
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{b := floor( evalf(sqrt(m/n))+1 ):}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le produit point à point :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{cw_mult := \pproc{}(a,b)
+\quad [seq( a[i]*b[i], i=1..n )]:
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Transforme un entier en vecteur :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{number2vector := \pproc{}(x)
+\quad \plocal N, res, i, r, q, xx:
+\quad N := floor( log(x)/log(b) )+1;
+\quad res := []: xx := x:
+\quad \pfor i \pfrom 1 \pto N \pdo
+\quad \quad xx := iquo(xx,b,'r'):
+\quad \quad res := [op(res), r]:
+\quad \pend{}:
+\quad \preturn{}(res):
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Transforme un vecteur en entier :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{vector2number := \pproc{}(v)
+\quad add(v[k]*b^(k-1), k=1..nops(v));
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le produit de convolution :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{convol := \pproc{}(f,g)
+\quad xFFT( cw_mult(xFFT(f,1),xFFT(g,1)), -1):
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Calcule le produit de deux entiers représentés sous forme de vecteurs
+de taille 
+\mapleinline{inert}{2d}{n;}{%
+$n$%
+}.
+Attention, les 
+\mapleinline{inert}{2d}{n;}{%
+$n$%
+}/2 dernières entrées des vecteurs doivent être nulles.
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{prod_entiers := \pproc{}(x,y)
+\quad \plocal res, i:
+\quad res := convol(x,y):
+\quad \pfor i \pfrom 1 \pto n-1 \pdo
+\quad \quad res[i] := irem(res[i],b,'q'):
+\quad \quad res[i+1] := res[i+1]+q;
+\quad \pend{}:
+\quad \preturn{}(res):
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Un test :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{hasard := rand(0..b-1):
+xx := [seq( hasard(), i=1..n/2 ), seq(0, i=1..n/2)]; 
+yy := [seq( hasard(), i=1..n/2 ), seq(0, i=1..n/2)]; 
+x := vector2number(xx): y := vector2number(yy);
+zz := prod_entiers(xx,yy);
+evalb( vector2number(zz) = x*y ); # il doit y avoir égalité ...}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{xx := [4, 0, 0, 3, 3, 1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0];}{%
+\[
+\mathit{xx} := [4, \,0, \,0, \,3, \,3, \,1, \,0, \,4, \,0, \,0, 
+\,0, \,0, \,0, \,0, \,0, \,0]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{yy := [3, 0, 4, 1, 4, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0];}{%
+\[
+\mathit{yy} := [3, \,0, \,4, \,1, \,4, \,2, \,3, \,0, \,0, \,0, 
+\,0, \,0, \,0, \,0, \,0, \,0]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{y := 55853;}{%
+\[
+y := 55853
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{zz := [2, 2, 1, 1, 3, 3, 2, 2, 1, 0, 3, 3, 2, 4, 2, 0];}{%
+\[
+\mathit{zz} := [2, \,2, \,1, \,1, \,3, \,3, \,2, \,2, \,1, \,0, 
+\,3, \,3, \,2, \,4, \,2, \,0]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{true;}{%
+\[
+\mathit{true}
+\]
+%
+}
+\end{maplelatex}
+\end{maplegroup}

@@ -1,11 +1,10 @@
 %%
-% Wave vs. Heat equation in the Fourier domain
+% Wave vs. Heat vs. Schrodinger equation in the Fourier domain
 
 
 addpath('../toolbox/');
-rep0 = MkResRep();
-rep = [rep0 '/fft/'];
-[~,~] = mkdir(rep);
+rep = MkResRep();
+mysaveas = @(it)saveas(gcf, [rep 'anim-' znum2str(it,3) '.png']);
 
 SetAR = @(ar)set(gca, 'PlotBoxAspectRatio', [1 ar 1], 'FontSize', 20);
 

@@ -1,0 +1,1442 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% <PRE>
+\def\MapleNameDef $#1: #2.#3${\expandafter\gdef\csname Maple@#1\endcsname{#2}}
+\def\MapleInfoDef $#1: #2 #3${\expandafter\gdef\csname Maple@#1\endcsname{#2}}
+\MapleNameDef $RCSfile: maple2e.sty,v $
+\MapleInfoDef $Revision: 1.16 $
+\MapleInfoDef $Date: 2005/03/17 15:58:14 $
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\typeout{Package: \Maple@RCSfile\space \Maple@Date\space v\Maple@Revision}
+\ProvidesPackage{maplestd2e}[\Maple@Date\space\Maple@RCSfile
+Maple Latex Style Package -- \Maple@Date\space\Maple@RCSfile]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 1994--2005 by Waterloo Maple Inc., all rights reserved.
+%
+% Permission is granted to use this package without charge. It may
+% be redistributed providing that it is distributed as is
+% and without charge.  You may modify these macros for your own use,
+% and redistribute them, subject to the following conditions.
+%
+% 1. The package name used for any modified version of this file is 
+%    different from maple2e and the file name used is different from
+%    maple2e.sty
+%
+% 2. You acknowledge this copyright notice and this file as the source.
+%
+% 3. The new file is redistributed under the same terms and conditions 
+%    as indicated here, including a version of this notice modified to
+%    refer to the new file and/or package name.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%
+% Package:  maple2e 
+%
+% This package defines the latex macros used by "Export to LaTeX" 
+% It makes use of several sub-packages.
+% 
+% mapleenv - Maple Environments used to mark mapleinput, mapleoutput,
+% mapletab - Maple Macros to display tables (spreadsheets)
+% mapleplots - Maple macros to display plots.
+%
+% See the comments in maplenv.sty for a more detailed discussion of
+% the special environments such as
+%
+%	\begin{mapleinput} ... \end{mapleinput}
+%	\begin{maplelatex} ... \end{maplelatex}
+%
+% and for details about macros such as
+%
+%	\mapleinline <status> <type> <verbatim code> <latex code>
+%	\maplemultiline{ ... }
+%
+% which are used to control style and to embed raw Maple data.
+% 
+% USAGE:
+%
+%	To use this package, add the line  
+%
+%	\usepackage{maple2e} to 
+%
+%	your document preamble.  If you are using a specific plot
+%	driver such as dvipsone, then add its name as an option as
+%	in:
+%
+%	\usepackage[dvipsone]{maple2e}
+%
+%	The default option value is "dvips".
+%
+%	If you wish to preview your document, ignoring plots, use
+%	the "noplots" option.
+%
+%	The only options available are precisely those needed to
+%	control plotting.  Plots are handled by the standard LaTeX2e
+%	graphics package and for LaTeX are restricted to postscript.
+%	 
+% NOTES:
+%
+%	It is an easy extension of this code to other plot file formats.
+%	All that is needed is a new definition of \mapleplot
+%	to invoke the graphics code of your choice.
+%
+%	To adjust the spacing around the Maple environemnts, edit
+% 	change the entries in the file mapleenv.def
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% Package Options
+%
+\newif\ifnoplots\noplotsfalse
+\DeclareOption{noplots}{
+    % \PassOptionsToPackage{dvips}{epsfig}
+    \noplotstrue
+}
+\DeclareOption{dvips}{
+    % \PassOptionsToPackage{dvips}{epsfig}
+    \edef\Driver{dvips}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for dvips driver}
+      \usepackage[dvips]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{dvi2ps}{
+    \edef\Driver{dvi2ps}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for dvips driver}
+      \usepackage[dvi2ps]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{dvilaser}{
+    \edef\Driver{dvilaser}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for dvilaser driver}
+      \usepackage[dvilaser]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{dvipsone}{
+    \edef\Driver{dvipsone}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for dvipsone driver}
+      \usepackage[dvipsone]{epsfig}
+      %%% \let\mapleplot\mapleplotname %%%
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{dvitops}{
+    \edef\Driver{dvitops}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for dvitops driver}
+      \usepackage[dvitops]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{dviwindo}{
+    \edef\Driver{dviwindo}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for dviwindo driver}
+      \usepackage[dviwindo]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{emtex}{
+    \edef\Driver{emtex}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for emtex driver}
+      \usepackage[emtex]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{pubps}{
+    \edef\Driver{pubps}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for pubps driver}
+      \usepackage[pubps]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{textures}{
+    \edef\Driver{textures}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for textures driver}
+      \usepackage[textures]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{xdvi}{
+    \edef\Driver{xdvi}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for xdvi driver}
+      \usepackage[xdvi]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{dvitps}{
+    \edef\Driver{dvitps}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for dvitps driver}
+      \usepackage[dvitps]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{dviwin}{
+    \edef\Driver{dviwin}
+    \AtEndOfPackage{
+      \typeout{ ...configuring graphics for dviwin driver}
+      \usepackage[dviwin]{epsfig}
+      \let\mapleplot\epsfigmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+\DeclareOption{oztex}{
+    \edef\Driver{oztex}
+    \AtEndOfPackage{
+      \typeout{ ...Configuring graphics for OzTex, rotation not supported}
+      \usepackage[oztex]{epsfig}
+      \let\mapleplot\oztexmapleplot
+      \let\imapleplot\mapleplot
+    }%
+}
+\DeclareOption{SWP}{
+    \edef\Driver{SWP}
+    \AtEndOfPackage{
+      \typeout{ ...Configuring graphics for Scientific Work Place}
+      \let\mapleplot\swpmapleplot
+      \let\imapleplot\mapleplot
+    }
+}
+% \ExecuteOptions{dvips}  % default's to dvips driver
+\ProcessOptions*
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Utilities and Environments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Miscelaneous utilities used to define the main Maple environments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\typeout{Defining Maple Utility Macros}
+%
+% Utilities for changing character codes
+%
+\def\MakeTab#1{\catcode `#1 = 4 }      		% &
+\def\MakeParameter#1{\catcode `#1 = 6 }		% #
+\def\MakeSuperScript#1{\catcode `#1 = 7 }	% ^
+\def\MakeSubScript#1{\catcode `#1 = 8 }		% _
+\def\MakeLetter#1{\catcode `#1 = 11 }
+\def\MakeOther#1{\catcode`#1 = 12 }
+\def\MakeActive#1{\catcode `#1 = \active\relax }
+\def\MakeTabActive{\MakeActive{\^^I}}
+\def\MakeEolActive{\MakeActive{\^^M}}
+%
+\@ifundefined{dospecials}{%
+\gdef\dospecials{\do\ \do\\\do\{\do\}\do\$\do\&\do\#\do\^\do\_\do\%\do\~}%
+}{\relax}%
+\@ifundefined{postdospecials}{%
+\gdef\postdospecials{%
+\catcode`\\\z@%
+\catcode`\{\@ne%
+\catcode`\}\tw@%
+\catcode`\ 10%
+\catcode`\&11}%
+}{\relax}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% In a Maple tty environment every line is treated as a paragraph.
+% The behavior at the end of every Maple paragraph (line) is given
+% by, thereby inhibiting page breaks in such environments.
+\def\@MaplePar{\nopagebreak[3]\par\@@par}%
+% \def\@MaplePar{\nopagebreak[3]\EveryParZ\@@par}%
+%
+\newif\if@IgnoreNewLine
+\@IgnoreNewLinetrue
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Characters requiring special treatment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%-- Spaces
+\def\MapleSpace{\ }
+\def\@ObeySpaces{\MakeActive{\ }\@@ObeySpaces\relax}
+{\MakeActive{\ }\gdef\@@ObeySpaces{\edef {\MapleSpace}}}
+
+%-- BackSlashes
+
+{\catcode`| = 0 |catcode`\\ = 12 |gdef|BackSlash{\}}
+
+%-- Tabs
+
+\newdimen\@MapleTabSize
+\def\@ObeyTabs{\MakeTabActive\@@ObeyTabs\relax}
+{\MakeTabActive\gdef\@@ObeyTabs{\def^^I{\@MapleTab}}}
+\def\@MapleTab{%
+  \leavevmode   % ensure that we are in horizontal mode
+  \egroup      % Terminate box register 0
+  \dimen0=\wd0 % store its length and round up to next stop
+  \divide\dimen0 by \@MapleTabSize
+  \advance\dimen0 by 1sp
+  \multiply \dimen0 by \@MapleTabSize
+  \wd0 = \dimen0
+  \box0
+  \setbox0 = \hbox\bgroup
+}
+
+%-- End of Line Character
+
+\def\@ObeyEol{\MakeEolActive\@@ObeyEol\relax}%
+{\MakeEolActive\gdef\@@ObeyEol{\let^^M=\@MapleEol}}
+\def\@MapleEol{%
+  \if@IgnoreNewLine
+  \else
+    \leavevmode%
+    \egroup%
+    \box 0%
+    \@MaplePar%
+  \fi
+  \@IgnoreNewLinefalse
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Definitions of Utilities for the Main Maple Environments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% These Macros are the common elements of the verbatim like environents.
+% The spacing above and below the environment should is done in the 
+% environment preamble instead of here to enable this to be used in a 
+% variety of such environments.
+
+% \newtoks\MapleIOType \MapleIOType = {a}
+\edef\@MapleQuiet{q}      % indicates a silent command or result
+\edef\@MapleVerbose{a}    % The standard behavior in which
+                          % results are generated and displayed.
+\edef\@MapleNoPrompt{np}  % specify no prompts in environment
+\edef\@MaplePrompt{p}     % specify prompts for this environment
+\edef\@MapleNoInput{ni}   % No input appears in output stream.
+\edef\@MapleNoOutput{no}  % No output appears in outputstream.
+
+% The next macro is used by the verbatim like environments to
+% reset character codes, and change the treatment of new lines, etc.
+% Actions  can be made conditional on the value of \@MapleIOType which
+% is always set to 'a' , or to 'q' as in the value of the 
+% optional parameter used in \begin{mapleinput}[q]
+
+\newtoks\MapleListCorrection  \MapleListCorrection={}
+\def\@SetupMapleTty#1{%
+\par\@endpefalse   %% to clear the \@endpetrue done in \mapleinput
+\begingroup  %% this is the real start of the special environment. 
+  %%%  Compute and set tab positions
+  \setbox 0 = \hbox{\@MapleFont X}
+  \@MapleTabSize = \wd0
+  \multiply\@MapleTabSize by \MapleTab
+  \setbox0 = \hbox{\relax}  % Clearing \box 0
+  %%% paragraph dimensions and line spacing
+  \rightskip = 0pt 
+  \parindent = 0pt
+  \parskip = 0pt 
+  \ifnum\@listdepth>0%
+        \MapleListCorrection={\hskip-\@totalleftmargin\relax }
+        \LeftMapleSkip= 0em 
+  \else
+        \MapleListCorrection={\hskip 0ex\relax }
+  \fi
+  \setlength{\leftskip}{\LeftMapleSkip}
+  \addtolength{\leftskip}{\@totalleftmargin}
+  \parfillskip = 0pt plus 1fil
+  %
+  %%%  The next two parameters may have been changed 
+  %%%  by a \raggedright so they are reset here.
+  \spaceskip = 0pt   \xspaceskip = 0pt
+  %
+  %%%  Set this flag to 0 if the \begin{...} is to appear on a
+  %%%  separate line of the source file.
+  \ifnum #1 = 0 \@IgnoreNewLinetrue\else\@IgnoreNewLinefalse\fi%
+  %
+  %%% Describe how to handle every paragraph (recall paragraph == line )
+  %% \@MapleFont%
+  \everypar = {\EveryParZ}%
+  \def\EveryParZ{%
+    \ifMaplePrompt
+    \the\MapleListCorrection
+    \the\MaplePromptString
+    \MaplePromptString = \MaplePromptSecondary
+    \MapleListCorrection = {\hskip 0pt\relax}
+    \fi
+    \setbox0 = \hbox \bgroup
+  }%
+%
+%%%  Choose the type size and font -  The order of these commands
+%%%  may be important.
+\@MapleFont%
+\lineskiplimit=0\normalbaselineskip%
+\baselineskip=0.85\normalbaselineskip%
+\@noligs%
+\let\do\@makeother\dospecials%
+\catcode ``=\active%
+\frenchspacing%
+\@ObeySpaces% 
+\@ObeyTabs%
+\@ObeyEol%
+}
+% Exit the special tty environments
+\def\@EndMapleTty{%
+\endgroup%% matches the \begingroup inside of @SetupMapleTty
+}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% The following Macros start the various Verbatim like environments
+% for special Maple regions.  These calls set up the 
+% scanning for the environment terminator.
+%
+% A conditional parameter as in \begin{...}[q] etc. denotes a
+% special class of Maple Regions.
+\begingroup
+  \catcode`| = 0  % becomes the escape character
+  \catcode`( = 1  % becomes a begin group
+  \catcode`) = 2  % becomes an end group
+  \catcode`@ = 11 % becomes a regular character (for macro names)
+  \catcode`\{ = 12 % becomes an other character
+  \catcode`\} = 12 % becomes a other character
+  \catcode`\\ = 12 % becomes a other character
+%
+%  type a   standard (verbose) usage
+%  type q   quiet command
+%  type np  no prompt  (imapleinput only at this time...)
+%  type ni  no input  
+%  type no  no output  
+%
+% -- Maple Inert Input  
+|gdef|@BeginIMapleInput#1\end{imapleinput}(%
+|MaplePrompttrue%
+#1%
+|end(imapleinput))%
+%
+% -- Inert TTY Output
+|gdef|@BeginIMapleTtyout#1\end{imaplettyout}(%
+|vskip|AboveMapleSkip%  extra vspace is needed here
+|MaplePromptfalse
+#1%
+|end(imaplettyout))%
+%
+% -- Fixed Width
+|gdef|@BeginMapleFixedWidth#1\end{MapleFixedWidth}(%
+|vskip|AboveMapleSkip%  extra vspace is needed here
+|MaplePromptfalse
+#1%
+|end(MapleFixedWidth))%
+% -- TTY Input 
+|gdef|@BeginMapleInput[#1]#2\end{mapleinput}(%
+|edef|@MapleIOType(#1)%
+|gdef|MapleIOType(#1)%
+|ifx|@MapleIOType|@MapleNoPrompt|MaplePromptfalse|fi%
+|ifx|@MapleIOType|@MapleNoInput|edef|@MapleIOType(q)|fi%
+|ifx|@MapleIOType|@MapleQuiet%
+|typeout(.............Quiet Maple Command #1)%
+|removelastskip%
+|else%
+%|typeout(.............Verbose Maple Command)%
+#2%
+|fi%
+|end(mapleinput))%
+%
+% -- TTY Output
+|gdef|@BeginMapleTtyout[#1]#2\end{maplettyout}(%
+%%|typeout(TTYout Environment of type #1)%
+|edef|@MapleIOType(#1)%
+|gdef|MapleIOType(#1)%
+|ifx|@MapleIOType|@MaplePrompt|MaplePromptfalse|fi%
+|ifx|@MapleIOType|@MapleNoOutput|edef|@MapleIOType(q)|fi%
+|ifx|@MapleIOType|@MapleQuiet%
+|typeout(.............Quiet Maple Tty Out)%
+|else%
+#2%
+|fi%
+|end(maplettyout))%
+%
+% -- Suppressed Latex Output
+|gdef|@GobbleMapleLatex#1\end{maplelatex}(%
+|end(maplelatex))%
+|endgroup
+%
+\@ifundefined{]}{\gdef\[{$}}{\relax}
+\@ifundefined{[}{\gdef\]{$}}{\relax}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Standard Maple Environments
+%
+% Environments for Export to LaTeX
+%
+% This package defines the environments used by Maple's
+% "Export to Latex" facility.  In addition, each of the environments 
+% accepts an optional parameter.  For example, for example,
+% Maple Input lines accept any of:
+%
+%      \begin{mapleinput}...\end{mapleinput},   (default)
+%
+% The contents of such an environment are in terms of mapleinline.
+%
+% The "Export to LaTeX" facility of the Maple worksheet does not use any
+% of the optional parameters.  They exist to provide the additional
+% control needed for reprocessing long LaTeX manuscripts and which is
+% carried out by a special "Maple Filter".
+% 
+% Maple output can occur in several forms.  Maple's "prettyprint" output,
+% as well as error messages and warnings, is encapsulated as
+%
+% 	        \begin{maplettyout}...\end{maplettyout} 
+%
+% "Export to Latex" generates LaTeX code for the entire worksheet. 
+%  The displayed mathematics output is controlled to fit a
+%  user specified line width and appears inside the environment
+%
+% 	\begin{maplelatex}...\end{maplelatex}
+%
+% Maple generated plots are exported as postscript files.
+% The resulting files are included in the LaTeX document 
+% by using the macro call
+%
+%  	\mapleplot{filename}
+%
+% On processing by LaTeX, the postscript code from the 
+% indicated file is read into "dvi" file and a display is 
+% generated at that point in the document.  The plot dimensions 
+% are specified as \MaplePlotHeight and \MaplePlotWidth.
+%
+% The actual embedding is accomplished using the LaTeX2e graphics 
+% package.  This style file has been tested with the following dvi to 
+% PostScript conversion programs:
+%
+%     dvips 
+%     dvipsone
+%
+% ----------------------------------------------
+% Environments that ignored by the Maple Filter
+% ----------------------------------------------
+% The Maple Filter is a special version of Maple that can read
+% and update latex files which have been developed using these
+% macros.  There is a need, in such tex files, to display information
+% in the same manner as the preceding manner and yet guarantee that
+% the information is not changed by the Maple Filter.
+% The macros are identical to those describe above, but with each 
+% name preceded by an "i".
+%
+%   \begin{imapleinput}...\end{imapleinput}  like mapleinput
+%   \begin{mapleinput}[p]...\end{imapleinput} as above, default case
+%   \begin{imaplelatex}...\end{imaplelatex} like maplelatex
+%   \imapleplot{filename}   like mapleplot
+%   \imaplesepline	  like \maplesepline, but ignored by the filter.
+%
+% ----------------------------------------------
+% Implementation Details
+% ----------------------------------------------
+% The mapleinput, and maplettyout environments are similar to 
+% \begin{verbatim}...\end{verbatim} but with several 
+% important differences.
+%
+% - The spacing relative to the surrounding environment is different.
+%
+% - Page breaks are encouraged before commands, or after results,
+%   and discouraged inbetween.
+%
+% - maplettyout and maplelatex environments are assumed to follow
+%   mapleinput regions and so have less space above.  This allows us to
+%   reduce the space between adjacent Maple regions without any
+%   elaborate mechanism to detect when there have been intervening
+%   paragraphs of text.
+%
+% - the size of the font for text regions is definable.  Use \MapleFont
+%   to reset the font.
+%
+% - the  indentation of the environments can be indented by setting 
+%   the value of \LeftMapleSkip  .
+%
+% - a prompt is automatically generated at the start of each line in
+%   the case of the input environments.
+%
+% Much of the spacing and sizing information is parameterized.
+% The following Macros control most of the spacing for the 
+% Maple environments.  They are all resettable in the preamble of 
+% your document. 
+% 
+% \AboveMapleSkip	- space above an environment
+% \BelowMapleSkip	- space below an environment
+% \AboveMaplePlot	- space above a Maple Plot 
+% \BelowMaplePlot	- space below a Maple Plot
+% \MaplePlotHeight	- vertical space reserved for a plot
+% \MaplePlotWidth	- width reserved for a plot
+% \MaplePlotAngle	- angle of rotatation
+% \LeftMapleSkip 	- the amount of left indentation
+% \MapleFont 		- The Maple font 
+% \MapleSize 		- The size of the Maple font in mapleinput and 
+%                          maplettyout
+% \MapleLatexSize	- The size of the Maple fonts in maplelatex
+% \MapleFirstLine	- controls ingoring first line feed
+% \MaplePrompttrue 	- controls insertion of prompt char
+% \MaplePromptString	- defines the prompt string
+% \MaplePromptSecondary	- defines the secondary prompt string
+% \MapleSkip		- amount of glue before and after
+%			displayed text
+% \MapleTab		- number of spaces per tab (8)
+%
+% Spacing, dimensions, etc.  
+%
+% These are all defined and given default values in the file
+% mapleenv.def Most may be changed in your document preamble.
+%
+\input{mapleenv.def}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Define those Maple environments that are to be ignored by
+% the Maple Filter.  
+% 
+% \begin{imapleinput} ...\end{imapleinput}
+% \begin{imaplettyout} ...\end{imaplettyout}
+% \begin{imaplelatex} ...\end{imaplelatex}
+% \imaplesepline
+% \imapleplot
+%
+% These environments are ignored by the Maple Filter.
+%
+% -- imapleinput
+%
+\def\imapleinput{
+\removelastskip%
+\MaplePrompttrue% prompt is required in this environment.
+\if@minipage\removelastskip\vskip-1.3ex%
+\else\vskip\AboveMapleSkip\fi%
+\@SetupMapleTty{0}% The 0 indicates ignore first new line
+\@BeginIMapleInput% 
+}
+%
+\def\endimapleinput{%
+  \@EndMapleTty%
+  \removelastskip%
+  \edef\@MapleIOType{\MapleIOType}
+  \ifx\@MapleIOType\@MapleQuiet%
+    \typeout{ .............Quiet Maple Command finished}
+  \else
+    \vskip\BelowMapleSkip% not usually followed by output...
+  \fi%
+  \@endpetrue
+  \ignorespaces
+}
+%
+% -- imaplettyout
+%
+\def\imaplettyout{
+  \removelastskip%
+  \nopagebreak[3]% 
+  \MaplePromptfalse	  % No prompt is required in this environment.
+  \@SetupMapleTty{1}   % The 1 indicates "respect first new line"
+  \@BeginIMapleTtyout  % np indicates omit prompt
+}
+%
+\def\endimaplettyout{%
+  \@EndMapleTty%
+  \removelastskip
+  \vskip\BelowMapleSkip%
+  \pagebreak[3]%
+  \@endpetrue
+  \ignorespaces
+}%
+%
+% -- imaplelatex
+%
+%  an inert maple latex environment  (ignored by the filter)
+%
+\newenvironment{imaplelatex}%
+{\vskip.5\AboveMapleSkip\vskip\z@\begin{maplelatex}}{\end{maplelatex}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Define active mapleinput environments.
+% 
+% \begin{mapleinput} ...\end{mapleinput}
+% \begin{maplettyout} ...\end{maplettyout}
+% \begin{maplelatex} ...\end{maplelatex}
+% 
+% These parameterized environments are intended for reprocessing 
+% by the Maple Filter.
+%
+% The [a] case is used by default.  
+% The [q] is the quiet (suppressed)  mode.
+% The [ni] (no input) behaves the same as [q]
+% The [no] behaves the same as [a]
+%
+% Page breaks are inhibited immediately following the input
+% environment.  This assumes that no extra space is 
+% required below the region as it is followed by some
+% form of Maple output region.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% -- mapleinput
+%
+\newlength\newleftskip%
+\newbox\mapleinputbox%
+\newenvironment{mapleinput}{%
+%\def\@gobblefirst##1{\relax\egroup\par}
+%\def\@gobblesecond##1##2{##1\egroup\par}
+\def\@gobblesemicolons##1{##1}
+\advance\hsize by -\LeftMapleSkip%
+\global\setbox\mapleinputbox=\vbox\bgroup%
+\everypar{\the\MaplePromptString\MaplePromptString=\MaplePromptSecondary\ }
+\leftskip=\z@%
+\parindent=\z@%
+\parfillskip=0pt plus 1fil
+\lineskiplimit=0\normalbaselineskip
+\baselineskip=.85\normalbaselineskip
+}{
+\egroup% end of vbox
+\par\removelastskip
+\vskip\AboveMapleSkip%
+\newleftskip=\leftskip%
+\advance\newleftskip by \LeftMapleSkip%
+\advance\newleftskip by \@totalleftmargin% needed for lists
+\hbox{\hskip\newleftskip\box\mapleinputbox}
+\vskip\BelowMapleSkip}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% -- maplettyout
+%
+\def\maplettyout{
+  \removelastskip%
+  \vskip 0pt plus 0pt minus 3pt%  
+  \nopagebreak[3]% 
+  \MaplePromptfalse	  % No prompt is required in this environment.
+  \@SetupMapleTty{1}   % The 1 indicates "respect first new line"
+  \@ifnextchar [{\@BeginMapleTtyout}{\@BeginMapleTtyout[a]}%
+}
+% 
+\def\endmaplettyout{%
+  \@EndMapleTty%
+  \edef\@MapleIOType{\MapleIOType}
+  \ifx\@MapleIOType\@MapleQuiet%
+     \typeout{ .............Quiet Maple TTY finished}
+  \else
+    \vskip\BelowMapleSkip%
+    \pagebreak[3]%
+    \@endpetrue
+    \ignorespaces
+  \fi
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% -- maplelatex 
+%
+% This is essentially a wrapper around a display math environment
+% It gobbles its content if the [q] or [no] options are in
+% effect.
+%
+\newbox\maplebox
+\def\maplelatex{\@ifnextchar [{\@maplelatex}{\@maplelatex[a]}}
+%
+\def\@maplelatex[#1]{%
+\edef\@MapleIOType{#1}%
+\gdef\MapleIOType{#1}%% for \ifx test%
+\ifx\@MapleIOType\@MapleNoOutput%
+\typeout{ .............Output Option [no]}%
+\gdef\MapleIOType{q}%%  handle same as \@MapleQuiet  
+\fi%
+\global\setbox\maplebox=\vbox\bgroup%
+\MakeSuperScript{^}%  Ensure these have normal interpretation
+\MakeSubScript{_}%
+}%
+%
+\def\endmaplelatex{\egroup%
+\edef\@MapleIOType{\MapleIOType}%
+\ifx\@MapleIOType\@MapleQuiet%   End the same as the verbatim's
+\par%
+%\@endpetrue
+\else%
+%\ifvmode\removelastskip\fi%
+\nopagebreak[3]%
+\centerline{%
+\vbox{%
+\hbox{\vrule height4pt depth0pt width 0pt}%
+\unvbox\maplebox}}%
+\vskip\BelowMapleSkip%
+\everypar{}%
+\par%
+%\pagebreak[3]%
+%\@endpetrue
+%\ignorespaces
+\fi%
+}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% -- maplesepline
+%
+\newcommand{\maplesepline}{\vskip \parskip%
+\hrule\@height\MapleSepLineHeight\@width\MapleSepLineWidth%
+\vskip \parskip\relax}
+%
+% -- imaplesepline ( the inert form )
+%
+\let\imaplesepline\maplesepline
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% -- \mapleIndent
+%
+% - Special Indentation Macro used to format procedures
+%
+\newdimen\Tab
+\Tab=3ex
+\def\mapleIndent#1{\hbox{\hskip#1\Tab\relax}}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Special environments for in-line maple commands.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  \begin{maplegroup}				- maple exchange group
+%  ...
+%  ... and \mexpr{sin(x^2)} ...			- inline maple code
+%  ...
+%  \mapleinline{Inert}{TwoD}{int(sin(x^2),x);}{%	- for maple filter
+%  {mapletex}{$\int{ .... }$}		        - for latex
+%  ...
+%  ...
+%  \mapleresult					- location of inline results
+%  \begin{maplelatex}				- actual displayed results
+%  ...
+%  \end{maplelatex}
+%  \end{maplegroup}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% -- \mexpr 
+%
+% 	\mexpr{int(sin(x^2),x)} --- \mapleexpr{int(sin(x^2),x)}
+%
+% To make { and } visible in this verbatim environment, use \{ and \}
+% Also, to make \ visible, use \\. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\mexpr{\setbox\@inlinebox=\hbox\bgroup\ttfamily\dosetup\let\\\BackSlash\@domexpr}
+%
+\def\mapleexpr{\bgroup\ttfamily\dosetup\let\\\BackSlash\@domexpr}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  \@dosetup	      sets up the character codes, etc. for verbatim
+%  \@domexpr          completes the following inline math
+%  \@gobblefirst      absorbs the inline math (not displaying it)
+%  \@gobblesecond     absorbs the second following argument.
+%  \@gobblesemicolons      absorbs semi-colons inside of the 1d mode.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\dosetup{\let\do\@makeother\dospecials\postdospecials}
+%
+%\def\@domexpr#1{#1\egroup\fbox{\box\@inlinebox}}
+\def\@domexpr#1{#1\egroup\box\@inlinebox}
+%
+\def\@gobblefirst#1{%
+\relax\egroup%
+% \fbox{\box\@inlinebox}%   %%% DEBUG %%%
+\box\@inlinebox%
+\setbox\@inlinebox=\hbox{}}
+%
+\def\@gobblesecond#1#2{%
+#1\egroup\ignorespaces%
+% \fbox{\box\@inlinebox}% %%% DEBUG %%%
+\box\@inlinebox%
+\setbox\@inlinebox=\hbox{}}
+%
+\def\@gobblesemicolons{\MakeActive{;}\@@gobblesemicolons}
+%
+{\MakeActive{;}\gdef\@@gobblesemicolons{\edef;{\relax}}}
+%%% end of mexpr
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% -- \mapleinline
+%
+%	Essentially a four argument macro used to control the
+%	display of inline material generated by Maple.
+%
+%	\mapleinline %
+%	<status> 	% "active", or "inert"
+%	<display mode>  % 1d or 2d
+%	<verbatim source> % raw maple code as per \mexpr
+%	<latex 2-D source> % latex representation
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \mapleinline{inert}{2d}{int(sin(x^2),x)}{ % used to generate display
+% $\int{\sin(x^2),dx}$}	                    % updated by the filter
+%
+% Could use \@bsphack ... \@esphack for absorbing unwanted space not 
+% currently used, but spacing inside this macro definition is 
+% very important.
+%
+\edef\OneD{1d}\edef\TwoD{2d}% # tokens to identify modes
+\newif\ifDisplay\Displayfalse
+\newbox\@inlinebox\setbox\@inlinebox=\hbox{}%
+\@ifundefined{@skiponetoken}{\gdef\@skiponetoken#1{\relax}}{\relax}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 2-D output
+% final output macro for mapleinline.
+% include spacing above and below to ensure there is
+% whitespace around the object when it occurs in
+% a spreadsheet cell.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\@doTwoD#1{\egroup%
+%\@ifnextchar\cr{\@skiponetoken}{\relax}%
+\@@doTwoD}%
+%
+\newdimen\cellwidth%
+\def\@@doTwoD#1{%
+\ignorespaces%
+\setbox\@inlinebox=\hbox{#1}%
+\ifMapleTableCell%  		  Used in maplespreadsheet
+\cellwidth=\wd\@inlinebox%
+\hbox{$\vcenter{\hsize=\cellwidth%
+\hbox{\vrule height3pt depth0pt width 0pt}%
+\box\@inlinebox%
+\hbox{\vrule height0pt depth 3pt width 0pt}%  Actual output
+}$}%
+\egroup%
+\else%				  Used inline ...
+%\fbox{\hbox{\unhbox\@inlinebox}}\egroup% Actual output
+\box\@inlinebox\egroup%
+\fi%
+}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 1-D output
+% Final output macro for mapleinline for 1-D output.
+% The raw tokens must be dumped into the output stream so
+% we use unhbox.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\@doOneD#1{\MakeOther{\ } #1\egroup\unvbox\@inlinebox\relax\@mgobbleone}
+\def\@mgobbleone#1{\relax\egroup}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\mapleinline#1#2{%
+% ignore first argument (inert or active)		
+\def\[{$}\def\]{$}%		% needed for math mode.
+\edef\DisplayType{#2}%		% 1d or 2d
+\ifx\DisplayType\TwoD%
+\let\Display\@doTwoD%	% display the 2-D representation
+\global\Displaytrue%
+\else%
+\let\Display\@doOneD%	% display the 1-D representation
+\global\Displayfalse%
+\fi%
+\bgroup%
+\global\setbox\@inlinebox=\vbox\bgroup%
+\obeylines%
+\everypar{\the\MaplePromptString\MaplePromptString=\MaplePromptSecondary\ }
+\ttfamily\dosetup\obeyspaces\let\\\BackSlash\Display%
+}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% -- \begin{maplegroup} ... \end{maplegroup}
+% -- \mapleresult
+%
+%	A environment used to group commands and result together into
+%	one unit.  Inside, these are separated by \mapleresult.
+%	The maple filter automatically deletes the part of a maplegroup
+%	which follows \mapleresult and replaces it with new results.
+%	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newenvironment{maplegroup}{}{}
+\def\maplegroup{\relax}
+\def\endmaplegroup{\relax}
+\let\mapleresult\relax   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Various Plot Configurations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\typeout{Defining Maple Plot Environemnts}
+% 
+% -- noplots  -- No Driver Available ?
+%
+\def\mapleplotname#1{
+	\typeout{ ...using Plot file #1}%
+	\vskip.5\MaplePlotHeight
+        \centerline{\Large \bfseries Plot:  #1}
+        \vskip.5\MaplePlotHeight
+}
+%
+% -- epsfig.sty (used by dvips, etc)
+%
+\def\epsfigmapleplot#1{
+	\parindent=0ex%
+	\MaplePlotWidth  = 0.900\textwidth%
+	\MaplePlotHeight = 0.651\textwidth%
+	\MaplePlotHeight@Fudge=0.90\MaplePlotHeight%
+	\MaplePlotWidth@Fudge =0.90\MaplePlotWidth%
+	\ifvmode \removelastskip \else \par \parindent=0ex\removelastskip\fi
+	%% \par
+        \vskip \AboveMaplePlot
+	%
+	%  Plot sizes must be fudged because Maple .eps plots
+	%  generated using Maple's built-in PostScript plot driver
+	%  are 6.5 x 9 inches landscape, but included in portrait
+	%  mode to a much smaller scale.
+	%
+	\IfFileExists{#1}{%
+		\typeout{ ...including Plot #1 at size
+		\the\MaplePlotWidth\space by \the\MaplePlotHeight}%
+		\hbox{%
+		    \relax
+		    {}\hskip \LeftMapleSkip
+		    \epsfig{figure=#1,%
+			height=\MaplePlotHeight@Fudge,% scale before rotation
+			width=\MaplePlotWidth@Fudge,%
+			angle=\MaplePlotAngle}%
+		}% end of hbox
+	}% 
+	{%
+		\typeout{ ...Missing Plot File  #1}
+		\noindent	% So \mapleplot can be used inside of
+				% the LaTeX center environment.
+		\vbox{\mapleplotname{#1} }%
+	}%
+	\par\removelastskip
+        \vskip\BelowMaplePlot
+	% \vskip-2\BelowMaplePlot{\relax}
+	%%% \vspace*{-.3\MaplePlotHeight} 
+	% \relax\noindent\ignorespaces
+}% end of epsfigmapleplot def
+%%
+%Driver used exclusively by plots in Maple 11. The dimensions of the 
+%plot are specified as point sizes in the 2nd and 3rd parameters.
+%This driver is virtually the same as epsfigmapleplot, but without the rotation
+%and the dimension fudge. 
+%%
+\def\maplepsplot#1#2#3{
+	\parindent=0ex%
+	\MaplePlotWidth  = #2%
+	\MaplePlotHeight = #3%
+	\ifvmode \removelastskip \else \par \parindent=0ex\removelastskip\fi
+        \vskip \AboveMaplePlot
+	\IfFileExists{#1}{%
+		\typeout{ ...including Plot #1 at size
+		\the\MaplePlotWidth\space by \the\MaplePlotHeight}%
+		\hbox{%
+		    \relax
+		    {}\hskip \LeftMapleSkip
+		    \epsfig{
+		    	figure=#1,%
+			height=\MaplePlotHeight,
+			width=\MaplePlotWidth
+		    }%
+		}% end of hbox
+	}% 
+	{%
+		\typeout{ ...Missing Plot File  #1}
+		\noindent	% So \mapleplot can be used inside of
+				% the LaTeX center environment.
+		\vbox{\mapleplotname{#1} }%
+	}%
+	\par\removelastskip
+        \vskip\BelowMaplePlot
+}% end of maplepsplot def
+%
+% -- Oztex postscript driver
+%
+% Rotation is not supported.  so use Maple's commands to rotate.
+% This can be done using the Maple command 
+%
+%	interface(plotoptions=`portrait,height=200,width=300`); 
+%
+% This is the same as mapleespfig, but with no rotation expected.
+%
+\def\oztexmapleplot#1{
+	\ifvmode \removelastskip \else \par \fi
+	\vskip \AboveMaplePlot
+	%
+	%  Plot sizes must be fudged because Maple .eps plots
+	%  generated using Maple's built-in PostScript plot driver
+	%  are 7.5 x 10 inches, but include an additional 0.5 inch
+	%  white border within the PostScript BoundingBox.
+	%
+	\MaplePlotHeight@Fudge=1.133333\MaplePlotHeight
+	\MaplePlotWidth@Fudge =1.100000\MaplePlotWidth
+	\vskip -0.066667\MaplePlotHeight		%Fudge
+	\noindent	% So \mapleplot can be used inside of
+			% the LaTeX center environment.
+	\IfFileExists{#1}{%
+		\typeout{ ...including Plot #1 at size
+		\the\MaplePlotWidth\space by \the\MaplePlotHeight}%
+		\hbox{%
+		    \hskip -0.05\MaplePlotWidth		%Fudge
+		    \epsfig{figure=#1,%
+			height=\MaplePlotWidth@Fudge,% scale before rotation
+			width=\MaplePlotHeight@Fudge}%
+%%oztex%% 			angle=\MaplePlotAngle}%
+		    \hskip -0.05\MaplePlotWidth		%Fudge
+		}%
+	}% end of first case
+	{% second case 
+	    %\typeout{ ...Missing Plot File  #1}
+	    { %
+		\vskip.5\MaplePlotHeight%
+		\centerline{\Large \bfseries Plot File = #1}
+		\vskip.5\MaplePlotHeight %
+		}% end of vbox
+	}% end of second case
+	\par
+	\vskip -0.066667\MaplePlotHeight		%Fudge
+	\vskip\BelowMaplePlot
+	\vskip -\parskip\noindent\ignorespaces
+} % end of oztexmapleplot
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% Install the Driver.
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\@ifundefined{Driver}{%
+      \ifnoplots
+	     \let\mapleplot\mapleplotname
+	     \let\imapleplot\mapleplot
+      \else
+      \IfFileExists{epsfig.sty}{% Default to dvips
+             \typeout{ ...Defaults to "dvips" Driver }
+             \usepackage[dvips]{epsfig}
+             \let\mapleplot\epsfigmapleplot
+             \let\imapleplot\mapleplot
+             \edef\Driver{dvips}}{%  no driver 
+	     % generate vertical space containing file name
+	     \let\mapleplot\mapleplotname
+	     \let\imapleplot\mapleplot
+	}
+      \fi
+}{\usepackage[\Driver]{epsfig}}
+%
+\def\maplesmartplot#1#2{\mapleplotname{#1}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Maple Paragraph Styles
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\typeout{Defining Automatic Style Generation Macros}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%--  Maple Worksheet Default Paragraph and Character Styles definitions
+%
+%   Unnamed Character styles are set up as {\textbf ... } while
+%   named character styles are set up as macro calls of the form
+%
+%             \QTR{Style Name}{ ... data ... }
+%
+%   Paragraph styles are tagged by environments as in
+%
+%   \begin{flushleft} ... \end{flushleft}
+%
+%   This tagging also occurs for the user defined styles.
+%
+%   A list of style names actually used in a particular worksheet is
+%   specified at the top of a Maple worksheet by macros of the form
+%
+%   \DefineCharStyle{... style name ...}
+%   \DefineParaStyle{... style name ...}
+%
+%   If a macro by that name is already defined, then that definition
+%   is used. Otherwise, a new macro is defined and set to the
+%   document default style.
+%
+%   All style definitions, user defined, or system defined in this
+%   style file, can be overridden in the document preamble simply
+%   by providing a definition prior to The \Define...Style{...}
+%   call.
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%--------------------------------------------------------------------
+% - Routine for Automatically defining Undefined Character Styles
+%--------------------------------------------------------------------
+\newif\if@def\@deffalse
+\def\DefineCharStyle#1{
+  \@ifundefined{#1}{\@deftrue}{\@deffalse}
+  \if@def
+    \typeout{Defining a new character style: #1}
+    \expandafter\def\csname #1\endcsname##1{\relax {##1}}
+  \fi}
+%
+%--------------------------------------------------------------------
+% - Routine for Handling Undefined Paragraph Styles  
+%
+% These are handled as environments.  Blank spaces are allowed in 
+% the environment names.
+%--------------------------------------------------------------------
+\def\DefineParaStyle#1{
+\@ifundefined{#1}{\@deftrue}{\@deffalse}
+\if@def
+  \typeout{Defining new paragraph style: #1}
+  \expandafter\newcommand \csname #1\endcsname[0]{\relax}%
+  \expandafter\long\expandafter\def\csname end#1\endcsname{\relax}
+\fi
+}
+%--------------------------------------------------------------------
+% - Routine for Handling Undefined Character Styles
+%
+% This macro allows for macro names having spaces in them.
+% Usage:
+%
+%     \QTR{macro name}{argument 1}
+%
+%--------------------------------------------------------------------
+\@ifundefined{QTR}{%	
+  \gdef\QTR#1#2{{\csname#1\endcsname{#2}}}}{\relax} % 
+\@ifundefined{TEXTsymbol}{%
+  \gdef\TEXTsymbol#1{\mbox{$#1$}}}{\relax}%
+%--------------------------------------------------------------------
+% - The Known (Pre-defined!) Maple Paragraph Styles
+%---------------------------------------------------------------------
+% \newenvironment{maplegroup}{}{}
+\newenvironment{Maple Author}{\begin{center}\large\itshape\mdseries}{\end{center}}
+\newenvironment{Maple subtitle}{\begin{center}\normalsize\upshape\mdseries}{\end{center}}
+\newenvironment{Maple Bullet Item}{%
+\renewcommand{\labelitemi}{$\bullet$}
+\begin{itemize}\item\null}{\end{itemize}}
+\newenvironment{Maple Dash Item}{%
+\begin{itemize}\item\null}{\end{itemize}}
+\newenvironment{Maple Diagnostic}{\bfseries}{}
+\newenvironment{Maple Error}{\bfseries}{}
+%
+\newenvironment{Maple Heading 1}[2][\section]
+{#1{\Large\bfseries\upshape {#2}}}
+{}
+\newenvironment{Maple Heading 2}[2][\subsection]
+{#1{\large\bfseries\upshape {#2}}}
+{}
+\newenvironment{Maple Heading 3}[2][\subsubsection]
+{#1{\normalsize\bfseries\upshape {#2}}}
+{}
+\newenvironment{Maple Heading 4}[2][\subsubsection]
+{#1{\normalsize\bfseries\itshape {#2}}}
+{}
+%
+\newenvironment{Maple Normal}{\normalsize\rmfamily\mdseries}{}
+\newenvironment{Maple Text Output}{\normalsize\ttfamily\mdseries}{}
+\newenvironment{Maple Title}{\begin{center}\rmfamily\LARGE\upshape\ignorespaces}%
+{\end{center}}
+\newenvironment{Maple Warning}{\ttfamily}{}
+%--------------------------------------------------------------------
+% -- Fixed Width Environment is like a verbatim Version
+%--------------------------------------------------------------------
+%
+\newbox\maplettybox%
+\setbox\maplettybox=\hbox{}
+%
+\expandafter\def\csname MapleFixedWidth\endcsname{
+  \removelastskip%
+  \nopagebreak[3]% 
+  \MaplePromptfalse	  % No prompt is required in this environment.
+  \@SetupMapleTty{1}   % The 1 indicates "respect first new line"
+  \@BeginMapleFixedWidth  % np indicates omit prompt
+}
+%
+\expandafter\def\csname endMapleFixedWidth\endcsname{%
+  \@EndMapleTty%
+  \removelastskip
+  \vskip\BelowMapleSkip%
+  \pagebreak[3]%
+  \@endpetrue
+  \ignorespaces
+}%
+%
+%------------------------------------------------------------------------------
+% -- Regular Known Character styles
+%
+%        If spaces occur in name then define using \expandafter
+%        as seen below, and invoke as QTR{name}{options}
+%	 Otherwise, define and use as normal (i.e., using \def)
+%
+%------------------------------------------------------------------------------
+\expandafter\def\csname Maple 2D Comment\endcsname#1{{\rmfamily\upshape #1}}
+\expandafter\def\csname Maple 2D Input\endcsname#1{{\rmfamily\upshape #1}}
+\expandafter\def\csname Maple 2D Math\endcsname#1{{\rmfamily\upshape #1}}
+\expandafter\def\csname Maple 2D Output\endcsname#1{{\rmfamily\upshape #1}}
+\expandafter\def\csname Maple Help Heading\endcsname#1{{\large\bfseries\sffamily\upshape #1}}
+\expandafter\def\csname Maple Help Normal\endcsname#1{{\rmfamily\itshape #1}}
+\expandafter\def\csname Maple 2D Comment\endcsname#1{{\rmfamily\itshape #1}}
+\expandafter\def\csname Maple Maple Input\endcsname#1{{\ttfamily\upshape #1}}
+\expandafter\def\csname Maple Output Labels\endcsname#1{{\ttfamily\upshape #1}}
+\expandafter\def\csname Maple Plot Title\endcsname#1{{\large\sffamily\upshape #1}}
+\expandafter\def\csname Maple Plot Text\endcsname#1{{\sffamily\upshape #1}}
+\expandafter\def\csname Maple Popup\endcsname#1{{\bfseries\sffamily\upshape #1}}
+\expandafter\def\csname Maple Hyperlink\endcsname#1{{\bfseries\rmfamily\itshape #1}}
+%--------------------------------------------------------------------
+% Hyperlink support (printing characteristics only)
+%--------------------------------------------------------------------
+\def\labelLink#1#2{\Hyperlink{#2}}
+\def\docLink#1#2{\Hyperlink{#2}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Maple Table Support
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\typeout{Defining Maple Spreadsheet Environments}
+\typeout{Maple Spreadsheet and Table Support}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Maple Spreadsheets and Tables Package
+%%%
+%%%  Maple displays its spreadsheets as a tabular arrays of cells.
+%%%
+%%% This is essentially a tabular environment
+%%% with some pre and post processing. 
+%%% The format is:
+%%% \begin{maplespreadsheet}[spreadsheet01.tab]{|c|c|}
+%%% \hline
+%%% entry 1 &
+%%% entry 2 &
+%%% \mapleinline{inert}{2d}{1;}{xx} \\
+%%% \hline
+%%% entry 2,21 &
+%%% entry 2,3  &
+%%% \mapleinline{{1;} \\
+%%% \hline
+%%%\end{maplespreadsheet}
+%%%
+%%%  The cells are in typeset in text mode. The mathematics is
+%%%  usually provided in \mapleinline in order to provide both the
+%%%  Maple and the LaTeX encoding of the expression.
+%%%
+%%%  Maple's \multiline macro is used in the latex portion
+%%%  of the \mapleinline macro in order to effect line wrapping.
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newif\ifMapleTableCell%  % used to change vertical offset of a
+			  % mapleinline inside table
+\newdimen\multilinesep%
+\multilinesep=1ex%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% maplespreadsheet - tabular environment whose entries are encoded
+%%%	using mapleinline.
+%%%
+%%%	\begin{maplespreadsheet}[filename]{format}
+%%%	...
+%%%	\end{maplespreadsheet}
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\maplespreadsheet{%
+\@ifnextchar [{\@maplespreadsheet}{\@maplespreadsheet[]}
+}
+\def\@maplespreadsheet[#1]#2{%
+\par\MapleTableCelltrue\begin{center}\begin{tabular}{#2}}%
+\def\endmaplespreadsheet{%
+\end{tabular}%
+\end{center}%
+\MapleTableCellfalse%
+}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% maplemultiline - Used for stacking lines of maple input and output
+%%%
+%%% An implementation of mapleinline based on vbox and hbox.
+%%% The tokens are parsed and dropped into hboxes which are in turn
+%%% collected into a vbox.
+%%%
+%%% Each line of the multiline is followed by some extra space
+%%% No extra space is required at the top as the multiline is
+%%% used inside of \mapleinline, which provide's its own space
+%%%
+%%% \maplemultiline{x^2 + y^2\\(x - y)^{100}\\}
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tokens and utilities used by \maplemultiinline
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newbox\@linebuffer\setbox\@linebuffer=\vbox{\relax}
+\newbox\@currentline\setbox\@currentline=\hbox{\relax}
+\newdimen\@linebufferwidth  %%% DEBUG %%%
+\newtoks\EndMultiLine%
+\@ifundefined{@skiponetoken}{\gdef\@skiponetoken#1{\relax}}{\relax}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \maplemultiline -
+%%% for use primarily inside of table cells.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\maplemultiline#1{%
+{\def\\{\relax}%
+\processcell#1\noexpand\\\EndMultiLine%
+}%
+%%% \@linebufferwidth=\wd\@linebuffer%%% DEBUG %%%
+%\fbox{\@dumplinebuffer}%         %%% DEBUG %%%
+\@dumplinebuffer%
+}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \processcell -
+%%% start processing the contents of the cell
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\processcell{\futurelet\@nexttoken\processline}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \processline
+%%% - invokes \processfullline unless at the
+%%% end of the cell. (skips over \cr's to
+%%% avoid spacing problems)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\processline{%
+\ifx\@nexttoken\EndMultiLine%
+\let\next\@skiponetoken%  % at end of cell.
+\else%
+\let\next\processfullline%% grab next line 
+\fi%
+% \cr's cause spacing problems.
+\ifx\@nexttoken\cr\@skiponetoken\let\next\processline\fi%
+\next%
+}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \processfullline -
+%%% - Adds currentline (as identified by \\)
+%%% to the vbox \@linebuffer
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\processfullline #1\\{%
+\global\setbox\@currentline=\hbox{$#1$}
+\@extendlinebuffer{\@currentline}%
+\processcell}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \@extendlinebuffer - a stack of lines
+%%% add currentline to end of \@linebuffer
+%%%
+%%% #1 is assumed to be a box. (hbox) and
+%%% is reset at the end.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\@extendlinebuffer#1{%
+\ifvoid#1\else% 	% skip over blank lines
+\ifvoid\@linebuffer%	% first line ?
+\global\setbox\@linebuffer=\vtop{\copy#1}%
+\else%			% add new lines
+\global\setbox\@linebuffer=\vtop{%
+\unvcopy\@linebuffer%
+\copy#1%
+\vskip\multilinesep%
+}%
+\fi%
+\fi%
+\global\setbox#1=\hbox{}% reset currentline
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \@dumplinebuffer -
+%%% place @linebuffer on the output stream as
+%%% a vbox.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\@dumplinebuffer{%
+\setbox\@linebuffer=\vtop{%
+\hbox{\vrule height3pt depth0pt width 0pt}%
+\unvbox\@linebuffer%
+\unskip}%  
+\box\@linebuffer%  A verticle box ...
+\global\setbox\@linebuffer=\vbox{}%
+\relax}
+\newcommand{\Mapleoversetsp}[2]%
+  {\mathop{\kern\z@#2}\limits^{\!\!\!#1}}
+\newcommand{\Mapleundersetsp}[2]%
+  {\mathop{\kern\z@#2}\limits_{\!\!\!#1}}
+\newcommand{\Mapleoverset}[2]%
+  {\mathop{\kern\z@#2}\limits^{#1}}
+\newcommand{\Mapleunderset}[2]%
+  {\mathop{\kern\z@#2}\limits_{#1}}
+\endinput 
+%%%% The End %%%%%
+%%% </PRE>

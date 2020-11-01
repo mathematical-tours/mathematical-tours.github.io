@@ -1,0 +1,141 @@
+\begin{maplegroup}
+\begin{flushleft}
+Les paramètres pour faire un TFD de taille 
+\mapleinline{inert}{2d}{n;}{%
+$n$%
+} fixé sur 
+\mapleinline{inert}{2d}{Fp;}{%
+$\FF_p$%
+} :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{\pwith{}(numtheory): n := 16: p := 3:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Liste des facteurs de 
+\mapleinline{inert}{2d}{X^n-1;}{%
+$X^{n} - 1$%
+}. Choix d'un facteur irréductible de degré 
+\mapleinline{inert}{2d}{r;}{%
+$r$%
+} et de la racine primive associée :
+on constate que 
+\mapleinline{inert}{2d}{r;}{%
+$r$%
+} est bien l'ordre de 
+\mapleinline{inert}{2d}{p;}{%
+$p$%
+} dans $(\ZZ/n\ZZ)^*$.
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{liste_div := op(Factor( cyclotomic(n,X) ) mod p );
+P := liste_div[1];
+alias( alpha = RootOf(P) ):}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{liste_div := X^4+2*X^2+2, X^4+X^2+2;}{%
+\[
+\mathit{liste\_div} := X^{4} + 2\,X^{2} + 2, \,X^{4} + X^{2} + 2
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{P := X^4+2*X^2+2;}{%
+\[
+P := X^{4} + 2\,X^{2} + 2
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Transformée de Fourier, version 
+\mapleinline{inert}{2d}{O(n^2);}{%
+$\mathrm{O}(n^{2})$%
+} :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{TFD := \pproc{}(f, signe)
+\quad \plocal res, formule;
+\quad # pour plus de lisibilité, on écrit à part la formule de TFD :
+\quad formule := 'f[l+1]*alpha^(-signe*(k-1)*l)';
+\quad res := [ seq( sum( formule, 'l'=0..n-1 ) mod p , k=1..n)  ];     
+\quad \pif signe=-1 \pthen res := 1/n*res mod p \pend \pif;
+\quad \preturn{}(Normal(res) mod p);
+\pend \pproc{}:}{%
+}
+\end{mapleinput}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{flushleft}
+Test simple :
+\end{flushleft}
+
+\end{maplegroup}
+\begin{maplegroup}
+\begin{mapleinput}
+\mapleinline{active}{1d}{hasard := rand(0..(p-1)):
+x := [seq( hasard(), i=1..n )];
+y := TFD(x,1);  # TFD(x) n'est plus à coefficients dans F_2.
+evalb( x = TFD(y,-1) ); # Mais on retombe bien sur nos pattes.}{%
+}
+\end{mapleinput}
+
+\mapleresult
+\begin{maplelatex}
+\mapleinline{inert}{2d}{x := [0, 2, 0, 2, 1, 2, 2, 2, 1, 1, 1, 0, 0, 2, 2, 1];}{%
+\[
+x := [0, \,2, \,0, \,2, \,1, \,2, \,2, \,2, \,1, \,1, \,1, \,0, 
+\,0, \,2, \,2, \,1]
+\]
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{y := [1, 2*alpha^3+2*alpha+alpha^2+2, 1, 2*alpha^3+alpha+2*alpha^2,
+alpha^2+1, alpha^3+alpha, 1, 2*alpha^3+alpha, 1,
+alpha^3+alpha+alpha^2+2, 2, alpha^3+2*alpha+2*alpha^2, 2*alpha^2+2,
+2*alpha^3+2*alpha, 2, alpha^3+2*alpha];}{%
+\maplemultiline{
+y := [1, \,2\,\alpha ^{3} + 2\,\alpha  + \alpha ^{2} + 2, \,1, \,
+2\,\alpha ^{3} + \alpha  + 2\,\alpha ^{2}, \,\alpha ^{2} + 1, \,
+\alpha ^{3} + \alpha , \,1, \,2\,\alpha ^{3} + \alpha , \,1,  \\
+\alpha ^{3} + \alpha  + \alpha ^{2} + 2, \,2, \,\alpha ^{3} + 2\,
+\alpha  + 2\,\alpha ^{2}, \,2\,\alpha ^{2} + 2, \,2\,\alpha ^{3}
+ + 2\,\alpha , \,2, \,\alpha ^{3} + 2\,\alpha ] }
+%
+}
+\end{maplelatex}
+
+\begin{maplelatex}
+\mapleinline{inert}{2d}{true;}{%
+\[
+\mathit{true}
+\]
+%
+}
+\end{maplelatex}
+
+\end{maplegroup}

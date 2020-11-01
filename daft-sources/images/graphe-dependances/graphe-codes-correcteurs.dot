@@ -1,0 +1,63 @@
+/*
+	Fichier DOT -- http://www.research.att.com/sw/tools/graphviz
+	Autour de la notion de codes correcteurs.
+*/
+
+digraph graphedependances {
+
+	ranksep=.75; size = "75,75";
+
+	/* notions importantes */
+	/* les chapitres */
+	{ 	rank = same;
+		node [shape=box];
+		codes_correcteurs					[label="Codes\ncorrecteurs"];
+		transformee_fourier_groupe_fini		[label="Transformée de Fourier\nsur un groupe fini"];
+		representations_lineaires			[label="Représentations\nlinéaires"];
+	}
+	
+	/* sous-notions */
+	node [shape="hexagon"];
+	codes_bch								[label="Codes\nBCH"];
+	codes_autoduaux							[label="Codes\nautoduaux"];
+	polynomes_invariants					[label="Polynômes invariants"];
+	notion_orthogonalite					[label="Notion\nd'orthogonalité"];
+	/* outils */
+	node [shape="ellipse"];
+	algo_decodage							[label="Algorithme\nde décodage"];
+	formule_poisson							[label="Formule\nde Poisson"];
+	operateur_reynolds						[label="Opérateur\nde Reynolds"];
+	fft_corps_fini							[label="FFT à valeur\ndans un corps fini"];
+	id_macwilliams							[label="Identités de\nMacWilliams"];
+
+	subgraph cluster_legend
+	{	
+		{ rank = same; legend_box							[shape="box"][label="Notion"]; }
+		{ rank = same; legende_hexagon							[shape="hexagon"][label="Sous-notion"]; }
+		{ rank = same; legend_ellipse							[shape="ellipse"][label="Outil"]; }
+	}
+
+
+	codes_correcteurs			->	codes_autoduaux;
+	codes_correcteurs			->	codes_bch;
+
+	transformee_fourier_groupe_fini		->	formule_poisson [label="Permet de\ndémontrer"];
+	transformee_fourier_groupe_fini		->	fft_corps_fini [label="Se généralise"];
+	transformee_fourier_groupe_fini		->	representations_lineaires [label="Se généralise"];
+
+	representations_lineaires		->	operateur_reynolds;
+
+	fft_corps_fini				->	algo_decodage [label="Permet de construire"];
+	codes_bch					->  algo_decodage;
+
+	notion_orthogonalite		->	formule_poisson [label="Au coeur"];
+	notion_orthogonalite		->	codes_autoduaux [label="Au coeur"];
+
+	codes_autoduaux				->	polynomes_invariants [label="Utilise"];
+	id_macwilliams				-> 	polynomes_invariants [label="Permet\nde se ramener"];
+
+	operateur_reynolds			-> 	polynomes_invariants [label="Permet\nd'étudier"];
+
+	formule_poisson				->	id_macwilliams[label="Permet de démontrer"];
+		
+}
