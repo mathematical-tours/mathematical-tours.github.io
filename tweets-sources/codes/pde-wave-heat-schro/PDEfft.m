@@ -26,15 +26,15 @@ f0 = abs(x)<=.4;
 f0 = gauss(0,s);
 f0 = gauss(-.3,.08) - .7*gauss(.3,.05);
 f0 = gauss(-.3,.1) - .7*gauss(.3,.08);
+% f0 = gauss(0,.03);
 
-[Y,X] = meshgrid(t,t);
 F0 = fft(f0);
 
 name = 'biheat';
 name = 'biwave';
+name = 'heat';
 name = 'wave';
 name = 'schrodinger';
-name = 'heat';
 
 mydisp = @(f)real(f);
 switch name
@@ -98,7 +98,7 @@ for it=1:q
     set(gca, 'XTick', [], 'YTick', []);    
     drawnow;
     %
-    mysaveas(it);
+    % mysaveas(it);
 end
 
 

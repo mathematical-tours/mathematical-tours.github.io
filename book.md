@@ -20,22 +20,21 @@ Chapters Available as Individual PDFs
 
 - [Shannon Theory](book-sources/chapters-pdf/shannon.pdf)
 - [Fourier Transforms](book-sources/chapters-pdf/fourier.pdf)
-- [Linear Mesh Processing](book-sources/chapters-pdf/meshes.pdf)
 - [Wavelets](book-sources/chapters-pdf/wavelets.pdf)
-- [Multiresolution Mesh Processing](book-sources/chapters-pdf/meshes-multires.pdf)
 - [Linear and Non-linear Approximation](book-sources/chapters-pdf/approximation.pdf)
 - [Compression](book-sources/chapters-pdf/compression.pdf)
 - [Denoising](book-sources/chapters-pdf/denoising.pdf)
 - [Variational Priors and Regularization](book-sources/chapters-pdf/variational-priors.pdf)
 - [Inverse Problems](book-sources/chapters-pdf/inverse-problems.pdf)
-- [Sparse Regularization](book-sources/chapters-pdf/sparse-regularization.pdf)
-- [Convex Analysis](book-sources/chapters-pdf/convex-analysis.pdf)
-- [Gradient Descent Methods](book-sources/chapters-pdf/optim-smooth.pdf)
-- [Non Smooth Optimization](book-sources/chapters-pdf/optim-nonsmooth.pdf)
 - [Theory of Sparse Regularization](book-sources/chapters-pdf/sparse-theory.pdf)
 - [Compressed Sensing](book-sources/chapters-pdf/compressed-sensing.pdf)
 - [Machine Learning](book-sources/chapters-pdf/machine-learning.pdf)
+- [Optimization & Machine Learning: Smooth Optimization](book-sources/chapters-pdf/optim-ml-smooth)
+- [Optimization & Machine Learning: Advanced Topics](book-sources/chapters-pdf/optim-ml-advanced)
 - [Deep-Learning](book-sources/chapters-pdf/deep-learning.pdf)
+- [Convex Analysis](book-sources/chapters-pdf/convex-analysis.pdf)
+- [Non Smooth Optimization](book-sources/chapters-pdf/optim-nonsmooth.pdf)
+
 
 Optimization for Machine Learning
 ----------------
@@ -46,4 +45,4 @@ Dedicated course notes covering specifically optimization and its applications i
 Optimal Transport
 ----------------
 
-Dedicated course notes covering specifically optimal transport is [available as a separate PDF file](book-sources/optimal-transport/CourseOT.pdf). You can also check [the dedicated book](https://optimaltransport.github.io/) for a more detailed treatment of the algorithmic aspects. 
+Dedicated course notes covering specifically optimal transport is [available as a separate PDF file](book-sources/optimal-transport/CourseOT.pdf). You can also check [the dedicated book](https://optimaltransport.github.io/) for a more detailed treatment of the algorithmic aspects.
