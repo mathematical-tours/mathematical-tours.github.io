@@ -581,6 +581,19 @@ Such an optimal $\tau=\tau_k$ is thus characterized by
 This means that for this greedy algorithm, two successive descent direction $\nabla f(x_k)$ and $\nabla f(x_{k+1})$ are orthogonal (see Fig.~\ref{fig-gradesc}).
 \end{rem}
 
+\begin{rem}[Armijo rule]
+	Instead of looking for the optimal $\tau$, one can looks for an admissible $\tau$ which guarantees a large enough decay of the functional, in order to ensure convergence of the descent. 
+	%
+	Given some parameter $0<\al<1$ (which should be actually smaller than $1/2$ in order to ensure a sufficient decay), one consider a $\tau$ to be valid for a descent direction $d_k$ (for instance $d_k=-\nabla f(x_k)$) if it satisfies
+	\eql{\label{eq-armijo-rule}
+		f(x_k+\tau d_k) \leq f(x_k) + \al \tau \dotp{d_k}{\nabla f(x_k)}
+	} 
+	For small $\tau$, one has $f(x_k+\tau d_k) = f(x_k) + \tau \dotp{d_k}{\nabla f(x_k)}$, so that, assuming $d_k$ is a valid descent direction (i.e $\dotp{d_k}{\nabla f(x_k)}<0$),  condition~\eqref{eq-armijo-rule} will always be satisfied for $\tau$ small enough (if $f$ is convex, the set of allowable $\tau$ is of the form $[0,\tau_{\max}]$). 
+	%
+	In practice, one perform gradient descent by initializing $\tau$ very large, and decaying it $\tau \leftarrow \be \tau$ (for $\be < 1$) until~\eqref{eq-armijo-rule} is satisfied. 
+	%
+	This approach is often called ``backtracking'' line search. 
+\end{rem}
 
 
 
@@ -1002,3 +1015,51 @@ Note that in the low conditioning setting $\epsilon \ll 1$, one retrieve a depen
 \eq{
 	\sqrt{ \frac{L}{L+\mu} } = (1+\epsilon)^{-\frac{1}{2}} \sim 1 - \frac{1}{2}\epsilon. 
 }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Acceleration}
+
+The previous analysis shows that for $L$-smooth functions (i.e. with a hessian uniformly bounded by $L$, $\norm{\partial^2 f(x)}_{\text{op}} \leq L$), the gradient descent with fixed step size converges with a speed on the function value $f(x_k)-\min f = O(1/k)$. 
+%
+Even using various line search strategies, it is not possible to improve over this rate. 
+%
+A way to improve this rate is by introducing some form of ``momentum'' extrapolation and rather consider a pair of variables $(x_k,y_k)$ with the following update rule, for some step size $s$ (which should be smaller than $1/L$)
+\eq{
+	\choice{
+			x_{k+1} = y_{k} - s \nabla f(y_{k}) \\
+			y_{k+1} = x_{k+1} + \beta_k (x_{k+1}-x_{k})
+	}
+}
+where the extrapolation parameter satisfies $0 < \beta_k < 1$. The case of a fixed $\beta_k=\be$ corresponds to the so-called ``heavy-ball'' method. In order for the method to bring an improvement for the $1/k$ ``worse case'' rate (which does not means it improves for all possible case), one needs to rather use increasing momentum $\beta_k \rightarrow 1$, one popular choice being
+\eq{
+	\be_k \frac{k-1}{k+2} \sim 1 - \frac{1}{k} .
+}
+This corresponds to the so-called ``Nesterov'' acceleration (although Nesterov used a slightly different choice, with the similar $1-1/k$ asymptotic behavior).
+
+When using $s \leq 1/L$, one can show that $f(x_k)-\min f = O( \frac{\norm{x_0-x^\star}}{s k^2} )$, so that in the worse case scenario, the convergence rate is improved. Note however that in some situation, acceleration actually deteriorates the rates. For instance, if the function is strongly convex (and even on the simple case $f(x)=\norm{x}^2$), Nesterov acceleration does not enjoy linear convergence rate.
+
+A way to interpret this scheme is by looking at a time-continuous ODE limit when $s \rightarrow 0$. On the contrary to the classical gradient descent, the step size here should be taker as $\tau=\sqrt{s}$ so that the time evolves as $t=\sqrt{s} k$. 
+% 
+The update reads
+\eq{
+	\frac{x_{k+1} - x_k}{\tau} = (1-3/k) \frac{x_k-x_{k-1}}{\tau} -  \nabla f(y_k)
+}
+which can be re-written as
+\eq{
+	\frac{x_{k+1}+x_{k-1} - 2 x_k}{\tau^2} - \frac{3}{k\tau} \frac{x_k-x_{k-1}}{\tau} + \tau \nabla f(y_k) = 0.
+}
+Assuming $(x_k,y_k) \rightarrow (x(t), y(t))$, one obtains in the limit the following second order ODE
+\eq{
+	x''(t) + \frac{3}{t} x'(t) + \nabla f(x(t)) = 0
+	\qwithq
+	\choice{
+		x(0)=x_0, \\
+		x'(0)=0.
+	}
+}
+This corresponds to the movement of a ball in the potential field $f$, where the term $\frac{3}{t} x'(t)$ plays the role of a friction which vanishes in the limit.
+%
+So for small $t$, the method is similar to a gradient descent $x'=-\nabla f(x)$, while for large $t$, it ressemble a Newtonian evolution $x''=-\nabla f(x)$ (which keeps oscillating without converging). 
+%
+The momentum decay rate $3/t$ is very important, it is the only rule which enable the speed improvement from $1/k$ to $1/k^2$.
