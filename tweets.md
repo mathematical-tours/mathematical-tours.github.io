@@ -18,3 +18,7 @@ You can find the tweets figures here:
 - [Signal and image](tweets-sources/tweets-signal-image.pdf)
 
 You can also find here [a compilation of algorithms](../algorithms/).
+
+You can find lists:
+- [Of the main tweets](../tweets_main/)
+- [Of the "Oldies but Goldies"](../tweets_oldies/)
