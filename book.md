@@ -39,7 +39,7 @@ Chapters Available as Individual PDFs
 Optimization for Machine Learning
 ----------------
 
-Dedicated course notes covering specifically optimization and its applications in ML is [available as a separate PDF file](book-sources/optim-ml/OptimML.pdf).
+Dedicated course notes covering specifically optimization and its applications in ML is [available as a separate PDF file](book-sources/optim-ml/OptimML.pdf). There is also [a short note on PAC learning](book-sources/optim-ml/OptimML-PAC.pdf).
 
 
 Optimal Transport
