@@ -1,0 +1,264 @@
+%!TEX root = ../FundationsDataScience.tex
+
+
+
+The underlying assumption is that the data $\Dd \eqdef (x_i,y_i)_{i=1}^n \subset \Xx \times \Yy$ are independent realizations of a random vector $(X,Y)$. The goal is to learn from $\Dd$ alone a function $f : \Xx \rightarrow \Yy$ which is as close a possible of minimizing the risk 
+\eq{
+	L(f) \eqdef \EE( \ell(Y,f(X)) ) = \int_{\Xx \times \Yy} \ell(y,f(x)) \d\PP_{X,Y}(x,y)
+}
+where $\ell : \Yy \times \Yy \rightarrow \RR$ is some loss function. 
+%
+In order to achieve this goal, the method selects a class of functions $\Ff$ and minimizes the empirical risk 
+\eq{
+	\hat f \eqdef \uargmin{f \in \Ff} \hat L(f) \eqdef \frac{1}{n} \sum_{i=1}^n \ell(y_i,f(x_i)).
+}	
+This is thus a random function (since it depends on $\Dd$).  
+
+\begin{exmp}[Regression and classification]
+	In regression, $\Yy=\RR$ and the most common choice of loss is $\ell(y,z) = (y-z)^2$.
+	For binary classification, $\Yy=\{-1,+1\}$ and the ideal choice is the 0-1 loss $\ell(y,z)=1_{y \neq z}$.
+	%	
+	Minimizing $\hat L$ for the 0-1 loss is often NP hard for most choice of $\Ff$.  So one uses other loss functions of the form $\ell(y,z) = \Gamma(-yz)$ where $\phi$ is a convex function upper-bounding $1_{\RR^+}$, which makes $\umin{f} \hat L(f)$ a convex optimization problem. 
+	\end{exmp}
+	
+The goal of PAC learning is to derive, with probability at least $1-\delta$ (intended to be close to $1$), a bound on the generalization error $L(\hat f) - \inf(L) \geq 0$ (also called excess risk), and this bound  depends on $n$ and $\de$. In order for this generalization error to go to zero, one needs to put some hypothesis on the distribution of $(X,Y)$. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Non parametric setup and calibration}
+
+If $\Ff$ is the whole set of measurable functions, the minimizer $f^\star$ of $L$ is often called ``Bayes estimator'' and is the best possible estimator. 
+
+
+%%%
+\paragraph{Risk decomposition}
+
+Denoting 
+\eq{
+	\al(z|x) \eqdef \EE_Y(\ell(Y,z)|X=x) = \int_\Yy \ell(y,f(x)) \d \PP_{Y|X}(y|x)
+} 
+the average error associate to the choice of some predicted value $z \in \Yy$ at location $x \in \Xx$, one has the decomposition of the risk
+\eq{
+	L(f) = \int_\Xx \left[ \int_\Yy \ell(y,f(x)) \d \PP_{Y|X}(y|x) \right] \d \PP_X(x) = \int_\Xx \al(f(x)|x) \d \PP_X(x)
+}
+so that computing $f^\star$ can be done independently at each location $x$ by solving
+\eq{
+	f^\star(x) = \uargmin{z} \al(z|x).
+}
+
+\begin{exmp}[Regression]
+For regression applications, where $\Yy=\RR$, $\ell(y,z) = (y-z)^2$, one has $f^\star(x)=\EE(Y|X=x) = \int_\Yy y \d \PP_{Y|X}(y|x)$, which is the conditional expectation.
+\end{exmp}
+
+\begin{exmp}[Classification]
+For classification applications, where $\Yy = \{-1,1\}$, it is convenient to introduce $\eta(x) \eqdef \PP_{Y|X}(y=1|x) \in [0,1]$.
+%
+If the two classes are separable, then $\eta(x) \in \{0,1\}$ on the support of $X$ (it is not defined elsewhere). 
+%
+For the 0-1 loss $\ell(y,z)=1_{y=z}=1_{\RR^+}(-yz)$, one has $f^\star = \sign(2\eta-1)$ and $L(f^\star) = \EE_X( \min(\eta(X),1-\eta(X)) )$.
+%
+In practice, computing this $\eta$ is not possible from the data $\Dd$ alone, and minimizing the 0-1 loss is NP hard for most $\Ff$. 
+%
+Considering a loss of the form $\ell(y,z)=\Ga(-yz)$, one has that the Bayes estimator then reads in the fully non-parametric setup
+\eq{
+	f^\star(x) = \uargmin{z} \al(z|x) = \eta(x) \Gamma(-z) + (1-\eta(x)) \Gamma(z), 
+}
+so that it is non-linear function of $\eta(x)$.
+\end{exmp}
+
+%%%
+\paragraph{Calibration in the classification setup}
+
+A natural question is to ensure that in this (non realistic \ldots) setup, the final binary classifier $\sign(f^\star)$ is equal to $\sign(2\eta-1)$, which is the Bayes classifier of the (non-convex) 0-1 loss. In this case, the loss is said to be calibrated. Note that this does not mean that $f^\star$ is itself equal to $2\eta-1$ of course.  One has the following result.
+
+\begin{prop}
+	A loss loss $\ell$ associated to a convex $\Gamma$ is calibrated if and only if $\Gamma$ is differentiable at $0$ and $\Gamma'(0)>0$.
+\end{prop}
+
+In particular, the hinge and logistic loss are thus calibrated. 
+% 
+Denoting $L_\Gamma$ the loss associated to $\ell(y,z)=\Gamma(-yz)$, and denoting $\Gamma_0=1_{\RR^+}$ the 0-1 loss, stronger quantitative controls are of the form  
+\eql{\label{eq-calibration-control}
+	L_{\Gamma_0}(f) - \inf L_{\Gamma_0} \leq \Psi( L_{\Gamma}(f) - \inf L_{\Gamma} ) 
+}
+for some increasing function $\Psi : \RR^+ \rightarrow \RR^+$. Such a control ensures in particular that if $f^\star$ minimize $L_{\Gamma}$, it also minimizes $L_{\Gamma_0}$ and hence $\sign(f^\star)=\sign(2\eta-1)$ and the loss is calibrated. 
+%
+One can show that the hinge loss enjoys such a quantitative control with $\Psi(r)=r$ and that the logistic loss has a worse control since it requires $\Psi(s)=\sqrt{s}$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{PAC bounds}
+
+%%%
+\paragraph{Bias-variance decomposition.}
+
+For a class $\Ff$ of functions, the excess risk of the empirical estimator
+\eq{
+	\hat f \eqdef \uargmin{f \in \Ff} \hat L(f)
+%	\qandq
+%	f^\star \eqdef \uargmin{f \text{ measurable}} L(f)	
+} 
+is decomposed as the sum of the estimation (random) error and the approximation (deterministic) error
+\eql{\label{eq-bias-var-split}
+	L(\hat f) - \inf L = 
+		\Big[ L(\hat f)  - \inf_{\Ff} L \Big]
+		+
+		\Aa(\Ff)
+		\qwhereq 
+		\Aa(\Ff) \eqdef \Big[ \inf_{\Ff} L  - \inf L \Big].
+}
+This splitting is a form of variance/bias separation. 
+
+As the size of $\Ff$ increases, the estimation error increases but the approximation error decreases, and the goal is to optimize this trade-off. This size should thus depend on $n$ to avoid over-fitting (selecting a too large class $\Ff$).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Approximation error.}
+
+Bounding the approximation error fundamentally requires some hypothesis on $f^\star$. This is somehow the take home message of ``no free lunch'' results, which shows that learning is not possible without regularity assumption on the distribution of $(X,Y)$.
+%
+We only give here a simple example. 
+
+%%%%
+\begin{exmp}[Linearly parameterized functionals]
+A popular class of functions are linearly parameterized maps of the form 
+\eq{
+	f(x) = f_w(x) = \dotp{\phi(x)}{w}_\Hh
+}
+where $\phi : \Xx \rightarrow \Hh$ somehow ``lifts'' the data features to a Hilbert space $\Hh$. In the particular case where $\Xx=\RR^p$ is already a (finite dimensional) Hilbert space, one can use $\phi(x)=x$ and recovers  usual linear methods. One can also consider for instance polynomial features, $\phi(x)=(1, x_1,\ldots,x_p,x_1^2,x_1 x_2, \ldots)$, giving rise to polynomial regression and polynomial classification boundaries.
+%
+One can then use a restricted class of functions of the form $\Ff = \enscond{f_w}{\norm{w}_\Hh \leq R}$ for some radius $R$, and if one assumes for simplicity that $f^\star=f_{w^\star}$ is of this form, and that the loss $\ell(y,\cdot)$ is $Q$-Lipschitz, then the approximation error is bounded by an orthogonal projection on this ball
+\eq{
+	\Aa(\Ff)  \leq Q \EE( \norm{\phi(x)}_\Hh ) \max( \norm{w^\star}_\Hh-R, 0 ).
+}
+\end{exmp}
+
+%%%%
+\begin{rem}[Connexions with RKHS]
+Note that this lifting actually corresponds to using functions $f$ in a reproducing Hilbert space, denoting
+\eq{
+	\norm{f}_k \eqdef \uinf{w \in \Hh} \enscond{ \norm{w}_\Hh }{ f = f_w }
+}
+and the associated kernel is $k(x,x') \eqdef \dotp{\phi(x)}{\phi(x')}_\Hh$. But this is not important for our discussion here.
+\end{rem}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Estimation error.}
+
+The estimation error can be bounded for arbitrary distributions by leveraging concentration inequalities (to controls the impact of the noise) and using some bound on the size of $\Ff$. 
+
+The first simple but fundamental inequality bounds the estimator error by some uniform distance between $L$ and $\hat L$. Denoting $g \in \Ff$ an optimal estimator  such that $L(g)=\inf_{\Ff} L$ (assuming for simplicity it exists) one has
+\eql{\label{eq-estimation-split}
+	L(\hat f) - \inf_{\Ff} L = 
+	\Big[L(\hat f) - \hat L(\hat f)\Big] 
+	+
+	\Big[\hat L(\hat f) - \hat L(g)\Big] 
+	+
+	\Big[\hat L(g) - L(\hat g)\Big] 
+	\leq 
+	2 \sup_{f \in \Ff}|\hat L(f) - L(f)|
+}
+since $\hat L(\hat f) - \hat L(g) \geq 0$.
+%
+So the goal is ``simply'' to control $\De(\Dd) \eqdef \sup_{\Ff}|\hat L - L|$, which is a random value (depending on the data $\Dd$). 
+
+
+
+The following proposition, which is a corollary of McDiarmid inequality, bounds with high probability the deviation of $\De(\Dd)$ from its mean.
+
+\begin{prop}[McDiarmid control to the mean]\label{prop-mc-diarmid}
+	If $\ell(Y,f(X))$ is almost surely bounded by $\ell_\infty$ for any $f \in \Ff$, then with probability $1-\de$, 
+	\eql{\label{eq-mc-diarmid}
+		\De(\Dd) - \EE_\Dd( \De(\Dd) ) \leq \ell_\infty \sqrt{ \frac{2 \log(1/\de)}{n} }.
+	}
+\end{prop}
+
+Now we need to control $\EE_\Dd( \De(\Dd) )$ which requires to somehow bound the size of $\Ff$. This can be achieved by the so-called Vapnik-Chervonenkis (VC) dimension, but this leads to overly pessimistic (dimension-dependent) bounds for linear models.  A more refined analysis makes use of the so-called Rademacher complexity of a set of functions $\Gg$ from $\Xx \times \Yy$ to $\RR$
+\eq{
+	\Rr_n(\Gg) \eqdef \EE_{\epsilon,\Dd}\Big[
+		\sup_{g \in \Gg} \frac{1}{n}\sum_{i=1}^n \epsilon_i g(x_i,y_i)
+	\Big]
+}
+where $\epsilon_i$ are independent Bernoulli random variable (i.e. $\PP(\epsilon_i = \pm 1) = 1/2$). Note that $\Rr_n(\Gg)$ actually depends on the distribution of $(X,Y)$ \ldots
+
+Here, one needs to apply this notion of complexity to the functions $\Gg = \ell[\Ff]$ defined as
+\eq{
+	\ell[\Ff] \eqdef \enscond{ (x,y) \in \Xx \times \Yy \mapsto \ell(y,f(x))  }{ f \in \Ff }, 
+}
+and that one has the following control, which can be proved using a simple but powerful symmetrization trick. 
+
+\begin{prop}\label{prop-control-rademacher}
+	One has
+	\eq{
+		\EE( \De(\Dd) ) \leq 2 \Rr_n(\ell[\Ff]).
+	}
+	If $\ell$ is $Q$-Lipschitz, one furthermore has $\Rr_n(\ell[\Ff]) \leq Q \Rr_n(\Ff)$ (here the class of functions only depends on $x$).
+\end{prop}
+
+Putting~\eqref{eq-bias-var-split}, \eqref{eq-estimation-split}, Propositions~\ref{prop-mc-diarmid} and \ref{prop-control-rademacher} together, one obtains the following final result. 
+
+\begin{thm}
+	Assuming $\ell$ is $Q$-Lipschitz and bounded by $\ell_\infty$ on the support of $(Y,f(X))$, one has with probability $1-\de$
+	\eql{\label{eq-final-pac}
+		L(\hat f) - \inf L \leq
+			2 \ell_\infty \sqrt{ \frac{2 \log(1/\de)}{n} }
+			+ 
+			4 Q \Rr_n(\Ff)
+			+ 
+			\Aa(\Ff).		
+	}
+\end{thm}
+
+\begin{exmp}[Linear models]
+	In the case where $\Ff = \enscond{ \dotp{\phi(\cdot)}{w}_{\Hh} }{ \norm{w} \leq R}$
+	where $\norm{\cdot}$ is some norm on $\Hh$, one has
+	\eq{
+		\Rr_n(\Ff) \leq \frac{R}{n} \norm{ \sum_i \epsilon_i \phi(x_i) }_*
+	}
+	where $\norm{\cdot}_*$ is the so-called dual norm
+	\eq{
+		\norm{u}_* \eqdef \usup{ \norm{w} \leq 1} \dotp{u}{w}_\Hh.
+	}
+	In the special case where $\norm{\cdot}=\norm{\cdot}_\Hh$ is Hilbertian, then one can further simplify this expression since
+	$\norm{u}_* = \norm{u}_\Hh$ and
+	\eq{
+		\Rr_n(\Ff) \leq \frac{R \sqrt{\EE( \norm{\phi(x)}_\Hh^2)} }{\sqrt{n}}. 
+	}
+	This result is powerful since the bound does not depend on the feature dimension (and can be even applied in the RKHS setting where $\Hh$ is infinite dimensional).
+	%
+	In this case, one sees that  the convergence speed in~\eqref{eq-final-pac} is of the order $1/\sqrt{n}$ (plus the approximation error).
+	%
+	One should keep in mind that one needs also to select the ``regularization'' parameter $R$ to obtain the best possible trade-off. In practice, this is done by cross validation on the data themselves.  
+\end{exmp}
+
+\begin{exmp}[Application to SVM classification]
+	One cannot use the result~\eqref{eq-final-pac} in the case of the 0-1 loss $\ell(y,z)=1_{z \neq y}$ since it is not Lipschitz (and also because minimizing $\hat L$ would be intractable). One can however applies it to a softer piece-wise affine upper-bounding loss $\ell_\rho(z,y)=\Gamma_\rho(-zy)$ for 
+	\eq{
+		\Gamma_\rho(s) \eqdef \min\pa{ 1, \max\pa{0,1+s/\rho} }.
+	}
+	This function is $1/\rho$ Lipschitz, and it is sandwiched between the 0-1 loss and a (scaled) hinge loss 
+	\eq{
+		\Gamma_0 \leq \Gamma_\rho \leq \Gamma_{\text{SVM}}(\cdot/\rho)
+		\qwhereq
+		\Gamma_{\text{SVM}}(s) \eqdef \max( 1+s,0 ).
+	}
+	This allows one, after a change of variable $w \mapsto w/\rho$, to bound with probability $1-\de$ the 0-1 risk using a SVM risk by applying~\eqref{eq-final-pac}
+	\eq{
+		L_{\Gamma_{0}}(\hat f) - \inf_{f \in \Ff_\rho} L_{\Gamma_{\text{SVM}}}(f) \leq
+			2 \sqrt{ \frac{2 \log(1/\de)}{n} }
+			+ 
+			4 \frac{\sqrt{\EE( \norm{\phi(x)}_\Hh^2)}/\rho }{\sqrt{n}}
+	}
+	where $\Ff_\rho \eqdef \enscond{ f_w = \dotp{\phi(\cdot)}{w}_{\Hh} }{ \norm{w} \leq 1/\rho}$.
+	%
+	In practice, one rather solves a penalized version of the above  risk (in its empirical version)
+	\eql{\label{eq-svm-optim}
+		\umin{w} \hat L_{\Gamma_{\text{SVM}}}(f_w) + \lambda \norm{w}_\Hh^2 
+	}
+	which corresponds to the so-called kernel-SVM method.
+	% 
+	The kernel trick allows one to solve this problem by recasting this possibly infinite dimensional problem into a problem of finite dimension $n$ by observing that the solution necessarily has the form 
+	$w = \sum_{i=1}^n c_i \phi(x_i)$ for some $c \in \RR^n$ and
+	plugging this expression in~\eqref{eq-svm-optim} only necessitates the evaluation of the empirical kernel matrix $( k(x_i,x_j)\eqdef \dotp{\phi(x_i)}{\phi(x_j)} )_{i,j=1}^n$.
+\end{exmp} 

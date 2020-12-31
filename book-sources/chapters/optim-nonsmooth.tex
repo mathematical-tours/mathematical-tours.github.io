@@ -49,7 +49,7 @@ The gradient descent~\eqref{eq-grad-desc} cannot be applied on a non-smooth func
 The main issue with this scheme is that to ensure convergence, the iterate should go to zero. One can easily convince oneself why by looking at the iterates on a function $f(x)=|x|$. This means that in practice this method is very slow, and should be avoided if the functions has some structure that can be used (as it will be explained in the remaining part of the chapter).
 
 \begin{thm}
-	If $\sum_{\ell} \tau_\ell=+\infty$ and $\sum_{\ell} \tau_\ell^2 < +\infty$, then $\it{x}$ converges to a minimizer of $f$. 
+	If $\sum_{\ell} \tau_\ell=+\infty$ and $\sum_{\ell} \tau_\ell^2 < +\infty$, then $\it{x}$ converges to a minimizer of $f$. For $\tau_\ell=1/\ell$, one has $f(\it{x})-\min f = O(1/\sqrt{\ell})$.
 \end{thm}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -233,7 +233,13 @@ where the soft-thresholding is defined as
 }
 \end{prop}
 \begin{proof}
-	The proximal map of $\norm{\cdot}_1$ was derived in Proposition~\ref{prop-equiv-sparse-thresh}.
+	The proximal map of $\norm{\cdot}_1$ was derived in an informal wqy in Proposition~\ref{prop-equiv-sparse-thresh}.
+	%
+	One can make a rigorous proof using sub-differential calculus. Since the function is separable, one can restrict its attention to the 1-D case. Optimality of $x$ is thus equivalent to  $0 \in x-y + \tau \partial |\cdot|(x)$.
+	For $x=0$ being solution, this is equivalent to $0 \in -y + [-\tau,\tau]$ i.e. $y \in [-\tau,\tau]$.
+	%
+	For $x \neq 0$ being solution, one needs to have $x = y - \tau \sign(x)$, and indeed, for $y \notin [-\tau,\tau]$, 
+	the ansatz $x = y - \tau \sign(y)$ satisfies $x \neq 0$ and $\sign(y)=\sign(x)$, and it is thus the solution (which is unique by strict convexity). 
 	%
 	For the quadratic case
 	\eq{
@@ -385,7 +391,7 @@ The following proposition shows that the proximal operator can be interpreted as
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Primal Algorithms}
+\section{Proximal Gradient Algorithms}
 
 We now describe some important algorithm which assumes some structure (a so-called ``splitting'') of the minimized functional to be able to apply proximal maps on sub-functions.
 %
@@ -518,101 +524,11 @@ Note furthermore that the projected gradient descent algorithm~\eqref{eq-proj-gr
 Of course the difficult point is to be able to compute in closed form $\Prox_{\tau g}$ in~\eqref{eq-fb}, and this is usually possible only for very simple function. We have already seen such an example in Section~\ref{sec-ista} for the resolution of $\ell^1$-regularized inverse problems (the Lasso).
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Douglas-Rachford}
-\label{sec-dr}
-
-We consider here the structured minimization problem
-\eql{\label{eq-struct-dr}
-	\umin{x \in \RR^p} f(x) + g(x), 
-}
-but on contrary to the Forward-Backward setting studied in Section~\ref{sec-fb}, no smoothness is imposed on $f$. We here suppose that we can compute easily the proximal map of $f$ and $g$.
-
-\begin{exmp}[Constrained Lasso]
-An example of a problem of the form~\eqref{eq-struct-dr} where one can apply Douglas-Rachford is the noiseless constrained Lasso problem~\eqref{eq-lasso-constr-ip}
-\eq{
-	\umin{Ax=y} \norm{x}_1
-}
-where one can use $f=\iota_{\Cc_y}$ where $\Cc_y \eqdef \enscond{x}{Ax=y}$ and $g=\norm{\cdot}_1$.
-%
-As noted in Section~\ref{eq-linearprog-lasso}, this problem is equivalent to a linear program.
-%
-The proximal operator of $g$ is the soft thresholding as stated in~\eqref{eq-prox-l2-l1}, while the proximal operator of $g$ is the orthogonal projector on the affine space $\Cc_y$, which can be computed by solving a linear system as stated in~\eqref{eq-proj-aff} (this is especially convenient for inpainting problems or deconvolution problem where this is achieved efficiently).
-\end{exmp}
-
-The Douglas-Rachford iterations read
-\eql{\label{eq-dr-iter} 
-	 \iit{\tilde x} \eqdef \pa{1-\frac{\mu}{2}} \it{\tilde x} + 
-	\frac{\mu}{2} \rProx_{\tau g}( \rProx_{\tau f}( \it{\tilde x} )  ) 
-	\qandq \iit{x} \eqdef \Prox_{\tau f}( \iit{\tilde x}), 
-}
-where we have used the following shortcuts
-\eq{   	
-	\rProx_{\tau f}(x) = 2\Prox_{\tau f}(x)-x .
-}
-One can show that for any value of $\tau>0$, any $0 < \mu < 2$,  and any $\tilde x_0$, $\it{x} \rightarrow x^\star$ which is a minimizer of $f+g$.
-
-Note that it is of course possible to inter-change the roles of $f$ and $g$, which defines another set of iterations.
-
-%%%
-\paragraph{More than two functions.}
-
-Another sets of iterations can be obtained by ``symetrizing'' the algorithm. More generally, if we have $K$ functions $(f_k)_k$, we re-write 
-\eq{
-	\umin{x} \sum_k f_k(x) = \umin{X=(x_1,\ldots,x_k)} f(X)+g(X)
-	\qwhereq
-	f(X) = \sum_k f_k(x_k)
-	\qandq
-	g(X)=\iota_{\Delta}(X)
-}
-where $\Delta=\enscond{X}{x_1=\ldots=x_k}$ is the diagonal. The proximal operator of $f$ is 
-\eq{
-	\Prox_{\tau f}(X)=\Proj_\De(X)=(\bar x,\ldots,\bar x) 
-	\qwhereq
-	\bar x = \frac{1}{K}\sum_k x_k
-}
-while the proximal operator of $f$ is easily computed from those of the $(f_k)_k$ using~\eqref{eq-prox-separable}. One can thus apply DR iterations~\eqref{eq-dr-iter}.
-
-%%%
-\paragraph{Handling a linear operator.}
-
-One can handle a minimization of the form~\eqref{eq-splitting-primal-dual} by introducing extra variables
-\eq{
-	\uinf{x} f_1(x) + f_2(Ax) = \uinf{z=(x,y)} f(z)+g(z)
-	\qwhereq
-	\choice{
-		f(z)=f_1(x)+f_2(y) \\
-		g(z)=\iota_\Cc(x,y),
-	}
-}
-where $\Cc=\enscond{(x,y)}{Ax=y}$. This problem can be handled using DR iterations~\eqref{eq-dr-iter}, since the proximal operator of $f$ is obtained from those of $(f_1,f_2)$ using~\eqref{eq-prox-separable}, while the proximal operator of $g$ is the projector on $\Cc$, which can be computed in two alternative ways as the following proposition shows.
-
-\begin{prop}One has
-\eql{\label{eq-proj-axy}
-	\Proj_{\Cc}(x,y) = (x+A^*\tilde y,y-\tilde y) = (\tilde x,A\tilde x)
-	\qwhereq
-	\choice{
-		\tilde y \eqdef (\Id_P+AA^*)^{-1}(Ax-y) \\
-		\tilde x \eqdef (\Id_N+A^*A)^{-1}(A^*y+x).
-	}
-}
-\end{prop}
-\begin{proof}\todo{todo}
-\end{proof}
-
-\begin{rem}[Inversion of linear operator]\label{rem-inv-lin}
-	At many places (typically to compute some sort of projector) one has to invert matrices of the form 
-	$AA^*$, $A^*A$, $\Id_P+AA^*$ or $\Id_N+A^*A$ (see for instance~\eqref{eq-proj-axy}).
-	There are some case where this can be done efficiently.
-	Typical examples where this is simple are inpainting inverse problem where $AA^*$ is diagonal, and deconvolution or partial Fourier measurement (e.g. fMRI) for which $A^*A$ is diagonalized using the FFT.
-	%
-	If this inversion is too costly, one needs to use more advanced methods, based on duality, which allows to avoid trading the inverse $A$ by the application of $A^*$. They are however typically converging more slowly.
-\end{rem}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Dual and Primal-Dual Algorithms}
+\section{Primal-Dual Algorithms}
 
 Convex duality, detailed in Section~\ref{sec-cvx-duality} (either from the Lagrange or the Fenchel-Rockafellar point of view -- which are essentially equivalent), is very fruitful to derive new optimization algorithm or to apply existing algorithm on a dual reformulation.
 
@@ -741,6 +657,99 @@ Furthermore, one has $\mu=1$ and $A^*A=\Delta$ is the usual finite difference ap
 \end{exmp}
 
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Douglas-Rachford}
+\label{sec-dr}
+
+We consider here the structured minimization problem
+\eql{\label{eq-struct-dr}
+	\umin{x \in \RR^p} f(x) + g(x), 
+}
+but on contrary to the Forward-Backward setting studied in Section~\ref{sec-fb}, no smoothness is imposed on $f$. We here suppose that we can compute easily the proximal map of $f$ and $g$.
+
+\begin{exmp}[Constrained Lasso]
+An example of a problem of the form~\eqref{eq-struct-dr} where one can apply Douglas-Rachford is the noiseless constrained Lasso problem~\eqref{eq-lasso-constr-ip}
+\eq{
+	\umin{Ax=y} \norm{x}_1
+}
+where one can use $f=\iota_{\Cc_y}$ where $\Cc_y \eqdef \enscond{x}{Ax=y}$ and $g=\norm{\cdot}_1$.
+%
+As noted in Section~\ref{eq-linearprog-lasso}, this problem is equivalent to a linear program.
+%
+The proximal operator of $g$ is the soft thresholding as stated in~\eqref{eq-prox-l2-l1}, while the proximal operator of $g$ is the orthogonal projector on the affine space $\Cc_y$, which can be computed by solving a linear system as stated in~\eqref{eq-proj-aff} (this is especially convenient for inpainting problems or deconvolution problem where this is achieved efficiently).
+\end{exmp}
+
+The Douglas-Rachford iterations read
+\eql{\label{eq-dr-iter} 
+	 \iit{\tilde x} \eqdef \pa{1-\frac{\mu}{2}} \it{\tilde x} + 
+	\frac{\mu}{2} \rProx_{\tau g}( \rProx_{\tau f}( \it{\tilde x} )  ) 
+	\qandq \iit{x} \eqdef \Prox_{\tau f}( \iit{\tilde x}), 
+}
+where we have used the following shortcuts
+\eq{   	
+	\rProx_{\tau f}(x) = 2\Prox_{\tau f}(x)-x .
+}
+One can show that for any value of $\tau>0$, any $0 < \mu < 2$,  and any $\tilde x_0$, $\it{x} \rightarrow x^\star$ which is a minimizer of $f+g$.
+
+Note that it is of course possible to inter-change the roles of $f$ and $g$, which defines another set of iterations.
+
+%%%
+\paragraph{More than two functions.}
+
+Another sets of iterations can be obtained by ``symetrizing'' the algorithm. More generally, if we have $K$ functions $(f_k)_k$, we re-write 
+\eq{
+	\umin{x} \sum_k f_k(x) = \umin{X=(x_1,\ldots,x_k)} f(X)+g(X)
+	\qwhereq
+	f(X) = \sum_k f_k(x_k)
+	\qandq
+	g(X)=\iota_{\Delta}(X)
+}
+where $\Delta=\enscond{X}{x_1=\ldots=x_k}$ is the diagonal. The proximal operator of $f$ is 
+\eq{
+	\Prox_{\tau f}(X)=\Proj_\De(X)=(\bar x,\ldots,\bar x) 
+	\qwhereq
+	\bar x = \frac{1}{K}\sum_k x_k
+}
+while the proximal operator of $f$ is easily computed from those of the $(f_k)_k$ using~\eqref{eq-prox-separable}. One can thus apply DR iterations~\eqref{eq-dr-iter}.
+
+%%%
+\paragraph{Handling a linear operator.}
+
+One can handle a minimization of the form~\eqref{eq-splitting-primal-dual} by introducing extra variables
+\eq{
+	\uinf{x} f_1(x) + f_2(Ax) = \uinf{z=(x,y)} f(z)+g(z)
+	\qwhereq
+	\choice{
+		f(z)=f_1(x)+f_2(y) \\
+		g(z)=\iota_\Cc(x,y),
+	}
+}
+where $\Cc=\enscond{(x,y)}{Ax=y}$. This problem can be handled using DR iterations~\eqref{eq-dr-iter}, since the proximal operator of $f$ is obtained from those of $(f_1,f_2)$ using~\eqref{eq-prox-separable}, while the proximal operator of $g$ is the projector on $\Cc$, which can be computed in two alternative ways as the following proposition shows.
+
+\begin{prop}One has
+\eql{\label{eq-proj-axy}
+	\Proj_{\Cc}(x,y) = (x+A^*\tilde y,y-\tilde y) = (\tilde x,A\tilde x)
+	\qwhereq
+	\choice{
+		\tilde y \eqdef (\Id_P+AA^*)^{-1}(Ax-y) \\
+		\tilde x \eqdef (\Id_N+A^*A)^{-1}(A^*y+x).
+	}
+}
+\end{prop}
+\begin{proof}\todo{todo}
+\end{proof}
+
+\begin{rem}[Inversion of linear operator]\label{rem-inv-lin}
+	At many places (typically to compute some sort of projector) one has to invert matrices of the form 
+	$AA^*$, $A^*A$, $\Id_P+AA^*$ or $\Id_N+A^*A$ (see for instance~\eqref{eq-proj-axy}).
+	There are some case where this can be done efficiently.
+	Typical examples where this is simple are inpainting inverse problem where $AA^*$ is diagonal, and deconvolution or partial Fourier measurement (e.g. fMRI) for which $A^*A$ is diagonalized using the FFT.
+	%
+	If this inversion is too costly, one needs to use more advanced methods, based on duality, which allows to avoid trading the inverse $A$ by the application of $A^*$. They are however typically converging more slowly.
+\end{rem}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Alternating Direction Method of Multipliers}
 
@@ -839,7 +848,7 @@ In the case where one cannot compute neither $\Prox_{\tau g \circ A}$ or $\Prox_
 %
 We thus consider the general structure problem of the form~\eqref{eq-splitting-primal-dual}, which we intend to solve in the primal-dual, using the fact that $g = (g^*)^*$ (otherwise one can re-use the approach using Lagrange duality performed in~\eqref{eq-primal-dual-fench}) form as
 \begin{align}\label{eq-splitting-primal-dual-bis}
-	\uinf{x} f(x) + g(Ax) = \uinf{x} f(x) + \usup{u} \dotp{Ax}{u} - g^*()
+	\uinf{x} f(x) + g(Ax) = \uinf{x} f(x) + \usup{u} \dotp{Ax}{u} - g^*(u)
 	= \usup{u} \uinf{x} f(x) + \dotp{Ax}{u}  - g^*(u).
 \end{align}
 We make no assumption such as strong convexity of $f$. 

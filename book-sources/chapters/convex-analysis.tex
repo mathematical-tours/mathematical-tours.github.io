@@ -222,6 +222,9 @@ The only simple case is composition with linear functions, which preserves conve
 	\partial (f \circ A)(x) = A^* (\partial f)(Ax) \eqdef \enscond{A^* u}{ u \in \partial f(Ax) }. 
 }
 
+\begin{rem}[Application to the Lasso]
+	{\color{red} TODO}
+\end{rem}
 
 %%%
 \paragraph{Normal cone.}
@@ -260,13 +263,147 @@ If $f$ is differentiable, it reads $-\nabla f(x) \in \Nn_\Cc(x)$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Legendre-Fenchel Transform}
+
+In order to simplify and accelerate computation involving Lagrange duality, it is very convenient to introduce a particular transformation of convex functions the Legendre-Fenchel transform. In some sense, it is the canonical ``isomorphisms'' (pairing) between convex functions. In spirit, is plays a similar role for convex function as the Fourier transform for signal or images. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Legendre Transform}
+
+For $f \in \Ga_0(\Hh)$, we define its Legendre-Fenchel transform as
+\eql{\label{eq-fenchel-transf}
+	f^*(u) \eqdef \usup{x} \dotp{x}{u} - f(x).
+}
+Being the maximum of affine functional, one obtains that $f^*$ is itself a convex function, and that in fact $f^\star \in \Ga_0(\Hh^*)$. One can prove the following fundamental bi-duality result.
+
+\begin{thm}
+One has
+\eq{
+	\foralls f \in \Ga_0(\Hh), \quad (f^{*})^* = f. 
+}
+\end{thm}
+
+In fact, $f^*$ is convex even in the case where $f$ is not, and $f^{**}$ is the convex envelop of $f$ (i.e. the largest convex function smaller than $f$). \todo{drawing}
+
+
+One has the following basic property relating the sub-differentials of $f$ and $f^*$.
+
+\begin{prop}
+One has $\partial f^* = (\partial f)^{-1}$, where the inverse of a set valued map is defined in~\eqref{eq-inv-setvalued}, and 
+\eq{
+	\foralls (x,y), \quad \dotp{x}{y} \leq f(x) + f^*(y)
+	\qandq
+	\dotp{x}{y} = f(x) + f^*(y) 
+	\quad\Leftrightarrow\quad x \in \partial f^*(y)
+	\quad\Leftrightarrow\quad y \in \partial f(x).
+}
+\end{prop}
+
+\begin{prop}\label{prop-dual-lp}
+	For $1/p+1/q=1$, 
+	\eq{
+		( \iota_{\norm{\cdot}_p \leq 1} )^* = \norm{\cdot}_q
+		\qandq
+		( \norm{\cdot}_q  )^* =  \iota_{\norm{\cdot}_p \leq 1}
+	}
+\end{prop}
+
+
+Let us now give some example of Legendre transform. 
+
+\begin{prop}\label{eq-example-legendre}
+	For $f(x)=\frac{1}{2}\dotp{Ax}{x} - \dotp{b}{x}$ with $A$ inversible, then $f^*(u) = \frac{1}{2}\dotp{A^{-1} u}{u} - \frac{1}{2}\dotp{A^{-1} b}{b}$.
+	In particular, for $f=\norm{\cdot}^2/2$, then $f^*=f$. 
+	One has\todo{check}
+	\eq{
+		f(\cdot-z)^* = f + \dotp{z}{\cdot}, \quad
+		(f + \dotp{z}{\cdot})^* = f(\cdot-z), \quad
+		(\la f)^* = \la f^*(\cdot/\la).		
+	}
+\end{prop}
+\begin{proof}
+	One has $f^*(u) = \dotp{Ax^\star}{x^\star} - \dotp{b}{x^\star}$ where $x^\star$ solves
+	\eq{
+		u = Ax^\star-b \qarrq
+		x^\star = A^{-1} u + A^{-1} b.
+	}
+	Hence
+	\eq{
+		f^*(u)  = \frac{1}{2}\dotp{A A^{-1} ( u +  b )}{A^{-1}( u +  b)} - \dotp{b}{A^{-1} (u + b)}
+			= \frac{1}{2}\dotp{A^{-1} u}{u} 
+			- \frac{1}{2}\dotp{A^{-1} b}{b}
+	}
+	
+\end{proof}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Legendre transform and smoothness}
+
+While the Fourier transform is a pairing between smoothness and decay (see Section~\ref{}), the Legendre-Fenchel is really a pairing between smoothness and strong convexity. This can be intuitively seen by the fact that the Legendre-Fenchel inverts the sub-differentials~\eqref{} and hence when the functions involved are $\Cc^2$, it inverse the Hessians 
+\eq{
+	\partial^2 f(x) = ( \partial^2 f^*(y) )^{-1} \quad \text{at} \quad y = \nabla f(x).
+}
+This relation between Hessian can be seen as implying the exchange of strong convexity and uniform bound on the Hessian, as detailed in Proposition~\ref{prop-smooth-strong}.
+
+\begin{prop}
+	One has
+	\eq{
+		\nabla f \text{ is $L$-Lipschitz } 
+		\quad\Longleftrightarrow\quad
+		\nabla f^* \text{ is $\mu$-strongly convex.} 
+	}
+\end{prop}
+
+This results suggests a way to smooth any function $f$. Instead of doing a convolution, one can use the infimal convolution
+\eq{
+	(f \otimes g)(x) \eqdef \usup{ y+y'=x } f(y) + g(y').
+}
+One can check that if $(f,g)$ are convex, so is $f \otimes g$, and that the Legendre transform actually exchanges sum and inf-convolution
+\eq{
+	( f+g )^* = f \otimes g 
+	\qandq 
+	( f \otimes g )^* = f + g.
+}
+The Moreau-Yosida regularization of $f$ is corresponds to a $\mu$-strict-convexification of $f^*$, i.e.
+\eql{\label{eq-moreau-yosida}
+	f_\mu \eqdef f \otimes (\frac{1}{2\mu}\norm{\cdot}^2) = ( f^* + \frac{\mu}{2}\norm{\cdot}^2 )^*.
+}
+Since $f^* + \frac{\mu}{2}\norm{\cdot}^2$ is at least $\mu$-strongly convex, then $f_\mu$ as a $1/\mu$-Lipchitz gradient.
+
+As an example, the Moreau-Yosida regularization of the absolute value reads
+\eq{
+	(|\cdot|_\mu)(x) = 
+	\choice{
+		\frac{1}{2\mu}x^2 \qifq |x| \leq \mu, \\
+		|x|-\frac{\mu}{2} \qifq |x|>\mu.
+	}
+}
+This should be compared with the regularization $\sqrt{x^2+\mu^2}$ (which is above the curve) that we used previously. \todo{add drawing}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Convex Duality}
 \label{sec-cvx-duality}
 
 Duality is associated to a particular formulation of the optimization problem, so that for instance making change of variables results in a different duality. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Lagrange Duality}
+\subsection{Lagrange Duality: Afine Constraint}
+
+We first consider a specific case of problem of the form
+\eq{
+	\umin{Ax=y} f(x)
+}
+where $f : \RR^p \rightarrow \RR$ is a convex function  (for now, we assume it cannot assume infinite value and is hence continuous).
+
+\todo{finalize this}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Lagrange Duality: General Case}
 
 We consider a minimization of the form
 \eql{\label{eq-lagrange-primal}
@@ -376,121 +513,6 @@ Weak duality states $p^\star \geq F(u)$ for any $u$, and $p^\star = F(u^\star)$ 
 \eql{\label{eq-proj-aff}
 	x^\star = \Proj_{A\cdot=y}(z) (\Id-A^+A)z - A^+y.
 }
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Legendre-Fenchel Transform}
-
-In order to simplify and accelerate computation involving Lagrange duality, it is very convenient to introduce a particular transformation of convex functions the Legendre-Fenchel transform. In some sense, it is the canonical ``isomorphisms'' (pairing) between convex functions. In spirit, is plays a similar role for convex function as the Fourier transform for signal or images. 
-
-For $f \in \Ga_0(\Hh)$, we define its Legendre-Fenchel transform as
-\eql{\label{eq-fenchel-transf}
-	f^*(u) \eqdef \usup{x} \dotp{x}{u} - f(x).
-}
-Being the maximum of affine functional, one obtains that $f^*$ is itself a convex function, and that in fact $f^\star \in \Ga_0(\Hh^*)$. One can prove the following fundamental bi-duality result.
-
-\begin{thm}
-One has
-\eq{
-	\foralls f \in \Ga_0(\Hh), \quad (f^{*})^* = f. 
-}
-\end{thm}
-
-In fact, $f^*$ is convex even in the case where $f$ is not, and $f^{**}$ is the convex envelop of $f$ (i.e. the largest convex function smaller than $f$). \todo{drawing}
-
-
-One has the following basic property relating the sub-differentials of $f$ and $f^*$.
-
-\begin{prop}
-One has $\partial f^* = (\partial f)^{-1}$, where the inverse of a set valued map is defined in~\eqref{eq-inv-setvalued}, and 
-\eq{
-	\foralls (x,y), \quad \dotp{x}{y} \leq f(x) + f^*(y)
-	\qandq
-	\dotp{x}{y} = f(x) + f^*(y) 
-	\quad\Leftrightarrow\quad x \in \partial f^*(y)
-	\quad\Leftrightarrow\quad y \in \partial f(x).
-}
-\end{prop}
-
-\begin{prop}\label{prop-dual-lp}
-	For $1/p+1/q=1$, 
-	\eq{
-		( \iota_{\norm{\cdot}_p \leq 1} )^* = \norm{\cdot}_q
-		\qandq
-		( \norm{\cdot}_q  )^* =  \iota_{\norm{\cdot}_p \leq 1}
-	}
-\end{prop}
-
-
-Let us now give some example of Legendre transform. 
-
-\begin{prop}\label{eq-example-legendre}
-	For $f(x)=\frac{1}{2}\dotp{Ax}{x} - \dotp{b}{x}$ with $A$ inversible, then $f^*(u) = \frac{1}{2}\dotp{A^{-1} u}{u} - \frac{1}{2}\dotp{A^{-1} b}{b}$.
-	In particular, for $f=\norm{\cdot}^2/2$, then $f^*=f$. 
-	One has\todo{check}
-	\eq{
-		f(\cdot-z)^* = f + \dotp{z}{\cdot}, \quad
-		(f + \dotp{z}{\cdot})^* = f(\cdot-z), \quad
-		(\la f)^* = \la f^*(\cdot/\la).		
-	}
-\end{prop}
-\begin{proof}
-	One has $f^*(u) = \dotp{Ax^\star}{x^\star} - \dotp{b}{x^\star}$ where $x^\star$ solves
-	\eq{
-		u = Ax^\star-b \qarrq
-		x^\star = A^{-1} u + A^{-1} b.
-	}
-	Hence
-	\eq{
-		f^*(u)  = \frac{1}{2}\dotp{A A^{-1} ( u +  b )}{A^{-1}( u +  b)} - \dotp{b}{A^{-1} (u + b)}
-			= \frac{1}{2}\dotp{A^{-1} u}{u} 
-			- \frac{1}{2}\dotp{A^{-1} b}{b}
-	}
-	
-\end{proof}
-
-%%%%
-\paragraph{Legendre transform and smoothness.}
-
-While the Fourier transform is a pairing between smoothness and decay (see Section~\ref{}), the Legendre-Fenchel is really a pairing between smoothness and strong convexity. This can be intuitively seen by the fact that the Legendre-Fenchel inverts the sub-differentials~\eqref{} and hence when the functions involved are $\Cc^2$, it inverse the Hessians 
-\eq{
-	\partial^2 f(x) = ( \partial^2 f^*(y) )^{-1} \quad \text{at} \quad y = \nabla f(x).
-}
-This relation between Hessian can be seen as implying the exchange of strong convexity and uniform bound on the Hessian, as detailed in Proposition~\ref{prop-smooth-strong}.
-
-\begin{prop}
-	One has
-	\eq{
-		\nabla f \text{ is $L$-Lipschitz } 
-		\quad\Longleftrightarrow\quad
-		\nabla f^* \text{ is $\mu$-strongly convex.} 
-	}
-\end{prop}
-
-This results suggests a way to smooth any function $f$. Instead of doing a convolution, one can use the infimal convolution
-\eq{
-	(f \otimes g)(x) \eqdef \usup{ y+y'=x } f(y) + g(y').
-}
-One can check that if $(f,g)$ are convex, so is $f \otimes g$, and that the Legendre transform actually exchanges sum and inf-convolution
-\eq{
-	( f+g )^* = f \otimes g 
-	\qandq 
-	( f \otimes g )^* = f + g.
-}
-The Moreau-Yosida regularization of $f$ is corresponds to a $\mu$-strict-convexification of $f^*$, i.e.
-\eql{\label{eq-moreau-yosida}
-	f_\mu \eqdef f \otimes (\frac{1}{2\mu}\norm{\cdot}^2) = ( f^* + \frac{\mu}{2}\norm{\cdot}^2 )^*.
-}
-Since $f^* + \frac{\mu}{2}\norm{\cdot}^2$ is at least $\mu$-strongly convex, then $f_\mu$ as a $1/\mu$-Lipchitz gradient.
-
-As an example, the Moreau-Yosida regularization of the absolute value reads
-\eq{
-	(|\cdot|_\mu)(x) = 
-	\choice{
-		\frac{1}{2\mu}x^2 \qifq |x| \leq \mu, \\
-		|x|-\frac{\mu}{2} \qifq |x|>\mu.
-	}
-}
-This should be compared with the regularization $\sqrt{x^2+\mu^2}$ (which is above the curve) that we used previously. \todo{add drawing}
 
 
 
