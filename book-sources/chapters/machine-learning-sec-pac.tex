@@ -1,4 +1,4 @@
-%!TEX root = ../FundationsDataScience.tex
+%!TEX root = ../optim-ml/OptimML-PAC.tex
 
 
 
@@ -18,7 +18,7 @@ This is thus a random function (since it depends on $\Dd$).
 	In regression, $\Yy=\RR$ and the most common choice of loss is $\ell(y,z) = (y-z)^2$.
 	For binary classification, $\Yy=\{-1,+1\}$ and the ideal choice is the 0-1 loss $\ell(y,z)=1_{y \neq z}$.
 	%	
-	Minimizing $\hat L$ for the 0-1 loss is often NP hard for most choice of $\Ff$.  So one uses other loss functions of the form $\ell(y,z) = \Gamma(-yz)$ where $\phi$ is a convex function upper-bounding $1_{\RR^+}$, which makes $\umin{f} \hat L(f)$ a convex optimization problem. 
+	Minimizing $\hat L$ for the 0-1 loss is often NP hard for most choice of $\Ff$.  So one uses other loss functions of the form $\ell(y,z) = \Gamma(-yz)$ where $\Gamma$ is a convex function upper-bounding $1_{\RR^+}$, which makes $\umin{f} \hat L(f)$ a convex optimization problem. 
 	\end{exmp}
 	
 The goal of PAC learning is to derive, with probability at least $1-\delta$ (intended to be close to $1$), a bound on the generalization error $L(\hat f) - \inf(L) \geq 0$ (also called excess risk), and this bound  depends on $n$ and $\de$. In order for this generalization error to go to zero, one needs to put some hypothesis on the distribution of $(X,Y)$. 
@@ -61,7 +61,7 @@ In practice, computing this $\eta$ is not possible from the data $\Dd$ alone, an
 %
 Considering a loss of the form $\ell(y,z)=\Ga(-yz)$, one has that the Bayes estimator then reads in the fully non-parametric setup
 \eq{
-	f^\star(x) = \uargmin{z} \al(z|x) = \eta(x) \Gamma(-z) + (1-\eta(x)) \Gamma(z), 
+	f^\star(x) = \uargmin{z} \Big( \al(z|x) = \eta(x) \Gamma(-z) + (1-\eta(x)) \Gamma(z) \Big), 
 }
 so that it is non-linear function of $\eta(x)$.
 \end{exmp}
@@ -72,14 +72,14 @@ so that it is non-linear function of $\eta(x)$.
 A natural question is to ensure that in this (non realistic \ldots) setup, the final binary classifier $\sign(f^\star)$ is equal to $\sign(2\eta-1)$, which is the Bayes classifier of the (non-convex) 0-1 loss. In this case, the loss is said to be calibrated. Note that this does not mean that $f^\star$ is itself equal to $2\eta-1$ of course.  One has the following result.
 
 \begin{prop}
-	A loss loss $\ell$ associated to a convex $\Gamma$ is calibrated if and only if $\Gamma$ is differentiable at $0$ and $\Gamma'(0)>0$.
+	A loss  $\ell$ associated to a convex $\Gamma$ is calibrated if and only if $\Gamma$ is differentiable at $0$ and $\Gamma'(0)>0$.
 \end{prop}
 
 In particular, the hinge and logistic loss are thus calibrated. 
 % 
 Denoting $L_\Gamma$ the loss associated to $\ell(y,z)=\Gamma(-yz)$, and denoting $\Gamma_0=1_{\RR^+}$ the 0-1 loss, stronger quantitative controls are of the form  
 \eql{\label{eq-calibration-control}
-	L_{\Gamma_0}(f) - \inf L_{\Gamma_0} \leq \Psi( L_{\Gamma}(f) - \inf L_{\Gamma} ) 
+	0 \leq L_{\Gamma_0}(f) - \inf L_{\Gamma_0} \leq \Psi( L_{\Gamma}(f) - \inf L_{\Gamma} ) 
 }
 for some increasing function $\Psi : \RR^+ \rightarrow \RR^+$. Such a control ensures in particular that if $f^\star$ minimize $L_{\Gamma}$, it also minimizes $L_{\Gamma_0}$ and hence $\sign(f^\star)=\sign(2\eta-1)$ and the loss is calibrated. 
 %
@@ -159,7 +159,7 @@ The first simple but fundamental inequality bounds the estimator error by some u
 	\leq 
 	2 \sup_{f \in \Ff}|\hat L(f) - L(f)|
 }
-since $\hat L(\hat f) - \hat L(g) \geq 0$.
+since $\hat L(\hat f) - \hat L(g) \leq 0$.
 %
 So the goal is ``simply'' to control $\De(\Dd) \eqdef \sup_{\Ff}|\hat L - L|$, which is a random value (depending on the data $\Dd$). 
 
@@ -193,7 +193,7 @@ and that one has the following control, which can be proved using a simple but p
 	\eq{
 		\EE( \De(\Dd) ) \leq 2 \Rr_n(\ell[\Ff]).
 	}
-	If $\ell$ is $Q$-Lipschitz, one furthermore has $\Rr_n(\ell[\Ff]) \leq Q \Rr_n(\Ff)$ (here the class of functions only depends on $x$).
+	If $\ell$ is $Q$-Lipschitz with respect to its second variable, one furthermore has $\Rr_n(\ell[\Ff]) \leq Q \Rr_n(\Ff)$ (here the class of functions only depends on $x$).
 \end{prop}
 
 Putting~\eqref{eq-bias-var-split}, \eqref{eq-estimation-split}, Propositions~\ref{prop-mc-diarmid} and \ref{prop-control-rademacher} together, one obtains the following final result. 
@@ -201,7 +201,7 @@ Putting~\eqref{eq-bias-var-split}, \eqref{eq-estimation-split}, Propositions~\re
 \begin{thm}
 	Assuming $\ell$ is $Q$-Lipschitz and bounded by $\ell_\infty$ on the support of $(Y,f(X))$, one has with probability $1-\de$
 	\eql{\label{eq-final-pac}
-		L(\hat f) - \inf L \leq
+		0 \leq L(\hat f) - \inf L \leq
 			2 \ell_\infty \sqrt{ \frac{2 \log(1/\de)}{n} }
 			+ 
 			4 Q \Rr_n(\Ff)
@@ -257,8 +257,20 @@ Putting~\eqref{eq-bias-var-split}, \eqref{eq-estimation-split}, Propositions~\re
 		\umin{w} \hat L_{\Gamma_{\text{SVM}}}(f_w) + \lambda \norm{w}_\Hh^2 
 	}
 	which corresponds to the so-called kernel-SVM method.
-	% 
-	The kernel trick allows one to solve this problem by recasting this possibly infinite dimensional problem into a problem of finite dimension $n$ by observing that the solution necessarily has the form 
-	$w = \sum_{i=1}^n c_i \phi(x_i)$ for some $c \in \RR^n$ and
-	plugging this expression in~\eqref{eq-svm-optim} only necessitates the evaluation of the empirical kernel matrix $( k(x_i,x_j)\eqdef \dotp{\phi(x_i)}{\phi(x_j)} )_{i,j=1}^n$.
 \end{exmp} 
+
+\begin{rem}[Resolution using the kernel trick]
+	The kernel trick allows one to solve problem such as~\eqref{eq-svm-optim} having the form
+	\eql{\label{eq-kernel-method}
+		\umin{w \in \Hh} \frac{1}{n} \sum_{i=1}^n \ell(y_i, \dotp{w}{\phi(x_i)} ) + \lambda \norm{w}_\Hh^2
+	}
+	by recasting this possibly infinite dimensional problem into a problem of finite dimension $n$ by observing that the solution necessarily has the form 
+	$w^\star = \sum_{i=1}^n c_i^\star \phi(x_i)$ for some $c^\star \in \RR^n$ (this can be seen from the first order optimality conditions of the problem).
+	% 
+	Plugging this expression in~\eqref{eq-kernel-method} only necessitates the evaluation of the empirical kernel matrix $K = ( k(x_i,x_j)\eqdef \dotp{\phi(x_i)}{\phi(x_j)} )_{i,j=1}^n \in \RR^{n \times n}$ since it reads
+	\eq{
+		\umin{c \in \RR^n} \frac{1}{n} \sum_{i=1}^n \ell(y_i, (K c)_i) + \lambda \dotp{K c}{c}
+	}
+	From the optimal $c^\star$ solving this strictly convex program, the estimator is evaluated as
+	$f_{w^\star}(x)=\dotp{w^\star}{\phi(x)} = \sum_i c_i^\star k(x_i,x)$. 
+\end{rem} 
