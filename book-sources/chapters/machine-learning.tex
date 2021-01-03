@@ -805,60 +805,81 @@ Kernel method is a simple yet surprisingly powerful remedy for these issues. By 
 The general rule of thumb is that any machine learning algorithm which only makes use of inner products (and not directly of the features $x_i$ themselves) can be ``kernelized'' to obtain a non-parametric algorithm. This is for instance the case for linear and nearest neighbor regression, SVM classification, logistic classification and PCA dimensionality reduction. We first explain the general machinery, and instantiate this in two representative setup (ridge regression, nearest-neighbor regression and logistic classification)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Reproducing Kernel Hilbert Space}
+\subsection{Feature Map and Kernels}
 
-We consider a general lifting $\phi : x \in \RR^p \rightarrow \bar x = \phi(x) \in \Hh$ where $\Hh$ is a Hilbert space. 
+We consider a general lifting $\phi : x \in \Xx \rightarrow \phi(x) \in \Hh$ where $\Hh$ is a Hilbert space, possibly of infinite dimension. 
 %
+The space $\Xx$ can thus be arbitrary, it does not need to be a vector space (but of course, if $\Xx=\RR^p$, one could use $\phi(x)=x$ and retrieve the usual linear methods).
+%
+For regression, we consider predictions which are linear function over this lifted space, i.e. of the form $x \mapsto \dotp{\phi(x)}{\be}_\Hh$ for some weight vector $\be \in \Hh$. For binary classification, one uses $x \mapsto \sign(\dotp{\phi(x)}{\be}_\Hh)$.
+
 A typical example of lift for $1-D$ values $p=1$ is $\phi(x) = (1,x,x^2,\ldots,x^k) \in \RR^k$ to perform polynomial regression (this can be extended to any dimension $p$ using higher dimensional polynomials).
 %
-We denote $\bar X = ( \bar x_i^* \eqdef \phi(x_i)^* )_{i=1}^n$ the ``matrix'' where each row is a lifted feature $\phi(x_i)$. For instance, if $\Hh=\RR^{\bar p}$ is finite dimensional, one can view this as a matrix $\bar X \in \RR^{n \times \bar p}$, but the rows of the matrix can be infinite dimensional vectors.
+We denote $\Phi = ( \phi(x_i)^* )_{i=1}^n$ the ``matrix'' where each row is a lifted feature $\phi(x_i)$. For instance, if $\Hh=\RR^{\bar p}$ is finite dimensional, one can view this as a matrix $\Phi \in \RR^{n \times \bar p}$, but the rows of the matrix can be infinite dimensional vectors.
 
-The following proposition is the crux of the RKHS approaches. When using a regularization which is a squared Euclidean norm, $\norm{\cdot}_\Hh^2$, it states that the solutions actually belongs to a data-driven linear sub-space of dimension $n$. Although the proof is straightforward, its implications are very profound, since it leads to tractable algorithms even when using an infinite dimensional lifting space $\Hh$. as we elaborate next. It is often called the ``representer'' theorem in RKHS theory. 
+We consider the empirical risk minimization procedure 
+\eql{\label{eq-kernel-generic}
+	 \umin{\be \in \Hh} \sum_{i=1}^n \ell(y_i, \dotp{\phi(x_i)}{\be}) + \frac{\la}{2} \norm{\be}_\Hh^2
+	 =
+	 \Loss(\Phi \be,y) + \frac{\la}{2} \norm{\be}_\Hh^2
+}
+
+As a warmup, we start with the regression using a square loss, $\ell(y,z)=\frac{1}{2}(y-z)^2$, so that 
+\eq{
+	\be^\star = \uargmin{\be \in \Hh} \norm{\Phi\be-y}_{\RR^n}^2+\la\norm{\be}_\Hh^2.
+}
+which is the ridge regression problem studied in Section~\ref{sec-linear-models}. 
+%
+In this case, the solution is obtained from the annulation of the gradient as
+\eq{
+	\be^\star = ( \Phi^*\Phi + \la \Id_{\Hh} )^{-1} \Phi^* y.
+}
+It cannot be computed because a priori $\Hh$ can be infinite dimensional. Fortunately, the following Woodbury matrix identity comes to the rescue.
+%
+Note that this is exactly the formula~\eqref{eq-linest-woodbury} when using $K$ in place of $\hat C$
 
 \begin{prop}
-	The solution $\be^\star \in \Hh$ of
-	\eql{\label{eq-kernel-generic}
-		\umin{\be \in \Hh} \Loss(\bar X \be,y) + \frac{\la}{2} \norm{\be}_\Hh^2
-	}
-	is unique and can be written as
-	\eql{\label{eq-rkhs-representer}
-		\be = \bar X^* q^\star = \sum_i q_i^\star \phi(x_i) \in \Hh
-	}
-	where $q \in \RR^N$ is a solution of
-	\eql{\label{eq-rkhs-variational}
-		\umin{q \in \RR^N} \Loss(K p,y) + \frac{\la}{2} \dotp{K q}{q}_{\RR^n}
-	}
-	where we defined 
+	One has
 	\eq{
-		K \eqdef  \bar X^* \bar X = ( \dotp{\phi(x_i)}{\phi(x_j)}_\Hh )_{i,j=1}^n \in \RR^{n \times n}.
+		( \Phi^*\Phi + \la \Id_{\Hh} )^{-1} \Phi^* = \Phi^* ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1}. 
 	}
 \end{prop}
-
 \begin{proof}
-	The first order condition of~\eqref{eq-kernel-generic} reads
-	\eq{
-		0 \in \bar X^* \partial \Loss(\bar X^* \be^\star,y) + \la \be^\star = 0
+	Denoting $U=( \Phi^*\Phi + \la \Id_{\Hh} )^{-1} \Phi^*$ and $V=\Phi^* ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1}$, one has
+ 	\eq{
+		( \Phi^*\Phi + \la \Id_{\Hh} ) U = \Phi^*
 	}
-	i.e. there exists $u^\star \in \partial \Loss(\bar X^* \be^\star,y)$ such that 
+	and
 	\eq{
-		\be^\star = -\frac{1}{\la} \bar X^* u^\star \in \Im(\bar X^*)
+		( \Phi^*\Phi + \la \Id_{\Hh} ) V = ( \Phi^*\Phi\Phi^* + \la \Phi^*)  ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1}
+		 = \Phi^* ( \Phi \Phi^* + \la \Id_{\RR^n} ) ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1} = \Phi^*.		
 	}
-	which is the desired result. 
-\end{proof} 
+	Since $( \Phi^*\Phi + \la \Id_{\Hh} )$ is invertible, one obtains the result. 
+\end{proof}
 
-Equation~\eqref{eq-rkhs-representer} expresses the fact that the solution only lives in the $n$ dimensional space spanned by the lifted observed points $\phi(x_i)$.
-%
-A crucial by product of this results is that all the computations as well as the prediction procedure can be expressed using the so-called kernel $\kappa : \Xx \times \Xx \rightarrow \RR$ associated to $\phi$
+Using this formula, one has the alternate formulation of the solution as
 \eq{
-	\foralls (x,x') \in \Xx^2, \quad \kappa(x,x') \eqdef \dotp{\phi(x')}{\phi(x')}_\Hh.
-}
-Indeed, one has $K = (\kappa(x_i,x_j))_{i,j}$ and the prediction operator, as a function of $x$ and not $\phi(x)$ (which makes it non-linear) is a weighted sum of kernel functions centered at the $x_i$
-\eql{\label{eq-kernel-interp}
-	\dotp{\bar x}{\be^\star}_\Hh = \sum_{i=1}^n p_i^\star \dotp{\phi(x)}{\phi(x_i)}_\Hh = \sum_{i=1}^n p_i^\star \kappa(x_i,x).
-}
-This means that one actually never needs to manipulate quantities in $\Hh$ (which can be infinite dimensional).
+	\be^\star = \Phi^* c^\star
+	\qwhereq
+		c^\star \eqdef  ( K + \la \Id_{\RR^n} )^{-1} y
+}	
+where we introduced the so-called empirical kernel matrix
+\eq{
+	K = \Phi^* \Phi = ( \kappa(x_i,x_j) )_{i,j=1}^n \in \RR^{n \times n}
+	\qwhereq
+	\kappa(x,x') \eqdef \dotp{\phi(x)}{\phi(x')}. 
+}	
+This means that $c^\star \in \RR^n$ can be computed from the knowledge of $k$ alone, without the need to actually compute the lifted features $\phi(x)$. If the kernel $k$ can be evaluated efficiently, this means that $K$ requires only $n^2$ operator and the computation of $c^\star$ can be done exactly in $O(n^3)$ operation, and approximately in $O(n^2)$ (which is the typical setup in machine learning where computing exact solutions is overkill). 
 
-But more importantly, one can reverse the process, and instead of starting from a lifting $\phi$, directly consider a kernel $\kappa(x,x')$. This is actually the way this is done in practice, since it is easier to design kernel and think in term of their geometrical properties (for instance, one can sum kernels). In order for this to make sense, the kernel needs to be positive definite, i.e. one should have that $(\kappa(x_i,x_j))_{i,j}$ should be symmetric positive definite for any choice of sampling points $(x_i)_i$. This can be shown to be equivalent to the existence of a lifting function $\phi$ generating the kernel.
+From this optimal $c^\star$, one can compute the predicted value for any $x \in \Xx$ using once gain only kernel evaluation, since
+\eql{\label{eq-prediction-evaluation}
+	\dotp{\be^\star}{\phi(x)}_\Hh = \dotp{ \sum_i c_i^\star \phi(x_i)}{\phi(x)}_\Hh = \sum_i c_i^\star \kappa(x,x_i).
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Kernel Design}
+
+More importantly, one can reverse the process, and instead of starting from a lifting $\phi$, directly consider a kernel $\kappa(x,x')$. This is actually the way this is done in practice, since it is easier to design kernel and think in term of their geometrical properties (for instance, one can sum kernels). In order for this to make sense, the kernel needs to be positive definite, i.e. one should have that $(\kappa(x_i,x_j))_{i,j}$ should be symmetric positive definite for any choice of sampling points $(x_i)_i$. This can be shown to be equivalent to the existence of a lifting function $\phi$ generating the kernel.
 %
 Note that such a kernel can be defined on arbitrary space (not necessarily Euclidean). 
 
@@ -872,7 +893,6 @@ A family of popular kernels are polynomial ones,  $\kappa(x,x') = (\dotp{x}{y}+c
 	\qwhereq
 	\phi(x)=(x_1^2,x_2^2,\sqrt{2}x_1x_2,\sqrt{2c}x_1,\sqrt{2c}x_2,c)^* \in \RR^6.	
 }
-
 In Euclidean spaces, the gaussian kernel is the most well known and used kernel
 \eql{\label{eq-gauss-kernel}
 	 \kappa(x,y) \eqdef e^{-\frac{\norm{x-y}^2}{2\sigma^2}} . 
@@ -883,16 +903,8 @@ the model. It is typically tuned through cross validation. It corresponds to an 
 Another related popular kernel is the Laplacian kernel $\exp(-\norm{x-y}/\si)$.
 %
 More generally, when considering translation invariant kernels $\kappa(x,x') = k(x-x')$ on $\RR^p$, being positive definite is equivalent to $\hat k(\om)>0$ where $\hat k$ is the Fourier transform, and the associated lifting is obtained by considering $\hat h=\sqrt{\hat \kappa}$ and $\phi(x)=h(x-\cdot) \in L^2(\RR^p)$. 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Examples of Kernelized Algorithms}
-
-We illustrate this general machinery by applying it to three typical problems. 
-
-%%
-\paragraph{Kernelized ridge regression.}
-
-The simplest instantiation of this kernelization approach is when using the square loss $L(y,y')=\frac{1}{2}|y-y'|^2$, which is the ridge regression problem studied in Section~\ref{sec-linear-models}. The obtain regression model~\eqref{eq-kernel-interp} corresponds to approximating the data using a weighted sum of data-centered kernel function $\kappa(x_i,\cdot)$. When using a Gaussian kernel~\eqref{eq-gauss-kernel}, the bandwidth $\si$ controls the smoothness of the approximation. This is illustrated in Figure~\ref{fig-kernel}. 
+%
+Figure~\ref{fig-kernel} shows an example of regression using a Gaussian kernel. 
 
 
 \begin{figure}
@@ -910,27 +922,65 @@ Regression using a Gaussian kernel.
 }
 \end{figure}
 
+\paragraph{Kernel on non-Euclidean spaces.}
 
-In this special case of a square loss, one can solve in closed form~\eqref{eq-rkhs-variational} by solving a $n \times n$ linear system
+One can define kernel $\kappa$ on general space $\Xx$. A valid kernel should satisfy that for any set of distinct points $(x_i)_i$, the associated kernel matrix $K=(\kappa(x_i,x_j))_{i,j}$ should be positive definite (i.e. strictly positive eigenvalues). This is equivalent to the existence of an embedding Hilbert space $\Hh$ and a feature map $\phi:\Xx \rightarrow \Hh$ such that $\kappa(x,x')=\dotp{\phi(x)}{\phi(x')}_\Hh$. 
+
+For instance, if $\Xx = \Pp(\Mm)$ is the set of measurable ensembles of some measured space $(\Mm,\mu)$, one can define $\kappa(A,B) = \mu(A \cap B)$ which corresponds to the lifting $\phi(A)=1_A$ so that $\dotp{\phi(A)}{\phi(B)} = \int 1_A(x) 1_B(x)\d \mu(x) = \mu(A \cap B)$. 
+%
+It is also possible to define kernel on strings or between graphs, but this is more involved. 
+
+Note that in practice, it is often desirable to normalize the kernel so that it has a unit diagonal (for translation invariant kernel over $\RR^p$,  this is automatically achieved because $k(x,x)=k(0,0)$ is constant). This corresponds to replacing $\phi(x)$ by $\phi(x)/\norm{\phi(x)}_\Kk$ and thus replacing $\kappa(x,x')$ by $\frac{\kappa(x,x')}{\sqrt{\kappa(x,x)}\sqrt{\kappa(x',x')}}$. 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{General Case}
+
+This result obtained for least squares can be generalized to any loss, as stated in the following proposition, which is the crux of the RKHS approaches. When using a regularization which is a squared Euclidean norm, $\norm{\cdot}_\Hh^2$, it states that the solutions actually belongs to a data-driven linear sub-space of dimension $n$. Although the proof is straightforward, its implications are very profound, since it leads to tractable algorithms even when using an infinite dimensional lifting space $\Hh$. It is often called the ``representer'' theorem in RKHS theory. 
+
+\begin{prop}
+	The solution $\be^\star \in \Hh$ of
+	\eql{\label{eq-kernel-generic}
+		 \umin{\be \in \Hh} \sum_{i=1}^n \ell(y_i, \dotp{\phi(x_i)}{\be}) + \frac{\la}{2} \norm{\be}_\Hh^2
+		 =
+		 \Loss(\Phi \be,y) + \frac{\la}{2} \norm{\be}_\Hh^2
+	}
+	is unique and can be written as
+	\eql{\label{eq-rkhs-representer}
+		\be = \Phi^* c^\star = \sum_i c_i^\star \phi(x_i) \in \Hh
+	}
+	where $q \in \RR^N$ is a solution of
+	\eql{\label{eq-rkhs-variational}
+		\umin{c \in \RR^n} \Loss(K c,y) + \frac{\la}{2} \dotp{K c}{c}_{\RR^n}
+	}
+	where we defined 
+	\eq{
+		K \eqdef  \Phi^* \Phi = ( \dotp{\phi(x_i)}{\phi(x_j)}_\Hh )_{i,j=1}^n \in \RR^{n \times n}.
+	}
+\end{prop}
+
+\begin{proof}
+	The first order condition of~\eqref{eq-kernel-generic} reads
+	\eq{
+		0 \in \Phi^* \partial \Loss(\Phi^* \be^\star,y) + \la \be^\star = 0
+	}
+	i.e. there exists $u^\star \in \partial \Loss(\Phi^* \be^\star,y)$ such that 
+	\eq{
+		\be^\star = -\frac{1}{\la} \Phi^* u^\star \in \Im(\Phi^*)
+	}
+	which is the desired result. 
+\end{proof} 
+
+Equation~\eqref{eq-rkhs-representer} expresses the fact that the solution only lives in the $n$ dimensional space spanned by the lifted observed points $\phi(x_i)$.
+%
+On contrary to~\eqref{eq-kernel-generic}, the optimization problem~\eqref{eq-rkhs-variational} is a finite dimensional optimization problem, and in many case of practical interest, it can be solved approximately in $O(n^2)$ (which is the cost of forming the matrix $c$). For large scale application, this complexity can be further reduced by computing a low-rank approximation of $K \approx \tilde\Phi^* \tilde \Phi$ (which is equivalent to computing an approximate embedding space of finite dimension). 
+
+For classification applications, one can use for $\ell$ a hinge or a logistic loss function, and then the decision boundary is computed following~\eqref{eq-prediction-evaluation} using kernel evaluations only as 
 \eq{
-	q^\star = (K K+\la K)^{-1} K y =  (K+\la \Id_N)^{-1} y
+	\sign(\dotp{\be^\star}{\phi(x)}_\Hh) = \sign(\sum_i c_i^\star \kappa(x,x_i)).
 }
-This expression matches exactly~\eqref{eq-linest-woodbury} when using $K$ in place of $\hat C$
-
-%%%
-\paragraph{Kernelized logistic classification.}
-
-Logistic classification tries to separate the classes using a linear separating hyperplane $\enscond{x}{\dotp{\be}{x}=0}$. 
-%
-In order to generate a non-linear decision boundary, one can replace the parametric linear model by a non-linear non-parametric model, thanks to kernelization.  This allows in particular to generate decision boundaries of arbitrary complexity.
-
-In the two class problem, as detailed in Section~\ref{sec-two-class-logit}, one solves~\eqref{eq-rkhs-variational} using the logistic loss~\eqref{eq-logistic-loss}. This can be for instance achieved by a gradient descent method.
-%
-Once the solution $q^\star$ is obtained, the probability of $x$ belonging to the first class is then
-\eq{
-	\th( \sum_{i=1}^n q_i^\star \kappa(x_i,x) ).
-} 
-Figure~\ref{fig-classes-kernel} illustrate such a non-linear decision function on a simple 2-D problem.
+Figure~\ref{fig-classes-kernel} illustrates such a non-linear decision function on a simple 2-D problem. Note that while the decision boundary is not a straight line, it is a linear decision in a higher (here infinite dimensional) lifted space $\Hh$ (and it is the projection of this linear decision space which makes it non-linear).
 
 
 \begin{figure}
@@ -944,20 +994,10 @@ Non-linear classification using a Gaussian kernel.
 }
 \end{figure}
 
-
-%%
-\paragraph{Kernelized nearest-neihbors. }
-
-It is also possible to extend nearest neighbor classification (as detailed in Section~\ref{sec-nn-classif}) and regression over a lifted space by making use only of kernel evaluation, simply noticing that
+It is also possible to extend nearest neighbors classification (as detailed in Section~\ref{sec-nn-classif}) and regression over a lifted space by making use only of kernel evaluation, simply noticing that
 \eq{
 	\norm{\phi(x_i)-\phi(x_j)}_\Hh^2 = \kappa(x_i,x_i)+\kappa(x_j,x_j) - 2 \kappa(x_i,x_j).	
 }
-
-
-%%
-\paragraph{Kernel on strings. }
-
-\todo{write me}
 
 
 
