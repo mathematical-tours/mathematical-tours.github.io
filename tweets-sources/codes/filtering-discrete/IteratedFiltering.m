@@ -18,7 +18,6 @@ f = rescale(sum(f,3));
 f = f>.5;
 
 
-
 % low pass
 s = 1/2;
 h{1} = zeros(n);

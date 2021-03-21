@@ -1,0 +1,281 @@
+% !TEX root = ../optim-ml/MirrorDescent.tex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Mirror Descent and Implicit Bias}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Bregman Divergences}
+
+We consider a smooth strictly convex ``entropy'' function $\psi$ such that $\norm{\nabla \psi(x)}$ goes to $+\infty$ as $x \rightarrow \partial \dom(\psi)$.
+%
+We denote 
+\eq{
+	\psi^*(u) \eqdef \usup{x \in \dom(\psi)} \dotp{u}{x} - \psi(x)
+}
+its Legendre transform.
+%
+In this case of ``Legendre-type'' entropy function, $\nabla\psi : \dom(\psi) \rightarrow \dom(\psi^\star)$ and $\nabla\psi^*$ are bijection reciprocal one from the other.
+
+One then defines the associated Bregman divergence
+\eq{
+	\BregD_\psi(x|y) \triangleq \psi(x)-\psi(y) - \dotp{\nabla\psi(y)}{x-y}.
+}
+It is positive, convex in $x$ (but not necessarily in $y$), not necessarily symmetric, and ``distance-like''.
+
+For $\psi=\norm{\cdot}^2$ one has $\nabla\psi=\nabla\psi^*=\Id$, and one recovers the Euclidean distance. 
+%
+For $\psi_{\KL}(x)=\sum_i x_i \log(x_i)-x_i+1$ one has $\nabla\psi=\log$ and $\nabla\psi^*=\exp$, and one obtains the relative entropy, also known as Kullback-Leibler 
+\eq{
+	\BregD_{\psi_{\KL}}(x|y) = \sum_{i} x_i \log(x_i/y_i)-x_i+y_i.
+}
+%
+When $\psi_{\text{Burg}}(x)=\sum_i -\log(x_i)+x_i-1$ on $\RR_+^d$, $\nabla \psi_{\text{Burg}}(x)=\nabla\psi^*(x)=-1/x$ and associated divergence 
+\eql{\label{eq-burg-entropy}
+	\BregD_{\psi_{\text{Burg}}}(x|y) = \sum_i -\log(y_i/x_i) - x_i/y_i+1.
+}
+
+
+These examples can be generalized to power entropies
+\eql{\label{eq-power-entropies}
+	\psi_\al(x) \triangleq \sum_i \frac{|x_i|^\al-\al (x_i-1)-1}{\al (\al-1)}
+}
+with special cases
+\eq{
+	\psi_1(x) \triangleq \psi_{\KL} = \sum_i x_i \log(x_i)-x_i+1
+	\qandq 
+	\psi_0(x) \triangleq \psi_{\text{Burg}} = \sum_i -\log(x_i)+x_i-1.
+}
+They are defined on $\RR^d$ if $\al>1$ and $\RR_+^d$ if $\al \leq 1$. 
+
+\begin{rem}[Matricial divergences]
+	Given an entropy function $\psi_0(x)$ on vectors $x \in \RR^d$ which is invariant under permutation of the indices, one lifts it to symmetric matrices $X \in \RR^{d \times d}$ as
+	\eq{
+		\psi(X) \triangleq \psi_0(\La(X)) \qwhereq 
+		X = U_X \diag(\La(X)) U_X^\top
+	}
+	is the eigen-decomposition of $X$, where $\La(X) = (\la_i(X))_{i=1}^d \in \RR^d$ are the eigenvalues. Typically, if $\psi_0(x)=\sum_i h(x_i)$ then $\psi(X)=\tr(h(X))$ where $h$ is extended to matrices as $h(X) \triangleq U_X \diag(h(\la_i(X))) U_X^\top$. If $\psi_0$ is convex and smooth, so is $\psi$, and 
+	\eq{
+		\nabla \psi(X) = U_X \diag(\nabla \psi_0(\La(X))) U_X^\top. 
+	} 
+	For instance, if $h(s)=s\log(x)-s+1$ is the Shannon entropy, this defines the quantum Shannon entropy as
+	\eq{
+		\BregD_\psi(X) = \tr(X \log(X)-X \log(Y)-X+Y)
+	}
+	and if $h(s)=-\log(s)$ then $\BregD_\psi(X)=-\log\det(X)$.
+\end{rem}
+
+\begin{rem}[Cizard divergences]
+When defined on $\RR_+^d$, these divergence should not be confounded with Cizar divergences which reads
+\eq{
+	\text{C}_{\psi}(x|y) \eqdef \sum_{i} y_i \psi(x_i/y_i) + \psi'_\infty  \sum_{y_i=0} x_i, 
+}
+which are jointly convex in $x$ and $y$. 
+%
+Only for $\psi=\psi_{\KL}$ one has $\BregD_{\psi_{\KL}} = \text{C}_{\psi_{\KL}}$. 
+\end{rem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Mirror descent}
+
+We consider the following implicit stepping 
+\eq{
+	x_{k+1} = \uargmin{x \in \dom(\psi)} f(x) + \frac{1}{\tau} \BregD_\psi(x|x_k).
+}
+Its explicit version then reads by Taylor expanding $f$ at $x_k$
+\begin{align*}
+     x_{k+1} &= \uargmin{x \in \dom(\psi)} f(x_k) + \dotp{x-x_k}{\nabla f(x_k)} + \frac{1}{\tau} \BregD_\psi(x|x_k), \\
+     	&= \uargmin{x \in \dom(\psi)} \dotp{x}{\nabla f(x_k)} + \frac{1}{\tau} \BregD_\psi(x|x_k).
+\end{align*}
+The fact that $\psi$ is Legendre type allows to ignore the constraint, and the solution satisfies the following first order condition
+\eq{
+	\nabla f(x_k) + 1/\tau  [ \nabla \psi(x_{k+1}) -  \nabla \psi(x_k)] = 0
+}
+so that it can be explicitly computed      
+\eql{\label{eq-mirror-descent}
+    x_{k+1} = (\nabla \psi^*)[  \nabla \psi(x_k) - \tau \nabla f(x_k)  ]
+}
+For $\psi=\norm{\cdot}^2/2$ one recovers the usual Euclidean gradient descent.
+%
+For $\psi(x)=\sum_i x_i \log(x_i)$, this defines the multiplicative updates
+\eq{
+     x_{k+1} = x_k \odot \exp( -\tau \nabla f(x_k) )
+}
+where $\odot$ is the entry-wise multiplication of vectors.
+
+Note that introducing the ``dual'' variable $u_k \triangleq \nabla \psi(x_k)$, one has
+\eql{\label{eq-mirror-dual}
+	u_{k+1} = u_k - \tau h(u_k) \qwhereq 
+	h(u) \triangleq  \nabla f(\nabla \psi^*(u)).  
+}
+Note however that in general $h$ is not a gradient field, so this is not in general a gradient flow.
+
+%%%%
+\paragraph{Mirror flow.}
+
+When $\tau \to 0$, one obtains the following expansion
+\eq{
+    x_{k+1} = (\nabla \psi^*)[\nabla \psi(x_k)] - \tau  [\partial^2 \psi^*]( \nabla \psi(x_k) )  \times \nabla f(x_k)  + o(\tau)
+}
+so that defining $x(t)=x_{k}$ for $t=k \tau$ the limit is the following flow
+\eql{\label{eq-hessian-flow}     
+	\dot x(t) = -H(x(t)) \nabla f(x(t))
+	\qwhereq
+        H(x) \triangleq [\partial^2 \psi^*]( \nabla \psi(x) ) = [\partial^2 \psi(x)]^{-1}
+ }
+ so that this is a gradient flow on a very particular type of manifold, of ``Hessian type''.
+%
+Note that if $\psi=f$, then one recovers the flow associated to Newton's method.
+
+%%%%
+\paragraph{Convergence.}
+
+Convergence theory (ensuring convergence and rates) for mirror descent is the same as for the usual gradient descent, and one needs to consider relative $L$-smoothness, and if possible also relative $\mu$-strong  convexity, 
+\eq{
+	\mu \BregD_\psi \leq \BregD_f \leq L \BregD_\psi
+	\quad\Longleftrightarrow\quad
+	\foralls x, \: \mu \partial^2 \psi(x) \leq \partial^2 f(x)  \leq L \partial^2 \psi(x) .
+}
+If $L<+\infty$, then one has $f(x_k)-f(x^\star) \leq O( \BregD_\psi(x^\star|x_0)/k)$
+while if both $0<\mu \leq L <+\infty$, then $\BregD_\psi(x_k|x^\star) \leq O( \BregD_\psi(x^\star|x_0) (1-\mu/L)^k)$.
+%
+The advantages of using Bregman geometry are two-fold: this can improves the conditioning $\mu/L$ (some function might be non-smooth for the Euclidean geometry but smooth for some Bregman geometry, and can avoid introducing constraint in the optimization problem) and this can also lower the radius of the domain  $\BregD_\psi(x^\star|x_0)$. 
+%
+For instance, assuming the solution belongs to the simplex, and using $x_0=\ones_d/d$, then $\BregD_{\psi_{\KL}}(x^\star|x_0) \leq \log(d)$ whereas for the $\ell^2$ Euclidean distance, one only has the bound $\norm{x^\star-x_0}^2 \leq d$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Re-parameterized flows}
+
+One can consider a change of variable $x=\phi(z)$ where $\phi : \RR^p \mapsto \Xx \subset \RR^d$ is a smooth map, and perform the gradient descent on the function $g(z) \triangleq f(\phi(z))$. Then one has
+\eq{
+	\nabla g(z) = [\partial \phi(z)]^\top \nabla f(x)
+}
+so that, denoting $z(t)$ the gradient flow $\dot z=-\nabla g(z)$ of $g$, and $x(t) \triangleq \phi(z(t))$, one has
+$\dot x(t) = [\partial \phi(z(t))] \dot z(t)$ and thus $x(t)$ solves the following equation
+\eq{
+	\dot x = -Q(z) \nabla f(x)  \qwithq 
+	 Q(z) \triangleq [\partial \phi(z)] [\partial \phi(z)]^\top \in \Ss_+^{d \times d}
+}
+So unless $\phi$ is a bijection, this is not a gradient flow over the $x$ variable. If $\phi$ is a bijection, then this is a gradient flow associated to the field of tensors (``manifold'') $Q(\phi^{-1}(x))$. The issue is that even in this case, in general $H$ might fail to be a Hessian manifold, so this does not correspond to a mirror descent flow. 
+
+\paragraph{Dual parameterization} 
+
+If $\psi$ is an entropy function, then the parametrization $x=\nabla\psi^*(z)$, i.e. $\phi=\nabla\psi^*$, then 
+$Q(z)=[\partial^2 \psi^*(z)]^2$, i.e. $Q(\phi^{-1}(x)) = [\partial^2 \psi(x)]^{-2}$ is not of Hessian-type in general, but rather a squared-Hessian manifold.
+%
+For instance, when $\psi^*(z)=\exp(z)$, then $Q(\phi^{-1}(x)) = \diag(1/x_i^2)$, which surprisingly is the hessian metric associated to Burg's entropy $-\sum_i \log(x_i)$.
+
+
+\paragraph{Example: power-type parameterization}
+
+We consider power entropies~\eqref{eq-power-entropies}, on $\RR_+^d$, for $\al \leq 1$, for which 
+\eq{
+	H(x)  = [\partial^2 \psi(x)]^{-1} \propto \diag( x_i^{2-\al} ).
+}
+%
+Remark than when using the parameterization $x = \phi(z) = (z_i^{b})_i$ then  
+\eq{
+	Q(\phi^{-1}(x)) = [\partial \phi(z)] [\partial \phi(z)]^\top
+	\propto \diag( z_i^{2(b-1)} ) = \diag( x_i^{2(b-1)/b} ) 
+}
+so if one selects $2(1-1/b) = 2-\al$ i.e. $2/b = \al$, the re-parameterized flow is equal to the flow on a Hessian manifold. 
+%
+For instance, when setting $b=2$, $\al=1$, i.e. using the parmeterization $x=z^2$, one retrieves the flow on the manifold for the Shannon entropy (``Fisher-Rao'' geometry). 
+%
+Note that when $b \rightarrow +\infty$, one obtains $\al=0$, i.e. the flow is the one of the Burg's entropy $\psi(x)=-\sum_i \log(x_i)$ (which we saw above as also being associated to the parameterization $x=\exp(z)$).
+
+
+\paragraph{Counter-example: SDP matrices}
+
+We now consider semi-definite symmetric matrices $X \in \Ss_+^{d \times d}$, together with the parameterization $X = \phi(Z) = ZZ^\top$ for $Z \in \RR^{d \times d}$.
+%
+In this case, denoting $g(Z)=f(ZZ^\top)$, one has
+\eq{
+	\nabla g(Z) = [\nabla f(X) + \nabla f(X)^\top] Z
+}
+so that the flow $\dot Z = -\nabla g(Z)$ is equivalent to the following flow on symmetric (and it maintains positivity as well)
+\eql{\label{eq-flow-repar-matrices}
+     \dot X = X [\nabla_S f(X)] + [\nabla_S f(X)] X
+}
+where the symmetric gradient is
+\eq{
+	\nabla_S f(X) \triangleq [\nabla f(X)] + [\nabla f(X)]^\top
+}
+So most likely~\eqref{eq-flow-repar-matrices} cannot be written as a usual gradient flow on a manifold which would be a hessian of a convex function. To mimic the diagonal case (or vectorial case above), the most natural quantitate would have been the spectral entropy $\psi(X) \triangleq \tr( X \log(X)-X+\Id)$,  whose gradient is $\log(X)$, but there is no closed form expression for the derivative of the log unfortunately.
+%
+Another simpler approach to mimic $\psi_{-1}$ is to use $\psi(X)=-\tr(\log(X))=-\log\det(X)$, because the Hessian and its inverse can be computed
+\eq{
+	\partial^2 \psi(X) : S \mapsto - X^{-1}SX^{-1}.
+}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Implicit Bias}
+
+
+We consider the problem
+\eq{
+   \umin{x \in \RR^d} f(x) = L(Ax) \triangleq \sum_i \ell( \dotp{a_i}{x},y_i),
+}
+where the loss is coercive such that $\ell(\cdot,y_i)$ has a unique minimizer at $y_i$. The typical example is $f(x)=\norm{Ax-y}^2$ for $\ell(u,v)=(u-v)^2$. 
+%
+We do not impose that $L$ is convex, and simply assumes convergence of the considered optimization method to the set of global minimizers.
+%
+The set of global minimizers is thus the affine space
+\eq{ 
+     \argmin f =  \enscond{x}{Ax=y}.
+}
+
+The simplest optimization method is just gradient descent 
+\eq{
+	x_{k+1} = x_k - \tau \nabla f(x_k)
+	\qwhereq
+	\nabla f(x) = A^\top \nabla L(Ax).
+}
+As $\tau \rightarrow 0$, one defines $x(t)=x_k$ for $t=k\tau$ and consider the flow
+\eq{
+	\dot x(t) = -\nabla f(x(t)).
+}
+The implicit bias of the descent (and the flow) is given by the orthogonal projection. 
+
+\begin{prop}\label{prop-implicit-bias-l2}
+	If $x_k \rightarrow x^\star \in \argmin f$, then
+	\eq{
+		x^\star = \uargmin{x \in \argmin f} \norm{x-x_0}.
+	}
+\end{prop}
+
+The following Proposition, whose proof can be found in~\cite{gunasekar2018characterizing} generalizes this proposition to the case of an arbitrary mirror flow. 
+
+\begin{prop}\label{prop-implicit-bias-mirror}
+	If $x_k$ defined by~\eqref{eq-mirror-descent} (resp. $x(t)$ defined by~\eqref{eq-hessian-flow}) is such that $x_k$ (resp. $x(t)$) converges to $x^\star \in \argmin f$, then
+	\eql{\label{eq-implicit-bias-mirror}
+		x^\star = \uargmin{x \in \argmin f} \BregD_\psi(x|x_0).
+	}
+\end{prop}
+\begin{proof} 
+	From the dual variable evolution~\eqref{eq-mirror-dual}, since $\nabla f(x) \in \Im(A^\top)$, one has that $y_k-y_0 \in \Im(A^\top)$, so that in the limit 
+	\eql{\label{eq-evol-dual}
+		y^\star - y_0 = \nabla\psi(x^\star) - \nabla\psi(x_0) \in \Im(A^\top). 
+	}
+	Note that $\nabla\BregD_\psi(x|x_0) =\nabla\psi(x) - \nabla\psi(x_0)$, and $\Im(A^\top) = \Ker(A)^\bot$ is the space orthogonal to $\argmin f$ so that~\eqref{eq-evol-dual} are the optimality conditions of the strictly convex problem~\eqref{eq-implicit-bias-mirror}.
+\end{proof}
+
+In particular, for the Shannon entropy (equivalently when using the $x=z^2$ parameterization), as $x_0 \rightarrow 0$, by doing the expansion of $\KL(x|x_0)$ one has 
+\eq{
+		x^\star \rightarrow \uargmin{x \in \argmin f, x \geq 0} \sum_i |\log((x_0)_i)| x_i, 
+}
+which is a weighted $\ell^1$ norm (so in particular it induces sparsity in the solution, it is a Lasso-type problem).
+
+When using more general parameterizations of the form $x=z^b$ for $b>0$, this corresponds to using the power entropy $\psi_\al$ for $\al = 2/b$, and one can check that the associated limit bias for small $x_0$ is still an $\ell^1$, but with a different weighting scheme. For $x=\exp(z)$ (or $b \rightarrow +\infty$) one obtains Burg's entropy defined in~\eqref{eq-burg-entropy} so that the limit bias is  $\sum_i x_i/(x_0)_i$. 
+%
+The use of $x=z^2$ parameterization (which can be generalized to $x=u \odot v$ for signed vectors) was introduced in~\cite{hoff2017lasso}, and its associated implicit regularization is detailed in~\cite{vavskevivcius2019implicit,zhao2019implicit}. 
+%
+It is possible to analyze this sparsity-inducing behavior in a quantitative way, see for instance~\cite[Thm.2]{woodworth2020kernel}
+%
+One can generalize this parameterization to arbitrary (not only positive vector) by using $x=u^2-v^2$ or $x=u \odot v$ and the same type of bias appears, with now rather a (weighted) $\ell^1$ norm.

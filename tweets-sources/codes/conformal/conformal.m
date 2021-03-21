@@ -3,12 +3,13 @@
 
 % https://en.wikipedia.org/wiki/Joukowsky_transform
 
-name = 'poly';
-name = 'cube';
+name = 'inv';
 name = 'exp';
 name = 'square';
-name = 'inv';
+name = 'cube';
+name = 'poly';
 
+drawmode = 'non';
 drawmode = 'circle';
 
 addpath('../toolbox/');
@@ -44,11 +45,15 @@ switch name
         f1 = @(z)2*z;
     case 'cube'
         f = @(z)z.^3;
+        f1 = @(z)3*z.^2;
     case 'exp'
         f = @(z)exp(z);
         f1 = @(z)exp(z); % differential
-    case 'poly'
+    case 'log'
         f = @(z)log(z);
+    case 'poly'
+        f = @(z)((z.^2+z).^2+z).^2+z;
+        f1 = @(z)8*z.^7 + 28*z.^6 + 36*z.^5 + 30*z.^4 + 20*z.^3 + 6*z.^2 + 2*z + 1;
     case 'inv'
         f = @(z)1./(z+1.3) + 1./(z-1.6);
         f1 = @(z)-1./(z+1.3).^2 - 1./(z-1.6).^2;
@@ -57,12 +62,15 @@ switch name
         f1 = @(z)1 + 1./(z+1.5+.3i).^2 + 1./(z-1.6-.2i).^2;
 end
 
-q = 50;
+q = 70;
 
 if strcmp(drawmode, 'circle')
     damp = .7;
+    damp = 0;
+    graycircle = .7;
 else
     damp = 0;
+    graycircle = 0;
 end
 
 % basic circle
@@ -72,18 +80,18 @@ for i=1:q
     t = (i-1)/(q-1);
     
     clf; hold on;
-    plot(t*f(G) + (1-t)*G, 'color', [1 0 0]*(1-damp)+[1 1 1]*damp, 'LineWidth', lw);
-    plot(t*f(H) + (1-t)*H, 'color', [0 0 1]*(1-damp)+[1 1 1]*damp, 'LineWidth', lw);
     if strcmp(drawmode, 'circle')
         % centers
         Iw = t*f(I) + (1-t)*I;
         % radius
         R = abs(t*f1(I) + (1-t))*1/(n-1);
-        plot(Iw(:), 'k.', 'MarkerSize', 20);    
+        plot(Iw(:), '.', 'color', [1 1 1]*graycircle, 'MarkerSize', 20);    
         for k=1:n*n
-            plot( Iw(k) + R(k)*C0, 'k', 'LineWidth', 2  );
+            plot( 1e-10*1i + Iw(k) + R(k)*C0, 'color', [1 1 1]*graycircle, 'LineWidth', 2  );
         end
     end
+    plot(t*f(G) + (1-t)*G, 'color', [1 0 0]*(1-damp)+[1 1 1]*damp, 'LineWidth', lw);
+    plot(t*f(H) + (1-t)*H, 'color', [0 0 1]*(1-damp)+[1 1 1]*damp, 'LineWidth', lw);
     axis equal;  axis tight; box on;
     set(gca, 'FontSize', fs); axis off;
     drawnow;

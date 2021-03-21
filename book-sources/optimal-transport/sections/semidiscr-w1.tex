@@ -6,6 +6,23 @@
 \section{Semi-discrete and $W_1$}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Semi-dual}
+
+From the dual problem~\eqref{eq-dual-generic}, that we write as 
+\eq{
+	\usup{f,g \in \Cc(\Xx) \times \Cc(\Yy)} \Ee(f,g)
+}
+where $\Ee$ takes into account the constraints
+one can ``marginalize'' it with respect to $g$ by minimizing over it to obtain the following ``semi-dual'' problem
+\eql{\label{eq-semi-dual}
+	\usup{f \in \Cc(\Xx)} \tilde\Ee(f) \eqdef \Ee(f,f^c) = \usup{g} \Ee(f,g) = 
+	\int_\Xx f \d \al + \int_\Yy f^c \d \be.
+}
+Note that marginalizing a concave problem retains concavity so that $\tilde \Ee$ is still concave. The major advantage of this new ``semi-dual'' problem is that it is an unconstraint problem, which allows the use of simpler optimization algorithms, as we will now see. 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Semi-discrete}
 
 A case of particular interest is when $\be = \sum_j \b_j \de_{y_j}$ is discrete (of course the same construction applies if $\al$ is discrete by exchanging the role of $\al,\be$).
@@ -28,6 +45,7 @@ Crucially, using the discrete $\bar c$-transform, when $\be$ is a discrete measu
 			\int_\X \gD^{\bar \c}(x) \d\al(x) + \sum_j \gD_j \b_j.
 }
 
+\todo{show a diagram of the Laguerre cells when $g=0$ and $g \neq 0$ with ``walls'' moving while staying parallel}
 The Laguerre cells associated to the dual weights $\gD$
 \eq{
 	\Laguerre_{j}(\gD) \eqdef \enscond{x \in \X}{ \foralls j' \neq j, \c(x,y_j) - \gD_j \leq \c(x,y_{j'}) - \gD_{j'} }
@@ -75,7 +93,7 @@ The most widely used algorithm relies on the fact that the power diagram of poin
 \paragraph{Stochastic optimization.}
 
 The semidiscrete formulation~\eqref{eq-semi-disc-energy} is also appealing because the energies to be minimized are written as an expectation with respect to the probability distribution $\al$,
-\eq{
+\eql{\label{eq-semi-disc-energy-entropy}
 	\Ee(\gD) = \int_\X E(\gD,x) \d\al(x) = \EE_X(  E(\gD,X) )
 	\qwhereq
 	 E(\gD,x) \eqdef 
@@ -156,6 +174,7 @@ A practical issue to obtain a good local minimizer is to seed a good initial con
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{$W_1$}
+\label{sec-W1}
 
 %%%
 \paragraph{$\c$-transform for $W_1$.}
@@ -174,10 +193,10 @@ Furthermore, if $\Lip(f)\leq1$, then $f^c=-f$.
 \begin{proof}
 First, suppose $f=g^c$ for some $g$.  Then, for $x,y\in \X$,
 \begin{align*}
-|f(x)-f(y)|&=\left|\inf_{z\in\X} d(x,z)-g(z) \;\; - \;\;\inf_{z\in \X} d(y,z)-g(z) \right|\\
+|f(x)-f(y)|&=\left|\inf_{z\in\X} [d(x,z)-g(z)] \;\; - \;\;\inf_{z\in \X} [d(y,z)-g(z)] \right|\\
 &\leq \sup_{z\in\X} |d(x,z)-d(y,z)|\leq d(x,y).
 \end{align*}
-The first equality follows from the definition of $g^c$, the next inequality from the identity $|\inf f-\inf g|\leq\sup|f-g|$, and the last from the triangle inequality. This shows that $\Lip(f)\leq1$.
+The first equality follows from the definition of $g^c$, the next inequality from the identity $|\inf A-\inf B|\leq\sup|A-B|$, and the last from the reversed triangle inequality. This shows that $\Lip(f)\leq1$.
 
 If $f$ is 1-Lipschitz, for all $x,y\in\X$, $f(y)-d(x,y)\leq f(x)\leq f(y)+d(x,y)$, which shows that 
 \begin{align*}
@@ -186,7 +205,7 @@ f^c(y)&=\inf_{x\in\X}\left[ d(x,y) - f(x) \right]
 f^c(y)&=\inf_{x\in\X}\left[ d(x,y) - f(x) \right]
 \leq \inf_{x\in\X}\left[ d(x,y) - f(y)+d(x,y) \right]=-f(y), 
 \end{align*}
-and thus $f^c=-f$. 
+because $\inf_x d(x,y) = 0$ (for $x=y$) and thus $f^c=-f$. 
 
 Applying this property to $-f$ which is also $1$-Lipschitz shows that $(-f)^c = f$ so that $f$ is indeed $c$-concave (i.e. it is the $c$-transform of a function). 
 %Now, suppose $\Lip(f)\leq1$, and define $g\eqdef -f$. By the Lipschitz property, for all $x,y\in\X$,
@@ -208,7 +227,7 @@ Applying this property to $-f$ which is also $1$-Lipschitz shows that $(-f)^c = 
 %This shows $f^c=-f$.
 \end{proof}
 
-Using the iterative $c$-transform scheme~\eqref{eq-iter-c-trans}, one can replace the dual variable $(f,g)$ by $(f^{cc},f^{c})=(-f^c,f^{c})$, or equivalently by any pair $(f,-f)$ where $f$ is $1$-Lipschitz. 
+Using the iterative $c$-transform scheme~\eqref{eq-iter-c-trans}, one can replace the dual variable $(f,g)$ by $(f^{cc},f^{c})=(-f^c, f^{c})$, or equivalently by any pair $(f,-f)$ where $f$ is $1$-Lipschitz. 
 %
 This leads to the following alternative expression for the $\Wass_1$ distance
 %Plugging the relationship $f^c=-f$ into~\eqref{eq-semi-dual-cont} shows
@@ -418,7 +437,7 @@ One can show that $\norm{\cdot}^2_{\Krkhs}$ is the dual norm in the sense of~\eq
 According to Proposition~\ref{prop-metrization}, the MMD norm $\norm{\cdot}_k$ metrizes the weak convergence if the span of the dual ball $B$ is dense in the space of continuous functions $\Cc(\Xx)$. This means that finite sums of the form $\sum_{i=1}^n a_i k(x_i,\cdot)$ (for arbitrary choice of $n$ and points $(x_i)_i$) are dense in $\Cc(\Xx)$ for the uniform norm $\norm{\cdot}_\infty$.  For translation-invariant kernels over $\X=\RR^d$, $\Krkhs(x,y)=\Krkhs_0(x-y)$, this is equivalent to having a nonvanishing Fourier transform, $\hat \Krkhs_0(\om) >0$.
 \end{rem}
 
-In the special case where $\al$ is a discrete measure of the form~\eqref{eq-pair-discr}, one thus has the simple expression
+In the special case where $\al$ is a discrete measure, one thus has the simple expression
 \eq{
 	\norm{\al}_{\Krkhs}^2 = \sum_{i=1}^n \sum_{i'=1}^n \a_i\a_{i'} \KrkhsD_{i,i'}  = \dotp{\KrkhsD\a}{\a}
 	\qwhereq
@@ -426,7 +445,7 @@ In the special case where $\al$ is a discrete measure of the form~\eqref{eq-pair
 }
 In particular, when $\al=\sum_{i=1}^n \a_i \de_{x_i}$ and $\be=\sum_{i=1}^n \b_i \de_{x_i}$ are supported on the same set of points, $\norm{\al-\be}_{\Krkhs}^2 = \dotp{\KrkhsD(\a-\b)}{\a-\b}$, so that $\norm{\cdot}_{\Krkhs}$ is a Euclidean norm (proper if $\KrkhsD$ is positive definite, degenerate otherwise if $\KrkhsD$ is semidefinite) on the simplex $\simplex_n$.
 %
-To compute the discrepancy between two discrete measures of the form~\eqref{eq-pair-discr}, one can use
+To compute the discrepancy between two discrete measures, one can use
 \eql{\label{eq-mmd-discr}
 	\norm{\al-\be}_{\Krkhs}^2 = 
 		\sum_{i,i'} \a_i \a_{i'} \Krkhs(x_i,x_{i'})	+
@@ -507,260 +526,3 @@ To compute the discrepancy between two discrete measures of the form~\eqref{eq-p
 
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{$\phi$-divergences}
-\label{sec-phi-div}
-
-We now consider a radically different class of methods to compare distributions, which are simpler to compute ($O(n)$ for discrete distributions) but never metrize the weak$^*$ convergence. 
-%
-Note that yet another way is possible, using Bregman divergence, which might metrize the weak$^*$ convergence in the case where the associated entropy function is weak$^*$ regular.
-
-\begin{defn}[Entropy function]
-\label{def_entropy}
-A function $\phi : \RR \to \RR \cup \{\infty\}$ is an entropy function if it is lower semicontinuous, convex, $\dom \phi\subset [0,\infty[$, and satisfies the following feasibility condition:  $\dom \phi \; \cap\;  ]0, \infty[\; \neq \emptyset$. The speed of growth of $\phi$ at $\infty$ is described by %its recession (or horizon) function
-\eq{
-\phi'_\infty = \lim_{x\rightarrow +\infty} \varphi(x)/x \in \RR \cup \{\infty\} \, .
-}
-\end{defn}
-
-If $\phi'_\infty = \infty$, then $\phi$ grows faster than any linear function and $\phi$ is said \emph{superlinear}. Any entropy function $\phi$ induces a $\phi$-divergence (also known as Cisz\'ar divergence~\cite{ciszar1967information,ali1966general} or $f$-divergence) as follows.
-
-\begin{defn}[$\phi$-Divergences]
-\label{def_divergence}
-Let $\phi$ be an entropy function.
-For $\al,\be \in \Mm(\X)$, let $\frac{\d \al}{\d \be} \be + \al^{\perp}$ be the Lebesgue decomposition\footnote{The Lebesgue decomposition theorem asserts that, given $\be$, $\al$ admits a unique decomposition as the sum of two measures $\al^s + \al^\perp$ such that $\al^s$ is absolutely continuous with respect to $\be$ and $\al^\perp$ and $\be$ are singular.} of $\al$ with respect to $\be$. The divergence $\Divergm_\phi$ is defined by
-\eql{\label{eq-phi-div}
-	\Divergm_\phi (\al|\be) \eqdef \int_\X \phi\left(\frac{\d \al}{\d \be} \right) \d \be 
-+ \phi'_\infty \al^{\perp}(\X)
-}
-if $\al,\be$ are nonnegative and $\infty$ otherwise.
-\end{defn}%
-
-The additional term $\phi'_\infty \al^{\perp}(\X)$ in~\eqref{eq-phi-div} is important to ensure that $\Divergm_\phi$ defines a continuous functional (for the weak topology of measures) even if $\phi$ has a linear growth at infinity, as this is, for instance, the case for the absolute value~\eqref{eq-tv-entropy} defining the TV norm. If $\phi$ as a superlinear growth, \eg the usual entropy~\eqref{eq-shannon-entropy}, then $\phi'_\infty=+\infty$ so that $\Divergm_\phi (\al|\be) = +\infty$ if $\al$ does not have a density with respect to $\be$. 
-
-In the discrete setting, assuming 
-\eql{\label{eq-div-disc-meas}
-	\al=\sum_i \a_i \de_{x_i}
-	\qandq \be=\sum_i \b_i \de_{x_i}
-} 
-are supported on the same set of $n$ points $(x_i)_{i=1}^n \subset \X$,~\eqref{eq-phi-div} defines a divergence on $\simplex_n$
-\eql{\label{eq-discr-diverg}
-	\DivergmD_\phi(\a|\b) = \sum_{i \in \Supp(\b)} \phi\pa{ \frac{\a_i}{\b_i} } \b_i + \phi'_\infty \sum_{i \notin \Supp(\b)} \a_i,
-}
-where $\Supp(\b) \eqdef \enscond{i \in \range{n}}{ b_i \neq 0 }$.
-
-
-\begin{proposition}
-If $\phi$ is an entropy function, then $\Divergm_\phi$ is jointly $1$-homogeneous, convex and weakly* lower semicontinuous in $(\al,\be)$.
-\end{proposition}
-
-\begin{proof} 
-	One defines the associated perspective function 
-	\eq{	
-		\foralls (u,v) \in (\RR_+)^2, \quad
-		\psi(u,v) = \choice{
-			\phi(u/v) v \qifq v \neq 0, \\
-			u \phi_\infty \qifq v=0
-		}
-	}
-	so that (we only do the proof in discrete for simplicity)
-	\eq{
-		\DivergmD_\phi(\a|\b) = \sum_{i} \psi(\a_i,\b_j), 
-	}
-	and we will show that it is convex on $(\RR_+)^2$. We will show this convexity on $\RR_+ \times \RR_+^*$ and this convexity extends to $(\RR_+)^2$ by taking the limit $v \rightarrow 0$.
-	%
-	Indeed, for any $\la \in [0,1]$,  $\tau=1-\la$
-	\begin{align*}
-		\phi\pa{ \frac{\tau u_1 + \la u_2}{\tau v_1 + \la v_2} }
-		(\tau v_1 + \la v_2) 
-		= 
-		\phi\pa{ 
-			 	\frac{\tau u_1 }{\tau v_1 + \la v_2} \frac{u_1}{v_1}+
-				\frac{\la u_2 }{\tau v_1 + \la v_2} \frac{u_2}{v_2}		
-		}
-		(\tau v_1 + \la v_2)
-		\leq 
-		\tau \phi\pa{\frac{u_1}{v_1}} v_1 
-		+ 
-		\la \phi\pa{\frac{u_2}{v_2}} v_2 .
-	\end{align*}
-	% For a smooth function $\phi$, one can indeed compute its hessian for $v>0$, since $\partial^2 \psi(u,v) = \diag(\phi''(u/v), $
-\end{proof} 
-
-The following proposition shows that $\Divergm_\phi$ is a ``distance-like'' function.
-
-\begin{proposition}\label{phi-div-positive}
-For probability distribution $(\al,\be) \in \Mm_+^1(\Xx)$, then $\Divergm_\phi(\al,\be) \geq 0$. Assuming $\phi$ to be strictly convex and $\phi(1)=0$, then one has $\Divergm_\phi(\al,\be)=0$ if and only if $\al=\be$.
-%
-This property extends to arbitrary distribution $(\al,\be) \in \Mm_+(\Xx)$ if one furthermore imposes that $\phi \geq 0$. 
-\end{proposition}
-
-\begin{proof} 
-	For probability measure, this follows from Jensen inequality, since
-	\eq{
-		\int \phi\pa{ \frac{\d\al}{\d\be}  } \d \be \geq
-		\phi\pa{ \int \frac{\d\al}{\d\be} \d \be } = \phi(1) = 0
-	}
-	and the case of equality for a strictly convex function is only when $\frac{\d\al}{\d\be}$ is constant (and thus equal to 1).
-	%
-	In the general case, if $\phi \geq 0$ then the divergence is positive by construction. 
-\end{proof} 
-
-\begin{example}[Kullback--Leibler divergence]
-\label{ex_KLdiv}
-The Kullback--Leibler divergence $\KL \eqdef \Divergm_{\phi_{\KL}}$, also known as the relative entropy, was already introduced in~\eqref{eq-defn-rel-entropy} and~\eqref{eq-kl-defn}. It is the divergence associated to the Shannon--Boltzman entropy function $\phi_{\KL}$, given by
-\eql{\label{eq-shannon-entropy}
-	\phi_{\KL}(s)= \begin{cases}
-		s\log(s)-s+1 & \textnormal{for } s>0 , \\
-		1 & \textnormal{for } s=0 , \\
-		+\infty & \textnormal{otherwise.}
-		\end{cases}
-}
-%\todo{Explain a bit Hyperbolic geometry of KL
-%\eq{
-%		\KL( \Nn(m+\de_m,(\si+\de_\si)^2) | \Nn(m,\si^2) ) = \frac{1}{\si^2}\pa{
-%			\frac{1}{2}\de_m^2 + \de_\si^2
-%		} + 
-%		o( \de_m^2,\de_\si^2 ).
-%	}
-%To be contrasted with the Euclidean geometry of OT on 1-D Gaussians. 
-%}
-\end{example}
-
-
-\begin{example}[Total variation]\label{exmp-tv}
-The total variation distance $\TV \eqdef \Divergm_{\phi_{\TV}}$ is the divergence associated to
-\eql{\label{eq-tv-entropy}
-	\phi_{\TV}(s)= \begin{cases}
-		|s-1| & \textnormal{for } s\geq0 , \\
-		+\infty & \textnormal{otherwise.}
-		\end{cases}
-}
-It actually defines a norm on the full space of measure $\Mm(\X)$ where
-\eql{\label{eq-defn-tv}
-	\TV(\al|\be) = \norm{\al-\be}_{\TV},
-	\qwhereq
-	\norm{\al}_{\TV} = |\al|(\X) = \int_\X \d|\al|(x).
-}
-If $\al$ has a density $\density{\al}$ on $\X=\RR^\dim$, then the TV norm is the $L^1$ norm on functions, $\norm{\al}_{\TV} = \int_\X |\density{\al}(x)| \d x = \norm{\density{\al}}_{L^1}$.
-%
-If $\al$ is discrete as in~\eqref{eq-div-disc-meas}, then the TV norm is the $\ell^1$ norm of vectors in $\RR^n$, $\norm{\al}_{\TV}=\sum_i |\a_i| = \norm{\a}_{\ell^1}$.
-\end{example}
-
-\begin{rem}[Strong vs. weak topology]
-	The total variation norm~\eqref{eq-defn-tv} defines the so-called ``strong'' topology on the space of measure. 
-	%
-	On a compact domain $\X$ of radius $R$, one has 
-	\eq{
-		\Wass_1(\al,\be) \leq R \norm{\al-\be}_{\TV}
-	}
-	so that this strong notion of convergence implies the weak convergence metrized by Wasserstein distances. 
-	%
-	The converse is, however, not true, since $\de_x$ does not converge strongly to $\de_y$ if $x \rightarrow y$ (note that
-	$\norm{\de_x-\de_y}_{\TV}=2$ if $x \neq y$). 
-	%
-	A chief advantage is that $\Mm_+^1(\Xx)$ (once again on a compact ground space $\X$) is compact for the weak topology, so that from any sequence of probability measures $(\al_k)_k$, one can always extract a converging subsequence, which makes it a suitable space for several optimization problems, such as those considered in Chapter~\ref{c-variational}.
-\end{rem}
-
-%
-%\begin{example}[Hellinger]\label{exmp-hellinger}
-%	The Hellinger distance $\Hellinger \eqdef \Divergm_{\phi_{H}}^{1/2}$ is the square root of the divergence associated to
-%	\eq{
-%		\phi_{H}(s)= \begin{cases}
-%			|\sqrt{s}-1|^2 & \textnormal{for } s\geq0 , \\
-%			+\infty & \textnormal{otherwise.}
-%			\end{cases}
-%	}
-%	As its name suggests, $\Hellinger$ is a distance on $\Mm_+(\X)$, which metrizes the strong topology as $\norm{\cdot}_{\TV}$. 
-%	%
-%	If $(\al,\be)$ have densities $(\density{\al},\density{\be})$ on $\X=\RR^\dim$, then $\Hellinger(\al,\be) = \norm{\sqrt{\density{\al}}-\sqrt{\density{\be}}}_{L^2}$.
-%	%
-%	If $(\al,\be)$ are discrete as in~\eqref{eq-div-disc-meas}, then $\Hellinger(\al,\be) = \norm{\sqrt{\a}-\sqrt{\b}}$.	
-%	%
-%	Considering $\phi_{L^p}(s)=|s^{1/p}-1|^p$ generalizes the Hellinger ($p=2$) and total variation ($p=1$) distances
-%	and $\Divergm_{\phi_{L^p}}^{1/p}$ is a distance which metrizes the strong convergence for $0<p<+\infty$. 
-%\end{example}
-%
-%
-%\begin{example}[Jensen--Shannon distance]
-%	The KL divergence is not symmetric and, while being a Bregman divergence (which are locally quadratic norms), it is not the square of a distance. On the other hand, the Jensen--Shannon distance $\text{JS}(\al,\be)$, defined as
-%	\eq{
-%		\text{JS}(\al,\be)^2 \eqdef \frac{1}{2}\pa{
-%			\KL(\al|\xi) + \KL(\be|\xi)
-%		}
-%		\qwhereq
-%		\xi = \frac{\al+\be}{2}, 
-%	}
-%	is a distance~\cite{endres2003new,osterreicher2003new}. 
-%	% 
-%	$\text{JS}^2$ can be shown to be a $\phi$-divergence for $\phi(s) = t\log(t)-(t+1)\log(t+1)$.
-%	%
-%	In sharp contrast with $\KL$, $\text{JS}(\al,\be)$ is always bounded; more precisely, it satisfies $0 \leq \text{JS}(\al,\be)^2 \leq \ln(2)$. 
-%	%
-%	Similarly to the TV norm and the Hellinger distance, it metrizes the strong convergence. 
-%\end{example}
-%
-%\begin{example}[$\chi^2$]\label{exmp-chisquare}
-%	The $\chi^2$-divergence $\chi^2 \eqdef \Divergm_{\phi_{\chi^2}}$ is the divergence associated to
-%	\eq{
-%		\phi_{\chi^2}(s)= \begin{cases}
-%			|s-1|^2 & \textnormal{for } s\geq0 , \\
-%			+\infty & \textnormal{otherwise.}
-%			\end{cases}
-%	}
-%	If $(\al,\be)$ are discrete as in~\eqref{eq-div-disc-meas} and have the same support, then 
-%	\eq{
-%		\chi^2(\al|\be) = \sum_i \frac{(\a_i-\b_i)^2}{\b_i}.
-%	}	
-%\end{example}
-
-
-\begin{proposition}[Dual expression]
-	A $\phi$-divergence can be expressed using the Legendre transform 
-	\eq{
-		\phi^{*,\geq 0}(s) \eqdef \usup{t \in \RR^+} st - \phi(t)
-	}
-	(notice that we restrict the function to the positive real)
-	of $\phi$ as % (see also~\eqref{eq-legendre})
-	\eql{\label{eq-dual}
-		\Divergm_\phi(\al|\be) = \usup{f: \X \rightarrow \RR} \int_\X f(x) \d\al(x) - \int_\X \phi^{*,\geq 0}(f(x)) \d\be(x). 
-	}
-	which equivalently reads that the Legendre transform of $\Divergm_\phi(\cdot|\be)$ reads
-	\eql{\label{eq-legendre}
-		\foralls f \in \Cc(\Xx), \quad
-		\Divergm_\phi^*(f|\be)  = \int_\X \phi^{*,\geq 0}(f(x)) \d\be(x).
-	} 
-\end{proposition}
-
-\begin{proof} 
-	For simplicity, we consider super-linear entropy so that $\phi_\infty'=+\infty$, and thus this impose $\Dd_\phi(\al|\be)=+\infty$ if $\al$ does not has a density $\rho \geq 0$ with respect to $\be$, $\d\al=\rho \d\be$. Thus the Legendre-Fenchel transform of $\Dd_\phi(\cdot|\be)$
-	reads
-	\begin{align*}
-		\Dd_\phi^*(f|\be) &= \usup{\rho \geq 0} \int_\Xx f(x) \rho(x)\d\be(x) - \int_\Xx \phi(\rho(x)) \d\be(x)\\
-		&=  \int_\Xx \usup{\rho(x) \geq 0} \pa{  f(x) \rho(x) -\phi(\rho(x))  }\d\be(x) 
-		= \int_\Xx \phi^{*,\geq 0}(f(x)) \d\be(x).
-	\end{align*}
-	The proposed formula intuitively corresponds to using the idempotence property  $\Dd_\phi^{**}(\cdot|\be)=\Dd_\phi(\cdot|\be)$.
-\end{proof} 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{GANs via Duality}
-
-The goal is to fit a generative parametric model $\al_\th = g_{\th,\sharp} \zeta$ to empirical data $\be = \frac{1}{m}\sum_{j} \de_{y_j}$, where $\zeta \in \Mm_+^1(\Zz)$ is a fixed density over the latent space and $g_\th : \Zz \rightarrow \Xx$ is the generator, often a neural network. We consider first a dual norm~\eqref{eq-dual-norm-cont} minimization, in which case one aim at solving a min-max saddle point problem
-\eq{
-	\umin{\th} \norm{\al_\th - \be}_B 
-	= \umin{\th}
-	\usup{\f \in B} \int_{\X} \f(x) \d(\al_\th-\be)(x)
-	= \umin{\th}
-	\usup{\f \in B} \int_{\Zz} \f( g_\th(z)) \d\zeta - \frac{1}{m} \sum_j f(y_j).
-}
-Instead of a dual norm, one can consider any convex function and represent is as a maximization,  for instance a $\phi$-divergence, which, thanks to the dual formula~\eqref{eq-dual}, leads to
-\eq{
-	\umin{\th} \Divergm_\phi(\al_\th|\be) 
-	= \umin{\th} \usup{\f} \int_\Xx f(x) \d\al_\th(x) - \Divergm_\phi^*(f|\be)
-	= \umin{\th} \usup{\f} \int_\Xx f(g_\th(z)) \d\zeta(z) - 
-	\frac{1}{m}\sum_j \phi^*(f(y_j)).
-}
-The GAN's idea corresponds to replacing $\f$ by a parameterized network $\f=\f_\xi$ and doing the maximization over the parameter $\xi$. For instance, Wasserstein GAN consider weight clipping by constraining $\norm{\xi}_\infty \leq 1$ in order to ensure $\f_\xi \in B = \enscond{f}{\Lip(f) \leq 1}$. This set of network is both in practice smaller and non-convex so that no theoretical analysis of this method currently exists.

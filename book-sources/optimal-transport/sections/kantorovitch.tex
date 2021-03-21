@@ -41,12 +41,13 @@ Kantorovich's optimal transport problem now reads
 }
 This is a linear program, and as is usually the case with such programs, its solutions are not necessarily unique. 
 
+Note however that there are always sparse optimal transport plan, in the sense that there is always a solution $\P$ to~\eqref{eq-kanto-discr} with $n+m-1$ solution. This is because there are $n+m$ linear constraint, but the rank of the constraint is actually $n+m-1$ (there is a single redundancy among the constraint, which stems from the fact that both $\P\ones_m=\ones_n$ and $\P^\top \ones_n=\ones_m$, then $\sum_{i,j} \P_{i,j}=1$.
 
 
 %%%%%%%%%%
 \paragraph{Linear programming algorithms.}
 
-The reference algorithms to solve~\eqref{eq-mk-discr} are network simplexes. There exists instances of this method which scale like  $O(n^3 \log n)$. Alternative include interior points, which are usually inferior on this particular type of linear program.
+The reference algorithms to solve~\eqref{eq-kanto-discr} are network simplexes. There exists instances of this method which scale like  $O(n^3 \log n)$. Alternative include interior points, which are usually inferior on this particular type of linear program.
 
 %%%%%%%%%%
 \paragraph{1-D cases.}
@@ -162,7 +163,7 @@ The following theorem states that the extremal points of bistochastic matrices a
 	
 	Now we show $\text{Extr}(\Bb_n) \subset \Pp_n$ by showing that $\Pp_n^c \subset \text{Extr}(\Bb_n)^c$ where the complementary are computed inside the larger set $\Bb_n$. So picking $\P \in \Bb_n \backslash \Pp_n$, we need to split $\P = (Q+R)/2$ where $Q,R$ are distinct bistochastic matrices. 
 	%
-	As shown on figure~\ref{fig-extremal}, $\P$ defines a partite graph linking two sets of $n$ vertices. 
+	As shown on figure~\ref{fig-bipartite}, $\P$ defines a partite graph linking two sets of $n$ vertices. 
 	%
 	This graph is composed of isolated edge when $\P_{i,j}=1$ and connected edges corresponding to $0 < \P_{i,j} <1$.
 	If $i$ is such a connected vertex on the left (similarly for $j$ on the right), because $\sum_j \P_{i,j}=1$, there is necessarily at least two edges $(i,j_1)$ and $(i,j_2)$ emating from it (similarely on the right there are at least two converging edges $(i_1,j)$ and $(i_2,j)$). This means that by following these connexions, one necessarily can extract a cycle (if not, one could alway extend it by the previous remarks) of the form
@@ -172,7 +173,7 @@ The following theorem states that the extremal points of bistochastic matrices a
 	}
 	We assume this cycle is the shortest one among all this (finite) ensemble of cycle. Along this cycle, the left-right and right-left edges satisfy
 	\eq{
-		0 < \P_{i_s,j_s}, \P_{j_s,i_{s+1}} < 1.
+		0 < \P_{i_s,j_s}, \P_{i_{s+1},j_s} < 1.
 	}
 	The $(i_s)_s$ and $(j_s)_s$ are also all distincts because the cycle is the shortest. Lets pick
 	\eq{
@@ -213,7 +214,7 @@ The following theorem states that the extremal points of bistochastic matrices a
 \includegraphics[width=.7\linewidth]{birkhoff/bipartite}&
 \includegraphics[width=.25\linewidth]{birkhoff/bipartite-split}
 \end{tabular}
-\caption{\label{fig-extremal}
+\caption{\label{fig-bipartite}
 %%
 Left: the support of the coupling $\P$ defines a bipartite graph.
 Right: splitting of this graph in two set of edges.
@@ -223,10 +224,10 @@ Right: splitting of this graph in two set of edges.
 By putting together Proposition~\ref{prop-extr-optim} and Theorem~\ref{thm-birkh-vnm}, one obtains that for the discrete optimal problem with empirical measures, Monge and Kantoritch problems are equivalent.
 
 \begin{cor}[Kantorovich for matching]\label{prop-matching-kanto}
-	If $m=n$ and $\a=\b=\ones_n$, then there exists an optimal solution for Problem~\eqref{eq-mk-discr} $\P_{\si^\star}$, which is a permutation matrix associated to an optimal permutation $\si^\star \in \Perm(n)$ for Problem~\eqref{eq-optimal-assignment}.	
+	If $m=n$ and $\a=\b=\ones_n$, then there exists an optimal solution for Problem~\eqref{eq-kanto-discr} $\P_{\si^\star}$, which is a permutation matrix associated to an optimal permutation $\si^\star \in \Perm(n)$ for Problem~\eqref{eq-optimal-assignment}.	
 \end{cor}
 
-The following proposition shows that these problems result in fact in the same optimum, namely that one can always find a permutation matrix that minimizes Kantorovich's problem~\eqref{eq-mk-discr} between two uniform measures $\a=\b=\ones_n/n$, which shows that the Kantorovich relaxation is \emph{tight} when considered on assignment problems. %Note however that some computational algorithm, which are combinatorial in nature, are dedicated to the case of uniform histograms with the same number of points (see Chapter~\ref{c-algo-basics}). 
+The following proposition shows that these problems result in fact in the same optimum, namely that one can always find a permutation matrix that minimizes Kantorovich's problem~\eqref{eq-kanto-discr} between two uniform measures $\a=\b=\ones_n/n$, which shows that the Kantorovich relaxation is \emph{tight} when considered on assignment problems. %Note however that some computational algorithm, which are combinatorial in nature, are dedicated to the case of uniform histograms with the same number of points (see Chapter~\ref{c-algo-basics}). 
 %
 % Figure~\ref{fig-matching-kantorovitch} shows on the left a 2-D example of optimal matching corresponding to this special case. 
 
@@ -238,7 +239,7 @@ The following proposition shows that these problems result in fact in the same o
 %\end{tabular}
 %\caption{\label{fig-matching-kantorovitch}
 %%
-%Comparison of optimal matching and generic couplings. A black segment between $x_i$ and $y_j$ indicates a non-zero element in the displayed optimal coupling $\P_{i,j}$ solving~\eqref{eq-mk-discr}.
+%Comparison of optimal matching and generic couplings. A black segment between $x_i$ and $y_j$ indicates a non-zero element in the displayed optimal coupling $\P_{i,j}$ solving~\eqref{eq-kanto-discr}.
 %%
 %Left: optimal matching, corresponding to the setting of Proposition~\eqref{prop-matching-kanto} (empirical measures with the same number $n=m$ of points).
 %%
@@ -369,7 +370,7 @@ This is an infinite-dimensional linear program over a space of measures.
 %\caption{\label{fig-couplings}
 %Left: ``continuous'' coupling $\pi$ solving~\eqref{eq-coupling-generic} between two 1-D measure with density. The coupling is localized along the graph of the Monge map $(x,\T(x))$ (displayed in black).  
 %%
-%Right: ``discrete'' coupling $\T$ solving~\eqref{eq-mk-discr} between two discrete measures of the form~\eqref{eq-pair-discr}. The non-zero entries $\T_{i,j}$  are display with a black disk at position $(i,j)$ with radius proportional to $\T_{i,j}$.
+%Right: ``discrete'' coupling $\T$ solving~\eqref{eq-kanto-discr} between two discrete measures of the form~\eqref{eq-pair-discr}. The non-zero entries $\T_{i,j}$  are display with a black disk at position $(i,j)$ with radius proportional to $\T_{i,j}$.
 %}
 %\end{figure}
 
@@ -531,7 +532,7 @@ Proposition~\ref{prop-metric-histo} generalizes from histogram to arbitrary meas
 	}
 	and similarly for $\xi$.
 	%
-	When $\be=\sum_i \b_j \de_{y_j}$ and $\pi=\sum_{i,j}P_{i,j} \de_{y_j}$, then this conditional distribution is defined on the support of $\be$ as
+	When $\be=\sum_i \b_j \de_{y_j}$ and $\pi=\sum_{i,j} \P_{i,j} \de_{y_j}$, then this conditional distribution is defined on the support of $\be$ as
 	$\pi_{y_j} = \sum_i \frac{\P_{i,j}}{\b_j} \de_{x_i}$ (and similarly for $\xi$).
 	%
 	Then one defines the glued measure informally $``\sigma(x,y,z) = \pi_y(x) \xi_y(z) \be(y)''$, which formally reads
@@ -598,13 +599,14 @@ This distance $\Wass_p$ defined though Kantorovitch problem~\eqref{eq-defn-wass-
 %%%%
 \paragraph{Convergence in law topology.}
 
-Let us first note that on a compact space, all $W_p$ distance defines the same topology (although they are not equivalent, the notion of converging sequence is the same).
+Let us first note that on a bounded metric space, all $\Wass_p$ distance defines the same topology (although they are not equivalent, the notion of converging sequence is the same).
 
 \begin{prop}\label{prop-comp-wass-p}
-	On a compact space $\Xx$, one has for $p \leq q$
+	One has for $p \leq q$
 	\eq{
-		W_p( \al,\be ) \leq W_q(\al,\be) \leq \text{\upshape diam}(\Xx)^{\frac{q-p}{q}} W_p(\al,\be)^{\frac{q}{p}}
+		\Wass_p( \al,\be ) \leq \Wass_q(\al,\be) \leq \text{\upshape diam}(\Xx)^{\frac{q-p}{q}} \Wass_p(\al,\be)^{\frac{q}{p}}
 	}
+	where $\text{\upshape diam}(\Xx) \triangleq \usup{x,y} d(x,y)$.
 \end{prop}
 \begin{proof}
 	The left inequality follows from Jensen inequality, $\phi(\int c(x,y) \d\pi(x,y)) \leq \int \phi(c(x,y)) \d\pi(x,y)$, applied to any probability distribution $\pi$ and to the convex function $\phi(r)=r^{q/p}$ to $c(x,y)=\norm{x-y}^p$, so that one gets
@@ -625,25 +627,80 @@ The Wasserstein distance $\Wass_p$ has many important properties, the most impor
 
 In term of random vectors, if $X_n \sim \al_n$ and $X \sim \al$ (not necessarily defined on the same probability space), the weak$^*$ convergence corresponds to the convergence in law of $X_n$ toward $X$.
 
+\begin{rem}[Central limit theorem]\label{rem-clt}
+	The central limit theorem states that if $(X_1,\ldots,X_n)$ are i.i.d. distribution with finite second order moments, assuming for instance $\EE(X_i X_i^\top)=\Id$, the rescaled average $Z_n \triangleq \frac{1}{\sqrt{n}} \sum_{i=1}^n X_i$ converges in law toward a Gaussian $\Nn(0,\Id)$. This means that the measure $\al_n$ representing the law of $Z_n$ converges weak$^*$ toward the measure $\al$ of the centered normalized Gaussian.
+\end{rem}
+
 \begin{defn}[Strong topology]
 The simplest distance on Radon measures is the total variation norm, which is the dual norm of the $L^\infty$ norm on $\Cc(\Xx)$ and whose topology is often called the ``strong'' topology
 \eq{
-	\norm{\al-\be}_{TV} \eqdef \usup{\norm{f}_\infty \leq 1} \int f \d(\al-\be)
+	\norm{\al-\be}_{\TV} \eqdef \usup{\norm{f}_\infty \leq 1} \int f \d(\al-\be)
 	 = |\al-\be|(\Xx)
 }
-where $|\al-\be|(\Xx)$ is the mass of the absolute value of the difference measure. When $\al-\be=\rho \d x$ has a density, then $\norm{\al-\be}_{TV}=\int |\rho(x)| \d x=\norm{\rho}_{L^1(\d x)}$ is the $L^1$ norm associated to $\d x$. When $\al-\be=\sum_i u_i \de_{z_i}$ is discrete, then $\norm{\al-\be}_{TV}=\sum_i |u_i|=\norm{u}_{\ell^1}$ is the discrete $\ell^1$ norm. 
+where $|\al-\be|(\Xx)$ is the mass of the absolute value of the difference measure. When $\al-\be=\rho \d x$ has a density, then $\norm{\al-\be}_{\TV}=\int |\rho(x)| \d x=\norm{\rho}_{L^1(\d x)}$ is the $L^1$ norm associated to $\d x$. When $\al-\be=\sum_i u_i \de_{z_i}$ is discrete, then $\norm{\al-\be}_{\TV}=\sum_i |u_i|=\norm{u}_{\ell^1}$ is the discrete $\ell^1$ norm. 
 \end{defn}
+
+The following proposition shows that the TV norm can be seen as a Wasserstein distance, but for a ``degenerate'' 0/1 metric.
+
+\begin{prop}\label{prop-rel-wass-tv}
+	Denoting $d$ the 0/1 distance such that $d(x,x)=0$ and $d(x,y)=1$ if $x \neq y$, then 
+	\eq{
+		\Wass_p(\al,\be)^p = \frac{1}{2}\norm{\al-\be}_{\TV}.
+	}
+\end{prop}
+\begin{proof}
+	For the sake of simplicity, we do the proof for discrete measures with weights $(\a,\b)$ and without loss of generality assume they have the same support $(x_i)_i$ and we denote $\D \triangleq (d(x_i,x_j))_{i,j}$ which is 0 on the diagonal and one outside. 
+	%
+	Also since $d^p=d$ we consider $p=1$. 
+	We denote $\text{c}_i = \min(\a_i,\b_i)$.
+	By conservation of mass, for $\P \in \CouplingsD(\a,\b)$, $\P_{i,i} \leq \text{c}_i$, thus
+	\eq{
+		\Wass_1(\al,\be) = \uinf{\P\ones=\a,\P^{\top}\ones=\b} \dotp{\P}{\D} = \sum_{i \neq j} \P_{i,j}
+		= 1 - \sum_i \P_{i,i} = 1-\sum_i \text{c}_i.
+	}
+	We need to show that this bound is tight, namely to construct $\hat P \in \CouplingsD(\a,\b)$ such that 
+	$\diag(\hat P)=\text{c}$. Let 
+	\eq{
+		\bar\a \triangleq \a-\text{c} = (\a-\b)_+ \geq 0
+		\qandq
+		\bar\b \triangleq \b-\text{c} = (\b-\a)_+ \geq 0
+	}
+	One has 
+	\eq{
+		\frac{ \bar a \otimes \bar b }{ \dotp{\bar a}{\ones} } \in \CouplingsD(\bar\a,\bar\b)
+	}
+	and we remark that $\dotp{\bar a}{\ones} = \dotp{\bar b}{\ones} = 1-\dotp{\text{c}}{\ones}$.
+	%
+	Thus denoting 
+	\eq{
+		\hat \P \triangleq \diag(\text{c}) + \frac{ \bar a \otimes \bar b }{ \dotp{\bar a}{\ones} } \in \CouplingsD(\bar\a,\bar\b) \geq 0
+	}
+	satisfies 
+	\eq{
+		\P \ones = \text{c} + \bar \a = \a
+		\qandq
+		\P^\top \ones = \text{c} + \bar \b = \b
+	}
+	so that $\hat P \in \CouplingsD(\a,\b)$  is a coupling so that $\diag(\hat P) = \diag(\text{c})$ since $\diag( \bar a \otimes \bar b )=0$. We thus conclude that
+	\eq{
+		\WassD_1(\a,\b) = \dotp{\D}{\hat \P} = 
+		\sum_{i,j} \frac{\a_i\b_j}{\dotp{\bar a}{\ones}}
+		= \sum_i \bar\a_i = \sum_i \bar\b_i = 
+		= \frac{1}{2} \sum_i \bar\a_i + \bar\b_i
+		= \frac{1}{2} \norm{\a-\b}_{\TV}.
+	}
+\end{proof}
 
 In the special case of Diracs, having $\int f \d\de_{x_n} = f(x_n) \rightarrow \int f \d\de_{x} = f(x)$ for any continuous $f$ is equivalent to $x_n \rightarrow x$. One can then contrast the strong topology with the Wasserstein distance, if $x_n \neq x$, 
 \eq{
-	\norm{\de_{x_n}-\de_x}_{TV}=2
+	\norm{\de_{x_n}-\de_x}_{\TV}=2
 	\qandq
-	W_p(\de_{x_n},\de_x) = d(x_n,x).
+	\Wass_p(\de_{x_n},\de_x) = d(x_n,x).
 }
 This shows that for the strong topology, Diracs never converge, while they do converge for the Wasserstein distance. In fact it is a powerful property of the Wasserstein distance, which is regular with respect to the weak$^*$ topology, and metrizes it.
 
 \begin{prop}
-	If $\Xx$ is compact, $\al_k \rightharpoonup \al$ if and only if $W_p(\al_k,\al) \rightarrow 0$. 
+	If $\Xx$ is compact, $\al_k \rightharpoonup \al$ if and only if $\Wass_p(\al_k,\al) \rightarrow 0$. 
 \end{prop}
 
 The proof of this proposition requires the use of duality, and is delayed to later, see Proposition~\ref{cor-topol-wass}. 
@@ -662,15 +719,55 @@ Another example of such a weak convergence is the fact that on $\Xx=\RR$
 }
 In contrary, one has that for all $n$, since the two measure are mutually singular
 \eq{
-	\norm{ \frac{1}{n} \sum_{k=1}^n \de_{k/n} - \Uu_{[0,1]}}_{TV} = 
-	\norm{ \frac{1}{n} \sum_{k=1}^n \de_{k/n} }_{TV} +  \norm{\Uu_{[0,1]}}_{TV} = 2
+	\norm{ \frac{1}{n} \sum_{k=1}^n \de_{k/n} - \Uu_{[0,1]}}_{\TV} = 
+	\norm{ \frac{1}{n} \sum_{k=1}^n \de_{k/n} }_{\TV} +  \norm{\Uu_{[0,1]}}_{\TV} = 2
 }
-so that there is no strong convergence. 
+so that there is no strong convergence.
+
+The following proposition show that 
+
+On discrete space, the strong and the weak topology coincide, and the following proposition relates the TV and Wasserstein distance together. 
+
+\begin{prop}
+	One has
+	\eq{
+		\frac{d_{\min}}{2}\norm{\al-\be}_{\TV} \leq \Wass_1(\al,\be) \leq \frac{d_{\max}}{2}  \norm{\al-\be}_{\TV} 
+		\qwhereq
+		\choice{
+			d_{\min} \eqdef \uinf{x \neq y} d(x,y) \\
+			d_{\max} \eqdef \usup{x,y} d(x,y)
+		}
+	}
+\end{prop}
+
+\begin{proof}
+	We denote $d_0(x,y)$ the distance such that $d_0(x,x)=0$ and $d_0(x,y)=1$ for $x \neq y$. One has 
+	\eq{
+		d_{\min} d_0(x,y) \leq d(x,y) \leq d_{\max} d_0(x,y)
+	}
+	so that integrating this against any $\pi \in \Couplings(\al,\be)$ and taking the minimum among those $\pi$ gives the result using Proposition~\eqref{prop-rel-wass-tv}. 
+\end{proof}
+
+This bound is sharp, as this can be observed by taking $\al=\de_{x}$ and $\be=\de_y$, in which case the bound simply reads, if $x \neq y$
+\eq{
+	d_{\min} \leq d(x,y) \leq d_{\max}. 
+}
+%
+This shows that the ratio between the two distances can blows as $d_{\max}/d_{\min}$ increases, and on non discrete space, if $d_{\min}=0$, then the two distance are not equivalent, which is inline with the fact that the strong and the weak topology do not coincide. 
 
 
+
+\begin{rem}[Berry-Esseen theorem]
+The Wasserstein distance is a natural candidate to quantify the convergence in law in the central limit theorem (Remark~\ref{rem-clt}). To obtain rates, one needs further assumption on the random vector, and Berry-Esseen theorem ensure that if $\EE(\norm{X_i}^3)<+\infty$, then $\Wass_p(\al_k,\al) = O(1/\sqrt{n})$.
+\end{rem}
  
  
 %%%%%
 \paragraph{Applications and implications}
 
-Applications for having a geometric distance : barycenters, shape registration loss functions, density fitting
+Applications for having a geometric distance : barycenters, shape registration loss functions, density fitting.
+%
+The typical setup is to fit a parametric measure $\th \mapsto \al_\th$ to an (empirical) measure $\be$ by minimizing the function $\th \mapsto \Wass_p(\al_\th,\be)$.
+
+
+

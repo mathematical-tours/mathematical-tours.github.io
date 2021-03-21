@@ -18,10 +18,11 @@ Before detailing deep architectures and their use, we start this chapter by pres
 %This section studies shallow networks, namely fully connected networks with a single hidden layer. 
 %\includepdf[pages={1-},scale=1]{writing-notes/2018-11-23-multilayer-perceptron.pdf}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Deep Discriminative Models}
+\section{Deep Architectures}
 \label{sec-deepnet-discr}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -30,20 +31,32 @@ Before detailing deep architectures and their use, we start this chapter by pres
 
 Deep learning are estimator $f(x,\be)$ which are built as composition of simple building blocks.
 %
-In their simplest form (non-recursive), they corresponds to a simple linear computational graph as already defined in~\eqref{eq-simple-lin-dag} (without the loss $\Ll$), and we write this as
+The inner layers can be understood as computing a lifted representation (feature map) of the input, while the last layer is a classical linear model (e.g. logistic classification). The difference with kernel method is that the feature map is not fixed but is learned from the data. 
+
+%%%
+\paragraph{Feedforward architectures.}
+
+In their simplest form (non-recursive), they corresponds to a simple linear computational graph as already defined in~\eqref{eq-simple-lin-dag} (without the loss $\Ll$). Initialized as $x_0=x$, one computed
 \eq{
-	f(\cdot,\be) = f_{L-1}(\cdot,\be_1) \circ f_{L-2}(\cdot,\be_2) \circ \ldots \circ f_{0}(\cdot,\be_0)
+	x_{\ell+1} = f_\ell(x_\ell,\be_\ell),  
+}
+so that $x_L=f(x,\be)$ with 
+\eq{
+	f(\cdot,\be) = f_{L-1}(\cdot,\be_{L-1}) \circ f_{L-2}(\cdot,\be_2) \circ \ldots \circ f_{0}(\cdot,\be_0)
 }
 where $\be=(\be_0,\ldots,\be_{L-1})$ is the set of parameters, and 
 \eq{
-	f_{\ell}(\cdot,\be_\ell) : \RR^{n_\ell} \rightarrow \RR^{n_{\ell+1}}
+	f_{\ell}(\cdot,\be_\ell) : \RR^{n_\ell} \rightarrow \RR^{n_{\ell+1}}.
 }
 %
-While it is possible to consider more complicated architecture (in particular recurrent ones), we restrict here out attention to these simple linear graph computation structures (so-called feedforward networks).
+While it is possible to consider more complicated computational graph (in particular recurrent ones, where the weight are shared by the functions), we restrict here out attention to these simple linear graph computation structures (so-called feedforward networks).
 
 The supervised learning of these parameters $\be$ is usually done by empirical risk minimization~\eqref{eq-erm-param} using SGD-type methods as explained in Section~\ref{sec-stochastic-optim}. Note that this results in highly non-convex optimization problems. In particular, strong convergence guarantees such as Theorem~\ref{thm-conv-sgd} do not hold anymore, and only weak convergence (toward stationary points) holds. SGD type technics are however found to work surprisingly well in practice, and it now believe that the success of these deep-architecture approaches (in particular the ability of these over-parameterized model to generalize well) are in large part due to the dynamics of the SGD itself, which induce an implicit regularization effect. 
 
 For these simple linear architectures, the gradient of the ERM loss~\eqref{eq-grad-formula} can be computed using the reverse mode computation detailed in Section~\ref{sec-reversemode-simple}. In particular, in the context of deep learning, formula~\eqref{eq-backprop}. One should however keep in mind that for more complicated (e.g. recursive) architectures, such a simple formula is not anymore available, and one should resort to reverse mode automatic differentiation (see Section~\ref{sec-reverse-mode}), which, while being conceptually simple, is actually implementing possibly highly non-trivial and computationally optimal recursive differentiation. 
+
+%%%
+\paragraph{Deep MLP.}
 
 In most successful applications of deep-learning, each computational block $f_{\ell}(\cdot,\be_\ell)$ is actually very simple, and is the composition of 
 \begin{rs}
@@ -79,6 +92,7 @@ Right: example of convolutional neural network.
 }
 \end{figure}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Perceptron and Shallow Models}
 
@@ -88,7 +102,7 @@ The two-class logistic classification model~\eqref{eq-two-class-logit-model} is 
 \eq{
 	B_0 x = \dotp{x}{\be}
 	\qandq
-	\tilde\la_0(u) = \th(u).
+	\tilde\rho_0(u) = \th(u).
 }
 The resulting one-layer network $f(x,\be) = \th(\dotp{x}{\be})$ (possibly including a bias term by adding one dummy dimension to $x$) is trained using the loss, for binary classes $y \in \{0,1\}$ 
 \eq{
@@ -116,17 +130,58 @@ In order to be able to tackle data of large size, and also to improve the perfor
 Convolutional neural networks are obtained by considering that the manipulated vectors $x_\ell \in \RR^{n_\ell}$ at depth $\ell$ in the network are of the form $x_\ell \in \RR^{ \bar n_\ell \times d_\ell }$, where $\bar n_\ell$ is the number of ``spatial'' positions (typically along a 1-D, 2-D, or 3-D grid) and $d_\ell$ is the number of ``channels''.
 %
 For instance, for color images, one starts with $\tilde n_\ell$ being the number of pixels, and $d_\ell=3$.
+%
+To ease the writing, we denote $x_\ell = ( (x_\ell)_r[i] )_{r,i}$ where $i \in \{1,\ldots,\bar n_\ell\}$ is the pixel location, and $r \in \{1,\ldots,d_\ell\}$ is the channel index.
 
-The linear operator $B_\ell : \RR^{ \bar n_\ell \times d_\ell } \rightarrow \RR^{ \bar n_\ell \times d_{\ell+1} }$ is then (up to boundary artefact) translation invariant and hence a convolution along each channel (note that the number of channels can change between layers). It is thus parameterized by a set of filters $( \psi_{\ell,r,s} )_{s=1,\ldots,d_{\ell}}^{r=1,\ldots,d_{\ell+1}}$. Denoting $x_\ell = ( x_{\ell,s,\cdot} )_{s=1}^{d_\ell}$ the different layers composing $x_\ell$, the linear map reads
+The linear operator $B_\ell : \RR^{ \bar n_\ell \times d_\ell } \rightarrow \RR^{ \bar n_\ell \times d_{\ell+1} }$ is then (up to boundary artefact) translation invariant and hence a convolution along each channel (note that the number of channels can change between layers). This is formalized in the following proposition.
+
+\begin{prop}
+	Let $B : \RR^{n \times d} \rightarrow \RR^{n \times d'}$ (where $n$ indicates ``spacial'' dimension, with periodic boundary conditions). Then $x = (x_r[i] )_{r,i} \mapsto B x$ is co-variant with translation, i.e. 
+	\eq{
+		\foralls \tau, \quad
+		B (x[\cdot-\tau]) = (B x)[\cdot-\tau]
+	}
+	(one translate the pixels) if and only if there exists a set of filters $\psi = ( \psi_{r,s} \in \RR^n )_{r=1,\ldots,d}^{s=1,\ldots,d'}$ such that 
+	\eql{\label{eq-structure-convolution}
+		\foralls r=1,\ldots,d', \quad
+		(B x)_{r} = \sum_{s=1}^{d} \psi_{r} \star x_{s}
+	}
+	\eq{
+		\text{i.e.} \quad
+		(B x)_{r}[i] = \sum_{s=1}^{d} \sum_j \psi_{r,s}[i-j] \star x_{s}[j]
+	}	
+	where $\star$ is the convolution on $\RR^n$ (for instance 1-D or 2-D convolution). 
+\end{prop}
+
+\begin{proof}
+	Since convolutions are covariant with translation on $\RR^n$, formula~\eqref{eq-structure-convolution} defines covariant operators.
+	%
+	We now assume $B$ is covariant. We define $\de^{s}$ the dirac at pixel $i=0$ and channel $s$, i.e. $(\de^{s})_{s'}[i] = 1_{s=s'} 1_{i=0}$, and then we let $\tilde\psi_{r,s} \eqdef (B \de^s)_r$. One has the decomposition of a vector as translated Diracs
+	\eq{
+		x = \sum_{j,s} x_s[j] \de^s[\cdot-j], 
+	}
+	so that by linearity and translation co-variance
+	\eq{
+		(B x)_r = \sum_{j,s} x_s[j] (B \de^s[\cdot-j])_r
+		=  \sum_{j,s} x_s[j] (B \de^s)_r[\cdot-j]
+		=  \sum_{j,s} x_s[j] \tilde\psi_{r,s}[\cdot-j]
+		= \sum_s \psi_{r,s} \star x_s
+	}
+	where $\psi_{r,s}[i] = \tilde \psi_{r,s}[-i]$ is the reversed filter. 
+\end{proof}
+
+Using this proposition, a covariant $B_\ell$  is thus parameterized by a set of filters $\psi_\ell = ( (\psi_\ell)_{r,s} )_{s=1,\ldots,d_{\ell}}^{r=1,\ldots,d_{\ell+1}}$. Denoting $x_\ell = ( (x_{\ell})_{\cdot,s} )_{s=1}^{d_\ell}$ the different layers composing $x_\ell$, the linear map reads
 \eq{
 	\foralls r \in \{1,\ldots,d_{\ell+1}\}, \quad
-	(B_\ell x_\ell)_{r,\cdot} = \sum_{s=1}^{d_\ell} \psi_{\ell,r,s} \star x_{\ell,s,\cdot}
+	(B_\ell x_\ell)_{r} = \sum_{s=1}^{d_\ell} (\psi_\ell)_{r,s} \star (x_{\ell})_{s}, 
 }
-and the bias term $b_\ell \in \RR$ is contant (to maintain translation invariance).
+and the bias term $(b_\ell)_{\cdot,r} = (\tilde b_\ell)_r \in \RR$ is contant across the spacial dimension (to maintain translation invariance).
+%
+Translation covariance results in a weight-sharing: all the neurons (associated to an output pixels) have the same weights, defined by $\psi_\ell$. 
 
-The non-linear maps across layers serve two purposes: as before a pointwise non-linearity is applied, and then a sub-sampling helps to reduce the computational complexity of the network. This is very similar to the construction of the fast wavelet transform. Denoting by $m_k$ the amount of down-sampling, where usually $m_k=1$ (no reduction) or $m_k=2$ (reduction by a factor two in each direction). One has
+The non-linear maps across layers serve two purposes: as before a point-wise non-linearity is applied, and then a sub-sampling helps to reduce the computational complexity of the network. This is very similar to the construction of the fast wavelet transform. Denoting by $m_k$ the amount of down-sampling, where usually $m_k=1$ (no reduction) or $m_k=2$ (reduction by a factor two in each direction). One has
 \eq{
-	\la_\ell(u) = \pa{ \tilde \la_\ell( u_{s,m_k\cdot} ) }_{s=1\ldots,d_{\ell+1}}.
+	\rho_\ell(u) = \pa{ \tilde \rho_\ell( u_{s}[m_k\cdot] ) }_{s=1\ldots,d_{\ell+1}}.
 }
 In the literature, it has been proposed to replace linear sub-sampling by non-linear sub-sampling, for instance the so-called max-pooling (that operate by taking the maximum among groups of $m_\ell$ successive values), but it seems that linear sub-sampling is sufficient in practice when used in conjunction with very deep (large $L$) architectures. 
 
@@ -134,24 +189,62 @@ The intuition behind such model is that as one moves deeper through the layers, 
 
 In practice, the last few layers (2 or 3) of such a CNN architectures are chosen to be fully connected. This is possible because, thanks to the sub-sampling, the dimension of these layers are small.  
 
-The parameters of such a model are the filters $\be = (\psi_{\ell,r,s})_{\ell,s,r}$, and they are trained by minimizing the ERM functional~\eqref{eq-erm-param}. The gradient is typically computed by backpropagation. Indeed, when computing the gradient with respect to some filter $\psi_{\ell,r,s}$, the feedforward computational graph has the form~\eqref{eq-simple-lin-dag}. For simplicity, we re-formulate this computation in the case of a single channel per layer (multiple layer can be understood as replacing convolution by matrix-domain convolution). The forward pass computes all the inner coefficients, by traversing the network from $\ell=0$ to $\ell=L-1$, 
+The parameters of such a model are the filters $\be = ( (\psi_\ell){r,s})_{\ell,s,r}$, and they are trained by minimizing the ERM functional~\eqref{eq-erm-param}. The gradient is typically computed by backpropagation. Indeed, when computing the gradient with respect to some filter $\psi_{\ell,r,s}$, the feedforward computational graph has the form~\eqref{eq-simple-lin-dag}. For simplicity, we re-formulate this computation in the case of a single channel per layer (multiple layer can be understood as replacing convolution by matrix-domain convolution). The forward pass computes all the inner coefficients, by traversing the network from $\ell=0$ to $\ell=L-1$, 
 \eq{
-	x_{\ell+1} = \la_\ell(\psi_{\ell} \star x_\ell)
+	x_{\ell+1} = \rho_\ell(\psi_{\ell} \star x_\ell)
 }
-where $\la_\ell(u)=(\tilde\la_\ell(u_i))_i$ is applied component wise. Then, denoting $\Ee(\be) = \Ll( \be,y )$ the loss to be minimized with respect to the set of filters $\be=(\psi_\ell)_\ell$, and denoting $\nabla_\ell \Ee(\be) = \pd{\Ee( \be )}{\psi_\ell}$ the gradient with respect to $\psi_\ell$, one computes all the gradients by traversing the network in reverse order, from $\ell=L-1$ to $\ell=0$
+where $\rho_\ell(u)=(\tilde\rho_\ell(u_i))_i$ is applied component wise. Then, denoting $\Ee(\be) = \Ll( \be,y )$ the loss to be minimized with respect to the set of filters $\be=(\psi_\ell)_\ell$, and denoting $\nabla_\ell \Ee(\be) = \pd{\Ee( \be )}{\psi_\ell}$ the gradient with respect to $\psi_\ell$, one computes all the gradients by traversing the network in reverse order, from $\ell=L-1$ to $\ell=0$
 \eql{\label{eq-backprop}
 	\nabla_\ell \Ee(\be) = 
-		[ \la_\ell'(\psi_{\ell} \star x_\ell) ]
+		[ \rho_\ell'(\psi_{\ell} \star x_\ell) ]
 		\odot
 		[ 
 			\bar\psi_{\ell} \star \nabla_{\ell+1} \Ee(\be)
 		], 
 }
-where $\la_\ell'(u)=( \tilde\la_\ell'( u_i ) )_i$ applies the derivative of $\tilde\la_\ell$ component wise, and where $\bar \psi_{\ell} = \psi_\ell(-\cdot)$ is the reversed filter. Here, $\odot$ is the pointwise multiplication of vectors.
+where $\rho_\ell'(u)=( \tilde\rho_\ell'( u_i ) )_i$ applies the derivative of $\tilde\rho_\ell$ component wise, and where $\bar \psi_{\ell} = \psi_\ell(-\cdot)$ is the reversed filter. Here, $\odot$ is the pointwise multiplication of vectors.
 %
 The recursion is initialized as $\nabla \Ee_L(\be) = \nabla \Ll(x_L,y)$, the gradient of the loss itself. 
 
 This recursion~\eqref{eq-backprop} is the celebrated backpropagation algorithm put forward by Yann Lecun. Note that to understand and code these iterations, one does not need to rely on the advanced machinery of reverse mode automatic differentiation exposed in Section~\ref{sec-reverse-mode}. The general automatic differentiation method is however crucial to master because advanced deep-learning architectures are not purely feedforward, and might include recursive connexions. Furthermore, automatic differentiation is useful outside deep learning, and considerably eases prototyping for modern data-sciences with complicated non-linear models.  
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Advanced Architectures}
+\label{sec-advanced}
+
+
+%%%
+\paragraph{Residual Networks}
+
+Residual network introduce so-called skip connexions of the form (for a significant sub-set of $\ell$)
+\eq{
+	f_\ell(x_\ell,\be_\ell) = x_\ell + \tilde f_\ell(x_\ell,\be_\ell)
+}
+where $\tilde f_\ell(\cdot,\be_\ell) : \RR^{n_\ell} \rightarrow \RR^{n_\ell}$ (the dimension is kept during these connexion). These connexion stabilize the training and enables the use of very deep network. They can also be interpreted as explicit Euler discretization of ODE's.
+%
+The usual choice for these layer is to have a bottleneck shape, of the form 
+\eq{
+	\tilde f_\ell(x_\ell,\be_\ell) = C_\ell^\top \rho_\ell( B_\ell x_\ell )
+}
+(ignoring biases) where $\be_\ell = (B_\ell, C_\ell) \in \RR^{m_\ell \times n_\ell} \times \RR^{m_\ell \times n_\ell}$ with $m_\ell \ll n_\ell$ to enforce a regularization effect. 
+
+
+%%%
+\paragraph{Batch normalization}
+
+TODO write me.
+
+%%%
+\paragraph{Transformers Networks}
+
+Transformers networks operates over distribution of points using a parametric push-forward of the point locations. They have a quadratic complexity in term of number of input points. 
+%
+The input $x$ of such a layer is a set of points $x = (x_i)_{i=1}^n$ where $x_i \in \RR^d$, and each point is modified as 
+\eq{
+	x_k \mapsto \sum_{i} \exp(-\dotp{Q x_i}{K x_k}) V x_i.
+}
+where $Q,K,V$ are the query, key and value matrices (which are the parameters of the layer). 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Scattering Transform}
