@@ -31,11 +31,12 @@ for it=1:q
     t = linspace(0,1,1000);
     xt = [(1-t)*x(k)+t*z, transpose(x)];
     [~,i] = min( sum(abs(xt-x),1) );
+    % clf; 
     plot(xt(i), 'b.', 'MarkerSize', 30);
     axis equal; box on; set(gca, 'XTick', [], 'YTick', []);
     axis([-.3 1.3 -.3 1.3]);
     drawnow;
-    mysaveas(it);
+    % mysaveas(it);
     % animate
     x = x + v;
     I = find( real(x)<0 | real(x)>1 );
