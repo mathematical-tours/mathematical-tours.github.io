@@ -11,8 +11,8 @@ n = size(f,1);
 x = linspace(-1,1,n);
 
 
-R = 8; % #slices
 R = 3; 
+R = 8; % #slices
 r = linspace(0,1,R+2); r = r(2:end-1);
 for i=1:R
     mycolor = (1-r(i))*[1 0 1] + r(i)*[0 1 0];

@@ -1,0 +1,600 @@
+% !TEX root = ../FundationsDataScience.tex
+
+\chapter{Shallow Learning}
+\label{c-shallow-learning}
+
+% Ref: \cite{Rufflewind2017blog}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In this chapter, we study the simplest example of non-linear parametric models, namely Multi-Layers Perceptron (MLP) with a single hidden layer (so they have in total 2 layers). Perceptron (with no hidden layer) corresponds to the linear models studied in the previous chapter. MLP with more layers are obtained by stacking together several such simple MLP, and are studied in Section~\ref{sec-autodiff-mlp}, since the computation of their derivatives is very suited to automatic-differentiation methods.  
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Recap on Supervised Learning}
+
+In this chapter, we denote $(x_i,y_i)_{i=1}^n$ the training data, with $x_i \in \Xx$ (typically $\Xx=\RR^d$ in the following). 
+%
+Let $(X, Y)$ be a pair of random variables with values in $\Xx \times \Yy$. We observe $(x_i, y_i)_{i = 1 \ldots n} $ an i.i.d. of the same law as $(X, Y) $.
+%
+For a loss function $\ell : \Yy \times \Yy \rightarrow \RR $, we write $R(g) \triangleq \EE( \ell(g(X) , Y))$ the risk of a function $g$. The goal is to approach $f \in \argmin R(f)$ as best as possible from only the knowledge of $(x_i, y_i)_{i = 1, \ldots, n}$. Given a space $\Ff$ of functions, this is achieved by minimizing the empirical risk
+\eq{
+	\hat{f} \triangleq \uargmin{g \in \Ff} \hat{R}(g) \triangleq \frac{1}{n} \sum_{i=1}^n \ell( g(x_i), y_i). 
+}
+The goal of the theoretical analysis of supervised learning is to limit the excess risk of this estimator. To do this, we break down this excess risk into two terms:
+\begin{equation} \label{eq:risk}
+  R(\hat{f}) - R(f) =
+    [R(\hat{f}) - \min_{g \in \Ff} R(g)]
+    +
+    [\min_{g \in \Ff} R(g) - R(f)]
+\end{equation}
+The first term $ E_{\text{est}} $ quantifies the distance between the model $\hat{f}$ and the optimal model on $ \Ff $, it is called the estimation error. This is a random error that can be controlled with tools such as Rademacher Complexity. Intuitively this requires that the set $ \Ff $ is not too large. 
+ 
+The second term $ E_{\text{app}} $ is called the approximation error, it quantifies the quality of the optimal model on $ \Ff $. If we suppose that $\ell$ is $C_\ell$ -Lipschitz with respect to its first variable(which is the case for classical cost functions), then we can limit
+\eq{
+	E_{\text{app}} \leq C_\ell \min_{g \in \Ff} \norm{g - f}_{L^2(\mu)}
+} 
+where we denote by $\mu$ the probability distribution of $X$ and $\norm{h}^2_{L^2(\mu)}\triangleq \int_{\Xx} h(x)^2 d \mu(x) $.
+%
+In part of this chapter, we focus on the study of this error. For it to be small, $\Ff$ must be large enough, but it will also be necessary to make assumptions about $f$. 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Multi-layer Perceptron}
+
+We consider the case $\Xx=\RR^d$. 
+%
+A MLP with a single hidden layer having $q$ neurons defines a function as
+\eql{\label{eq:MLP}
+	f_q(x) \triangleq a_0 + \sum_{k=1}^q a_k \rho( \dotp{x}{b_k}+c_k),
+}
+where $a_k \in \RR$ are outer neurons weights, and $w_k = (b_k,c_k) \in \RR^{d} \times \RR$ are the neurons weights which compose the hidden layers.
+%
+To ease the notation, we denote $\bar x = (x,1) \in \RR^{d+1}$ and $w_k=(b_k,c_k) \in \RR^{d+1}$, so that $\dotp{\bar x}{w_k} = \dotp{x}{b_k}+c_k$. With this notation, we conveniently write
+\eq{
+	f_q(x ; (W,a)) \triangleq a_0 + \sum_{k=1}^q a_k \rho( \dotp{\bar x}{w_k} )
+	= a_0 + \dotp{\rho(W \bar x)}{a}_{\RR^q}, 
+}  
+where the neurons $w_k$ as the rows of $W \in \RR^{q \times (d+1)}$ and the non-linearity is implicitly assumed to be applied component-wise. In the following, we often denote $f_q(x)$ in place of $f_q(x ; (W,a))$.
+
+This function $f_q$ is thus a weighted sum of $q$ ``ridge functions'' $\rho(\dotp{\cdot}{w_k})$. These functions are constant in the direction orthogonal to the neuron $w_k$ and have a profile defined by $\rho$.
+
+The most popular non-linearities are sigmoid functions such as
+\eq{
+	\rho(r) = \frac{e^r}{1+e^r}
+	\qandq
+	\rho(r) = \frac{1}{\pi} \text{atan}(r) + \frac{1}{2}
+}
+and the rectified linear unit (ReLu) function $\rho(r)=\max(r,0)$.
+
+\paragraph{Expressiveness. }
+
+In order to define function of arbitrary complexity when $q$ increases, it is important that $\rho$ is non-linear. Indeed, if $\rho(s)=s$, then $f_{q}(x) = \dotp{W x}{a} = \dotp{x}{W^\top a}$. It is thus a linear function with weights $W^\top a$, whatever the number $q$ of neurons.  
+%
+Similarly, if $\rho$ is a polynomial on $\RR$ of degree $d$, then $f_q$ is itself a polynomial of degree $d$ in $\RR^p$, which is a linear space $V$ of finite dimension $\dim(V) = O(p^d)$. So even if $q$ increases, the dimension $\dim(V)$ stays fixed and  $f_q$ cannot approximate an arbitrary function outside $V$. 
+%
+In sharp contrast, one can show that if $\rho$ is not polynomial, then $f_q$ can approximate any continuous function, as studied in Section~\ref{sec-universality}. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Training a MLP}
+
+Given pairs of features and data values $(x_i,y_i)_{i=1}^n$, and as usual storing the features $(x_k,1)$ in the rows of $X \in \RR^{n \times (d+1)}$, we consider the following least square regression function (similar computation can be done for classification losses) which corresponds to a minimization of the empirical risk
+\eq{
+	\umin{W,a} \Ee(W,a) \eqdef \frac{1}{2}\sum_{i=1}^n ( f_q(x_i; (W,a) )-y_i )^2
+	= \frac{1}{2}\norm{\rho(X W^\top) a - y}^2.
+}
+Note that here, the parameters being optimized are $(W,a) \in \RR^{q \times (d+1)} \times \RR^q$.
+
+%%%%
+\paragraph{Optimizing with respect to $a$.}
+
+% 
+This function $\Ee$ is convex with respect to $a$, since it is a quadratic function. Its gradient with respect to $a$ can be computed as in~\eqref{eq-grad-ls} and thus (here we do not consider the derivative with respect to $a_0$, which is treated after separately)
+\eq{
+	\nabla_a \Ee(W,a) = \rho(X W^\top)^\top ( a_0 + \rho(XW^\top)a - y ) \in \RR^q
+}
+and one can compute in closed form the solution (assuming $\ker(\rho(XW^\top))=\{0\}$) as 
+\eq{
+	a^\star = [ \rho(XW^\top)^\top \rho(XW^\top) ]^{-1} \rho(XW^\top)^\top (y-a_0)
+		= 
+		[ \rho(W X^\top) \rho(XW^\top) ]^{-1} \rho(W X^\top) (y-a_0)
+}
+When $W=\Id_p$ and $\rho(s)=s$ one recovers the least square formula~\eqref{eq-sol-leastsquare}.
+%
+The derivative with respect to the output bias $a_0$ is 
+\eq{
+	\nabla_{a_0} \Ee(W,a) = \dotp{ \ones_n }{ \rho(XW^\top)a - y } \in \RR
+}
+
+%%%%
+\paragraph{Optimizing with respect to $W$.}
+
+The function $\Ee$ is non-convex with respect to $W$ because the function $\rho$ is itself non-linear. 
+%
+Training a MLP is thus a delicate process, and one can only hope to obtain a local minimum of $\Ee$. It is also important to initialize correctly the neurons $(w_k)_k$ (for instance as unit norm random vector, but bias terms might need some adjustment), while $u$ can be usually initialized at $0$.
+
+To compute its gradient with respect to $W$, we first note that for a perturbation $\epsilon \in \RR^{q \times (d+1)}$, one has 
+\eq{
+	\rho(X (W+\epsilon)^\top ) = \rho(XW^\top + X\epsilon^\top) = \rho(XW^\top) + \rho'(XW^\top) \odot (X\epsilon^\top)
+}
+where we have denoted ``$\odot$'' the entry-wise multiplication of matrices, i.e. $U \odot V = (U_{i,j} V_{i,j})_{i,j}$.
+%
+One thus has, 
+\begin{align*}
+	\Ee(W+\epsilon,a) &= \frac{1}{2}\norm{e+[\rho'(XW^\top)\odot(A\epsilon^\top)] y}^2
+		\qwhereq e \eqdef \rho(XW^\top)a- y \in \RR^n \\
+		&= \Ee(W,a) + \dotp{e}{[\rho'(XW^\top)\odot(A\epsilon^\top)] y} + o(\norm{\epsilon}) \\
+		&= \Ee(W,a) + \dotp{A \epsilon^\top}{\rho'(XW^\top)\odot (e u^\top)} \\
+		&= \Ee(W,a) + \dotp{\epsilon^\top}{A^\top \times [\rho'(XW^\top)\odot (e a^\top)]}.
+\end{align*}
+The gradient thus reads
+\eq{
+	\nabla_W \Ee(W,a) = [ \rho'(W X^\top)\odot (a e^\top) ] \times A \in \RR^{q \times (d+1)}.
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Controlling the Estimation Error}
+
+Regarding the error $E_{\text{est}}$, defined in \eqref{eq:risk}, it is well studied in the literature. Under the assumptions that the weights of the network are bounded, this error is increased with great probability, by a term of the order of $\frac{1}{\sqrt{n}}$. This corresponds to a decay rate independent of the number $ p $ of neurons.
+
+Denoting
+$ \sigma^2 \triangleq \int \norm{x}^2 \d \mu(x)$ the variance of the data,
+if we impose that $\phi$ is $G_\phi$-Lipschitz, that
+\begin{equation} \label{eq: constraints-radem}
+    \sum_k | a_k | \leq K_a, \quad
+    \norm{b_k}_2, | c_k | / \sigma \leq K_{b,c},
+\end{equation}
+and that the loss $\ell $ is $G_\ell$-Lipschitz and bounded by $\ell_\infty$, then as explained in~\cite[Proposition 9.1]{bach2021book}, with probability $1-\de$,
+\begin{equation}\label{eq:estim-error}
+    E_{\text{est}} \leq \frac{4 G_\ell G_\phi K_a K_{b,c} \sigma}{\sqrt{n}} 
+    	+ 2\ell_\infty \sqrt{\frac{\log(1/\de)}{\sqrt{n}}}, 
+\end{equation}
+which is a speed independent of the number $q$ of neurons.
+%
+We now study how the error $E_{\text{app}}$ decreases as a function of $q$, and show that it is of the order $1/\sqrt{q}$.
+%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Universality}
+\label{sec-universality}
+
+In the following we assume that $\rho : \RR \rightarrow \RR$ is a bounded measurable function such that 
+\eql{\label{eq-constraint-univ}
+	\rho(r) \overset{r \rightarrow -\infty}{\longrightarrow} 0
+	\qandq
+	\rho(r) \overset{r \rightarrow +\infty}{\longrightarrow} 1.
+}
+Note in particular that such a function cannot be a polynomial and that the ReLu function does not satisfy these hypothesis (universality for the ReLu is more involved to show).
+%
+We denote a ridge function as
+\eql{\label{eq:ridge-def}
+	\phi_w(x) \triangleq \rho( \dotp{w}{\bar x} )
+	\qwhereq
+	w = (b,c) \in \RR^d \times \RR.
+}
+%
+The goal is to show the following theorem.
+
+\begin{thm}[Cybenko~\cite{cybenko1989approximation}]\label{thm-universality}
+	For any compact set $\Om \subset \RR^d$, the space spanned by the functions $\{\phi_{w}\}_{w}$ is dense in $\Cc(\Om)$ for the uniform convergence. This means that for any continuous function $f$ and any $\epsilon>0$, there exists $q \in \NN$ and weights $(w_k,a_k)_{k=1}^q$ such that
+	\eq{
+		\foralls x \in \Om, \quad
+		|f(x) - f_q(x,(W,a))| \leq \epsilon.
+	}
+\end{thm}
+
+In a typical ML scenario, this implies that one can ``overfit'' the data, since using a $q$ large enough ensures that the training error can be made arbitrary small. Of course, there is a bias-variance tradeoff, and $q$ needs to be cross-validated to account for the finite number $n$ of data, and ensure a good generalization properties.  
+
+%%%
+\paragraph{Proof in dimension $p=1$.}
+
+In 1D, the approximation $f_{q}$ can be thought as an approximation using smoothed step functions. Indeed, introducing a parameter $\epsilon>0$, one has (assuming the function is Lipschitz to ensure uniform convergence), 
+\eq{
+	\phi_{w/\epsilon} \overset{\epsilon \rightarrow 0}{\longrightarrow} 1_{[-c/b,+\infty[}
+}
+This means that 
+\eq{
+	f(\cdot; (W/\epsilon,a)) \overset{\epsilon \rightarrow 0}{\longrightarrow} \sum_k a_k 1_{[-c_k/b_k,+\infty[}, 
+}
+which is a piecewise constant function. Inversely, any piecewise constant function can be written this way.
+%
+Indeed, if $f$ assumes the value $d_k$ on each interval $[t_k,t_{k+1}[$, then it can be written as
+\eq{
+	h = \sum_k d_k ( 1_{[t_k,+\infty[} - 1_{[t_k,+\infty[} ).
+}
+Since the space of piecewise constant functions is dense in continuous function over an interval, this proves the theorem.
+
+%%%
+\paragraph{Proof in arbitrary dimension $d$.}
+
+We start by proving the following dual characterization of density, using bounded Borel measure $\nu \in \Mm(\Om)$ i.e. such that $\nu(\Om)<+\infty$.
+
+\begin{prop}\label{prop-proof-univ-1}
+	If $\rho$ is such that for any Borel measure $\nu \in \Mm(\Om)$
+	\eql{\label{eq-prop-proof-univ-1}
+		\pa{
+			\foralls w, \int \rho(\dotp{\bar x}{w}) \d \nu(x) = 0
+		}
+		\qarrq 
+		\nu = 0, 
+	}
+	then Theorem~\ref{thm-universality} holds. 
+\end{prop}
+
+\begin{proof}
+	We consider the linear space
+	\eq{
+		\Ss \eqdef \enscond{ \sum_{k=1}^q a_k \phi_{w_k} }{q \in \NN, w_k \in \RR^{d+1}, a_k \in \RR } \subset \Cc(\Om).
+	}
+	Let $\bar\Ss$ be its closure in $\Cc(\Om)$ for $\norm{\cdot}_\infty$, which is a Banach space.
+	%
+	If $\bar\Ss \neq \Cc(\Om)$, let us pick $g \neq 0$, $g \in \Cc(\Om) \backslash \bar\Ss$.
+	%
+	We define the linear form $L$ on $\bar\Ss \oplus \text{span}(g)$ as
+	\eq{
+		\foralls s \in \bar\Ss, \: \foralls \la \in \RR, \quad
+		\quad L(s+\la g) = \la
+	}
+	so that $L=0$ on $\bar\Ss$. $L$ is a bounded linear form, so that by Hahn-Banach theorem, it can be extended in a bounded linear form $\bar L : \Cc(\Om) \rightarrow \RR$. Since $L \in \Cc(\Om)^*$ (the dual space of continuous linear form), and that this dual space is identified with Borel measures, there exists $\nu \in \Mm(\Om)$, with $\nu \neq 0$, such that for any continuous function $h$, $\bar L(h) = \int_\Om h(x) \d\nu(x)$.
+	%
+	But since $\bar L = 0$ on $\bar\Ss$, $\int \rho(\dotp{\bar \cdot}{w}) \d \nu = 0$ for all $w$ and thus by hypothesis, $\nu=0$, which is a contradiction.
+\end{proof}
+
+The theorem now follows from the following proposition.
+
+\begin{prop}
+	If $\rho$ is continuous and satisfies~\eqref{eq-constraint-univ}, then it satisfies~\eqref{eq-prop-proof-univ-1}.
+\end{prop}
+
+\begin{proof}
+	One has, for $w=(b,c) \in \RR^{d+1}$ and $t \in \RR$,  % w,u --> b,c
+	\eq{
+		\phi_{\frac{b}{\epsilon}, \frac{c}{\epsilon}+t}(x)
+		= \rho\pa{ \frac{\dotp{\bar x}{w}}{\epsilon} + t }
+		%
+		\: \overset{\epsilon \rightarrow 0}{\longrightarrow} \:
+		\ga(x) \eqdef 
+		\choice{
+			1 \qifq x \in H_{w},   \\  % w=b,c
+			\rho(t) \qifq x \in P_{w},  \\
+			0 \qifq \dotp{\bar x}{w} < 0,  \\ 
+		}
+	}
+	where we defined $H_{w} \eqdef \enscond{x}{\dotp{\bar x}{w} > 0}$ and
+	$P_{w} \eqdef \enscond{x}{\dotp{w}{\bar x} = 0}$.
+	%
+	By Lebesgue dominated convergence (since the involved quantities are bounded uniformly on a compact set)
+	\eq{
+		\int \phi_{\frac{b}{\epsilon}, \frac{c}{\epsilon}+t} \d \nu		
+		%
+		\overset{\epsilon \rightarrow 0}{\longrightarrow}
+		%
+		\int \ga \d\nu = \phi(t) \nu(P_{w}) + \nu(H_{w}).
+	}
+	Thus if $\nu$ is such that all these integrals vanish, then 
+	\eq{
+		\foralls (w,t), \quad \phi(t) \nu(P_{w}) + \nu(H_{w}) = 0.
+	}
+	By selecting $(t,t')$ such that $\phi(t) \neq \phi(t')$, one has that 
+	\eq{
+		\foralls w, \quad  \nu(P_{w}) = \nu(H_{w}) = 0.
+	}
+	We now need to show that $\nu=0$.  For a fixed $b \in \RR^d$, we consider the function 
+	\eq{
+		h \in L^\infty(\RR), \quad
+		F(h) \eqdef \int_\Om h(\dotp{b}{x}) \d \nu(x).
+	}
+	$F : L^\infty(\RR) \rightarrow \RR$ is a bounded linear form since $|F(\nu)| \leq \norm{h}_\infty \nu(\Om)$ and $\nu(\Om) < +\infty$. One has, for $w=(b,c) \in \RR^{d+1}$, 
+	\eq{
+		F(1_{[-c,+\infty[} = \int_{\Om} 1_{[-c,+\infty[}(\dotp{b}{x}) \d \nu(x)
+		=  \nu( P_{w} ) + \nu( H_{w} ) = 0.
+ 	} 
+	By linearity, $F(h)=0$ for all piecewise constant functions, and $F$ is a continuous linear form, so that by density $F(h)=0$ for all functions $h \in L^\infty(\RR)$. Applying this for $h(r)=e^{\imath r}$ one obtains
+	\eq{
+		\hat \nu(b) \eqdef \int_\Om e^{\imath \dotp{x}{b}} \d \nu(x) = 0.
+	} 
+	This means that the Fourier transform of $\nu$ is zero, so that $\nu=0$.
+\end{proof}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Approximation Rates}
+
+This section details in a mostly informal way the results of~\cite{barron1993universal}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%
+\subsection{Barron's spaces}
+
+For an integrable function $f$, its Fourier transform is defined, for any $\omega \in \RR^d $ by
+$$
+    \hat{f}(\omega) \triangleq \int_{\RR^d}f(\omega) e^{\imath \dotp{\omega}{x} } \d x.
+$$
+The Barron's space~\cite{barron1993universal} is the set of functions such as the semi-norm
+$$
+	\norm{f}_B \triangleq  \int_{\RR^d}\norm{\omega} | \hat{f}(\omega) | \d\omega 
+$$ 
+is finite. If we impose that $f(0)$ is fixed, we can show that this defines a norm and that the Barron space is a Banach space.
+One has
+$$
+	\norm{f}_B = \int_{\RR^d} \norm{\widehat{\nabla f}(\omega)} \d\omega, 
+$$ 
+this shows that the functions of the Barron space are quite regular.
+%
+Here are some example of function classes with the corresponding Barron's norm.
+\begin{itemize}
+    \item \emph{Gaussians}: for $f(x) = e^{- \norm{x}^2/2}$, one has $\norm{f}_B \leq 2 \sqrt{d}$
+    \item \emph{Ridge function}: let $ f(x) = \psi (\dotp{x}{b} + c) $ where $\psi: \RR \rightarrow \RR$ then one has
+    $$
+    	\norm{f}_B \leq \norm{b} \int_{\RR} |u \hat{\psi}(u) | \d u. 
+	$$ 
+    In particular,  if $\psi$ is $\Cc^{2 + \delta}$ for $\delta> 0 $ then $f$ is in the Barron space. If $\rho$ satisfies this hypothesis, the ``neurons'' functions are in Barron space.
+    \item \emph{Regular functions with $ s $ derivatives}: for all $ s>d/2 $, one has $\norm{f}_B \leq C(d,s) \: \norm{f}_{H^s}$ where 
+    the Sobolev norm is
+    $$
+    	\norm{f}^2_{H^s} \triangleq \int_{\RR^d}| \hat{f}(\omega) |^2 (1+ \norm{\omega}^{2s}) \d\omega 
+		\sim \norm{f}_{L^2(\d x)}^2 + \sum_{k=1}^d \norm{\partial_{x_k} f}_{L^2(\d x)}^2, 
+	$$ 
+	and $ C(d,s) <\infty$ is a constant. This shows that if $ f $ has at least $ d / 2 $ derivatives in $L^2$, it is in Barron space. Beware that the converse is false, the Barron space can contain less regular functions as seen in the previous examples.
+	%
+	This somehow shows that the Barron space is larger than RKHS space of fixed smoothness degree.
+\end{itemize}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Barron's Theorem}
+
+The main result is as follows.
+
+\begin{thm}[Barron~\cite{barron1993universal}]
+	We assume $\mu$ is supported on $B(0,R)$.
+	%
+    For all $q$, there exists an MLP $f_q$ of the form \eqref{eq:MLP} such that
+    $$
+        \norm{f_q - f}_{L^2(\mu)}\leq \frac{2R \norm{f}_B}{\sqrt{q}}.
+    $$
+\end{thm}
+
+This result shows that if $f$ is in Barron space, the decrease of the error does not depend on the dimension: this is often referred to as ``overcoming the curse of dimensionality''. Be careful however, the constant $\norm{f}_B$ can depend on the dimension, this is the case for Gaussian functions (where it is $ 2 \sqrt{d}$) but not for ridges functions.
+
+
+The proof of this theorem shows that one can impose $c_0 = f(0) $ and $\sum_k | a_k | \leq \al_{\max} \triangleq 2 R \norm{f}_B$. 
+%
+This $\ell^1$ normalization is crucial since it is the one required in~\eqref{eq:constraints-radem} to control the estimation error. Controlling this error also requires to bound $\norm{w_k}$, which can be achieved assuming more constraint on $\rho$.
+%
+The estimation error is thus bounds as $O(1/\sqrt{n})$ while the approximation one is $O(1/\sqrt{q})$, so that a balance is obtained by selecting $q \sim n$, and the overall error has a dimension-free decay rate $0(1/\sqrt{n})$. 
+
+We will give the main ingredients of the proof of Barron's theorem.
+
+\paragraph{Integral representation using a probability distribution}
+
+The most important point is a formula for representing functions in the Barron space as an average of ridge functions, this average being computed using a probability distribution $\La$ over the space of neurons. For $\theta = (w, \al) \in \RR^{d+1} \times \RR $, we denote
+$$
+    \xi_\theta(x) \eqdef \al \rho( \dotp{w}{\bar x}).
+$$
+We can interpret the MLP as a finite average
+\begin{equation}\label{eq:mlp-sum}
+    f_q = a_0 + \frac{1}{q}\sum_{k=1}^p \xi_{\theta_k}
+\end{equation}
+where $\theta_k \triangleq (w_k, p \: a_k) $.
+%
+The central idea of Barron's proof is that the functions $ f $ of the Barron space are those where we replace this finite empirical mean by a ``continuous average''. That is, for any $f$ in the Barron space, there exists a probability density $\Gamma$ on $\RR^{d+1} \times \RR$ such that
+\begin{equation}\label{eq:mlp-int}
+    f(x) = f(0) + \int_{\RR^{d+1} \times \RR} \xi_\theta \d\Gamma(\theta).
+\end{equation}
+Barron shows in the proof of this result that we can impose that $\Gamma$ is supported in $\RR^{d+1} \times B (0,\al_{\max})$ where $\al_{\max} \triangleq 2 R \norm{f}_B$.
+%
+For example, we get the \eqref{eq:mlp-sum} decomposition by taking $\Gamma = 1/p \sum_k \delta_{\theta_k}$ and $c_0 = f(0)$.
+
+The proof of this decomposition is the crux of the proof. Using the inverse Fourier transform and the fact that $ f(x) $ is real, one has 
+\begin{align*}
+	f(x) - f(0) &= \Re \left (\int_{\RR^d}\hat{f}(\omega) (e^{\imath \dotp{\omega}{x}}- 1) \d\omega \right) 
+	= \Re \left (\int_{\RR^d}| \hat{f}( \omega) | e^{\imath \Theta (\omega)}(e^{\imath \dotp{\omega}{x}}- 1) \d\omega \right) \\
+	&= \int_{\RR^d}(\cos ( \dotp{\omega}{x} + \Theta (\omega)) - \cos (\Theta (\omega))) | \hat{f}(\omega) | \d\omega  \\
+	& = \int_{\RR^d}\frac{\norm{f}_B}{| \omega |}(\cos (\dotp{\omega}{x} + \Theta (\omega) ) - \cos (\Theta (\omega))) 
+	\frac{\norm{\omega} | \hat{f}(\omega) |}{\norm{f}_B}\d\omega = \int_{\RR^d}g_\omega(x) \d\Gamma (\omega) 
+\end{align*}
+\eq{
+	\qwhereq
+	g_\omega(x) \triangleq \frac{\norm{f}_B}{\norm{\omega} }(\cos (\dotp{\omega}{x} + \Theta (\omega)) - \cos (\Theta (\omega)))
+	\qandq
+	\d\La(\om) \triangleq
+	 \frac{\norm{\omega} | \hat{f}(\omega) |}{\norm{f}_B}\d\omega
+}
+%
+Note that 
+\eq{
+	|g_\omega(x)| \leq  \frac{\norm{f}_B}{\norm{\omega} } |\dotp{\omega}{x}| \leq \norm{f}_B R
+}
+so that $g_\omega$ are similar to bounded sigmoid functions.
+%
+This calculation shows that the previous decomposition \eqref{eq:mlp-int} is true but with sigmoid functions $g_\omega$  instead of functions $\xi_\theta$. One then proceeds by showing that the function $\cos$ can be written using translates and dilates of the function $\rho$ to obtain the thought after integral formula.
+
+\paragraph{Discretization}
+
+To go from the integral representation \eqref{eq:mlp-int} to $f_q$, which is a discretized version \eqref{eq:mlp-sum}, Barron performs a probabilistic proof by Monte Carlo sampling. We consider i.i.d. realizations $\Th \triangleq (\th_1, \ldots \th_q)$  according to the law $\Gamma$ and we define $ f_q $ according to the definition \eqref{eq:mlp-sum}. Beware that $f_q$ is now a random function. 
+%
+By expanding the squares and inner product, and using the fact that $\EE_{\th_k}(\phi_{\th_k}(x)) = f(x)$, 
+one has
+\begin{equation}
+    \EE_{\Theta}(\norm{f- f_q}^2_{L^2(\mu)}) 
+   		= \frac{ \EE_\th( \|\xi_\theta - \EE_{\th'}(\xi_{\theta'})\|_{L^2(\mu)}^2) }{q} 
+       = \frac{ \EE_\th( \|\xi_\theta\|_{L^2(\mu)}^2) - \|\EE_\th( \xi_\theta)\|_{L^2(\mu)}^2 }{q} .
+\end{equation}
+An important point is that one can bound 
+$$
+    \EE( \|\xi_\theta\|_{L^2(\mu)}^2 ) \leq 
+    \al_{\max}^2
+    \qwhereq
+    \al_{\max} \triangleq 2 \norm{f}_B R
+$$ 
+because the realizations $(w,\al)$ from $\Gamma$ satisfy $|\al| \leq \al_{\max}$ because of the support localization of $\Gamma$. 
+%
+This shows that $\EE_{\Theta}(\norm{f- f_q}^2_{L^2(\mu)}) \leq 2 \norm{f}_B R / q$. This shows that 
+the event $\norm{f- f_q}^2_{L^2(\mu)} \leq 2 \norm{f}_B R / q$ has a positive probability so that the set of MLP such that this bound holds is non-empty. 
+
+Furthermore, since $|\al| \leq \al_{\max}$ on the support of $\Gamma$, the $(a_k)_k$ in the decomposition of the MLP, which are of of the form $a_k=\al_k/q$ with $\al_k$ in the support de $\Gamma$,  safisfy $\sum_k |a_k| = 1/q \sum_k |\al_k| \leq \al_{\max}$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Integral representation over $w$}
+
+%%%
+\paragraph{Integral representation using a signed measure.}
+
+It is possible to develop an alternate proof, which relies on a simpler and more natural representation of Barron functions using a signed measure. Indeed, one can re-write~\eqref{eq:mlp-int} as (using a slight abuse of notation)
+\begin{equation}\label{eq:mlp-int}
+    f(x) = f(0) + \int_{\RR^{d+1} \times \RR} \al \rho(\dotp{w}{\bar x} \d\Gamma(w,\al)
+    = 
+    f(0) + \int_{\RR^{d+1}}  \phi_w(x) \d\ga(w)
+    \qwhereq
+    \ga(\cdot) = \int_\RR \al \d\Gamma(\cdot,\al)
+\end{equation}
+where we recall that the ridge functions $\phi_w(x) \triangleq \rho( \dotp{w}{\bar x} )$ were defined in~\eqref{eq:ridge-def}. 
+%
+Furthermore, we recall that we can assume that $\La$ is supported on $\RR^{d+1} \times B(0,\al_{\max})$ so that the total variation of $\ga$ is bounded as 
+\eql{\label{eq:representation-gamma}
+	\norm{\ga}_{\TV} = |\ga|( \RR^{d+1} )
+	\leq 
+	\int_{\RR^{d+1}} \int_\RR |\al| \d\Gamma(w,\al)
+	\leq \al_{\max}.
+}
+
+Assuming $f(0)=0$ for simplicity, we denote the relation~\eqref{eq:mlp-int} as $f = \Phi \ga$ where $\Phi$ is a linear operator between $\Mm(\RR^{d+1})$ (the space of signed Radon measures) and $\Cc(\RR^{d})$ the space of continuous functions (here we assume $\rho$ is continuous for simplicity). 
+
+%%%
+\paragraph{Convex learning.}
+
+In the limit $q \rightarrow +\infty$, one can thus replace the MLP $f_q$ by functions of the form $\Phi(\ga)$ with $\norm{\ga}_{\TV} \leq \al_{\max}$.
+%
+This allows one to replace in the large $q$ limit the non-convex minimization of the risk
+\eq{
+	\uinf{W,a} \frac{1}{n} \sum_{i=1}^n \ell( f_q(x_i;(W,a)) ,y_i ) 
+}
+by the following convex but infinite dimensional optimization problem~\cite{bach2017breaking}
+\eql{\label{eq:convex-loss}
+	\uinf{\ga \in \Mm(\RR^{d+1})} \Ee_0(\ga) \triangleq
+	\frac{1}{n} \sum_{i=1}^n \ell( (\Phi \ga)(x_i) ,y_i ).
+}
+possibly with the additional constraint $\norm{\ga}_{\TV} \leq \al_{\max}$.
+
+Note that this type of TV constraint corresponds to defining a norm on the space of functions
+\eq{
+	\norm{f}_* \triangleq \uinf{\ga \in \Mm(\RR^{d+1})} \enscond{ \norm{\ga}_{\TV} }{ f = \Phi \ga }.
+}
+One can show under some hypotheses that $\norm{\cdot}_*$ is actually equivalent to $\norm{\cdot}_B$.
+
+%%%
+\paragraph{Revisiting Barron's proof using Frank-Wolfe}
+
+Barron gives an alternate proof of his theorem using a greedy algorithm. This is very similar to using the celebrated Frank-Wolfe algorithm, that we now detail in the case of the space of measure (this algorithm is very general and work on arbitrary vector space, not necessarily with Banach structure). This follows~\cite{bach2017breaking}.
+%
+The idea is to consider the following ``fake'' approximation problem
+\eql{\label{eq:pbm-madeup}
+	\uinf{\norm{\ga}_{\TV} \leq \al_{\max} } \Ee_1(\ga) = \frac{1}{2}\norm{ \Phi \ga - f }_{L^2(\mu)}^2
+}
+for which we know from~\eqref{eq:representation-gamma} that the minimum value is $0$.
+
+%
+More generally, we consider the problem of constraint minimization (this can be generalized to penalized minimization)
+\eq{
+	\uinf{ \ga \in \Cc } \Ee(\ga)
+}
+where $\Cc$ is a compact set of contraints for the strong topology and $\Ee$ is some function. We assume that this function has directional derivatives, that we write for $\rho$ another measure
+\eq{
+	\Ee(\ga + \epsilon \la) = \Ee(\ga) + \epsilon \dotp{\delta \Ee(\ga)}{\la} + o(\epsilon)
+}	
+where $\delta \Ee(\ga) \in \Cc(\RR^{d+1})$ should be thought as the gradient of $\Ee$ at $\ga$, when one replace a hilbertian inner product by the duality pairing between measures and continuous functions, 
+\eq{
+	\forall (g,\la) \in \Cc(\RR^{d+1}) \times \Mm(\RR^{d+1}), 
+	\quad
+	\dotp{g}{\la} \triangleq \int_{\RR^{d+1}} g(w) \d\la(w).
+}
+
+
+For instant, in the cases~\eqref{eq:convex-loss} and~\eqref{eq:pbm-madeup}, if we assume that $\ell$ is smooth, one has
+\begin{align}
+	\delta \Ee_0(\ga) & :
+	w \in \RR^{d+1} \mapsto  \frac{1}{n} \sum_{i=1}^n \ell'(  (\Phi \ga)(x_i),y_i ) \phi_w(x_i)  \in \RR \\
+	\delta \Ee_1(\ga) & :
+	w \in \RR^{d+1} \mapsto  \int_{\RR^d} (\Phi\ga(x) - f(x))\phi_w(x) \d \mu(x) \in \RR. \label{eq:grad-madeup}
+\end{align}
+
+Starting from $\ga_0 \in \Cc$, the algorithm proceeds at step $k$ by extracting an extremal point of the constraint set
+\eql{\label{eq:fw-extremal}
+	\zeta_k \in \uargmin{\zeta \in \Mm(\RR^{d+1})} \dotp{\delta \Ee(\ga_k)}{\zeta}
+}
+and then update
+\eq{
+	\ga_{k+1} = (1 - t_k) \ga_k + t_k \zeta_k
+}
+where the step size can be for instance chosen as $t_k \sim \frac{1}{k}$ or using a line search.
+%
+In the special case where 
+\eq{
+	\Cc = \enscond{\ga \in \Mm(\RR^{d+1})}{ \norm{\ga}_{\TV} \leq \al_{\max} }
+}
+then the extremal point are of the form $\zeta_k = \pm \al_{\max} \de_{w_k}$ where the optimal weight thus solves an optimization over $\RR^{d+1}$ of a non-convex function
+\eq{
+	w_k \in \uargmax{w \in \RR^{d+1}} |[\delta \Ee(\ga_k)](w)|	
+}
+Unfortunately, even simply finding this sole neurone with theoretical guarantees is computationally hard.
+
+In order to ensure the convergence (in value) of Frank-Wolfe, the function needs somehow to be $L$-smooth (Lipschitz gradient). Since we are not optimizing over a vector space, this property is controlled by upper-bounding the directional Hessian, which corresponds to assuming a curvature bound (bounding the function by above by a parabola along 1-D segments)
+\eq{
+	\foralls (\ga,\zeta) \in \Cc^2, \:
+	\forall t \in [0,1], \quad
+	\Ee( (1-t)\ga + t \zeta)  \leq \Ee(\ga) + t \dotp{ \delta \Ee(\ga) }{\zeta-\ga} + \frac{L}{2} t^2.
+}
+Under this hypothesis, one has the following convergence result
+\begin{prop}
+		One has for the choice $t_k = \frac{2}{2+k}$
+		\eq{
+			\Ee(\ga_k) - \uinf{\ga \in \Cc} \Ee(\ga)
+			\leq \frac{L}{k+2}.
+		}	
+\end{prop}
+
+
+In the case of $\Ee=\Ee_0$ defines in~\eqref{eq:pbm-madeup}, which is quadratic, one has
+\eq{
+	\Ee( (1-t)\ga + t \zeta)  - \Ee(\ga) - t \dotp{ \delta \Ee(\ga) }{\zeta-\ga}
+	= 
+	 \frac{t^2}{2}\norm{ \Phi (\ga - \zeta) }_{L^2(\mu)}^2
+}
+and then, since $\norm{\phi_w}_\infty \leq 1$ and $\norm{\ga - \zeta}_{\TV} \leq 2\ga_{\max}$ (because $\zeta$ and $\ga$ are in $\Cc$), 
+\eq{
+	\frac{1}{2}\norm{ \Phi (\ga - \zeta) }_{L^2(\mu)}^2
+	= \frac{1}{2} \int_{\RR^d} \pa{
+		\int_{\RR^{d+1}} \phi_w(x) \d(\ga - \zeta)(w) 
+	}^2 \d\mu(x)
+	\leq
+	\frac{1}{2} \int_{\RR^d} \norm{\phi_w}_\infty^2 \norm{\ga - \zeta}_{\TV}^2 
+	 \d\mu(x)
+	\leq \ga_{\max}
+}
+so that $L \leq 2\ga_{\max}^2$.
+%
+Using the convergence speed of  one recovers the approximation result of Barron for $f_q = \Phi \ga_q$ computed at step $q$ of F-W
+\eq{
+	\norm{f-f_q}_{L^2(\mu)}^2 = \Ee(\ga_q) - \uinf{\ga \in \Cc} \Ee(\ga)
+	\leq \frac{2\ga_{\max}^2}{q+2}.
+}	
+
+%
+%Note that Theorem~\ref{thm-universality} is not constructive in the sense that it does not explain how to compute the weights $(w_k,u_k,z_k)_k$ to reach a desired accuracy. Since for a fixed $q$ the function is non-convex, this is not surprising. Some recent studies show that if $q$ is large enough, a simple gradient descent is able to reach an arbitrary good accuracy, but it might require a very large $q$.
+%
+%Theorem~\ref{thm-universality} is also not quantitative since it does not tell how much neurons $q$ is needed to reach a desired accuracy. To obtain quantitative bounds, continuity is not enough, it requires to add smoothness constraints. For instance, Barron proved that if 
+%\eq{
+%	\int \norm{\om} |\hat f(\om)| \d\om \leq C_f
+%}
+%where $\hat f(\om) = \int f(x) e^{-\imath\dotp{x}{\om}} \d x$ is the Fourier transform of $f$, then for $q \in \NN$ there exists $(w_k,u_k,z_k)_{k}$
+%\eq{
+%	\frac{1}{\text{Vol}(B(0,r))} \int_{\norm{x} \leq r} |f(x) - \sum_{k=1}^q u_k \phi_{w_k,z_k}(x)|^2 \d x\leq \frac{(2rC_f)^2}{q}.
+%}
+%The surprising part of this Theorem is that the $1/q$ decay is independent of the dimension $p$. Note however that the constant involved $C_f$ might depend on $p$. 
+%
+

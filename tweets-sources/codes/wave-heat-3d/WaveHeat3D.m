@@ -2,15 +2,16 @@
 % Wave and heat in 3D.
 
 
-model = 'heat'; 
 model = 'wave'; 
+model = 'heat'; 
 
 % 'horse' 'shears' 
-name = 'duck';
 name = 'elephant';
 name = 'moomoo';
 name = 'cube';
 name = 'gaussians';
+name = 'duck';
+name = 'bunny';
 
 addpath('../toolbox/');
 rep = MkResRep(name);
@@ -48,6 +49,8 @@ switch name
                 pov = [-130,-15];
             case 'elephant'
                 pov = [5,90];
+            case 'bunny'
+                pov = [0,90];
         end
         f0 = inpolyhedron(F',V',x,x,x);
 end
@@ -71,8 +74,9 @@ end
 
 
 q = 50; % #frames
-slide_dim = 0; % mean levelset
 slide_dim = 2; % cut along an axis
+slide_dim = 3;
+slide_dim = 0; % mean levelset
 
 F0 = fftn(f0);
 for i=1:q  
@@ -100,6 +104,7 @@ for i=1:q
         VolumetricSlicing(f,slide_dim, color,slice_pos);
     end
     view(pov); camlight;
+    drawnow;
 
     %
     saveas(gcf, [rep model '-' num2str(slide_dim) '-' znum2str(i,2) '.png'], 'png');
