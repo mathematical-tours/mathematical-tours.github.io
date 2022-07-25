@@ -6,6 +6,8 @@ mysaveas = @(it)saveas(gcf, [rep 'anim-' znum2str(it,3) '.png']);
 
 addpath('mexEMD/');
 
+k = 16;
+
 a = ones(k,1)/k;
 b = ones(k,1)/k;
 
@@ -18,7 +20,7 @@ a = a/sum(a); b = b/sum(b);
 
 % animate points in a square with bouncing
 rand('state', 123); randn('state', 123);
-k = 16; x = rand(k,2)+1i*rand(k,2);
+ x = rand(k,2)+1i*rand(k,2);
 x(:,1) = x(:,1)/4;
 x(:,2) = x(:,2)/4 + (.75+.75i);
 eta = .012; v = randn(k,2) + 1i*randn(k,2); v = eta*v./abs(v);
@@ -45,5 +47,5 @@ for it=1:q
     v(I) = -real(v(I)) + 1i*imag(v(I));
     I = find(  imag(x)<0 | imag(x)>1 );
     v(I) = real(v(I)) - 1i*imag(v(I));
-    mysaveas(it);
+    % mysaveas(it);
 end

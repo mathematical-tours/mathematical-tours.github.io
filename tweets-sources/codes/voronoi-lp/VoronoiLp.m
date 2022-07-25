@@ -31,7 +31,7 @@ for i=1:q
     DispVornoiLp(Y0,p);
     plot([0 1 1 0 0], [0 0 1 1 0], 'Color', [t, 0, 1-t], 'LineWidth', 5);
     drawnow;
-    saveas(gcf, [rep 'vornoi-lp-' num2str(k) '-' znum2str(i,2) '.png'], 'png');
+    % saveas(gcf, [rep 'vornoi-lp-' num2str(k) '-' znum2str(i,2) '.png'], 'png');
 end
 
 % AutoCrop(rep, ['vornoi-lp-' num2str(k)]); 

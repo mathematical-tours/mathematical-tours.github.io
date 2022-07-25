@@ -30,7 +30,7 @@ for i=1:q
     t=(i-1)/(q-1);
     DisplayDiagram(Y0,t*w,(1-t)*1/2 + 1.5*t*w/max(w));
     drawnow;
-    saveas(gcf, [rep 'power-diag-' num2str(k) '-' znum2str(i,2) '.png'], 'png');
+    % saveas(gcf, [rep 'power-diag-' num2str(k) '-' znum2str(i,2) '.png'], 'png');
 end
 
 % AutoCrop(rep, ['power-diag-' num2str(k)]); 

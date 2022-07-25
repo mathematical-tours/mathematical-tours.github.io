@@ -151,6 +151,10 @@ curvabs = @(c)[0;cumsum( 1e-5 + abs(c(1:end-1)-c(2:end)) )];
 resample1 = @(c,d,p)interp1(d/d(end),c,(0:p-1)'/p, 'linear');
 resample = @(c,p)resample1( [c;c(1)], curvabs( [c;c(1)] ),p );
 
+% plot a curve with varying isocolors
+plotcol = @(x,y,col)surface([x(:)';x(:)'],[y(:)';y(:)'],zeros(2,length(x(:))),[col(:)';col(:)'],'facecol','no','edgecol','interp','linew',2);
+
+
 % reset color indexing
 ax = gca; ax.ColorOrderIndex = 1; % keep same color
 
@@ -175,3 +179,8 @@ for it=1:q
     I = find(  imag(x)<0 | imag(x)>1 );
     v(I) = real(v(I)) - 1i*imag(v(I));
 end
+
+% filled ellpise with alpha transparency
+z = center +  a*rho*cos(t)*u + b*rho*sin(t)*w;
+h = fill(real(z), imag(z) , 'b', 'LineWidth', 2, 'EdgeColor', 'b');
+h.FaceAlpha = 0.3;

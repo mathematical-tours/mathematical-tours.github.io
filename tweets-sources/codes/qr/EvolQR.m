@@ -1,10 +1,10 @@
 %%
 % test for qr iterations
 
-name = 'randsym';
-name = 'randn';
 name = 'lapl';
 name = 'filter';
+name = 'randsym';
+name = 'randn';
 
 addpath('../toolbox/');
 rep = MkResRep(name);
@@ -13,7 +13,6 @@ A = rand(4);
 
 n = 200;
 n = 30; 
-
 
 t = 1:n; 
 t = linspace(-1,1,n);
@@ -52,6 +51,7 @@ for i=1:niter
     A = R*Q;
     [Z,Z1] = deal(Z*Q,Z);
     Z = Z * diag(sign(diag(Z*Z1'))) ;
+    
     % Z(:,end) = Z(:,end) * sign(sum(Z(:,end)));
     % imagesc(Z(:,1:end-1)); axis image; axis off; drawnow;
     
@@ -59,11 +59,13 @@ for i=1:niter
     if ndisp(k)==i
         U = log(1 + abs(A));
         % U = A;
-        imagesc(U); axis image; axis off; drawnow;
+        % imagesc(U); axis image; axis off; drawnow;
         imwrite(Upsc(rescale(U)*255,8), parula(256), [rep 'qr-' znum2str(k,2) '.png'] );
         imwrite(Upsc(rescale(Z(:,1:end-1))*255,8), parula(256), [rep 'eigv-' znum2str(k,2) '.png'] );
         k=k+1;
     end
+    
+    clf; imagesc(Q*R); drawnow;
     
 end
 % V = rescale(B);
