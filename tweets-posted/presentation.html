@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+      }
+      .card {
+        width: 400px;
+        height: 400px;
+        margin: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        transition: 0.3s;
+      }
+      .card:hover {
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+      }
+      .card-content {
+        padding: 20px;
+        text-align: center;
+      }
+      video {
+        width: 100%;
+        height: 200px;
+      }
+      img {
+            display: block;
+            max-height:200px;
+            width: auto;
+            height: auto;
+      }
+    </style>
+    <script type="text/javascript" src="mydata.js"> // import the data
+    </script>
+  </head>
+  <body>
+
+
+    <div id="displayArea"></div>
+
+    <div class="container">
+      <script>
+        // convert the text into a variable 
+        const data = textData
+            .trim()
+            .split("\n\n")
+            .map(entry => {
+            const lines = entry.split("\n");
+            return {
+                date: lines[0],
+                fileName: lines[1],
+                description: lines[2]
+            };
+        });
+
+        let content = "";
+        for (let i = 0; i < data.length; i++) {
+            let ext = data[i].fileName.split(".").pop();
+            content += `<div class="card">`;
+            // display either video or image
+            if (ext === "m4v") {
+                content += `
+                        <video controls>
+                            <source src="${data[i].fileName}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                `;
+            }
+            else  {
+                content += `<a href="${data[i].fileName}"  target="_blank"><img src="${data[i].fileName}" alt="${data[i].description}"></a>`;
+            }
+            // display content
+            let str = data[i].description;
+            let urlRegex = /(https?:\/\/[^\s]+)/g;
+            let str1 = str.replace(urlRegex, ' [<a href="$1">link</a>]');
+            content += `
+                        <div class="card-content">
+                            <p>${str1}</p>
+                        </div>
+                    </div>
+                `; // <i>(${data[i].date})</i>
+        }
+        document.querySelector(".container").innerHTML = content;
+      </script>
+    </div>
+  </body>
+</html>

@@ -127,8 +127,10 @@ imAlpha = ones(n); imAlpha(F>vmax) = 0; % Generate the mask
 imagesc(t,t,F', 'AlphaData', imAlpha);
 
 % store images at a fixed rate
-q = 70; %#display frames
-ndisp = round(linspace(1,niter,q)); k = 1;
+q = 200;
+niter = 2000;
+ndisp = round(1 + (niter-1)*linspace(0,1,q).^2); 
+k = 1;
 for i=1:niter
     if i==ndisp(k)
         % ...

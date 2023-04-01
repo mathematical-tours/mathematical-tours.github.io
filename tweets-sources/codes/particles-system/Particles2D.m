@@ -7,6 +7,7 @@ rep = MkResRep();
 name = 'single';
 name = 'two';
 
+save_film = 0;
 
 % #max particles
 p = 500;
