@@ -16,7 +16,7 @@ Oldies but goldies: Marcelo Bertalmio, Guillermo Sapiro, Vincent Caselles et Col
 
 ?/?/2023
 005-colors.m4v
-From a color image to its color palette. This is the empirical distribution of the image’s pixels, in 3-D RGB space. https://en.wikipedia.org/wiki/Color_histogram https://en.wikipedia.org/wiki/RGB_color_space 
+From a color image to its color palette. This is the empirical distribution of the image's pixels, in 3-D RGB space. https://en.wikipedia.org/wiki/Color_histogram https://en.wikipedia.org/wiki/RGB_color_space 
 
 ?/?/2023
 006-eigenfaces.m4v
@@ -29,12 +29,12 @@ https://en.wikipedia.org/wiki/NP-hardness https://en.wikipedia.org/wiki/NP-compl
 
 ?/?/2023
 008-brenier.png
-Brenier’s theorem solves the long standing question of existence of an optimal transport map, under the hypothesis that the source distribution is non-singular (has a density).  https://en.wikipedia.org/wiki/Transportation_theory_(mathematics) 
+Brenier's theorem solves the long standing question of existence of an optimal transport map, under the hypothesis that the source distribution is non-singular (has a density).  https://en.wikipedia.org/wiki/Transportation_theory_(mathematics) 
 
 ?/?/2023
 009-shannon.png
 Oldies but goldies: C. Shannon, 1949, Communication in the presence of noise. 
-States the Nyquist–Shannon sampling theorem. Explains the aliasing of signals. https://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem
+States the Nyquist-Shannon sampling theorem. Explains the aliasing of signals. https://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem
 
 ?/?/2023
 010-marginals.m4v
@@ -115,7 +115,7 @@ https://en.wikipedia.org/wiki/String_art https://en.wikipedia.org/wiki/Logarithm
 
 ?/?/2023
 029-randommatrices.png
-The circle, semi-circle and  Marčenko–Pastur laws are three simple examples of determinantal processes. https://terrytao.wordpress.com/2009/08/23/determinantal-processes/
+The circle, semi-circle and  Marcenko-Pastur laws are three simple examples of determinantal processes. https://terrytao.wordpress.com/2009/08/23/determinantal-processes/
 
 ?/?/2023
 030-parzen.m4v
@@ -131,7 +131,7 @@ The dual of a triangulation is defined by joining the centroids of adjacent tria
 
 ?/?/2023
 033-kerner.m4v
-Oldies but goldies: Immo Kerner, Ein Gesamtschrittverfahren zur Berechnung der Nullstellen von Polynomen, 1966. The Durand–Kerner method is surprisingly simple way of computing all the roots of a polynomial. https://en.wikipedia.org/wiki/Durand%E2%80%93Kerner_method
+Oldies but goldies: Immo Kerner, Ein Gesamtschrittverfahren zur Berechnung der Nullstellen von Polynomen, 1966. The Durand-Kerner method is surprisingly simple way of computing all the roots of a polynomial. https://en.wikipedia.org/wiki/Durand%E2%80%93Kerner_method
 
 ?/?/2023
 034-aliasing.png
@@ -147,7 +147,7 @@ Gaspard Monge proved in 1781 that optimal assignment for the Euclidean cost can 
 
 ?/?/2023
 037-muntz.m4v
-Müntz–Szász theorem gives a sharp condition for lacunary polynomials to be dense. https://en.wikipedia.org/wiki/M%C3%BCntz%E2%80%93Sz%C3%A1sz_theorem
+Muntz-Szasz theorem gives a sharp condition for lacunary polynomials to be dense. https://en.wikipedia.org/wiki/M%C3%BCntz%E2%80%93Sz%C3%A1sz_theorem
 
 ?/?/2023
 038-boltzmann.m4v
@@ -183,7 +183,7 @@ Gradient flows on metric spaces: define descent methods on non-Euclidean domains
 
 ?/?/2023
 046-kl-ot.png
-Geometry of Gaussians: Optimal Transport is flat (Euclidean) while Fisher-Rao is hyperbolic (Poincaré half-plane). https://en.wikipedia.org/wiki/Fisher_information_metric
+Geometry of Gaussians: Optimal Transport is flat (Euclidean) while Fisher-Rao is hyperbolic (Poincare half-plane). https://en.wikipedia.org/wiki/Fisher_information_metric
 
 ?/?/2023
 047-lasso.png
@@ -211,7 +211,7 @@ Burgers' equation is one of the simplest nonlinear partial differential equation
 
 14/02/2023
 053-metaballs.m4v
-« Metaballs » are levelsets of mixtures of radial basis functions, which generate blobby lava-lamp-like behaviors. https://en.wikipedia.org/wiki/Metaballs https://fr.wikipedia.org/wiki/James_Blinn https://en.wikipedia.org/wiki/Lava_lamp 
+"Metaballs" are levelsets of mixtures of radial basis functions, which generate blobby lava-lamp-like behaviors. https://en.wikipedia.org/wiki/Metaballs https://fr.wikipedia.org/wiki/James_Blinn https://en.wikipedia.org/wiki/Lava_lamp 
 
 15/02/2023
 054-interpolations.m4v
@@ -332,7 +332,7 @@ Csiszár divergences is a unifying way to define losses between arbitrary positi
 
 16/03/2023
 083-step-size.m4v
-« Greedy »  gradient descent using optimal step choice at each iteration produces orthogonal successive directions. https://en.wikipedia.org/wiki/Gradient_descent 
+"Greedy" gradient descent using optimal step choice at each iteration produces orthogonal successive directions. https://en.wikipedia.org/wiki/Gradient_descent 
 
 17/03/2023
 084-heat.m4v
@@ -400,7 +400,7 @@ Marden theorem states that the roots of P'' are the focal point of the Steiner e
 
 02/04/2023
 099-divergence-dual-norm.jpeg
-Comparing probability distributions: Csiszár f-divergences measure « vertical » displacement of mass, whereas dual norm of smooth functions rather measure « horizontal » displacements. https://en.wikipedia.org/wiki/F-divergence 
+Comparing probability distributions: Csiszár f-divergences measure "vertical" displacement of mass, whereas dual norm of smooth functions rather measure "horizontal" displacements. https://en.wikipedia.org/wiki/F-divergence 
 
 03/04/2023
 100-spectral-lifting.jpeg
@@ -432,7 +432,7 @@ The harmonic oscillator is the canonical linear second order ODE. Parametrized b
 
 10/04/2023
 107-voltera-lotka.m4v
-Lotka–Volterra equations is a non-linear 2D ODE modeling prey/predator behaviors which exhibits periodic solutions.  https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
+Lotka-Volterra equations is a non-linear 2D ODE modeling prey/predator behaviors which exhibits periodic solutions.  https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
 
 11/04/2023
 108-heavy-ball.m4v
@@ -448,7 +448,7 @@ The kernel of a domain is the (convex) set of locations from which you can see a
 
 14/04/2023
 111-john-ellipsoid.m4v
-John’s and Löwner’s ellipsoids are polar one from each others. https://en.wikipedia.org/wiki/John_ellipsoid
+John's and Lowner's ellipsoids are polar one from each others. https://en.wikipedia.org/wiki/John_ellipsoid
 
 15/04/2023
 112-sobolev-ball.m4v
@@ -604,7 +604,7 @@ Tutte theorem defines a valid drawing of planar graphs by solving a linear syste
 
 23/05/2023
 150-verlet.m4v
-Störmer, Verlet and leapfrog are different names for the same method. https://en.wikipedia.org/wiki/Leapfrog_integration https://en.wikipedia.org/wiki/Verlet_integration 
+Stormer, Verlet and leapfrog are different names for the same method. https://en.wikipedia.org/wiki/Leapfrog_integration https://en.wikipedia.org/wiki/Verlet_integration 
 
 24/05/2023
 151-taylor-sine.m4v
@@ -632,7 +632,7 @@ Iteratively joining the mid points of the edges of a polygon converges toward th
 
 30/05/2023
 157-moebius.m4v
-A sub-group of Möbius transforms are those preserving the Poincaré upper-half (equivalently the disk). It corresponds to PSL(2) the 2x2 matrices with determinant 1. https://en.wikipedia.org/wiki/M%C3%B6bius_transformation#Subgroups_of_the_M%C3%B6bius_group
+A sub-group of Mobius transforms are those preserving the Poincare upper-half (equivalently the disk). It corresponds to PSL(2) the 2x2 matrices with determinant 1. https://en.wikipedia.org/wiki/M%C3%B6bius_transformation#Subgroups_of_the_M%C3%B6bius_group
 
 31/05/2023
 158-tomography.jpeg
@@ -680,7 +680,7 @@ Fourier is to convolution what Legendre is to inf-convolution.  https://en.wikip
 
 11/06/2023
 169-perceptron.m4v
-A 1 hidden layer perceptron can approximate arbitrary continuous functions using a large enough number of neutrons (Cybenko's theorem). https://en.wikipedia.org/wiki/Universal_approximation_theorem https://en.wikipedia.org/wiki/Multilayer_perceptron
+A 1 hidden layer perceptron can approximate arbitrary continuous functions using a large enough number of neurons (Cybenko's theorem). https://en.wikipedia.org/wiki/Universal_approximation_theorem https://en.wikipedia.org/wiki/Multilayer_perceptron
 
 12/06/2023
 170-subdiff.jpeg
@@ -804,5 +804,410 @@ Hopfield networks are recurrent networks minimizing an Ising-type energy paramet
 
 12/07/2023
 200-approx-quantiz.jpeg
-Approximation vs quantization: two ways to compress. https://en.wikipedia.org/wiki/Quantization https://en.wikipedia.org/wiki/Function_approximation 
+Approximation vs quantization: two ways to compress. https://en.wikipedia.org/wiki/Quantization https://en.wikipedia.org/wiki/Function_approximation
+
+13/07/2023
+201-holder-ineq.m4v
+Holder inequality generalizes Cauchy-Schwarz to arbitrary exponents. https://en.wikipedia.org/wiki/H%C3%B6lder%27s_inequality
+
+14/07/2023
+202-lloyd-surface.m4v
+Lloyd algorithm can be applied on a surface using the geodesic Voronoi diagram. https://en.wikipedia.org/wiki/Lloyd%27s_algorithm http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/matlab/fastmarching_4_mesh.ipynb
+
+15/07/2023
+203-fluid-incompress.m4v
+Navier Stokes equation describes the motion of an incompressible viscous fluid. It is non-linear because the flow is advected by itself. https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/python/graphics_5_fluids.ipynb
+
+16/07/2023
+204-curve-approx.m4v
+Curve approximation using Fourier series corresponds to drawing the curve using entangled ellipses. https://en.wikipedia.org/wiki/Fourier_series
+
+17/07/2023
+205-soft-max.m4v
+Differentiable max & argmax operators are defined through concave maximization on the simplex. Soft and sparse max are particular cases. https://arxiv.org/abs/1602.02068 https://arxiv.org/abs/1705.07704 https://arxiv.org/abs/1802.03676 https://arxiv.org/abs/1802.04223
+
+18/07/2023
+206-hypercube.m4v
+The hypercube (tesseract in dimension 4) is the d-dimensional cube. It can be visualized by projection on a rotating 3-D space. https://en.wikipedia.org/wiki/Tesseract https://en.wikipedia.org/wiki/Hypercube
+
+19/07/2023
+207-max-gaussians.jpeg
+The max of n independent Gaussians concentrates around sqrt(2log(n)). The max central limit theorem allows to quantify this. https://en.wikipedia.org/wiki/Fisher%E2%80%93Tippett%E2%80%93Gnedenko_theorem
+
+20/07/2023
+208-tv-denoise.m4v
+Total variation denoising can be solved by doing a projected gradient descent on the dual problem. The same idea applies to SVM with ridge regularization. https://en.wikipedia.org/wiki/Total_variation_denoising
+
+21/07/2023
+209-woodbury-formula.jpeg
+Woodbury formula allows one to compute in two different ways the solution of Ridge regression. It allows one to even use infinite-dimensional feature spaces (p=inf) via kernelization. https://en.wikipedia.org/wiki/Woodbury_matrix_identity https://en.wikipedia.org/wiki/Tikhonov_regularization
+
+22/07/2023
+210-edge-flip.jpeg
+Triangulated graphs are maximal planar graphs, i.e., for which one cannot add an extra edge (without breaking planarity). The set of triangulated graphs is itself a connected graph when one navigates using "edge flips." https://en.wikipedia.org/wiki/Flip_graph https://en.wikipedia.org/wiki/Flip_graph
+
+23/07/2023
+211-weiszfeld-algo.m4v
+Weiszfeld's algorithm is an iterative least square method to compute medians (p=1) and, in general, sums of distance to some power p. Using p<2 makes the solution robust to outliers.
+
+24/07/2023
+212-wave-schro.m4v
+Space-invariant PDEs can be solved in closed form (without time integration) using the Fourier transform. https://en.wikipedia.org/wiki/Partial_differential_equation
+
+25/07/2023
+213-harm-spher.m4v
+The spherical Laplacian defines a set of orthogonal eigenspaces spanned by spherical harmonics. Display here is a random evolution in each space. https://en.wikipedia.org/wiki/Spherical_harmonics
+
+26/07/2023
+214-displ-interp.m4v
+Displacement Interpolation, introduced by R McCann, is the optimal transport geodesic between 2 point clouds, more generally btw measures. Interpreting the space of measures as a manifold has countless implications and applications in physics, chemistry, signal processing, ML...
+
+27/07/2023
+215-mobius-transf.m4v
+Mobius transforms are the bijective conformal maps from the Riemann sphere (complex numbers with a point at infinity) to itself. They are rational functions, form a group under composition, and have, in general, two fixed points (in black). https://en.wikipedia.org/wiki/M%C3%B6bius_transformation
+
+28/07/2023
+216-fisher-rao.m4v
+The Fisher-Rao distance is the geodesic distance associated with smooth divergences (e.g., Kulback-Leibler). Without constraint, it is the Hellinger distance. On the manifold of Gaussians, it is a negatively curved space. https://en.wikipedia.org/wiki/Fisher_information_metric
+
+29/07/2023
+217-lambert-phong.m4v
+Lambert and Phong illumination models are the most well-known empirical models of surface reflectance. https://en.wikipedia.org/wiki/Gouraud_shading https://en.wikipedia.org/wiki/Phong_reflection_model https://en.wikipedia.org/wiki/Lambertian_reflectance
+
+30/07/2023
+218-schrod-pbm.m4v
+The Shrodinger problem defines a dynamic interpolation between two distributions using Brownian bridges. The 0 temperature limit is Optimal Transport. https://hal.archives-ouvertes.fr/hal-00849930/document
+
+31/07/2023
+219-legendre-lp.m4v
+The Legendre-Fenchel transform extends the Legendre transform to arbitrary dimensions. |x|^2/2 is the only fixed point of the transform. https://en.wikipedia.org/wiki/Legendre_transformation
+
+01/08/2023
+220-proximal-map.jpeg
+The proximal map projects on a level set. For l^p norms, it is a thresholding operator shrinking toward 0. It induces sparsity for p smaller than 1. https://en.wikipedia.org/wiki/Proximal_operator
+
+02/08/2023
+221-simplicial-cpx.m4v
+Simplicial complexes are combinatorial objects generalizing triangulations. They are central to (computational) homology and topological data analysis. Two examples for embedded points are alpha and Chech complexes. https://en.wikipedia.org/wiki/Simplicial_complex
+
+03/08/2023
+222-inverse-kin.m4v
+Numerical inverse kinematics solves an ill-posed inverse problem (non-unique solution) by gradient descent, thereby leveraging an "implicit bias" (favoring minimal displacements). It is at the heart of robotics and CG animation. https://en.wikipedia.org/wiki/Inverse_kinematics
+
+04/08/2023
+223-aniso-diffusion.m4v
+Anisotropic diffusion uses space-varying conductivity to slow down diffusion near edges, resulting in non-isotropic diffusion behavior. https://en.wikipedia.org/wiki/Anisotropic_diffusion
+
+05/08/2023
+224-toland-duality.jpeg
+Toland's duality for non-convex optimization (difference of convex functions) is surprisingly useful when the dual happens to be convex. A nice paper by Guillaume Carlier explores this concept. https://www.ceremade.dauphine.fr/~carlier/toland.pdf
+
+06/08/2023
+225-kaczmarz-algo.m4v
+Kaczmarz's algorithm corresponds to the iterative projection on the hyper-space defined by the columns. Here, the worst possible ordering of the constraints is displayed. Using random selection helps a lot. https://en.wikipedia.org/wiki/Kaczmarz_method
+
+07/08/2023
+226-backprop.jpeg
+Back-propagation for feed-forward architecture is a special case of reverse-mode automatic differentiation. It computes the gradient of a loss function with a cost comparable to the computation of the loss function itself. https://en.wikipedia.org/wiki/Backpropagation
+
+08/08/2023
+227-steiner-trees.jpeg
+The Euclidean Steiner tree looks for the shortest irrigation tree of nodes. At most p-2 extra (Steiner) points are needed, and they have a degree of 3 with an angle of 120 deg. Unlike the minimum spanning tree problem (without Steiner points), no efficient algorithm exists. https://en.wikipedia.org/wiki/Steiner_tree_problem
+
+09/08/2023
+228-nash.jpeg
+Oldies but goldies: J. Nash, The Imbedding Problem for Riemannian Manifolds, 1956, C^1 n-dimensional manifolds can be isometrically embedded in dimension 2n, defining "fractal" like surfaces. This contrasts with smooth manifolds (which requires > n(n+2)/2 dimensions).
+
+10/08/2023
+229-boosting.m4v
+Boosting methods compute a strong classifier as a weighted sum of weak classifiers. The optimization is performed by a greedy coordinate minimization. https://en.wikipedia.org/wiki/Boosting_(machine_learning)
+
+11/08/2023
+230-ista.jpeg
+Oldies but goldies: Daubechies, M. Defrise, C. De Mol, An iterative thresholding algorithm for linear inverse problems with a sparsity constraint, 2004. The celebrated Iterative Soft Thresholding algorithm to solve the LASSO is a special case of the Forward-Backward algorithm. http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/python/ml_2_regression.ipynb
+
+12/08/2023
+231-jl-lemma.jpeg
+The Johnson-Lindenstrauss lemma shows that one can project linearly m points in dimension log(m)/epsilon^2 with distortion epsilon. https://en.wikipedia.org/wiki/Johnson%E2%80%93Lindenstrauss_lemma
+
+13/08/2023
+232-zeta-func.m4v
+Oldies but goldies: Bernhard Riemann, Ueber die Anzahl der Primzahlen unter einer gegebenen Grosse, 1859. Riemann hypothesis states that the only non-trivial zeros of the zeta function are on the line Re(s)=1/2. One of the the most celebrated mathematical conjecture. https://en.wikipedia.org/wiki/Riemann_zeta_function
+
+14/08/2023
+233-kernel-svm.m4v
+Support vector machines (SVM) can be used to define curved decision boundaries  using the kernel trick. It implicitly makes use of an infinite dimensional feature lifting. https://en.wikipedia.org/wiki/Kernel_method
+
+15/08/2023
+234-delaunay.m4v
+Oldies but goldies: B. Delaunay, Sur la sphere vide, 1934. Introduces the concept of Delaunay triangulation, which is the dual of the Voronoi diagram. The most fundamental tool of computational geometry. https://en.wikipedia.org/wiki/Delaunay_triangulation https://en.wikipedia.org/wiki/Voronoi_diagram https://en.wikipedia.org/wiki/Computational_geometry
+
+16/08/2023
+235-voronoi-pruning.jpeg
+Pruning the Voronoi diagram of a set of points is way to estimate the medial axis of a smooth curve. Used in many shape reconstruction methods. http://web.cs.ucdavis.edu/~amenta/pubs/crust.pdf http://web.cse.ohio-state.edu/~dey.8/paper/medial.pdf 
+
+17/08/2023
+236-runge.m4v
+Oldies but goldies: Carl Runge, Über empirische Funktionen und die Interpolation zwischen äquidistanten Ordinaten, 1901. Oscillations are introduced by polynomial interpolation at equi-spaced grid points. https://en.wikipedia.org/wiki/Runge%27s_phenomenon
+
+18/08/2023
+237-psd-matrices.m4v
+Positive semi-definite matrices come in many flavors! https://en.wikipedia.org/wiki/Definite_symmetric_matrix
+
+19/08/2023
+238-aliasing.jpeg
+Oldies but goldies: Franklin Crow, The aliasing problem in computer-generated shaded images, 1977. Laid the foundations of anti-aliasing (i.e. pre-filtering) technics (classical in analog signal acquisition) for computer generated images. https://en.wikipedia.org/wiki/Spatial_anti-aliasing
+
+20/08/2023
+239-floyd-warshall.jpeg
+Floyd-Warshall algorithm computes all pairs shortest distances. Related to iterative powering of the adjacency matrix for the (min,+) algebra from Tropical geometry. https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm https://en.wikipedia.org/wiki/Min-plus_matrix_multiplication https://en.wikipedia.org/wiki/Tropical_geometry 
+
+21/08/2023
+240-a-trou.jpeg
+Oldies but goldies: M Holschneider, R Kronland-Martinet, J Morlet, P Tchamitchian, A Real-Time Algorithm for Signal Analysis with the Help of the Wavelet Transform, 1990. The "a trou" algorithm computes convolution with large filters as a product of dilated filters. Useful to replace "strided" (i.e. subsampled) neural networks by translation invariant networks.
+
+22/08/2023
+241-qda.m4v
+Quadratic discriminant analysis is a supervised classification method computing a maximum likelihood for Gaussian model. Linear discriminant analysis is the special case where the covariances are equal, and corresponds to the computation of Voronoi cells. https://en.wikipedia.org/wiki/Linear_discriminant_analysis
+
+23/08/2023
+242-partial-smoothness.jpeg
+Oldies but goodies: A.S. Lewis. Active sets, nonsmoothness, and sensitivity, 2002. Partial smoothness is the correct notion of "piecewise smooth functions" in optimization. Useful to study active set methods and relate optimization to differential geometry. https://hal.archives-ouvertes.fr/hal-00987293
+
+24/08/2023
+243-pseudo-spectrum.m4v
+The pseudo-spectrum defines sets that encapsulate the eigenvalues. Their shape gives information about how ill-conditioned the spectrum is. https://en.wikipedia.org/wiki/Pseudospectrum
+
+25/08/2023
+244-svm.m4v
+Oldies but goldies: V.N. Vapnik, A.J. Chervonenkis, On the uniform convergence of relative frequencies of events to their probabilities. Defines the notion of VC dimension to ensure classification bounds of statistical learning methods, and introduces support-vector machines. https://en.wikipedia.org/wiki/VC_dimension 
+
+26/08/2023
+245-filtering.m4v
+Iterating filters with small supports is equivalent to using a filter with an increasing size. https://en.wikipedia.org/wiki/Convolution  
+
+27/08/2023
+246-minkowski.m4v
+Oldies but goldies: Hermann Minkowski, Geometrie der Zahlen, 1896. The Brunn-Minkowski inequality is one of the fundamental inequalities in convex geometry, which generalizes the isoperimetric inequality. https://en.wikipedia.org/wiki/Brunn%E2%80%93Minkowski_theorem https://terrytao.wordpress.com/tag/brunn-minkowski-inequality/
+
+28/08/2023
+247-invariant-measure.m4v
+Invariant measures are fundamental for the study of dynamical systems. Replace the study of non-linear maps by the calculus of a linear eigenvector (fixed point of the push-forward operator).  https://en.wikipedia.org/wiki/Invariant_measure
+
+29/08/2023
+248-bregman.jpeg
+Oldies but goldies: Bregman, The relaxation method of finding the common points of convex sets, 1967. Bregman divergences are convex distance-like functionals which are locally Euclidean. Many algorithm generalizes to Bregman geometries. https://en.wikipedia.org/wiki/Bregman_divergence 
+
+30/08/2023
+249-conformal.jpeg
+A map is conformal (angle preserving) if and only if it is holomorphic with a non-vanishing derivative. The map wraps around singular points where the derivative vanishes. https://en.wikipedia.org/wiki/Conformal_map https://en.wikipedia.org/wiki/Holomorphic_function 
+
+31/08/2023
+250-hopfield.m4v
+Oldies but goldies: J. Hopfield, Neural networks and physical systems with emergent collective computational abilities, 1982. Hopfield networks are recurrent networks minimizing an Ising-type energy parameterized by its weights. Learning weights means encoding patterns of +1/-1 as local minimizers. https://en.wikipedia.org/wiki/Hopfield_network
+
+01/09/2023
+251-good-triangulation.jpeg
+A good triangulation to solve stably elliptic PDEs should contains isotropic triangles. Meshing complicated domain is an art requiring grading triangle sizes. https://people.eecs.berkeley.edu/~jrs/papers/elemtalk.pdf
+
+02/09/2023
+252-schrod-eq.m4v
+Oldies but goldies: E.  Schrodinger, An Undulatory Theory of the Mechanics of Atoms and Molecules, 1926. Introduces the now-called Schrodinger equation governing the evolution of the wave function of quantum particles. https://en.wikipedia.org/wiki/Schr%C3%B6dinger_equation 
+
+03/09/2023
+253-fiedler-vec.m4v
+The Fiedler vector of a graph is the second eigenvector of the Laplacian. It is the lowest "Fourier" mode and is useful to order the nodes (clustering, dimensionality reduction, etc).  https://en.wikipedia.org/wiki/Algebraic_connectivity
+
+04/09/2023
+254-turbo-codes.jpeg
+Oldies but goldies: C. Berrou, A. Glavieux, P. Thitimajshima, Near Shannon Limit Error-correcting Coding and Decoding: Turbo-codes, 1993. Turbo codes were invented by Claude Berrou. It revolutionized convolutional error correcting codes. https://en.wikipedia.org/wiki/Turbo_code
+
+05/09/2023
+255-poly-interp.m4v
+Oscillations are introduced by polynomial interpolation at equi-spaced grid points. https://en.wikipedia.org/wiki/Runge%27s_phenomenon 
+https://en.wikipedia.org/wiki/Chebyshev_nodes
+
+06/09/2023
+256-weierstrass-func.m4v
+Oldie but goldie. Karl Weierstrass, Uber continuirliche Functionen eines reellen Arguments, die fur keinen Werth des letzeren einen bestimmten Differentialquotienten besitzen, 1895. First example of a nowhere differentiable continuous function. https://en.wikipedia.org/wiki/Weierstrass_function
+
+07/09/2023
+257-pca.jpeg
+Principal component analysis projects the data on the leading eigenvectors of the covariance matrix. Optimal linear dimensionality reduction in a least square sense. https://en.wikipedia.org/wiki/Principal_component_analysis http://nbviewer.ipython.org/github/gpeyre/numerical-tours/blob/master/python/ml_1_pca_nn.ipynb 
+
+08/09/2023
+258-lll.jpeg
+Oldies but goldies: A. Lenstra; H. Lenstra, L. Lovasz, Factoring polynomials with rational coefficients, 1982. The LLL algorithm approximately solves the shortest vector problem in a lattice (which is simple in low dimension).  https://en.wikipedia.org/wiki/Lenstra%E2%80%93Lenstra%E2%80%93Lov%C3%A1sz_lattice_basis_reduction_algorithm
+
+09/09/2023
+259-density-estimation.jpeg
+Density estimation can be performed using kernels or nearest-neighbors. https://en.wikipedia.org/wiki/Density_estimation 
+
+10/09/2023
+260-chambolle-tv.m4v
+Oldies but goldies: A. Chambolle, An algorithm for total variation minimization and applications, 2004. Total variation denoising can be solved by doing a projected gradient descent on the dual problem. https://en.wikipedia.org/wiki/Total_variation_denoising
+
+11/09/2023
+261-smoothing-splines.m4v
+Smoothing splines define regularized least square whose solutions are sums of kernel functions (special case of reproducing Hilbert space). Linear interpolation and cubic splines are special cases. https://en.wikipedia.org/wiki/Smoothing_spline
+
+12/09/2023
+262-cont-wavelets.jpeg
+Oldies but goldies: J. Morlet and A. Grossmann, Decomposition of Hardy functions into square integrable wavelets of constant shape, 1984. Studies the continuous wavelet transform, introduced by Morlet in geophysics. https://en.wikipedia.org/wiki/Morlet_wavelet 
+
+13/09/2023
+263-numerical-range.m4v
+The numerical range of a matrix is the range of the Rayleigh quotient. It is a convex set enclosing the eigenvalues. This enclosing is tight for maximally "stable" (normal) matrices. https://en.wikipedia.org/wiki/Numerical_range
+
+14/09/2023
+264-shepp-logan.jpeg
+Oldies but goldies: L. A. Shepp. and B. F. Logan The Fourier reconstruction of a head section, 1974. Introduces the filtered back-projection, which is the basic method to invert of the Radon transform and is used for reconstructing images in tomographic imaging.  https://en.wikipedia.org/wiki/Shepp%E2%80%93Logan_phantom
+
+15/09/2023
+265-ising.m4v
+The Ising model is one of the most celebrated model from statistical physics exhibiting a phase transition at a critical temperature in dimension 2 and higher. Models variety of phenomena from ferromagnet to neural networks. https://en.wikipedia.org/wiki/Square_lattice_Ising_model
+
+16/09/2023
+266-shapiro-ineq.jpeg
+Oldies but goldies: V. G. Drinfeld, A cyclic inequality, 1971. For n=2k<=12 and n=2k+1<=23, the optimal value of cyclic sums is n/2 (Shapiro's inequality). This paper proved that asymptotically, these sums gets smaller than n/2 by 1%. https://en.wikipedia.org/wiki/Shapiro_inequality
+
+17/09/2023
+267-ortho-matrices.jpeg
+Orthogonal matrices come with lots of flavours! https://en.wikipedia.org/wiki/Orthogonal_matrix
+
+18/09/2023
+268-bcr-algo.jpeg
+Oldies but goldies: G. Beylkin, R. Coifman, V. Rokhlin, Fast wavelet transforms and numerical algorithms, 1991. Linear time wavelet-based algorithm to apply smooth integral operators. http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/matlab/pde_4_wavelet_compression.ipynb
+
+19/09/2023
+269-minkowski-ineq.m4v
+If p<1, then it is the l^p functional to the power p which satisfies the triangular inequality (Minkowski inequality). 
+
+20/09/2023
+270-mlp-approx.jpeg
+Oldies but Goldies: V. Maiorov and A. Pinkus, Lower bounds for approximation by MLP neural network, 1999. Use Kolmogorov-Arnold  superposition to construct a smooth activation function so that 2 hidden layer MLP with a *fixed* number of neurons are universal. Hint: sigma is not a relu! https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Arnold_representation_theorem
+
+21/09/2023
+271-assignement-pbm.m4v
+The assignment problem is a combinatorial optimization problem which can be solved in log(n)*n^3 operations. It is a special case of Optimal Transport. For the Euclidean distance cost, trajectories do not cross. https://en.wikipedia.org/wiki/Assignment_problem
+
+22/09/2023
+272-max-clt.jpeg
+Oldies but goldies: R. Fisher and L. Tippett, Limiting forms of the frequency distribution of the largest and smallest member of a sample, 1928. Central limit theorem for the maximum of variables. Limit distribution can only be either Frechet, Gumbel or Weibull. https://en.wikipedia.org/wiki/Fisher%E2%80%93Tippett%E2%80%93Gnedenko_theorem https://en.wikipedia.org/wiki/Generalized_extreme_value_distribution
+
+23/09/2023
+273-semi-algebraic.jpeg
+Tarski-Seidenberg theorem in action: the set of polynomials having a real root is semi-algebraic. Coste provides the block diagram for degree 4 in his notes! http://gcomte.perso.math.cnrs.fr/M2/CosteIntroToSemialGeo.pdf
+
+24/09/2023
+274-sparse-coding.jpeg
+Oldies but goldies: B. Olshausen, D. Field, Emergence of simple-cell receptive field properties by learning a sparse code for natural images, 1996. Showed that dictionary learning on natural image produces wavelet-like atoms. https://www.nature.com/articles/381607a0   
+
+25/09/2023
+275-sgd.m4v
+Stochastic gradient descent is the workhorse of many large scale machine learning methods. Allows one to minimize functions written as expectations. https://en.wikipedia.org/wiki/Stochastic_gradient_descent  https://en.wikipedia.org/wiki/Stochastic_approximation
+
+26/09/2023
+276-boosting.m4v
+Oldies but goldies: Yoav Freund et Robert Schapire, A decision-theoretic generalization of on-line learning and an application to boosting,1997. Introduces AdaBoost, the most popular boosting method, to define a strong classifier from weak ones. https://en.wikipedia.org/wiki/AdaBoost
+
+27/09/2023
+277-convolution.m4v
+Convolutions are the translation invariant linear operators (filtering). https://en.wikipedia.org/wiki/Convolution  
+
+28/09/2023
+278-sunflower.m4v
+Oldies but goldies: H. Vogel, A better way to construct the sunflower head, 1979. Describe spiraling patterns in nature, foundational paper in mathematical phyllotaxis.  https://en.wikipedia.org/wiki/Phyllotaxis
+
+29/09/2023
+279-cauchy-binnet.jpeg
+Cauchy-Binet formula generalizes the determinant of a product of square matrices to the general rectangular case. https://en.wikipedia.org/wiki/Cauchy%E2%80%93Binet_formula 
+
+30/09/2023
+280-joukowski.m4v
+Oldies but goldies: Joukowsky, N.E., Uber die Konturen der Tragflachen der Drachenflieger, 1910. The Joukowsky conformal map solves airfoil design in the pre-computer era. https://en.wikipedia.org/wiki/Joukowsky_transform
+
+01/10/2023
+281-kernel-pca.m4v
+Kernel PCA defines a non-linear dimensionality reduction by applying a linear principal component analysis over a lifted feature space. https://en.wikipedia.org/wiki/Kernel_principal_component_analysis
+
+02/10/2023
+282-ellastic-net.jpeg
+Oldies but goodies: Zou, Hastie, Regularization and variable selection via the elastic net, 2005. Interpolates between the Lasso (l1) and Ridge regression (l2). The regularization path of Lasso is polygonal. The one of elastic net is piecewise smooth. https://en.wikipedia.org/wiki/Elastic_net_regularization
+
+03/10/2023
+283-graphical-lasso.m4v
+Conditional independence of entries of Gaussian vectors defines a graph associated to the inverse of the covariance (precision matrix). Graphical Lasso estimates a sparse graph by l^1 penalizing the maximum likelihood estimator. https://en.wikipedia.org/wiki/Graphical_lasso
+
+04/10/2023
+284-jpeg2k.jpeg
+Oldies but goldies: David Taubman, High performance scalable image compression with EBCOT, 2000. JPEG2000 performs an advanced arithmetic coding of Wavelets coefficients of the image. Coefficients are quantized and coded bit by bit to provide a progressive coding.  https://en.wikipedia.org/wiki/JPEG_2000
+
+05/10/2023
+285-moving-least-squares.m4v
+Moving least square is a mesh-free interpolation method which performs a localized weighted least square with singular weights. The case of constant polynomial is Shepard's method. https://en.wikipedia.org/wiki/Moving_least_squares
+
+06/10/2023
+285-wirtinger.jpeg
+Oldies but goldies: Wilhelm Wirtinger, Zur formalen Theorie der Funktionen von mehr komplexen Veränderlichen, 1926. Wirtinger derivatives treat complex valued functions of complex variables as if they were real functions. https://en.wikipedia.org/wiki/Wirtinger_derivatives 
+
+07/10/2023
+286-kernel-ridge.m4v
+Kernel ridge regression approximates a function using a sum of kernel functions. The kernel must be symmetric positive semi-definite, for instance Gaussian or Laplacian. https://en.wikipedia.org/wiki/Kernel_method 
+
+08/10/2023
+287-nmf.jpeg
+Oldies but Goldies: D. Lee et S. Seung, Learning the parts of objects by non-negative matrix factorization, Nature (1999). Lee and Seung proposed the most popular matrix factorization algorithm, which operates by multiplicative updates. https://en.wikipedia.org/wiki/Non-negative_matrix_factorization
+
+09/10/2023
+288-hermite.m4v
+Hermite functions form an ortho-basis of the continuous Fourier transform. Coming up with their discrete counterpart (discrete eigenvectors of the FFT) is surprisingly hard and apparently still mostly an open problem. https://arxiv.org/pdf/1501.07646.pdf
+
+10/10/2023
+289-ica.jpeg
+Oldies but Goldies: Pierre Comon, Independent component analysis, a new concept?, 1994. Gives a rigorous definition of the ICA as an optimization problem,  leveraging non-Gaussianity and independence of the sources. https://en.wikipedia.org/wiki/Independent_component_analysis
+
+11/10/2023
+290-mirror-descent.m4v
+For small step sizes, mirror descent is equivalent to a gradient descent on a Hessian manifold. https://blogs.princeton.edu/imabandit/2013/04/16/orf523-mirror-descent-part-iii/
+
+12/10/2023
+291-matern.m4v
+Oldies but goldies: B. Matern, Spatial Variation, 1960. The Matern kernel interpolates between Laplacian and Gaussian. The most popular kernels in ML, allows to represents functions with a given smoothness nu (number of derivative) for regression and classification using RKHS. https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function
+
+13/10/2023
+292-roots-poles.m4v
+Vizualizing zeros and poles of rational functions over the complex plane. https://en.wikipedia.org/wiki/Zeros_and_poles https://en.wikipedia.org/wiki/Pole%E2%80%93zero_plot 
+
+14/10/2023
+293-catmull.jpeg
+Oldies but goldies: Edwin Catmull, A hidden-surface algorithm with anti-aliasing, 1974. This PhD thesis laid the foundation of rending, in particular the Z-buffer and anti-aliasing. https://syncedreview.com/2020/04/25/turing-award-a-closer-look-into-edwin-catmulls-phd-thesis/
+
+15/10/2023
+294-zeta.m4v
+Riemann hypothesis states that the only non-trivial zeros of the zeta functions are on the line Re(s)=1/2. One of the the most celebrated mathematical conjecture. https://en.wikipedia.org/wiki/Riemann_zeta_function
+
+16/10/2023
+295-bilateral-filter.m4v
+Oldies but goldies: C. Tomasi and R. Manduchi, "Bilateral Filtering for Gray and Color Images", Proceedings of the 1998. The basic method for edge preserving filtering.
+
+17/10/2023
+296-heat-poly.m4v
+The heat equation on polynomials (for the differential on the complex plane) generates  complex dynamics on the roots. https://terrytao.wordpress.com/2017/10/17/heat-flow-and-zeroes-of-polynomials/ 
+
+18/10/2023
+297-hungarian.m4v
+Oldies but goldies: H. Kuhn, The Hungarian Method for the assignment problem, 1955. The most celebrated algorithm to solve efficiently (almost cubic time) the assignment problem. https://en.wikipedia.org/wiki/Hungarian_algorithm
+
+19/10/2023
+298-walsh-haar.jpeg
+Only + and - operations: Walsh-Rademacher-Hadamard vs Haar transforms. Dense vs sparse (for piecewise constant inputs).  https://en.wikipedia.org/wiki/Hadamard_transform https://en.wikipedia.org/wiki/Haar_wavelet 
+
+20/10/2023
+299-dublin.m4v
+Dubins paths are shortest path for cars which can only move forward. https://en.wikipedia.org/wiki/Dubins_path
+
+21/10/2023
+300-kmeans.m4v
+Oldies but Goldies: J. B. MacQueen, Some Methods for classification and Analysis of Multivariate Observations, 1967. Introduces the k-means algorithm, which is a discrete version of Lloyd algorithm for optimal quantization. https://en.wikipedia.org/wiki/K-means_clustering
 `;
