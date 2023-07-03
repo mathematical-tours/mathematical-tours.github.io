@@ -27,9 +27,8 @@ switch shape
         Shp = @(u)( abs(real(u)).^a+abs(imag(u)).^a ).^(1/a);
 end
 
-
 n = 1000;
-W0 = double(rescale(sum(load_image(name,n),3))>.5);
+W0 = double(rescale(sum(load_image(name,n),3))>.5); % load an image with n pixels
 [Y,X] = meshgrid(1:n,1:n);
 P = X(:)+1i*Y(:);
 
@@ -45,7 +44,7 @@ s = 10*1e3; % #random sample
 
 rrand = @(m,v)floor(rand(m,1)*v)+1;
 
-Col = distinguishable_colors(q+10);
+Col = distinguishable_colors(q+10); % generate a matrix with distinct colors 
 [~,I] = sort(sum(Col,2), 'descend');
 Col = Col(I(1:q),:);
 
@@ -80,5 +79,5 @@ for it=1:q
     imageplot(F);
     drawnow;
     % 
-    imwrite(F, [rep name '-' shape '-' znum2str(it,2) '.png']);
+    % imwrite(F, [rep name '-' shape '-' znum2str(it,2) '.png']);
 end

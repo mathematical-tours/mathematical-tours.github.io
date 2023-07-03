@@ -13,13 +13,6 @@ name = 'hibiscus';
 f = load_image(name, n);
 f = rescale(sum(f,3));
 
-
-
-%for p=1:n
-%    imageplot(LinApprox(f,p));
-%    drawnow;
-%end
-
 %%
 % Linear approximation.
 
@@ -28,14 +21,18 @@ plist = 1:50;
 for i=1:length(plist)
     f1 = LinApprox(f,plist(i));
     imwrite(f1, [rep 'lin-' num2str(i) '.png'], 'png');
+    % flat
+    clf; imageplot(f1); drawnow;
     % 3D
     clf; surf(f1);
     view(120,65); axis tight;
     shading interp; camlight; axis off; colormap gray(256); axis([1 n 1 n 0 1]);
     drawnow;
-    saveas(gcf, [rep '3d-lin-' num2str(i) '.png'], 'png');
+    % saveas(gcf, [rep '3d-lin-' num2str(i) '.png'], 'png');
 end
 
+%%
+% Non linear approximation. 
 
 fw = perform_haar_transf(f, 1, +1);
 s = sort(abs(fw(:)), 'descend');
@@ -45,13 +42,13 @@ for i=1:length(plist)
     f1 = perform_haar_transf(fwT, 1, -1);
     % flat
     clf; imageplot(f1); drawnow;
-    imwrite(f1, [rep 'nlin-' num2str(i) '.png'], 'png');
+    % imwrite(f1, [rep 'nlin-' num2str(i) '.png'], 'png');
     % 3D
     clf; surf(f1);
     view(120,65); axis tight;
     shading interp; camlight; axis off; colormap gray(256); axis([1 n 1 n 0 1]);
     drawnow;
-    saveas(gcf, [rep '3d-nlin-' num2str(i) '.png'], 'png');
+    % saveas(gcf, [rep '3d-nlin-' num2str(i) '.png'], 'png');
 end
 
 

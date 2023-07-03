@@ -8,9 +8,9 @@ t = linspace(0,1,n);
 [Y,X] = meshgrid(t,t);
 
 clf; mydisp((X+Y)/2);
-mysaveas('arith', 1);
+% mysaveas('arith', 1);
 clf; mydisp(sqrt(X.*Y));
-mysaveas('geom', 1);
+% mysaveas('geom', 1);
 
 
 A = X; G = Y;
@@ -20,4 +20,4 @@ end
 M = A;
 
 clf; mydisp(M);
-mysaveas('arith-geom', 1);
+% mysaveas('arith-geom', 1);

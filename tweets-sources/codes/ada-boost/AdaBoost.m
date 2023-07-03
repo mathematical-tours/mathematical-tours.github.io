@@ -1,9 +1,9 @@
 %%
 % Test of adaboost for axis-aligned classifiers.
 
-addpath('../toolbox/');
 rep = MkResRep();
 mysaveas = @(it)saveas(gcf, [rep 'anim-' znum2str(it,3) '.png']);
+mysaveas = @(it)0;
 
 %%
 % generate data sets
@@ -18,26 +18,10 @@ X1 = [cos(t).*r, sin(t).*r];
 X = [.25*randn(n/2,2); X1];
 
 % two blobs
-d = [.5 .6];
-%X = [randn(n/2,2)*.3 + d;randn(n/2,2)*.3 - d];
-
 y = [ones(n/2,1);-ones(n/2,1)];
 
-% two moons
-
-resc = @(u,a,b,a1,b1)a1 + (u-a)*(b1-a1)/(b-a);
-
-if 0
-    r = 1 + .1*rand(n,1); % radius
-    t = pi/2 + pi*rand(n,1); % angle
-    X = [r .* sin(t), r .* cos(t)];
-    I = find(y<0);
-    X(I,1) = X(I,1) + 1;
-    X(I,2) = -.7-X(I,2);
-    % rescale within a box
-    X(:,1) = resc(X(:,1), -1, 2, -.8,.8);
-    X(:,2) = resc(X(:,2), -1,.3, -.8,.8);
-end
+%%
+% Display 
 
 clf; hold on;
 plot(X(y>0,1), X(y>0,2), '.r', 'MarkerSize', 20);
@@ -50,10 +34,6 @@ set(gca, 'Xtick', [], 'Ytick', []); box on;
 
 r = 100;  % number of weak learners
 
-% axis-aligned
-t = [linspace(-1,1,r/2),linspace(-1,1,r/2)]; % position of the threshold
-d = [ones(1,r/2),ones(1,r/2)*2]; % dimension of application
-a = 1/n * sum( sign( (X(:,d)-t) ) == y );
 
 % random orientation
 theta = rand(1,r)*2*pi;
@@ -70,6 +50,7 @@ e = 1/n * sum( E );
 
 %%
 % Grid for display
+
 m = 300;
 s = linspace(-1,1,m);
 [V,U] = meshgrid(s,s);
@@ -91,7 +72,7 @@ for k=1:12
     % axis off;
     set(gca, 'Xtick', [], 'Ytick', []); box on;
     drawnow;
-    saveas(gcf, [rep 'weak-' znum2str(k,2) '.png']);
+    % saveas(gcf, [rep 'weak-' znum2str(k,2) '.png']);
 end
 
 

@@ -3,7 +3,7 @@
 
 n = 512; 
 
-addpath('../toolbox/');
+% addpath('../toolbox/');
 rep = MkResRep();
 
 % gaussian blur
@@ -36,13 +36,26 @@ switch name
 end
 
 
-% advection field
+%%
+% Smooth advection field.
+
 s = 80;
 u = cat(3, GFilt(randn(n),s), GFilt(randn(n),s) );
-%s = 80;
-%u = Grad(  GFilt(randn(n),s) );
 u = u/max(abs(u(:)));
-% u = normalize(u);
+
+%%
+% Display the vector field 
+
+sf = 1.2; % stretch factor
+lw = 2;
+q = 20;
+k = round(n/q); % subsampling
+plotvf = @(v,col)quiver(v(1:k:end,1:k:end,2),v(1:k:end,1:k:end,1), sf, 'Color', col, 'LineWidth', lw);
+
+clf; hold on; 
+plotvf(u, 'b');
+axis equal; axis off;
+% saveas(gcf, [rep 'flow.png'], 'png');
 
 
 
@@ -68,21 +81,7 @@ for i=1:q
     clf; imagesc(f); colormap gray(256);
     axis image; axis off; axis xy;
     drawnow;
-    % saveas(gcf, [rep 'evol-' znum2str(k,3) '.png'], 'png');
-    imwrite(rescale(f), [rep name '-' znum2str(i,3) '.png']);
+    % imwrite(rescale(f), [rep name '-' znum2str(i,3) '.png']);
     f = W(f, rho*u );
 end
-
-
-% to display VF
-sf = 1.2; % stretch factor
-lw = 2;
-q = 20;
-k = round(n/q); % subsampling
-plotvf = @(v,col)quiver(v(1:k:end,1:k:end,2),v(1:k:end,1:k:end,1), sf, 'Color', col, 'LineWidth', lw);
-
-clf; hold on; 
-        plotvf(u, 'b');
-        axis equal; axis off;
-        saveas(gcf, [rep 'flow.png'], 'png');
 
