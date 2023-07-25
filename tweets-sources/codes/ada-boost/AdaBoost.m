@@ -1,7 +1,7 @@
 %%
 % Test of adaboost for axis-aligned classifiers.
 
-rep = MkResRep();
+% rep = MkResRep();
 mysaveas = @(it)saveas(gcf, [rep 'anim-' znum2str(it,3) '.png']);
 mysaveas = @(it)0;
 
@@ -34,7 +34,6 @@ set(gca, 'Xtick', [], 'Ytick', []); box on;
 
 r = 100;  % number of weak learners
 
-
 % random orientation
 theta = rand(1,r)*2*pi;
 u = [cos(theta); sin(theta)];
@@ -62,7 +61,6 @@ Z = [U(:),V(:)];
 for k=1:12
     y1 = sign( (Z(:,1)*u(1,k) + Z(:,2)*u(2,k)-t(k)).*sigma(k)  );
     y1 = reshape(y1,[m,m]);
-    
     clf; hold on;
     imagesc(s,s,-y1'); colormap gray(256); caxis([-1 1])
     sz = ones(n,1)*25;

@@ -791,7 +791,7 @@ Pullback of functions and pushforward of measures are dual one with each other. 
 Haar transform: only + and - yet surprisingly powerful.  The first example of wavelet transform. https://en.wikipedia.org/wiki/Haar_wavelet
 
 09/07/2023
-197-minkowski.jpeg
+197-minkowski.m4v
 Minkowski inequality states that the l^p norm is a norm. https://en.wikipedia.org/wiki/Minkowski_inequality
 
 10/07/2023
