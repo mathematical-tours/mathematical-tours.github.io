@@ -1,0 +1,135 @@
+% !TEX root = ../optim-ml/OptimML-DiffusionModels.tex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Langevin sampling}
+
+
+Langevin diffusion is a method to accelerate sampling from a distribution with density $\rho_0(x) \triangleq e^{-f(x)}$, leveraging the smoothness of $f$. 
+%
+In its discrete (and approximate) form, it corresponds to a noisy gradient descent, where the noise is Gaussian
+\begin{equation*}
+	Z_{k+1} = Z_k - \tau \nabla f(Z_k) + \sqrt{2 \tau} W_k,
+\end{equation*}
+where $W_k \sim \mathcal{N}(0,\Id_d)$ are i.i.d.
+
+Setting $t = \tau k$, as $\tau \rightarrow 0$, this leads to considering the following Langevin stochastic differential equation (SDE)
+\begin{equation}\label{eq:langevin-continuous}
+	\mathrm{d} Z_t = -\nabla f(Z_t) \mathrm{d} t + \sqrt{2} \mathrm{d} W_t, 
+\end{equation}
+where $t \mapsto W_t$ is a Wiener process.
+%
+One can show that, regardless of the distribution of $Z_0$, the law of $Z_t$ converges in law towards a density $e^{-f(x)}$ with respect to Lebesgue measure.
+
+\paragraph{Convergence issues.} 
+
+Note that if one replaces $f$ by $f/\epsilon$, this converges to $e^{-f(x)/\epsilon}$, so that as $\epsilon \rightarrow 0$ one recovers (noiseless) gradient descent, which converges to stationary points of $f$. The caveat is that the convergence of Langevin will become slower and slower as $\epsilon$ becomes smaller. 
+
+The power of Langevin lies in its independence with respect to initialization. Its weaknesses are its slow convergence for non-convex $f$ and the necessity to have direct access to $\nabla \log(\rho_0) = \nabla f$. For applications to generative models, this is not acceptable because one can only assume to have access to $\rho_0$ from samples. These two drawbacks can somehow be alleviated by the diffusion model framework, which loosely speaking, corresponds to replacing the drift $\nabla \log(\rho_0)$ by $\nabla \log(\rho_{t})$ where $\rho_t$ is a suitable smoothing of $\rho_0$. 
+
+\paragraph{PDE interpretation.} For a vector field $v$ (for instance, $v=-\nabla f$ in \eqref{eq:langevin-continuous}), the law $\rho_t$ of a process $Z_t$ satisfying 
+\begin{equation*}
+	\mathrm{d} Z_t = v(Z_t) \mathrm{d} t + \sqrt{2} \mathrm{d} W_t,
+\end{equation*}
+can be shown to satisfy (in the weak sense) the following heat diffusion equation with drift (also called the Fokker-Planck equation)
+\begin{equation}\label{eq:Fokker-Planck}
+	\partial_t \rho_t = -\text{div}(\rho_t v) + \Delta \rho_t. 
+\end{equation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Diffusion model}
+
+To obtain an exact synthesis process leveraging a time-dependent smoothing, one can invert a forward diffusion process. The disadvantage of this approach is that it only works for a specific initial condition (as opposed to Langevin, which works for any initialization), which is the limit density of the forward diffusion (here a Gaussian).
+
+\paragraph{Forward flow.}
+To converge towards a Gaussian, one can consider a Langevin flow with a linear drift, $-x = -\nabla f$ where $f(x)=\frac{\|x\|^2}{2}$, which defines an Ornstein-Uhlenbeck process. 
+%
+The continuous forward flow (noising process) is thus
+\begin{equation*}
+	\mathrm{d} X_t = - X_t \mathrm{d} t + \sqrt{2} \mathrm{d} W_t.
+\end{equation*}
+It converges in law exponentially fast toward $\mathcal{N}(0,\Id)$, and more precisely, one has equality in law 
+\begin{equation}\label{eq:law-or-uhl}
+	X_t \sim  e^{-t} X_0 + \sqrt{1-e^{-2t}} Z,
+\end{equation}
+where $Z \sim \mathcal{N}(0,\Id)$. This means that $\rho_t$ is a Gaussian smoothing (with an increasing bandwidth) of a rescaled version of $\rho_0$
+\begin{equation*}
+	\rho_t = \rho_0(\cdot/e^t) \star \mathcal{N}(0, 1-e^{-2t}),
+	\qquad
+	f \star g(x) = \int f(y) g(x-y) \mathrm{d} y. 
+\end{equation*}
+
+\paragraph{Backward flow.}
+The actual sampling (the generative process) is now done by reverting in time this process, i.e., for a large enough $T \gg 0$, one seeks to approximate $Y_t \triangleq X_{T-t}$. 
+%
+Denoting $\rho_t$ the law of $X_t$ and $\xi_t = \rho_{T-t}$ the law of $Y_t$, the first idea is to reverse in time the Fokker-Planck PDE~\eqref{eq:Fokker-Planck}, since $\partial_t \xi_t=-\partial_t \rho_{T-t}$,
+\begin{equation*}
+	\partial_t \rho_t = -\text{div}(- \rho_t x) + \Delta \rho_t
+	\quad\Rightarrow\quad
+	\partial_t \xi_t = -\text{div}( \xi_t x) - \Delta \xi_t.
+\end{equation*}
+This corresponds to a backward heat equation, which is unstable and cannot be computed (and also, it cannot be represented using an SDE).
+
+An alternative approach is to re-write $- \Delta \xi_t$ as a Laplacian plus a drift which is equal to the score $\nabla \log(\xi_t)$, since one has
+\begin{equation*}
+	- \Delta \xi_t	 = \Delta \xi_t	- 2 \text{div}(\xi_t \nabla \log(\xi_t) ) 
+		= \Delta \xi_t	- 2 \text{div}(\xi_t \nabla \log(\xi_t)).
+\end{equation*}
+One thus has that $\xi_t$ is also a solution of a Fokker-Planck equation
+\begin{equation*}
+	\partial_t \xi_t = -\text{div}( \xi_{t} x + 2 \xi_t \nabla \log(\xi_t) ) +  \Delta \xi_t.
+\end{equation*}
+This shows that $\xi_t$ is the law of a process $Y_t$, satisfying the following Langevin SDE, initialized with $Y_0=X_T$
+\begin{equation*}
+	\mathrm{d} Y_t = [ Y_t + 2 \nabla \log(\rho_{T-t})(Y_t) ] \mathrm{d} t + \sqrt{2} \mathrm{d} W_t. 
+\end{equation*}
+This can be discretized using an Euler-Maruyama scheme, starting from $Y_0=X_{T/\tau}$
+\begin{equation}\label{eq:diffusion-discr-bwd}
+	Y_{k+1} = Y_k + \tau Y_t + 2\tau \nabla \log(\rho_{T-t})  + \sqrt{2\tau} W_k. 
+\end{equation}
+
+The idea of using Langevin with a score function to perform generative modeling was introduced in~\cite{song2019generative}. The rigorous backward SDE presented here is due to~\cite{song2021scorebased}. 
+
+\paragraph{Initialization.} One issue in this approach is that the exact initialization $Y_0=X_T$ is not possible since in practice $\rho_0$ is only approximately known. This is circumvented by replacing $\rho_T$ by $\rho_\infty = \mathcal{N}(0,\Id)$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Denoising Score Matching}
+
+In order to be able to implement~\eqref{eq:diffusion-discr-bwd}, one needs to compute the score $\nabla \log(\rho_t)$, where $\rho_t$ is the density of the distribution of $X_t$, defined as in \eqref{eq:law-or-uhl}. The idea is to approximate this score using a function computed from samples of $X_t$.
+
+In the following, we denote $X_0$ as $X$ and $X_t$ as $Y$. The following derivation is valid for any pair of random vectors $(X,Y)$ such that one can sample from the pair $(X,Y)$ and has a closed-form expression for the conditional density $\PP_{Y|X}(\cdot|x)$ of $Y$ given $X=x$. According to \eqref{eq:law-or-uhl}, in the special case of a diffusion model, $Y$ is a Gaussian random variable with mean $e^{-t} X_0$ and variance $(1-e^{-2t}) \Id$, so that 
+\begin{equation}
+	\log \PP_{Y|X}(y|x) =- \frac{\norm{y-x}^2}{2 (1-e^{-2t})}
+	\quad \Rightarrow \quad
+	\nabla_y \log \PP_{Y|X}(y|x) = - \frac{y-e^{-t} x}{1-e^{-2t}}.
+\end{equation}
+
+The following derivation is informal, and we denote $\PP_{(Y,X)}(x,y)$ as the law of $(X,Y)$ (with respect to some fixed reference measure, such as Lebesgue), and for the sake of readability, denote it as $\PP(y,x)$. The same goes for the conditionals $\PP(y|x)$ and $\PP(x|y)$. 
+%
+One has $\PP(y|x) = \frac{\PP(y,x)}{\PP(x)}$, so that 
+\begin{equation*}
+	\frac{\nabla_y \PP(y|x)}{\PP(y|x)} = \nabla_y \log \PP(y|x) = \nabla_y \log \frac{\PP(y,x)}{\PP(x)} = \frac{\nabla_y \PP(y,x)}{\PP(y,x)}.
+\end{equation*}
+One also has $\PP(y) = \int \PP(y,x) \, \d x$, so that using the previous equation
+\begin{equation*}
+	\nabla \log \PP(y) = 
+	\frac{ \nabla \PP(y) }{\PP(y)}  = \frac{1}{\PP(y)} \int \nabla_y \PP(y,x) \, \d x = \frac{1}{\PP(y)} \int \PP(y,x) \nabla_y \log \PP(y|x)  \, \d x
+	= \int_x \nabla_y \log \PP(y|x)  \, \d \PP(x|y).
+\end{equation*}
+The last expression writes $\nabla \log \PP(y)$ as an average of $\nabla_y \log \PP(y|x)$ according to the probability distribution $\PP(x|y)$. 
+%
+This can equivalently be re-written as the minimization of a mean square
+\begin{equation*}
+	\nabla \log \PP(y) = \underset{\phi(y) \in \RR^d}{\arg\min} \int_x \norm{\nabla_y \log \PP(y|x)  - \phi(y)}^2 \, \d \PP(x|y).
+\end{equation*}
+Note that the function $\nabla_y \log \PP(y|x)$ is assumed to be computable in closed form. 
+
+In practice, this non-parametric estimation of $\phi$ is replaced by a parametric estimation, as one has to perform it by sampling $\PP(\cdot|y)$. This can be done by integrating over $y$ with random sampling from $\PP(y)$, resulting in an integration over $\PP(y,x)$ (from which one can sample by first sampling $x$ and then $y$ according to $\PP(y|x)$)
+\begin{equation}\label{eq:score-matching-denoising}
+	\nabla \log \PP(\cdot) \approx \underset{\th}{\arg\min} \int_y \int_x \norm{\nabla_y \log \PP(y|x)  - \phi_\th(y)}^2 \, \d \PP(y,x).
+\end{equation}
+The function $\phi_\th : \RR^d \rightarrow \RR^d$ is usually a neural network but of a specific type because it maps $\RR^d$ to itself. For images, a model of choice is U-Nets, which operate similarly to wavelet analysis and synthesis. The minimization of~\eqref{eq:score-matching-denoising} is performed by stochastic gradient descent.
+ 
+The initial idea of using score matching to perform density estimation was introduced in~\cite{hyvarinen2005estimation}. The variational formulation as an optimal denoiser is due to~\cite{vincent2011connection}. 
+
