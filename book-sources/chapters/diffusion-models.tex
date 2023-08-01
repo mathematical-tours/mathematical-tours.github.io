@@ -98,38 +98,62 @@ The idea of using Langevin with a score function to perform generative modeling 
 
 In order to be able to implement~\eqref{eq:diffusion-discr-bwd}, one needs to compute the score $\nabla \log(\rho_t)$, where $\rho_t$ is the density of the distribution of $X_t$, defined as in \eqref{eq:law-or-uhl}. The idea is to approximate this score using a function computed from samples of $X_t$.
 
-In the following, we denote $X_0$ as $X$ and $X_t$ as $Y$. The following derivation is valid for any pair of random vectors $(X,Y)$ such that one can sample from the pair $(X,Y)$ and has a closed-form expression for the conditional density $\PP_{Y|X}(\cdot|x)$ of $Y$ given $X=x$. According to \eqref{eq:law-or-uhl}, in the special case of a diffusion model, $Y$ is a Gaussian random variable with mean $e^{-t} X_0$ and variance $(1-e^{-2t}) \Id$, so that 
+In the following, we denote $X_0$ as $X$ and $X_t$ as $Z$. 
+%
+We denote $\PP_{(Z,X)}(z,x)$ as the density of the law of $(Z,X)$ (with respect to some fixed reference measure, such as Lebesgue) and $\PP_Z(z)$ the density of $Z$ (so that for diffusion model,  $\PP_Z=\rho_t$). 
+%
+For the sake of readability, we often drop the subscripts and denote it as $\PP(z,x)$. The same goes for $\PP_Z(z)=\PP(z)$ and the conditionals $\PP_{Z|X}(z|x)=\PP(z|x)$ and $\PP_{X|Z}(x|z)=\PP(x|z)$. 
+
+The goal is thus to compute an estimator for $\nabla_z \log(\PP_Z)$.
+%
+The following derivation is valid for any pair of random vectors $(X,Z)$ such that one can sample from the pair $(X,Z)$ and has a closed-form expression for the conditional density $\PP_{Z|X}(\cdot|x)$ of $Z$ given $X=x$. According to \eqref{eq:law-or-uhl}, in the special case of a diffusion model, conditioned on $X_0=x$, $Z$ is a Gaussian random variable with mean $e^{-t} x$ and variance $(1-e^{-2t}) \Id$, so that 
 \begin{equation}
-	\log \PP_{Y|X}(y|x) =- \frac{\norm{y-x}^2}{2 (1-e^{-2t})}
+	\log \PP_{Z|X}(z|x) =- \frac{\norm{z - e^{-t} x}^2}{2 (1-e^{-2t})}
 	\quad \Rightarrow \quad
-	\nabla_y \log \PP_{Y|X}(y|x) = - \frac{y-e^{-t} x}{1-e^{-2t}}.
+	\nabla_z \log \PP_{Z|X}(z|x) = - \frac{z-e^{-t} x}{1-e^{-2t}}.
 \end{equation}
 
-The following derivation is informal, and we denote $\PP_{(Y,X)}(x,y)$ as the law of $(X,Y)$ (with respect to some fixed reference measure, such as Lebesgue), and for the sake of readability, denote it as $\PP(y,x)$. The same goes for the conditionals $\PP(y|x)$ and $\PP(x|y)$. 
+
+\paragraph{Score matching for a generic degradation. }
 %
-One has $\PP(y|x) = \frac{\PP(y,x)}{\PP(x)}$, so that 
+One has $\PP(z|x) = \frac{\PP(z,x)}{\PP(x)}$, so that 
 \begin{equation*}
-	\frac{\nabla_y \PP(y|x)}{\PP(y|x)} = \nabla_y \log \PP(y|x) = \nabla_y \log \frac{\PP(y,x)}{\PP(x)} = \frac{\nabla_y \PP(y,x)}{\PP(y,x)}.
+	\frac{\nabla_z \PP(z|x)}{\PP(z|x)} = \nabla_z \log \PP(z|x) = \nabla_z \log \frac{\PP(z,x)}{\PP(x)} = \frac{\nabla_z \PP(z,x)}{\PP(z,x)}.
 \end{equation*}
-One also has $\PP(y) = \int \PP(y,x) \, \d x$, so that using the previous equation
+One also has $\PP(z) = \int \PP(z,x) \, \d x$, so that using the previous equation
 \begin{equation*}
-	\nabla \log \PP(y) = 
-	\frac{ \nabla \PP(y) }{\PP(y)}  = \frac{1}{\PP(y)} \int \nabla_y \PP(y,x) \, \d x = \frac{1}{\PP(y)} \int \PP(y,x) \nabla_y \log \PP(y|x)  \, \d x
-	= \int_x \nabla_y \log \PP(y|x)  \, \d \PP(x|y).
+	\nabla \log \PP_Z(z) = 
+	\frac{ \nabla \PP(z) }{\PP(z)}  = \frac{1}{\PP(z)} \int \nabla_z \PP(z,x) \, \d x = \frac{1}{\PP(z)} \int \PP(z,x) \nabla_z \log \PP(z|x)  \, \d x
+	= \int_x \nabla_z \log \PP(z|x)  \, \d \PP(x|z).
 \end{equation*}
-The last expression writes $\nabla \log \PP(y)$ as an average of $\nabla_y \log \PP(y|x)$ according to the probability distribution $\PP(x|y)$. 
+The last expression writes $\nabla \log \PP(z)$ as an average of $\nabla_z \log \PP(z|x)$ according to the probability distribution $\PP(x|z)$. 
 %
 This can equivalently be re-written as the minimization of a mean square
 \begin{equation*}
-	\nabla \log \PP(y) = \underset{\phi(y) \in \RR^d}{\arg\min} \int_x \norm{\nabla_y \log \PP(y|x)  - \phi(y)}^2 \, \d \PP(x|y).
+	\nabla \log \PP(z) = \underset{\phi(z) \in \RR^d}{\arg\min} \int_x \norm{\nabla_z \log \PP(z|x)  - \phi(z)}^2 \, \d \PP(x|z).
 \end{equation*}
-Note that the function $\nabla_y \log \PP(y|x)$ is assumed to be computable in closed form. 
-
-In practice, this non-parametric estimation of $\phi$ is replaced by a parametric estimation, as one has to perform it by sampling $\PP(\cdot|y)$. This can be done by integrating over $y$ with random sampling from $\PP(y)$, resulting in an integration over $\PP(y,x)$ (from which one can sample by first sampling $x$ and then $y$ according to $\PP(y|x)$)
+Note that the function $\nabla_z \log \PP(z|x)$ is assumed to be computable in closed form. 
+%
+In practice, this non-parametric estimation of $\phi$ is replaced by a parametric estimation $\phi=\phi_\th$, as one has to perform it by sampling $\PP(\cdot|z)$ alone. This can be done by integrating over $z$ with random sampling from $\PP(z)$, resulting in an integration over $\PP(z,x)=\PP(z|x) \PP(x)$ (from which one can sample by first sampling $x$ and then $z$ according to $\PP(z|x)$), so that one solves
 \begin{equation}\label{eq:score-matching-denoising}
-	\nabla \log \PP(\cdot) \approx \underset{\th}{\arg\min} \int_y \int_x \norm{\nabla_y \log \PP(y|x)  - \phi_\th(y)}^2 \, \d \PP(y,x).
+	\nabla \log \PP_Z(\cdot) \approx \phi_\th 
+	\qwhereq	
+	\underset{\th}{\min}
+	 \int_x \int_z \norm{\nabla_z \log \PP(z|x)  - \phi_\th(z)}^2 \, \d \PP(z|x) \d \PP(x).
 \end{equation}
-The function $\phi_\th : \RR^d \rightarrow \RR^d$ is usually a neural network but of a specific type because it maps $\RR^d$ to itself. For images, a model of choice is U-Nets, which operate similarly to wavelet analysis and synthesis. The minimization of~\eqref{eq:score-matching-denoising} is performed by stochastic gradient descent.
+
+
+\paragraph{Score matching for diffusion. }
+%
+For the case of diffusion model~\eqref{eq:law-or-uhl}, the function $\phi$ depends also on time, so that one minimizes
+\begin{equation}\label{eq:score-matching-denoising}
+	\nabla \log \rho_t(z) \approx \phi_\th(z,t) 
+	\qwhereq	
+	\underset{\th}{\min} \int_t \int_x \int_z \norm{\frac{e^{-t} x - z}{1-e^{-2t}}  - \phi_\th(z,t)}^2 \, \d \PP(z|x) \d \rho_0(x) \la_t \d t.
+\end{equation}
+where $\la_t$ is some weighting scheme. 
+%
+The function $\phi_\th(\cdot,t) : \RR^d \rightarrow \RR^d$ is usually a neural network but of a specific type because it maps $\RR^d$ to itself. For images, a model of choice is U-Nets, which operate similarly to wavelet analysis and synthesis. The minimization of~\eqref{eq:score-matching-denoising} is performed by stochastic gradient descent.
  
 The initial idea of using score matching to perform density estimation was introduced in~\cite{hyvarinen2005estimation}. The variational formulation as an optimal denoiser is due to~\cite{vincent2011connection}. 
 
