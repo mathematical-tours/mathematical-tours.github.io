@@ -70,22 +70,27 @@ Denoting $\rho_t$ the law of $X_t$ and $\xi_t = \rho_{T-t}$ the law of $Y_t$, th
 \end{equation*}
 This corresponds to a backward heat equation, which is unstable and cannot be computed (and also, it cannot be represented using an SDE).
 
-An alternative approach is to re-write $- \Delta \xi_t$ as a Laplacian plus a drift which is equal to the score $\nabla \log(\xi_t)$, since one has
+An alternative approach is to re-write $- \Delta \xi_t$ as a Laplacian plus a drift which is equal to the score $\nabla \log(\xi_t)$, since one has, for any $\alpha\geq 0$
 \begin{equation*}
-	- \Delta \xi_t	 = \Delta \xi_t	- 2 \text{div}(\xi_t \nabla \log(\xi_t) ) 
-		= \Delta \xi_t	- 2 \text{div}(\xi_t \nabla \log(\xi_t)).
+	- \Delta \xi_t	 = \alpha \Delta \xi_t	- (1+\alpha) \text{div}(\xi_t \nabla \log(\xi_t) ) 
+		=  \alpha \Delta \xi_t	-  (1+\alpha) \text{div}(\xi_t \nabla \log(\xi_t)).
 \end{equation*}
 One thus has that $\xi_t$ is also a solution of a Fokker-Planck equation
 \begin{equation*}
-	\partial_t \xi_t = -\text{div}( \xi_{t} x + 2 \xi_t \nabla \log(\xi_t) ) +  \Delta \xi_t.
+	\partial_t \xi_t = -\text{div}( \xi_{t} x +  (1+\alpha) \xi_t \nabla \log(\xi_t) ) +  \alpha \Delta \xi_t.
 \end{equation*}
 This shows that $\xi_t$ is the law of a process $Y_t$, satisfying the following Langevin SDE, initialized with $Y_0=X_T$
 \begin{equation*}
-	\mathrm{d} Y_t = [ Y_t + 2 \nabla \log(\rho_{T-t})(Y_t) ] \mathrm{d} t + \sqrt{2} \mathrm{d} W_t. 
+	\mathrm{d} Y_t = [ Y_t +  (1+\alpha) \nabla \log(\rho_{T-t})(Y_t) ] \mathrm{d} t + \sqrt{2\alpha} \mathrm{d} W_t. 
 \end{equation*}
 This can be discretized using an Euler-Maruyama scheme, starting from $Y_0=X_{T/\tau}$
 \begin{equation}\label{eq:diffusion-discr-bwd}
-	Y_{k+1} = Y_k + \tau Y_t + 2\tau \nabla \log(\rho_{T-t})  + \sqrt{2\tau} W_k. 
+	Y_{k+1} = Y_k + \tau Y_t + \tau  (1+\alpha) \nabla \log(\rho_{T-t})  + \sqrt{2\tau \alpha} W_k. 
+\end{equation}
+
+The case $\alpha=1$ is the standard diffusion model. The case $\alpha=0$ corresponds to a deterministic advection equation (the noise being only injected in $Y_0$)
+\begin{equation}
+	\frac{\mathrm{d} Y_t}{\mathrm{d} t} = Y_t + \nabla \log(\rho_{T-t})(Y_t)
 \end{equation}
 
 The idea of using Langevin with a score function to perform generative modeling was introduced in~\cite{song2019generative}. The rigorous backward SDE presented here is due to~\cite{song2021scorebased}. 
@@ -108,7 +113,7 @@ The goal is thus to compute an estimator for $\nabla_z \log(\PP_Z)$.
 %
 The following derivation is valid for any pair of random vectors $(X,Z)$ such that one can sample from the pair $(X,Z)$ and has a closed-form expression for the conditional density $\PP_{Z|X}(\cdot|x)$ of $Z$ given $X=x$. According to \eqref{eq:law-or-uhl}, in the special case of a diffusion model, conditioned on $X_0=x$, $Z$ is a Gaussian random variable with mean $e^{-t} x$ and variance $(1-e^{-2t}) \Id$, so that 
 \begin{equation}
-	\log \PP_{Z|X}(z|x) =- \frac{\norm{z - e^{-t} x}^2}{2 (1-e^{-2t})}
+	\log \PP_{Z|X}(z|x) =- \frac{\norm{z - e^{-t} x}^2}{2 (1-e^{-2t})} + \text{cst}
 	\quad \Rightarrow \quad
 	\nabla_z \log \PP_{Z|X}(z|x) = - \frac{z-e^{-t} x}{1-e^{-2t}}.
 \end{equation}
