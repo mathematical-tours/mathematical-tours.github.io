@@ -1736,7 +1736,7 @@ Fourier approximation creates Gibbs ringing artifacts. https://en.wikipedia.org/
 
 01/03/2024
 432-tsne.m4v
-Oldies but goldies: I.M. Sobol, Distribution of points in a cube and approximate evaluation of integrals, 1967. Introduces the most well-known low-discrepancy quasi-random sequence. 
+Oldies but goldies: L. J. P. van der Maaten and G.E. Hinton, Visualizing High-Dimensional Data Using t-SNE, 2008. t-SNE improves over SNE by replacing Gaussians by student’s t-distributions in the low dimensional space. https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding
 
 02/03/2024
 433-sobol.m4v
