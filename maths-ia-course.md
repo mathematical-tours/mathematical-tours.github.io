@@ -129,7 +129,7 @@ This series consists of 10 sessions, each lasting 2 hours, focused on the mathem
 - [Numerical tour on diffusion models](https://nbviewer.org/github/gpeyre/numerical-tours/blob/master/python/ml_12_diffusion_models.ipynb)
 - Course notes on [Diffusion Models](https://mathematical-tours.github.io/book-sources/optim-ml/OptimML-DiffusionModels.pdf)
 
-### Course #8 - [LLM and Generative AI](transcripts/8-llm.pdf)
+### Course #8 - [LLM and Generative AI](https://mathematical-tours.github.io/maths-ia-course-data/transcripts/8-llm.pdf)
 
 **Content:**
 - Overview of different generative model concepts
@@ -151,7 +151,7 @@ This series consists of 10 sessions, each lasting 2 hours, focused on the mathem
 - [Theory paper on Flash Attention](https://arxiv.org/abs/2402.07443)
 - [Mamba paper](https://arxiv.org/abs/2312.00752), Blog [on Mamba](https://jackcook.com/2024/02/23/mamba.html) (SSM), [Parallel Prefix Sum algorithm](https://en.wikipedia.org/wiki/Prefix_sum)
 
-### Course #9 - [Generative Models](transcripts/9-generative.pdf)
+### Course #9 - [Generative Models](https://mathematical-tours.github.io/maths-ia-course-data/transcripts/9-generative.pdf)
 
 **Content:**
 - Understanding generative models as density fitting techniques.
@@ -163,15 +163,15 @@ This series consists of 10 sessions, each lasting 2 hours, focused on the mathem
 - Diffusion Models.
 
 **Materials:**
-- [Course notes on the EM algorithm for mixtures](material/em-algo.pdf)
-- [Tutorial code on generative models (EM/VAE/NF/GANs)](material/generative-models.ipynb)
+- [Course notes on the EM algorithm for mixtures](https://mathematical-tours.github.io/maths-ia-course-data/material/em-algo.pdf)
+- [Tutorial code on generative models (EM/VAE/NF/GANs)](https://mathematical-tours.github.io/maths-ia-course-data/material/generative-models.ipynb)
 
 **Bibliography:**
 - [Tutorial on Variational Autoencoders](https://arxiv.org/abs/1606.05908)
 - [Tutorial on Normalizing Flows](https://pyro.ai/examples/normalizing_flows_i.html)
 - [Slides on Normalizing Flows](https://www.shakirm.com/slides/DeepGenModelsTutorial.pdf)
 
-### Course #10 - [Optimal Transport](transcripts/10-optimal-transport.pdf)
+### Course #10 - Optimal Transport
 
 **Content:**
 - Introduction to Monge and Kantorovich formulations.
