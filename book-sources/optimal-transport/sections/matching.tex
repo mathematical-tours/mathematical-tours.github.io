@@ -6,85 +6,58 @@
 \section{Optimal Matching between Point Clouds}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Monge Problem between Discrete points}
+\subsection{Monge Problem for Discrete Points}
 \label{sec-monge-pbm}
 
 %%%%%%%
-\paragraph{Matching problem}
+\paragraph{Matching Problem}
 
-Given a cost matrix $(\C_{i,j})_{i \in \range{n}, j \in \range{m}}$, assuming $n=m$, the optimal assignment problem seeks for a bijection $\si$ in the set $\Perm(n)$ of permutations of $n$ elements solving
+Given a cost matrix $(\C_{i,j})_{i \in \range{n}, j \in \range{m}}$ and assuming $n=m$, the optimal assignment problem aims to find a bijection $\sigma$ within the set $\Perm(n)$ of permutations of $n$ elements that solves
 \eql{\label{eq-optimal-assignment}
-	\umin{\si \in \Perm(n)} \frac{1}{n}\sum_{i=1}^n \C_{i,\si(i)}.
+	\umin{\sigma \in \Perm(n)} \frac{1}{n}\sum_{i=1}^n \C_{i,\sigma(i)}.
 }
-One could naively evaluate the cost function above using all permutations in the set $\Perm(n)$. However, that set has size $n!$, which is gigantic even for small $n$. 
-% Consider for instance that such a set has more than $10^{100}$ elements~\cite{Dantzig1983} when $n$ is as small as 70. That problem can therefore only be solved if there exist efficient algorithms to optimize that cost function over the set of permutations, which will be the subject of~\S\ref{s-matching}.
-In general the optimal $\si$ is non-unique. 
-
-% \begin{rem}[Uniqueness] Note that the optimal assignment problem may have several optimal solutions. Suppose for instance that $n=m=2$ and that the matrix $\C$ is the pairwise distance matrix between the 4 corners of a 2-dimensional square of side length $1$, as represented in the left plot in Figure~\ref{fig-non-unique-matching}. In that case only two assignments exist, and they share the same cost. \end{rem}
-
-%\begin{figure}
-%\centering
-%\includegraphics[width=.5\linewidth]{non-unique-optimal-matching/non-unique-optimal-matching}
-%\caption{\label{fig-non-unique-matching}
-%(left) blue dots from measure $\alpha$ and red dots from measure $\beta$ are pairwise equidistant. Hence, either matching $\sigma=(1,2)$ (full line) or $\sigma=(2,1)$ (dotted line) is optimal. (right) a Monge map can associate the blue measure $\alpha$ to the red measure $\beta$. The weights $\alpha_i$ are displayed proportionally to the area of the disk marked at each location. The mapping here is such that $T(x_1)=T(x_2)=y_2$, $T(x_3)=y_3$, whereas for $4\leq i\leq 7$ we have $T(x_i)=y_1$.
-%}
-%\end{figure}
+One could naively evaluate the cost function above using all permutations in the set $\Perm(n)$. However, this set has size $n!$, which becomes enormous even for small values of $n$.
+%
+In general, the optimal $\sigma$ is not unique.
 
 
-\paragraph{1D case}
+\paragraph{1D Case}
 
-If the cost is of the form $\C_{i,j}=h(x_i-y_j)$, where $h: \RR \rightarrow \RR^+$ is  convex (for instance $\C_{i,j}=|x_i-y_j|^p$ for $p \geq 1$), one has that an optimal $\si$ necessarily defines an increasing map $x_i \mapsto x_{\si(i)}$, i.e. 
+If the cost is of the form $\C_{i,j}=h(x_i-y_j)$, where $h: \RR \rightarrow \RR^+$ is convex (for example, $\C_{i,j}=|x_i-y_j|^p$ for $p \geq 1$), it follows that an optimal $\sigma$ necessarily defines an increasing map $x_i \mapsto y_{\sigma(i)}$, i.e.,
 \eq{
-	\foralls (i,j), \quad (x_i-y_j)(x_{\si(i)}-y_{\si(j)}) \geq 0.
+	\forall (i,i'), \quad (x_i-x_{i'})(y_{\sigma(i)}-y_{\sigma(i')}) \geq 0.
 }
-Indeed, if this property is violated, i.e. there exists $(i,j)$ such that $(x_i-y_j)(x_{\si(i)}-y_{\si(j)}) < 0$, then one can defines a permutation $\tilde \si$ by swapping the match, i.e. $\tilde\si(i)=\si(j)$ and $\tilde\si(j)=\si(i)$, with a better cost
+Indeed, if this property is violated, i.e., there exists $(i,i')$ such that $(x_i-x_{i'})(y_{\sigma(i)}-y_{\sigma(i')}) < 0$, then one can define a permutation $\tilde{\sigma}$ by swapping the match, i.e., $\tilde{\sigma}(i)=\sigma(i')$ and $\tilde{\sigma}(i')=\sigma(i)$, yielding a better cost
 \eq{
-	\sum_i h(x_{i}-y_{\tilde \si(i)}) \leq \sum_i h(x_{i}-y_{\si(i)}),  
+	\sum_i h(x_{i}-y_{\tilde{\sigma}(i)}) \leq \sum_i h(x_{i}-y_{\sigma(i)}),  
 }
 because
 \eq{
-	h(x_{i}-y_{\si(j)}) + h(x_{j}-y_{\si(i)}) 
+	h(x_{i}-y_{\tilde\sigma(i')}) + h(x_{i'}-y_{\tilde\sigma(i)}) 
 	\leq
-	h(x_{i}-y_{\si(i)}) + h(x_{j}-y_{\si(j)}).  
+	h(x_{i}-y_{\sigma(i)}) + h(x_{i'}-y_{\sigma(i')}).  
 }
-So the algorithm to compute an optimal transport (actually all optimal transport) is to sort the points, i.e. find some pair of permutations $\si_X, \si_Y$ such that
+Therefore, the algorithm to compute an optimal transport (actually, all optimal transports) is to sort the points, i.e., find some pair of permutations $\sigma_X, \sigma_Y$ such that
 \eq{
-	x_{\si_X(1)} \leq \si_{\si_X(2)} \leq \ldots
+	x_{\sigma_X(1)} \leq x_{\sigma_X(2)} \leq \ldots
 	\qandq
-	y_{\si_Y(1)} \leq \si_{\si_Y(2)} \leq \ldots
+	y_{\sigma_Y(1)} \leq y_{\sigma_Y(2)} \leq \ldots
 }
-and then an optimal match is mapping $x_{\si_X(k)} \mapsto y_{\si_Y(k)}$, i.e. an optimal transport is $\si = \si_Y \circ \si_X^{-1}$. The total computational cost is thus $O(n\log(n))$ using for instance quicksort algorithm.
+and then an optimal match is mapping $x_{\sigma_X(k)} \mapsto y_{\sigma_Y(k)}$, i.e., an optimal transport is $\sigma = \sigma_Y \circ \sigma_X^{-1}$. The total computational cost is thus $O(n\log(n))$, using, for instance, the quicksort algorithm.
 %
-Note that if $\phi : \RR \rightarrow \RR$ is an increasing map, with a change of variable, one can apply this technique to cost of the form $h(|\phi(x)-\phi(y)|)$. 
+Note that if $\phi : \RR \rightarrow \RR$ is an increasing map, one can apply this technique to costs of the form $h(|\phi(x)-\phi(y)|)$ with a change of variable.
 %
-A typical application is grayscale histogram equalization of the luminance of images. 
+A typical application is the grayscale histogram equalization of the luminance of images.
 
-Note that is $h$ is concave instead of being convex, then the behavior is totally different, and the optimal match actually rather exchange the positions, and in this case there exists an $O(n^2)$ algorithm.   
-% Note that in the case of concave cost of the distance, for instance when $p<1$, the behaviour of the optimal transport plan is very different, see~\cite{delon-concave}, which describes an efficient solver in this case.
+This efficient strategy to compute the OT in 1-D does not extend to higher dimensions. In 2-D, if the cost is $c(x,y) = \norm{x-y}$, then, as already noted by Monge, trajectories cannot cross, this is a consequence of the parallelogram inequality. However this is not enough to uniquely determine an optimal matching. 
 
-%
-%
-%\begin{figure}
-%\centering
-%\includegraphics[width=.4\linewidth]{1d-discrete/1d-schematic}
-%\caption{\label{fig-1d-discrete}
-%1-D optimal couplings: each arrow $x_i \rightarrow y_j$ indicate a non-zero $\P_{i,j}$ in the optimal coupling.
-%% 
-%Top: empirical measures with same number of points (optimal matching).
-%Bottom: generic case. 
-%%
-%This corresponds to monotone rearrangements, if $x_i \leq x_{i'}$ are such that $\P_{i,j} \neq 0, \P_{i',j'} \neq 0$, then necessarily $y_j \leq y_{j'}$.
-%}
-%\end{figure}
+Note that if $h$ is concave instead of being convex, then the behavior is entirely different, and the optimal match tends to exchange the positions. In this case, there exists an $O(n^2)$ algorithm.
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Matching Algorithms}
 
-There exists efficient algorithms to solve the optimal matching problems. The most well known are the hungarian and the auction algorithm, which runs in $O(n^3)$ operations. Their derivation and analysis is however very much simplified by introducing the Kantorovitch relaxation and its associated dual problem.
+Efficient algorithms exist for solving the optimal matching problem. The most well-known are the Hungarian and the auction algorithm, which run in $O(n^3)$ operations. Their derivation and analysis, however, are greatly simplified by introducing the Kantorovich relaxation and its associated dual problem.
 %
-A typical application of these methods is the equalization of the color palette between images, which corresponds to a 3-D optimal transport. 
-
-  
-  
-  
+A typical application of these methods is equalizing the color palette between images, corresponding to a 3-D optimal transport.
