@@ -109,6 +109,66 @@ so that the natural change of variable should be $\frac{1}{n}X^*X \sim \Phi^*\Ph
 The law of large number shows that $\frac{1}{n}X^*X$ and $\frac{1}{n}X^*y$ are contaminated by a noise of amplitude $1/\sqrt{n}$, which plays the role of $\norm{w}$. 
 
  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Warmup: Oracle Linear Inversion}
+
+We first consider a simpler setup were we seek for an ``optimal'' inversion method which is assumed to be diagonal in some basis. We will see later that these denoiser can also be seen as solving a multi-dimensional optimization problem (here, the optimization is just 1-dimensional over each basis coefficient). 
+
+We consider the inversion of an operator which is diagonal in an ortho-basis $(\psi_k)$:
+$$
+	\Phi f = \sum_k \phi_k \dotp{f}{\psi_k} \, \psi_k,
+$$
+where typically $\phi_k$ are attenuation factors. 
+%
+The observation model is
+$$
+	Y = \Phi f_0 + w
+$$
+where $w$ is a Gaussian white noise.
+%
+For instance, if $(\psi_k)_k$ is the Fourier basis, this corresponds to a deconvolution problem $\Phi f = h \star f$ where $\hat h_k = \phi_k$. We consider the same diagonal estimator $\tilde{f}$ as in the denoising case:
+$$
+	\tilde{f} \coloneqq \sum_k \lambda_k \dotp{Y}{\psi_k} \, \psi_k.
+$$
+
+The estimation error we aim at minimizing with respect to $\lambda$ is thus
+$$
+	\mathbb{E}_w  \|\tilde{f} - f_0\|^2  = \sum_k \mathbb{E}  \left| \dotp{\tilde{f} - f_0}{\psi_k} \right|^2 = \sum_k \mathbb{E} \left| \lambda_k (\phi_k c_k + \dotp{w}{\psi_k}) - c_k \right|^2 .
+$$
+Leveraging the independence and the zero mean of the noise,
+$$
+	\mathbb{E}_w \|\tilde{f} - f_0\|^2 = \sum_k |c_k|^2 | \phi_k \lambda_k - 1 |^2 + |\lambda_k|^2 \sigma^2 .
+$$
+The optimal oracle denoiser solves
+$$
+	\min_{\lambda_k} |c_k|^2 | \phi_k \lambda_k - 1 |^2 + |\lambda_k|^2 \sigma^2 ,
+$$
+i.e., it satisfies
+$$
+	|c_k|^2 \bar{\phi_k} ( \phi_k \lambda_k - 1 ) + \sigma^2 \lambda_k = 0,
+$$
+which gives
+$$
+	\lambda_k = \frac{ |c_k|^2 \bar{\phi_k} }{ |c_k|^2 |\phi_k|^2 + \sigma^2 }.
+$$
+When $\sigma \to 0$ (no noise), then, assuming $\phi_k \neq 0$ so that the filter is invertible, one obtains the brute force inversion of the filter, independently of the signal content:
+$$
+	\lambda_k = \frac{1}{\phi_k}.
+$$
+As $\sigma$ increases, this inversion is attenuated. For instance, if we consider a smooth signal over a Fourier basis, it can be modeled as having a polynomial decay $c_k^2 = 1/k^\alpha$. We consider also a low pass convolution with polynomial decay $|\phi_k|^2 = 1/k^\beta$, then
+
+$$
+	\lambda_k = \frac{ 1/ k^{\beta/2} }{  1 + \sigma^2 / k^{\alpha+\beta}  }.
+$$
+The shape of lambda is a bell curve: its limit is 1 for $k \to 0$ and is 0 for $k \to \infty$.
+It starts increasing to boost higher frequencies canceled by the filter, and then it decreases to prevent the explosion of the noise. 
+It peaks at a maximum value at 
+$$
+	k^\star = \left( \frac{\sigma^2 \beta}{\alpha} \right)^{\frac{1}{\alpha + \beta}}.
+$$
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

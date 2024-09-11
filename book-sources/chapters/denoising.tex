@@ -1,5 +1,7 @@
 % !TEX root = ../FundationsDataScience.tex
 
+\newcommand{\noise}{w}
+
 \chapter{Denoising}
 
 
@@ -35,7 +37,7 @@ Since noise perturbs discrete measurements acquired by some hardware, in the fol
 \subsection{Image Formation}
 \label{subsec-image-formation}
 
-Figure \ref{fig-additive-noise-model} shows an idealized view of the image formation process, that mixes a clean image $f_0$ with a noise $w$ to obtain noisy observations $f = f_0 \oplus w$, where $\oplus$ might for instance be a sum or a multiplication.
+Figure \ref{fig-additive-noise-model} shows an idealized view of the image formation process, that mixes a clean image $f_0$ with a noise $w$ to obtain noisy observations $Y := f_0 \oplus w$, where $\oplus$ might for instance be a sum or a multiplication. Note that $Y$ is thus here modeled as a random vector. 
 
 \myfigure{
 \image{denoising}{.8}{additive-noise-model}
@@ -43,16 +45,16 @@ Figure \ref{fig-additive-noise-model} shows an idealized view of the image forma
 	Image formation with noise modeling and denoising pipepline. %	
 }{fig-additive-noise-model}
 
-Statistical modeling considers $w$ as a random vector with known distribution, while numerical computation are usually done on a single realization of this random vector, still denoted as $w$.
+Statistical modeling considers $w$ as a random vector with known distribution, while numerical computations are usually done on a single realization of this random vector, still denoted as $w$.
 
 %%
 \paragraph{Additive Noise.}
 
-The simplest model for such image formation consists in assuming that it is an additive perturbation of a clean signal $f_0$
+The simplest model for such image formation consists of assuming that it is an additive perturbation of a clean signal $f_0$
 \eq{
-	f = f_0 + w
+	Y := f_0 + w
 }
-where $w$ is the noise residual. Statistical noise modeling assume that $w$ is a random vector, and in practice one only observes a realization of this vector. This modeling thus implies that the image $f$ to be processed is also a random vector. Figure \ref{fig-noise-example-1d} and \ref{fig-noise-example-2d} show examples of noise addition to a clean signal and a clean image.
+where $w$ is the noise residual. Statistical noise modeling assumes that $w$ is a random vector, and in practice one only observes a realization of this vector. This modeling thus implies that the image $f$ to be processed is also a random vector. Figure \ref{fig-noise-example-1d} and \ref{fig-noise-example-2d} show examples of noise addition to a clean signal and a clean image.
 
 \myfigure{
 \tabdeux{
@@ -69,7 +71,7 @@ $f_0$ & $f$
 \tabdeux{
 \image{denoising}{.3}{noise-example-2d-clean}&
 \image{denoising}{.3}{noise-example-2d-noisy}\\
-$f_0$ & $f$
+$f_0$ & $y \sim Y = f_0+w$
 }
 }{%
 	2-D additive noise example.%	
@@ -79,27 +81,25 @@ The simplest noise model assumes that each entry $w_n$ of the noise is a Gaussia
 
 Depending on the image acquisition device, one should consider different noise distributions, such as for instance uniform noise $w_n \in [-a,a]$ or Impulse noise
 \eq{
-	\PP(w_n=x) \propto e^{-|x/\si|^\al}
+	\PP(w_n=u) \propto e^{-|u/\si|^\al}
 	\qwhereq \al<2
 }
 
 In many situations, the noise perturbation is not additive, and for instance its intensity might depend on the intensity of the signal. This is the case with Poisson and multiplicative noises considered in Section \ref{sect-data-dept-noises}.
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Denoiser}
 
-A denoiser (also called estimator) is an estimation $\tilde f$ of $f_0$ computed from the observation $f$ alone. It is thus also a random vector that depends on the noise $w$. Since $f$ is a random vector of mean $f_0$, the numerical denoising process corresponds to the estimation of the mean of a random vector from a single realization. Figure \ref{fig-denoising-clean} shows an example of denoising.
+A denoiser (also called estimator) is an estimation $\tilde f = \Dd(Y)$ (we use both notations in the following) of $f_0$ computed from the observation $Y$ alone so that $\Dd$ is a deterministic function. It is thus also a random vector that depends on the noise $w$. Since $Y$ is a random vector of mean $f_0$, the numerical denoising process corresponds to the estimation of the mean of a random vector from a single realization. Figure \ref{fig-denoising-clean} shows an example of denoising.
 
-The quality of a denoiser is measured using the average mean square risk $\EE_w(\norm{f_0-\tilde f}^2)$.
-where $\EE_w$ is the esperance (averaging) with respect to the noise $w$. Since $f_0$ is unknown, this corresponds to a theoretical measure of performance, that is bounded using a mathematical analysis. In the numerical experiments, one observes a single realization $f^{r} \sim f_0 + w$, and the performance is estimated from this single denoising using the SNR
+The quality of a denoiser is measured using the average mean square risk $\Dd_w(\norm{f_0-\tilde f}^2)$.
+where $\Dd_w$ is the expectation (averaging) with respect to the noise $w$. Since $f_0$ is unknown, this corresponds to a theoretical measure of performance, that is bounded using a mathematical analysis. In the numerical experiments, one observes a single realization $y \sim Y = f_0 + w$, and the performance is estimated from this single denoising using the SNR $\text{SNR}(\Dd(y),f_0)$,  where
 \eq{
-	\text{SNR}(\tilde f^r,f_0) = -20\log_{10}( \norm{\tilde f^r-f_0}/\norm{f_0} ),
+	\text{SNR}(f,g) := -20\log_{10}( \norm{f-g}/\norm{g} ).
 }
-where $\tilde f^r$ should be computed from the single realization $f^r$ of $f$.
 %
-In the following, with an abuse of notation, when displaying single realization, we ignore the exponent $^r$.
-%
-The SNR is expressed in ``decibels'', denoted dB. This measure of performance requires the knowledge of the clean signal $f_0$, and should thus only be considered as an experimentation tool, that might not be available in a real life denoising scenario where clean data are not available. Furthermore, the use of an $\ell^2$ measure of performance is questionable, and one should also observe the result to judge of the visual quality of the denoising.
+The SNR is expressed in ``decibels'', denoted dB. This measure of performance requires the knowledge of the clean signal $f_0$, and should thus only be considered as an experimentation tool, that might not be available in a real-life denoising scenario where clean data are not available. Furthermore, the use of an $\ell^2$ measure of performance is questionable, and one should also observe the result to judge of the visual quality of the denoising.
 
 
 \myfigure{
@@ -107,7 +107,7 @@ The SNR is expressed in ``decibels'', denoted dB. This measure of performance re
 \image{denoising}{.32}{denoising-clean}&
 \image{denoising}{.32}{denoising-noisy}&
 \image{denoising}{.32}{denoising-denoised}\\
-$f_0$ & $f$ & $\tilde f$
+$f_0$ & $y$ & $\Dd(y)$
 }
 }{%
 	Left: clean image, center: noisy image, right: denoised image.%	
@@ -123,13 +123,14 @@ $f_0$ & $f$ & $\tilde f$
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Translation Invariant Estimators}
 
-A linear estimator $\Ee(f) = \tilde f$ of $f_0$ depends linearly on $f$, so that $\Ee(f+g) = \Ee(f)+\Ee(g)$.
-A translation invariant estimator commutes with translation, so that $\Ee(f_\tau) = \Ee(f)_\tau$, where $f_\tau(t) = f(t-\tau)$.
+A linear estimator $\Dd(Y) = \tilde f$ of $f_0$ depends linearly on $Y$, so that $\Dd(f+g) = \Dd(f)+\Dd(g)$.
+A translation invariant estimator commutes with translation, so that $\Dd(f_\tau) = \Dd(f)_\tau$, where $f_\tau(t) = f(t-\tau)$ (we assume periodic boundary conditions, say in 1-D or 2-D).
+%
 Such a denoiser can always be written as a filtering
 \eq{
-	\tilde f = f \star h
+	\Dd(f) = f \star h
 }
-where $h \in \RR^N$ is a (low pass) filter, that should satisfy at least 
+where $h \in \RR^N$ is a (low pass) filter. In practice, since the noise has zero mean, it satisfies 
 \eq{
 	\sum_n h_n = \hat h_0 = 1
 }
@@ -153,7 +154,7 @@ $f \star h$ & $\log(\hat f \cdot \hat h) = \log(\hat h) + \log(\hat h)$
 	Denoising by filtering over the spacial (left) and Fourier (right) domains.%	
 }{fig-filtering-denoised}
 
-The filtering strength is usually controlled the width $s$ of $h$. A typical example is the Gaussian filter
+The filtering strength is usually controlled the width $s$ of $h$. A typical example is the (discretized) Gaussian filter
 \eql{\label{eq-gaussian-filters}
 	\foralls -N/2 < i \leq N/2, \quad h_{s,i} = \frac{1}{Z_s} \exp\pa{ -\frac{ i^2 }{ 2s^2} }
 }
@@ -184,7 +185,7 @@ Figure \ref{fig-filtering-progression} shows the effect of low pass filtering on
 }{fig-filtering-progression}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Optimal Filter Selection}
+\subsection{Optimal Filter Selection and Bias-Variance Tradeoff}
 \label{subsec-optimal-selection-filter}
 
 The selection of an optimal filter is a difficult task. Its choice depends both on the regularity of the (unknown) data $f_0$ and the noise level $\si$. A simpler option is to optimize the filter width $s$ among a parametric family of filters, such as for instance the Gaussian filters defined in \eqref{eq-gaussian-filters}.
@@ -224,25 +225,85 @@ These optimal filtering appear quite noisy, and the optimal SNR choice is usuall
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Oracle denoiser}
+
+In order to select $h$, we will here ``cheat'' by assuming we have access to the ground trust $f_0$.
+%
+Recall we consider the noise model $Y = f_0 + \noise$, where $\noise$ is a Gaussian white noise, i.e., $\noise_k \sim \mathcal{N}(0, \sigma^2)$ and the $\noise_k$ are i.i.d. Here $f_0$ is the (a priori unknown) ground trust. We consider an orthogonal basis $(\psi_k)_k$, which is typically the Fourier basis. We consider a linear denoiser which is diagonal in this basis,
+\begin{equation}\label{eq:linear-denoiser}
+	\tilde{f} \coloneqq \sum_k \lambda_k \dotp{Y}{\psi_k} \, \psi_k.
+\end{equation}
+For the Fourier basis, this means $\tilde{f} = Y \star h$ where $\tilde{h} = \lambda$. Note that $\tilde{f}$ is a random vector.
+%
+Here we will ``cheat'' and assume access to $f_0$ to select $\lambda$, but we we still impose that $\tilde{f}$ is a linear function of $Y$ of the above form, so the problem is non-trivial and still quite informative (we cannot just use $\tilde f=f_0$). 
+
+Denoting $c_k \coloneqq \dotp{f_0}{\psi_k}$ (for the Fourier basis, $c=\hat f_0$), the expected risk of this denoiser is
+$$
+	\mathbb{E}_w \|\tilde{f} - f_0\|^2 = \sum_k \mathbb{E}_w \left| \dotp{\tilde{f} - f_0}{\psi_k} \right|^2  = \sum_k \mathbb{E}_w  \left| \lambda_k \left( c_k + \dotp{\noise}{\psi_k} \right) - c_k \right|^2 .
+$$
+One then uses the fact that since $(\psi_k)_k$ is an orthonormal basis, $\dotp{\noise}{\psi_k}$ is also a Gaussian white noise of variance $\sigma^2$. By expanding the square and using $\mathbb{E}(\dotp{\noise}{\psi_k}) = 0$, we obtain
+$$
+\mathbb{E}_w  \|\tilde{f} - f_0\|^2  = \sum_k  |c_k|^2 |\lambda_k - 1|^2 + |\lambda_k|^2 \sigma^2 .
+$$
+In practice, we do not know $c_k$. But if we assume we know it (in practice, one can make some rough assumptions about it), then the best possible denoising minimizes $\mathbb{E}_w \left( \|\tilde{f} - f_0\|^2 \right)$ with respect to $\lambda$, so that it solves for each $k$
+$$
+	\min_{\lambda_k} \left( |c_k|^2 |\lambda_k - 1|^2 + |\lambda_k|^2 \sigma^2 \right).
+$$
+The solution thus satisfies
+$$
+	|c_k|^2 (\lambda_k - 1) + \lambda_k \sigma^2 = 0,
+$$
+i.e.,
+$$
+	\lambda_k = \frac{|c_k|^2}{|c_k|^2 + \sigma^2} = \frac{1}{1 + \sigma^2 / |c_k|^2}.
+$$
+If $\sigma = 0$, one has $\lambda = 1$ (identity mapping). Assuming $|c_k|$ is decaying, as $\sigma$ increases, the coefficients are more and more concentrated near 0.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Wiener Filter}
 
-If one has a random model both for the noise $w \sim W$ and for for the signal $f_0 \sim F$, one can derives an optimal filters in average over both the noise and the signal realizations. One further assumes that $w$ and $f_0$ are independent realization.
+Here we will ``cheat'' a bit less and assume also a random model for the signal $f_0$ which we assume to know. 
+%
+If one has a random model both for the noise $w \sim W$ and for the signal $f_0 \sim F$, one can derives an optimal filters in average over both the noise and the signal realizations. One further assumes that $W$ and $F$ are independent.
+%
+We assume $\Dd$ has the form \eqref{eq:linear-denoiser}. 
+
+
 The optimal $h$ thus minimizes
 \eq{
-	\EE_{W,F}(\norm{h \star (F+W)-F}^2)
+	\mathbb{E}_{w,F}  \|\Dd(F+w) - F\|^2 
 }
-If both $F$ is wide-sense stationary, and $W$ is a Gaussian white noise of variance $\si^2$, then the optimal filer is known as the Wiener filter
+Since $W$ and $F$ are independent, the same computation as above caries over so that  
 \eq{
-	\hat h_\om = \frac{|\hat F_\om|^2}{|\hat F_\om|^2+\si^2}
+	\mathbb{E}_{w,F}  \|\Dd(F+w) - F\|^2   \sum_k  \alpha_k |\lambda_k - 1|^2 + |\lambda_k|^2 \sigma^2 
+	\quad\text{where}\quad
+	\alpha_k := \EE_{F} |\dotp{F}{\psi_k}|^2
 }
-where $|\hat F|^2$  is the power spectrum of $F$, 
-\eq{
-	\hat F_\om = \hat C_\om \qwhereq
-	C_n = \EE( \dotp{F}{F[\cdot+n]} ),
-}
-the Fourier transform of an infinite vector is defined in Section~\ref{sec-dft}.
+The optimal filter thus has coefficients
+\begin{equation}\label{eq:wiener}
+	\lambda_k = \frac{1}{1 + \sigma^2 / \alpha_k}.
+\end{equation}
+With respect to the oracle filter of the previous section, the coefficient $|c_k|^2$ is replaced by the so-called power spectrum of the distribution $\alpha_k>0$. 
+%
+This Filter is known as the Wiener filter. 
 
-In practice, one rarely has such a random model for the signal, and interesting signals are often not stationary. Most signals exhibit discontinuities, and are thus poorly restored with filtering.
+When $(\psi_k)_k$ is the discrete Fourier basis, then this reads
+$$
+	\alpha_k = \EE_F |\hat F_k|^2 = \EE_F \Ff( F \star F(-\cdot) )_k = \Ff( \EE( F \star F(-\cdot) ) ) = \hat \eta( F )
+$$
+where $\Ff(g)=\hat g$ is the Fourier transform where $F(-\cdot) = ( F_{-k} )$ is the reversed signal, which has Fourier transform $\hat F^*$ (complex conjugate). 
+%
+Here $\eta(F) \in \RR^N$ is the auto-correlation of the random vector $F$, 
+$$
+	\eta(F)_i := \EE( F \star F(-\cdot) )_i = \EE( \sum_k F_i F_{i+j} ).
+$$
+It measures the average correlation between pairs of coordinates separated by $j$. 
+
+We have assumed here that $\Dd$ is diagonal in $\psi_m$, having form \eqref{eq:linear-denoiser}. Alternatively, one can prove that if $F$ is stationary, i.e. its laws is translation invariance, i.e. the law of $F(\cdot-\tau)$ is equal to the law of $F$, then the Wiener filter~\eqref{eq:wiener} for the Fourier basis is optimal among all possible linear denoiser. 
+
+In practice, one can try to approximate $\alpha_k$ by $|\hat y_k|^2$ where $y$ is a single realization, but unfortunately, one can be shown that this estimation is very bad, especially for large frequencies $k$, which typically needs to be truncated. This is called ``empirical Wiener''. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -252,15 +313,18 @@ In order to study linear (and also non-linear, see the section below) denoising 
 %
 We thus consider an ortho-basis $\Bb = (\psi_m)_m$ of $\RR^N$, and consider a simple denoising obtained by keeping only the $M$ first term elements of the approximation of the noisy observation in $\Bb$
 \eql{\label{eq-ideal-linear-denoise}
-	\tilde f \eqdef \sum_{m=1}^M \dotp{f}{\psi_m} \psi_m.
+	\Dd(f) = \tilde f \eqdef \sum_{m=1}^M \dotp{f}{\psi_m} \psi_m.
 }
 This is a linear projection on the space spanned by $(\psi_m)_{m=1}^M$.
 %
 This denoising scheme is thus parameterized by some integer $M>0$, increasing $M$ increases the denoising strength. 
 %
 For instance, when $\Bb$ is the discrete Fourier basis, this corresponds to an ideal low-pass filter against a (discretized) Dirichlet kernel.
+%
+This corresponds to a special case of the linear denoiser considered in \eqref{eq:linear-denoiser} where the coefficients $\lambda_m$ are binary $\lambda_m \in \{0,1\}$. This simplification is still quite expressive (in particular, it can be shown that in the setup considered in~\eqref{thm-linear-denoising}, this type of filter is still almost optimal) while not necessitating a strong knowledge on the ground trust $f_0$ (in particular, we do not assume it is drawn from a random distribution $F$). 
 
-More advanced linear denoising operator can be designed by computing weighted average $\sum_{m} \la_m \dotp{f}{\psi_m} \psi_m$, and~\eqref{eq-ideal-linear-denoise} is retrieve when using binary weights $\al_n=1$ for $n \leq M$, and $\al_n=0$ otherwise. The asymptotic theoretical performances described by the following theorem are however not improved by using non-binary weights.
+Note also that we do here all the proof in finite dimension $N$, but all this construction and proof does not depend on $N$, so it works in infinite dimension (see below for more comments on this). 
+
 
 \begin{thm}\label{thm-linear-denoising}
 	We assume that $f_0 \in \RR^N$ has a linear approximation error decay that satisfies 
@@ -272,7 +336,7 @@ More advanced linear denoising operator can be designed by computing weighted av
 	} 
 	for some constant $C$. Then the linear denoising error using~\eqref{eq-ideal-linear-denoise} satisfies
 	\eq{
-		\EE(\norm{f_0 - \tilde f}^2) \leq 2 C^{\frac{1}{2\be+1}} \si^{2-\frac{1}{\be+1/2}}, 
+		\Dd(\norm{f_0 - \tilde f}^2) \leq 2 C^{\frac{1}{2\be+1}} \si^{2-\frac{1}{\be+1/2}}, 
 	}
 	when choosing 
 	\eql{\label{eq-lineardenoising-scale}
@@ -283,12 +347,12 @@ More advanced linear denoising operator can be designed by computing weighted av
 \begin{proof}
 	One has, thanks to the ortho-normality of $(\psi_m)_m$
 	\begin{align*}
-		\EE(\norm{f_0 - \tilde f}^2) &= 
-		\EE( \sum_m \dotp{f_0 - \tilde f}{\psi_m}^2 )
+		\Dd(\norm{f_0 - \tilde f}^2) &= 
+		\Dd( \sum_m \dotp{f_0 - \tilde f}{\psi_m}^2 )
 		= 
-		\EE( \sum_{m=1}^M \dotp{f_0 - f}{\psi_m}^2 + \sum_{m>M} \dotp{f_0 }{\psi_m}^2 ) \\
+		\Dd( \sum_{m=1}^M \dotp{f_0 - f}{\psi_m}^2 + \sum_{m>M} \dotp{f_0 }{\psi_m}^2 ) \\
 		&=
-		\EE\pa{\sum_{m=1}^M \dotp{w}{\psi_m}^2} + \sum_{m>M} \dotp{f_0}{\psi_m}^2
+		\Dd\pa{\sum_{m=1}^M \dotp{w}{\psi_m}^2} + \sum_{m>M} \dotp{f_0}{\psi_m}^2
 		= M \si^2 + \norm{f_0 - f_{0,M}^{\text{lin}}}^2 \\
 		&\leq M \si^2 + C M^{-2\be}.
 	\end{align*}
@@ -297,14 +361,14 @@ More advanced linear denoising operator can be designed by computing weighted av
 	Choosing $M$ such that $M \si^2 = C M^{-2\be}$, i.e. $M = C^{\frac{1}{2\be+1}} \si^{-\frac{2}{2\be+1}}$ leads 
 	to 
 	\eq{
-		\EE(\norm{f_0 - \tilde f}^2)  = 2 C M^{-2\be} = 2 C C^{-\frac{2\be}{2\be+1}} \si^{\frac{4\be}{2\be+1}}
+		\Dd(\norm{f_0 - \tilde f}^2)  = 2 C M^{-2\be} = 2 C C^{-\frac{2\be}{2\be+1}} \si^{\frac{4\be}{2\be+1}}
 		= 2 C^{\frac{1}{2\be+1}} \si^{2 - \frac{1}{\be+1/2}}.
 	}
 \end{proof}
 
 There are several important remark regarding this simple but important result:
 \begin{rs}
-	\item Thanks to the decay of the linear approximation error, the denoising error $\EE(\norm{f_0 - \tilde f}^2)$ is bounded \textit{independently} of the sampling size $N$, although the input noise level $\EE(\norm{w}^2)=N\si^2$ growth with $N$.
+	\item Thanks to the decay of the linear approximation error, the denoising error $\Dd(\norm{f_0 - \tilde f}^2)$ is bounded \textit{independently} of the sampling size $N$, although the input noise level $\Dd(\norm{w}^2)=N\si^2$ growth with $N$.
 	\item If the signal is well approximated linearly, i.e. if $\be$ is large, then the denoising error decays fast when the noise level $\si$ drops to zero. The upper bound approaches the optimal rate $\si^2$ by taking $\be$ large enough. 
 	\item This theory is finite dimensional, i.e. this computation makes only sense when introducing some discretization step $N$. This is natural because random noise vectors of finite energy are necessarily finite dimensional. For the choice~\eqref{eq-lineardenoising-scale} to be realizable, one should however have $M \leq N$, i.e. $N \geq C^{\frac{1}{2\be+1}} \si^{-\frac{2}{2\be+1}}$. Thus $N$ should increase when the noise diminish for the denoising effect to kick-in. 
 	\item Section~\ref{sec-linear-approx-error} bounds the linear approximation error for infinite dimensional signal and image model. This theory can be applied provided that the discretization error is smaller than the denoising error, i.e. once again, one should use $N$ large enough. 
@@ -501,7 +565,7 @@ $\tau_N$ is a random variable that depends on $N$. One can show that its mean is
 %%
 \paragraph{Asymptotic optimality.}
 
-Donoho and Jonhstone \cite{donoho-shrinkage} have shown that the universal threshold $T = \si \sqrt{2 \log(N)}$ is a good theoretical choice for the denoising of signals that are well approximated non-linearly in $\{\psi_m\}_m$.  The obtain denoising error decay rate with $\si$ can also be shown to be in some sense optimal. 
+Donoho and Jonhstone \cite{donoho-shrinkage}Â have shown that the universal threshold $T = \si \sqrt{2 \log(N)}$ is a good theoretical choice for the denoising of signals that are well approximated non-linearly in $\{\psi_m\}_m$.  The obtain denoising error decay rate with $\si$ can also be shown to be in some sense optimal. 
 
 
 \begin{thm}\label{thm-nonlinear-denoising}
@@ -516,7 +580,7 @@ Donoho and Jonhstone \cite{donoho-shrinkage} have shown that the universal thres
 	%
 	Then the non-linear denoising error using~\eqref{eq-ideal-linear-denoise} satisfies
 	\eq{
-		\EE(\norm{f_0 - \tilde f^q}^2) \leq C' \ln(N) \si^{2-\frac{1}{\be+1/2}}, 
+		\Dd(\norm{f_0 - \tilde f^q}^2) \leq C' \ln(N) \si^{2-\frac{1}{\be+1/2}}, 
 	}
 	for some constant $C'$, when choosing $T=\sqrt{2\ln(N)}$, where $\tilde f^q$ is defined in~\eqref{eq-hard-soft-thresh} for $q \in \{0,1\}$.
 \end{thm}
@@ -859,7 +923,7 @@ and thus varies from pixel to pixel. Figure \ref{fig-poisson-distrib} shows exam
 
 One has 
 \eq{
-	\EE(f_n)=\la=f_{0,n}
+	\Dd(f_n)=\la=f_{0,n}
 	\qandq
 	\text{Var}(f_n)=\la=f_{0,n}
 }
@@ -937,10 +1001,10 @@ A multiplicative noise model assumes that
 \eq{
 	f_n = f_{0,n} w_n
 }
-where $w$ is a realization of a random vector with  $\EE(w)=1$.
+where $w$ is a realization of a random vector with  $\Dd(w)=1$.
 Once again, the noise level depends on the pixel value
 \eq{
-	\EE(f_n) = f_{0,n}
+	\Dd(f_n) = f_{0,n}
 	\qandq
 	\text{Var}(f_n) = f_{0,n}^2 \si^2 
 	\qwhereq 

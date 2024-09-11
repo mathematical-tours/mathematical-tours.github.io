@@ -1657,7 +1657,7 @@ Burgers' equation is the prototypical non-linear advection/diffusion equation, w
 
 10/02/2024
 412-legendre-leastsquare.m4v
-Oldies but goldies: A. Legendre, Nouvelles méthodes pour la détermination des orbites des comètes, 1805. First publication of the least square method, before Gauss according to French people … https://projecteuclid.org/download/pdf_1/euclid.aos/1176345451 
+Oldies but goldies: A. Legendre, Nouvelles methodes pour la determination des orbites des comètes, 1805. First publication of the least square method, before Gauss according to French people … https://projecteuclid.org/download/pdf_1/euclid.aos/1176345451 
 
 11/02/2024
 413-cumulative-max.m4v
@@ -1736,7 +1736,7 @@ Fourier approximation creates Gibbs ringing artifacts. https://en.wikipedia.org/
 
 01/03/2024
 432-tsne.m4v
-Oldies but goldies: L. J. P. van der Maaten and G.E. Hinton, Visualizing High-Dimensional Data Using t-SNE, 2008. t-SNE improves over SNE by replacing Gaussians by student’s t-distributions in the low dimensional space. https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding
+Oldies but goldies: L. J. P. van der Maaten and G.E. Hinton, Visualizing High-Dimensional Data Using t-SNE, 2008. t-SNE improves over SNE by replacing Gaussians by student's t-distributions in the low dimensional space. https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding
 
 02/03/2024
 433-sobol.m4v
@@ -1788,7 +1788,7 @@ Oldies but Goldies: D'Arcy Thompson, On Growth and Form, 1917. One of the founda
 
 14/03/2024
 445-nesterov.png
-Gradient descent is consistent with a first-order ODE. Nesterov’s acceleration is consistent with a second-order ODE. Nesterov is faster in the worst case but gradient is better for strongly convex functions. https://arxiv.org/abs/1503.01243
+Gradient descent is consistent with a first-order ODE. Nesterov's acceleration is consistent with a second-order ODE. Nesterov is faster in the worst case but gradient is better for strongly convex functions. https://arxiv.org/abs/1503.01243
 
 15/03/2024
 446-ssim.png
@@ -1908,7 +1908,7 @@ Oldies but goldies: O. Perron, Zur Theorie der Matrices, 1907. Perron-Frobenius 
 
 13/04/2024
 475-sbm.m4v
-The stochastic block model is the simplest random graph with communities having high interconnectivities. Erdős-Rényi model corresponds to a single community. https://en.wikipedia.org/wiki/Stochastic_block_model https://en.wikipedia.org/wiki/Erd%C5%91s%E2%80%93R%C3%A9nyi_model http://www.stat.cmu.edu/~brian/780/bibliography/04%20Blockmodels/Holland%20-%201983%20-%20Stochastic%20blockmodels,%20first%20steps.pdf 
+The stochastic block model is the simplest random graph with communities having high interconnectivities. Erdős-Renyi model corresponds to a single community. https://en.wikipedia.org/wiki/Stochastic_block_model https://en.wikipedia.org/wiki/Erd%C5%91s%E2%80%93R%C3%A9nyi_model http://www.stat.cmu.edu/~brian/780/bibliography/04%20Blockmodels/Holland%20-%201983%20-%20Stochastic%20blockmodels,%20first%20steps.pdf 
 
 14/04/2024
 476-von-neumann.png
@@ -1964,7 +1964,7 @@ Oldies but goldies: Yann Brenier, Polar factorization and monotone rearrangement
 
 27/04/2024
 489-fisher-metric.png
-The Fisher metric defines the unique Riemannian structure of parametric densities invariant by re-parameterization. For 1D Gaussians, corresponds to the Poincaré hyperbolic half plane. https://en.wikipedia.org/wiki/Fisher_information_metric
+The Fisher metric defines the unique Riemannian structure of parametric densities invariant by re-parameterization. For 1D Gaussians, corresponds to the Poincare hyperbolic half plane. https://en.wikipedia.org/wiki/Fisher_information_metric
 
 28/04/2024
 490-berry.png
@@ -1980,7 +1980,7 @@ Oldies but goldies: Eugene Wigner, Characteristic Vectors of Bordered Matrices w
 
 01/05/2024
 493-fast-marching.png
-The Fast Marching algorithm of Sethian is a far-reaching generalization of Dijkstra’s algorithm. Computes the geodesic distance in O(n*log(n)) operation. Equivalently solves the non-linear Eikonal equation in a non-iterative way by front propagation. https://en.wikipedia.org/wiki/Fast_marching_method http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/python/fastmarching_0_implementing.ipynb 
+The Fast Marching algorithm of Sethian is a far-reaching generalization of Dijkstra's algorithm. Computes the geodesic distance in O(n*log(n)) operation. Equivalently solves the non-linear Eikonal equation in a non-iterative way by front propagation. https://en.wikipedia.org/wiki/Fast_marching_method http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/python/fastmarching_0_implementing.ipynb 
 
 02/05/2024
 494-ot-kanto.png
@@ -2004,9 +2004,809 @@ Oldies but goldies: I.M. Sobol, Distribution of points in a cube and approximate
 
 07/05/2024
 499-tsne.m4v
-SNE and t-SNE perform dimensionality reduction by minimizing relative entropy (KL) between high and low dimensional spaces. t-SNE improves over SNE by replacing Gaussians with students’ t-distributions in the low dimensional space. https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding
+SNE and t-SNE perform dimensionality reduction by minimizing relative entropy (KL) between high and low dimensional spaces. t-SNE improves over SNE by replacing Gaussians with students' t-distributions in the low dimensional space. https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding
 
 08/05/2024
 500-qr-algo.m4v
 Oldies but goldies: A. S. Householder, Unitary Triangularization of a Nonsymmetric Matrix, 1958. Introduces a numerically stable way to compute the QR factorization of a matrix.  https://en.wikipedia.org/wiki/Householder_transformation
+
+09/05/2024
+501-flow-integral.m4v
+Integral curves of a vector field join stationary points of the field. They segment the space in cells of the Morse-Smale complex, corresponding to common pairs of stationary points. https://en.wikipedia.org/wiki/Integral_curve https://en.wikipedia.org/wiki/Morse%E2%80%93Smale_system
+
+10/05/2024
+502-random-graphs.png
+Oldies but goldies: Paul Erdős, Alfred Renyi, On Random Graphs, 1959. Defines the basic model for random graphs and studies some of its properties. https://en.wikipedia.org/wiki/Erd%C5%91s%E2%80%93R%C3%A9nyi_model
+
+11/05/2024
+503-gaussian-process.m4v
+Stationary Gaussian fields are characterized by their power spectrum. Parametric spectra (e.g., Gabor) define procedural texture noises which are used in computer graphics. https://en.wikipedia.org/wiki/Gaussian_random_field http://graphics.cs.kuleuven.be/publications/GLLD12GNBE/
+
+12/05/2024
+504-robins-monro.m4v
+Oldies but goldies: H Robbins, S Monro, A Stochastic Approximation Method, 1951. Early appearance of the stochastic gradient method, which is the workhorse of many large-scale ML methods. https://en.wikipedia.org/wiki/Stochastic_gradient_descent https://en.wikipedia.org/wiki/Stochastic_approximation
+
+13/05/2024
+505-monge-kanto.png
+Monge and Kantorovitch Optimal Transport are equivalent when the measures are supported on the same number of points. https://en.wikipedia.org/wiki/Assignment_problem https://en.wikipedia.org/wiki/Doubly_stochastic_matrix#Birkhoff_polytope_and_Birkhoff%E2%80%93von_Neumann_theorem
+
+14/05/2024
+506-gromov-hausdorff.png
+Oldies but goldies: Mikhail Gromov, Groups of Polynomial Growth and Expanding Maps, 1981. Defines a distance in the space of metric spaces. Allows one to study the convergence of spaces. https://en.wikipedia.org/wiki/Gromov%E2%80%93Hausdorff_convergence 
+
+15/05/2024
+507-hilbert-curve.m4v
+Hilbert space-filling curve defines a continuous map from a segment to a square through an iterative refinement process. Often used to store and traverse 2D arrays. https://en.wikipedia.org/wiki/Space-filling_curve https://en.wikipedia.org/wiki/Hilbert_curve
+
+16/05/2024
+508-fourier-memoire.m4v
+Oldies but goldies: Joseph Fourier, Theorie analytique de la chaleur, 1822. Introduces sines and cosines series as an approximation method and derives the heat equation PDE. https://en.wikipedia.org/wiki/Joseph_Fourier
+
+17/05/2024
+509-douglas-rachford.m4v
+The Douglas-Rachford algorithm (the dual of ADMM) computes the projection on the intersection of two convex sets. But it also works well in the non-convex case! http://epubs.siam.org/doi/abs/10.1137/0716071 https://regularize.wordpress.com/2017/02/24/the-origin-of-the-douglas-rachford-iteration/
+
+18/05/2024
+510-de-boor.m4v
+Oldies but goldies: Carl de Boor, On calculating with B-splines, 1971. Introduced (with Cox) an efficient algorithm for evaluating B-splines, which revolutionized Computer Aided Geometric Design. https://en.wikipedia.org/wiki/De_Boor%27s_algorithm
+
+19/05/2024
+511-structure-tensor.png
+The structure tensor is the local covariance matrix field of the gradient vector field. It encodes the local anisotropy of an image. At the heart of anisotropic filtering and corner detection. https://en.wikipedia.org/wiki/Structure_tensor
+
+20/05/2024
+512-monge-memoire.m4v
+Oldies but goldies: Gaspard Monge, Memoire sur la theorie des deblais et des remblais, 1776. Defines the optimal transport problem as an optimization over a set of maps. Intractable both in theory and practice before its reformulation by Kantorovitch in 1942 and its resolution by Yann Brenier in 1991. https://en.wikipedia.org/wiki/Gaspard_Monge https://en.wikipedia.org/wiki/Transportation_theory_(mathematics)
+
+21/05/2024
+513-distance-function.m4v
+The distance function defines an offset of shapes and curves. Its singularities define the medial axis. https://en.wikipedia.org/wiki/Signed_distance_function https://en.wikipedia.org/wiki/Distance_transform
+
+22/05/2024
+514-danzig.png
+Oldies but goldies: George Dantzig, Origins of the simplex method, 1987. Dantzig invented the simplex in 1947, and it remains one of the workhorses of linear programming, used in countless applications. https://en.wikipedia.org/wiki/Simplex_algorithm https://en.wikipedia.org/wiki/George_Dantzig
+
+23/05/2024
+515-co-area.png
+The co-area formula is the most fundamental tool of geometric measure theory. It expresses the Total Variation semi-norm as the total perimeters of level sets. Enables the computation of TV for non-smooth functions. https://en.wikipedia.org/wiki/Coarea_formula https://en.wikipedia.org/wiki/Geometric_measure_theory
+
+24/05/2024
+516-mar-pastur.png
+Oldies but goldies: Vladimir Marchenko and Leonid Pastur, Distribution of eigenvalues for some sets of random matrices, 1967. Describes the asymptotic behavior of singular values of large rectangular random matrices. https://en.wikipedia.org/wiki/Marchenko%E2%80%93Pastur_distribution
+
+25/05/2024
+517-grad-desc.png
+Strong convexity and smoothness are the two key hypotheses to make optimization well-posed and obtain a linear rate of descent schemes. They define upper and lower bounding quadratic approximants. Generalizes the notion of condition number of linear systems. https://en.wikipedia.org/wiki/Condition_number
+
+26/05/2024
+518-rudin-osher-fatemi.m4v
+Oldies but goldies: L Rudin, S Osher, E Fatemi, Nonlinear total variation based noise removal algorithms, 1992. Introduced total variation as an edge-preserving regularizer. Initiated lots of research on variational and PDE methods in imaging. https://en.wikipedia.org/wiki/Total_variation_denoising
+
+27/05/2024
+519-metropolis-hastings.m4v
+Markov chain Monte Carlo methods are used to sample from a Gibbs distribution without knowing the normalizing constant. As the temperature epsilon gets small, samples cluster close to minimizers. Metropolis-Hastings is the simplest provably converging Markov Chain. https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo
+
+28/05/2024
+520-turing-morpho.m4v
+Oldies but goldies: Alan Turing, The Chemical Basis of Morphogenesis, 1952. Showed that reaction-diffusion generates complex patterns and can serve as mathematical models for biological processes. https://en.wikipedia.org/wiki/The_Chemical_Basis_of_Morphogenesis  http://www.dna.caltech.edu/courses/cs191/paperscs191/turing.pdf
+
+29/05/2024
+521-convnets.png
+Convolutional neural networks are shift-invariant representations obtained by iterating convolutions and pointwise non-linearities. Introduced by LeCun in the 80s and used everywhere for computer vision nowadays. https://en.wikipedia.org/wiki/Convolutional_neural_network
+
+30/05/2024
+522-autodiff.png
+Oldies but goldies: S. Linnainmaa, The representation of the cumulative rounding error of an algorithm as a Taylor expansion of the local rounding errors, 1970. Often credited as the first appearance of reverse mode automatic differentiation, which is at the heart of many recent successes in machine learning. https://en.wikipedia.org/wiki/Seppo_Linnainmaa http://people.idsia.ch/~juergen/linnainmaa1970thesis.pdf
+
+31/05/2024
+523-grad-flows.m4v
+The gradient field defines the steepest descent direction. The gradient flow dynamic defines a segmentation of the space into attraction basins of the local minimizers. https://en.wikipedia.org/wiki/Gradient https://en.wikipedia.org/wiki/Gradient_descent
+
+01/06/2024
+524-bayes-formula.m4v
+Oldies but goldies: Thomas Bayes, An Essay towards solving a Problem in the Doctrine of Chances, 1763. Bayes's formula relates the posterior distribution to the likelihood distribution. It is the theorem of conditional distributions. https://en.wikipedia.org/wiki/An_Essay_towards_solving_a_Problem_in_the_Doctrine_of_Chances
+
+02/06/2024
+525-cont-fractions.png
+The continued fraction approximation of pi at order 4 gives the surprisingly accurate approximation 355/113. Better approximations require a much larger denominator. https://oeis.org/A001203 https://en.wikipedia.org/wiki/Mil%C3%BC
+
+03/06/2024
+526-laplace.png
+Oldies but goldies: P-S. de Laplace , Sur les naissances, les mariages et les morts à Paris, depuis 1771 jusqu'en 1784, 1786. The first use of Bayesian inference to certify that the ratio of boy/girl births was not p=1/2, assuming a uniform prior on p. https://gallica.bnf.fr/ark:/12148/bpt6k77599c/f40
+
+04/06/2024
+527-cepstrum.png
+The cepstrum of a time series is the inverse Fourier transform of the log of the Fourier transform. Used to detect fundamental frequency in sound processing and is a useful feature for audio signal discrimination. https://en.wikipedia.org/wiki/Cepstrum https://www.johndcook.com/blog/2016/05/18/cepstrum-quefrency-and-pitch/
+
+05/06/2024
+528-focuss.m4v
+Oldies but goldies: I.F. Gorodnitsky, B.D. Rao, Sparse signal reconstruction from limited data using FOCUSS: a re-weighted minimum norm algorithm, 1997. Uses IRLS to solve sparse signal recovery problems. https://francisbach.com/the-%CE%B7-trick-or-the-effectiveness-of-reweighted-least-squares/
+
+06/06/2024
+529-barycoord.m4v
+Barycentric coordinates are uniquely defined in triangles, but there are many definitions for general polygons. Useful to perform shape warping by manipulating the vertices of a cage. https://en.wikipedia.org/wiki/Barycentric_coordinate_system http://www.inf.usi.ch/hormann/barycentric/
+
+07/06/2024
+530-rosenblatt.m4v
+Oldies but goldies: Frank Rosenblatt, The Perceptron-a perceiving and recognizing automaton, 1957. The first appearance of a neural network (single layer), later generalized to multiple layers. https://en.wikipedia.org/wiki/Perceptron
+
+08/06/2024
+531-diffeo.m4v
+Integrating a flow field defines a diffeomorphism (warping) of the space. Smooth vector fields are, in some sense, the tangent space of diffeomorphisms. Used in the LDDMM method in computational anatomy. https://en.wikipedia.org/wiki/Diffeomorphism https://en.wikipedia.org/wiki/Flow_(mathematics)#Autonomous_systems_of_ordinary_differential_equations https://en.wikipedia.org/wiki/Large_deformation_diffeomorphic_metric_mapping
+
+09/06/2024
+532-haar.png
+Oldies but goldies: Alfred Haar, Zur Theorie der orthogonalen Funktionensysteme, 1910. The first wavelet transform. Later generalized by Ingrid Daubechies. https://en.wikipedia.org/wiki/Haar_wavelet
+
+10/06/2024
+533-normal-maps.m4v
+Normal mapping (aka bump mapping) computes pixel values using an empirical model of illumination. https://en.wikipedia.org/wiki/Normal_mapping https://en.wikipedia.org/wiki/Bump_mapping
+
+11/06/2024
+534-jko.m4v
+Oldies but goldies: Richard Jordan, David Kinderlehrer, Felix Otto, The Variational Formulation of the Fokker-Planck Equation. Showed that the heat equation is the Optimal Transport flow (i.e., the flow of particle systems) minimizing the Shannon-Boltzmann entropy. More general entropies lead to non-linear PDEs. Opened a whole field of research. https://www-dimat.unipv.it/savare/Ravello2010/JKO.pdf
+
+12/06/2024
+535-monte-carlo.m4v
+Monte Carlo integration approximates integrals at a rate of 1/sqrt(n), independent of the dimension. https://en.wikipedia.org/wiki/Monte_Carlo_integration
+
+13/06/2024
+536-qr.m4v
+Oldies but goldies: John G. F. Francis, The QR Transformation, 1961. Vera Kublanovskaya, On some algorithms for the solution of the complete eigenvalue problem, 1963. The QR algorithm is the algorithm of choice to compute all the eigenvalues of a dense matrix.
+
+14/06/2024
+537-push-forward.png
+The push-forward operator is a linear map between measures that operates by displacement of the support of the points. It defines the image-measure. Corresponds to the composition of a random vector by a function, and to the change of variable formula of integration. https://en.wikipedia.org/wiki/Pushforward_measure
+
+15/06/2024
+538-fft.png
+Oldies but goldies: Cooley, James W.; Tukey, John W., An algorithm for the machine calculation of complex Fourier series, 1965. Showed how to compute the discrete Fourier transform in n*log(n) operations. Used (almost) everywhere. https://en.wikipedia.org/wiki/Fast_Fourier_transform
+
+16/06/2024
+539-strassen.png
+Strassen algorithm reduces the complexity of matrix multiplication in terms of the number of multiplications. https://en.wikipedia.org/wiki/Strassen_algorithm
+
+17/06/2024
+540-lifting-scheme.png
+Oldies but goldies: Wim Sweldens, The lifting scheme: A construction of second generation wavelets, 1998. Showed how to define wavelet transform through a series of simple invertible interpolation and prediction operations. Useful to accelerate the computations and apply these transforms to irregular domains, integer values, and optical flow in videos. https://en.wikipedia.org/wiki/Second-generation_wavelet_transform
+
+18/06/2024
+541-logistic-classif.png
+Logistic regression defines fuzzy classification boundaries using the softmax operator. At the heart of many supervised learning classification approaches. Introduced by David Cox in 1956. https://en.wikipedia.org/wiki/Logistic_regression http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/python/ml_3_classification.ipynb
+
+19/06/2024
+542-stam-fluid.m4v
+Oldies but goldies: Jos Stam, Stable fluids, 1999. One of the most influential papers in PDEs for graphics. Made computational fluid dynamics accessible to (almost) anyone. https://en.wikipedia.org/wiki/Jos_Stam http://www.dgp.toronto.edu/people/stam/reality/Research/pdf/ns.pdf
+
+20/06/2024
+543-logdet.m4v
+The determinant is a log-concave function. Determining the Loewner enclosing ellipsoid with minimum volume can be solved using a convex optimization problem under semi-definite constraints. https://en.wikipedia.org/wiki/John_ellipsoid
+
+21/06/2024
+544-tutte.m4v
+Oldies but goldies: William Thomas Tutte, How to draw a graph, 1963. Shows how to embed a planar graph in 2-D by solving a Laplacian linear system. Heavily used in mesh processing to compute surface parameterization. https://en.wikipedia.org/wiki/Tutte_embedding http://www.cs.jhu.edu/~misha/Fall07/Papers/Tutte63.pdf
+
+22/06/2024
+545-marching-cubes.m4v
+Marching Cubes is the standard algorithm to extract an isosurface from a voxelized volume. https://en.wikipedia.org/wiki/Marching_cubes
+
+23/06/2024
+546-viscosity-solutions.png
+Oldies but goldies: M Crandall, P-L Lions, Viscosity solutions of Hamilton-Jacobi equations, 1983. Defines a notion of weak solution for a class of first-order PDEs including the Eikonal equation to compute geodesic distances. https://en.wikipedia.org/wiki/Viscosity_solution
+
+24/06/2024
+547-cucker-smale.m4v
+The Cucker-Smale system of ODEs is the simplest model of particles exhibiting flocking behaviors. Diffusion of speeds is governed by a Laplacian on the fully connected graph of points. https://mantiq.fr/img/cucker06.pdf https://en.wikipedia.org/wiki/Flocking_(behavior)
+
+25/06/2024
+548-lasso.m4v
+Oldies but goldies: Tibshirani, Robert, Regression Shrinkage and Selection via the lasso, 1996. Introduces l1 regularization as a method for high-dimensional regression. https://en.wikipedia.org/wiki/Lasso_(statistics)
+
+26/06/2024
+549-sketching.m4v
+Kernel methods can be accelerated using random projections to perform a low-rank approximation of the kernel. For translation-invariant kernels, one can use Fourier projections.
+
+27/06/2024
+550-beckmann.png
+Oldies but goldies: M. J. Beckmann, A continuous model of transportation, 1952. Introduces a linear program model for congestion which is a dual formulation of W1 optimal transport.https://en.wikipedia.org/wiki/Minimum-cost_flow_problem
+
+28/06/2024
+551-laplacian-eigenmaps.m4v
+Laplacian eigenmaps perform non-linear dimensionality reduction ("manifold learning") by embedding data points using the eigenvectors of a graph Laplacian as coordinates. https://en.wikipedia.org/wiki/Nonlinear_dimensionality_reduction
+
+29/06/2024
+552-dbscan.m4v
+Oldies but goldies: M Ester, H-P Kriegel, J Sander, X Xu, A density-based algorithm for discovering clusters in large spatial databases with noise, 1996. DBSCAN is a popular greedy clustering algorithm that identifies connected components of a set of "core" points. https://en.wikipedia.org/wiki/DBSCAN
+
+30/06/2024
+553-nelder-mead.m4v
+Nelder-Mead is a popular derivative-free optimization method that performs a heuristic greedy search. https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method
+
+01/07/2024
+554-sne.m4v
+Oldies but goldies: S. Roweis, G. Hinton, Stochastic neighbor embedding, 2002. SNE performs dimensionality reduction by minimizing relative entropy (KL) between high and low dimensional spaces. https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding
+
+02/07/2024
+555-heat-surface.m4v
+The heat equation can be applied to diffuse a function on a surface, but it can also be applied to evolve the surface itself. https://en.wikipedia.org/wiki/Laplace%E2%80%93Beltrami_operator https://en.wikipedia.org/wiki/Ricci_flow
+
+03/07/2024
+556a-modelization-1.m4v
+Mathematical modeling: part 1/2.
+
+04/07/2024
+557-cucker-smale.m4v
+Oldies but goldies: Felipe Cucker, Steve Smale, The Mathematics of Emergence, 2007. Defines a simple model of particles exhibiting flocking behaviors. Diffusion of speeds is governed by a Laplacian on the fully connected graph of points. https://en.wikipedia.org/wiki/Flocking_(behavior)
+
+05/07/2024
+558-alpha-shapes.m4v
+Alpha-shapes are a multiscale family of simplicial complexes included in the Delaunay triangulation, which generalize the convex hull and are useful for topological data analysis and shape reconstruction. https://en.wikipedia.org/wiki/Alpha_shape
+
+06/07/2024
+559-lloyd.m4v
+Lloyd's algorithm is the continuous counterpart of k-means. Optimizes the optimal quantization energy. https://en.wikipedia.org/wiki/Lloyd%27s_algorithm https://en.wikipedia.org/wiki/Vector_quantization
+
+07/07/2024
+560-loop-subdiv.png
+Oldies but goldies: Charles Loop, Smooth Subdivision Surfaces Based on Triangles, 1987. One of the most popular triangular subdivision methods. https://en.wikipedia.org/wiki/Loop_subdivision_surface
+
+08/07/2024
+561-matrix-factor.m4v
+Matrix decompositions come in many flavors! https://en.wikipedia.org/wiki/Matrix_decomposition
+
+09/07/2024
+562-dct-strang.png
+Oldies but goldies: Gilbert Strang, The Discrete Cosine Transform, 1999. Reviews the various DCTs in a unifying way as diagonalization of certain sparse matrices. https://en.wikipedia.org/wiki/Discrete_cosine_transform
+
+10/07/2024
+563-mean-val-coords.png
+Mean value coordinates extend usual barycentric coordinates to arbitrary polygons, including non-convex ones! Defined by Michael Floater in 2003. https://www.sciencedirect.com/science/article/pii/S0167839603000025 
+
+11/07/2024
+564-mumford-shah.png
+Oldies but goldies: David Mumford, Jayant Shah, Optimal Approximations by Piecewise Smooth Functions and Associated Variational Problems, 1989. Formulates image segmentation as a (difficult to solve) variational problem. https://en.wikipedia.org/wiki/Mumford%E2%80%93Shah_functional
+
+12/07/2024
+565-levelsets.png
+The level set method by [Osher and Sethian, 1988] performs curves and surface evolution by embedding them as the zero level set of a function. Simple and powerful to deal with topological changes (creation of holes, fusion of components). https://en.wikipedia.org/wiki/Level-set_method
+
+13/07/2024
+566-icp-algo.m4v
+Oldies but goldies: P. Besl and N.D. McKay, A Method for Registration of 3-D Shapes, 1992. Introduced (with Chen and Medioni) the Iterative Closest Point method for registration. https://en.wikipedia.org/wiki/Iterative_closest_point
+
+14/07/2024
+567-minkowski.m4v
+The Minkowski sum is commutative, associative, and distributive with respect to union. Defines an interpolation between sets. https://en.wikipedia.org/wiki/Minkowski_addition
+
+15/07/2024
+568-moreau-decomp.png
+Oldies but goldies: J-J Moreau, Proximite et dualite dans un espace hilbertien, 1965. Moreau's decomposition generalizes orthogonal decomposition from linear spaces to convex cones. https://en.wikipedia.org/wiki/Proximal_operator https://en.wikipedia.org/wiki/Jean-Jacques_Moreau
+
+16/07/2024
+569-sunflowers.m4v
+Sunflower patterns are obtained using a Fermat spiral with a golden angle spacing. https://en.wikipedia.org/wiki/Fermat%27s_spiral https://www.irishtimes.com/news/science/the-efficient-use-of-space-behind-ibec-s-sunflower-style-logo-1.1820736
+
+17/07/2024
+570-subdiv-interp.m4v
+Oldies but goldies: Nira Dyn, David Levin, John A. Gregory, A 4-point interpolatory subdivision scheme for curve design, 1987. The most popular interpolating curve subdivision scheme.
+
+18/07/2024
+571-fast-marching.m4v
+The Fast Marching algorithms perform a front propagation on the surface. It solves in a single pass the Eikonal equation and thus computes the geodesic distance to the starting points. https://en.wikipedia.org/wiki/Geodesic https://math.berkeley.edu/~sethian/
+
+19/07/2024
+572-progressive-meshes.m4v
+Oldies but goldies: Hugues Hoppe, Progressive meshes, 1996. One of the most popular mesh simplification techniques, based on local edge collapse modifications. https://en.wikipedia.org/wiki/Progressive_meshes
+
+20/07/2024
+573-delaunay-refinement.png
+Delaunay refinement aka Ruppert's and Chew's algorithms, introduced by Paul Chew in 1993 and Jim Ruppert in 1995. Farthest-point sampling using a constrained Delaunay triangulation. Some care is needed on the boundary. https://en.wikipedia.org/wiki/Ruppert%27s_algorithm https://en.wikipedia.org/wiki/Chew%27s_second_algorithm
+
+21/07/2024
+574-shepard-interp.m4v
+Oldies but goldies: Shepard, Donald, A two-dimensional interpolation function for irregularly-spaced data, 1968. A popular interpolation method based on radial basis functions. https://en.wikipedia.org/wiki/Inverse_distance_weighting
+
+22/07/2024
+575-dist-function.m4v
+The distance function is smooth away from the medial axis (aka the skeleton). https://en.wikipedia.org/wiki/Signed_distance_function https://en.wikipedia.org/wiki/Medial_axis https://en.wikipedia.org/wiki/Topological_skeleton
+
+23/07/2024
+576-viola-jones.png
+Oldies but goldies: P. Viola, M. Jones, Rapid Object Detection using a Boosted Cascade of Simple Features, 2001. One of the first successful methods for object (and in particular) face detection, combining Haar wavelets and AdaBoost. https://en.wikipedia.org/wiki/Viola%E2%80%93Jones_object_detection_framework
+
+24/07/2024
+577-gears.m4v
+Non-circular gears are ubiquitous and generate non-constant rotation speeds. The movement of the second gear is obtained from the first one from the no-slip condition, after solving for the distance D. https://en.wikipedia.org/wiki/Non-circular_gear
+
+25/07/2024
+578-mipmapping.png
+Oldies but goldies: Lance Williams, Pyramidal parametrics, 1983. Introduces the idea of mipmapping to reduce aliasing for 3D textured rendering. https://en.wikipedia.org/wiki/Mipmap
+
+26/07/2024
+579-grad-div-2d.png
+The divergence (both continuous and discrete) is (minus) the adjoint of the gradient (this is integration by part). Together with the Laplacian, they form the workhorses of many PDE and variational processing methods. http://nbviewer.ipython.org/github/gpeyre/numerical-tours/blob/master/python/segmentation_1_edge_detection.ipynb https://en.wikipedia.org/wiki/Finite_difference
+
+27/07/2024
+580-fastmarching.m4v
+Oldies but goldies: James Sethian, A Fast Marching Level Set Method for Monotonically Advancing Fronts, 1996. Proposes an n*log(n) algorithm to compute the geodesic distance discretized on a grid by modifying Dijkstra's algorithm. http://www.pnas.org/content/pnas/93/4/1591.full.pdf
+
+28/07/2024
+581-de-casterljau.png
+De Casteljau's algorithm defines a subdivision's algorithm to evaluate Bezier's curves. It revolutionised computer-aided geometric design. https://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm https://en.wikipedia.org/wiki/B%C3%A9zier_curve
+
+29/07/2024
+582-julia-set.m4v
+Oldies but goldies: Gaston Julia, Memoire sur l'iteration des fonctions rationnelles, 1918. Julia sets are attraction basins of iterated complex maps. The best-known example is quadratic polynomials. https://en.wikipedia.org/wiki/Julia_set http://sites.mathdoc.fr/JMPA/PDF/JMPA_1918_8_1_A2_0.pdf
+
+30/07/2024
+583-zonohedra.png
+Zonohedra are images of the l^inf ball by linear map while symmetric polyhedra are images of the l1 ball. Zonoids are the limits of zonohedra. https://en.wikipedia.org/wiki/Zonohedron
+
+31/07/2024
+584-lloyd.m4v
+Oldies but goldies: Stuart Lloyd, Least squares quantization in PCM, 1982. Continuous counterpart of k-means. Optimizes the optimal quantization energy, which is an optimal transport distance to free Dirac masses. https://en.wikipedia.org/wiki/Lloyd%27s_algorithm https://en.wikipedia.org/wiki/Vector_quantization
+
+01/08/2024
+585-multipole.m4v
+Large-scale N-body simulations require the evaluation of sums involving long-range interaction kernels. Fast multipoles and Barnes–Hut methods approximate these sums in n*log(n) operations instead of n^2. https://en.wikipedia.org/wiki/N-body_simulation
+
+02/08/2024
+586-spectral-mesh-compression.png
+Oldies but goldies: Zachi Karni, Craig Gotsman, Spectral Compression of Mesh Geometry, 2000. Introduces the idea of doing 3D surface compression using Fourier-like atoms defined as the eigenvectors of the combinatorial Laplacian. http://www.cs.technion.ac.il/~gotsman/AmendedPubl/SpectralCompression/SpectralCompression.pdf
+
+03/08/2024
+587-hypotrochoids.m4v
+Hypotrochoids are curves obtained by rolling a circle inside another one, as in a spirograph. Ellipses are a special case. https://en.wikipedia.org/wiki/Hypotrochoid
+
+04/08/2024
+588-power-iterations.m4v
+Oldies but goldies: Richard von Mises and Hilda Geiringer, Praktische Verfahren der Gleichungsauflösung, 1929. Introduces the power iterations, which converge to the leading eigenvector of a matrix. https://en.wikipedia.org/wiki/Power_iteration
+
+05/08/2024
+589-natural-neighbors.png
+Natural neighbor interpolation (Robin Sibson) is a generalization of piecewise linear interpolation to higher dimensions. https://en.wikipedia.org/wiki/Natural_neighbor_interpolation https://en.wikipedia.org/wiki/Robin_Sibson
+
+06/08/2024
+590-verlet.m4v
+Oldies but goldies: Loup Verlet, Computer Experiments on Classical Fluids. I. Thermodynamical Properties of Lennard−Jones Molecules, 1967. Introduces the simplest scheme to integrate in time second order ODEs (such as Newton's law of motion). https://en.wikipedia.org/wiki/Verlet_integration
+
+07/08/2024
+591-ortho-least-squares.m4v
+The Kabsch-Nadas formula solves in closed form the orthogonal least square problem (aka orthogonal Procrustes). At the heart of the iterative closest point method for registration. https://en.wikipedia.org/wiki/Orthogonal_Procrustes_problem https://en.wikipedia.org/wiki/Kabsch_algorithm
+
+08/08/2024
+592-interior-points.m4v
+Oldies but goldies: Yurii Nesterov, Arkadii Nemirovskii, Interior-Point Polynomial Algorithms in Convex Programming, 1995. Proposes a unified theory of interior point methods which revolutionized convex conic optimization. https://en.wikipedia.org/wiki/Interior_point_method http://cvxopt.org/
+
+09/08/2024
+593-apollonian-gaskets.m4v
+Generalized Apollonian gaskets are fractal domains defined by progressively packing the largest enclosed unit balls. https://en.wikipedia.org/wiki/Apollonian_gasket https://www.wikihow.com/Create-an-Apollonian-Gasket
+
+10/08/2024
+594-surf-reconstr.png
+Oldies but goldies: Nina Amenta, Marshall Bern, Manolis Kamvysselis, A New Voronoi-Based Surface Reconstruction Algorithm, 1998. Introduces the power-crust algorithm, one of the first reconstruction methods with theoretical guarantees. http://web.cs.ucdavis.edu/~amenta/pubs/crust.pdf
+
+11/08/2024
+595-iter-equispaced.m4v
+The envelope of iterated equispaced connected points converges to logarithmic spirals. This corresponds to the mice/bug/dog/etc. problem. https://en.wikipedia.org/wiki/Logarithmic_spiral http://mathworld.wolfram.com/MiceProblem.html
+
+12/08/2024
+596-cfl-condition.m4v
+Oldies but goldies: Courant, R.; Friedrichs, K.; Lewy, H., Über die partiellen Differenzengleichungen der mathematischen Physik, 1928. Introduces the CFL condition relating time/space step sizes for the stability of finite difference methods. https://en.wikipedia.org/wiki/Courant%E2%80%93Friedrichs%E2%80%93Lewy_condition
+
+13/08/2024
+597-bernstein-poly.m4v
+Besides being useful to prove Weierstrass polynomial approximation theorem quantitatively, Bernstein polynomial approximation enjoys many desirable properties. https://en.wikipedia.org/wiki/Bernstein_polynomial
+
+14/08/2024
+598-sift.png
+Oldies but goldies: David G. Lowe, Distinctive Image Features from Scale-Invariant Keypoints, 1999. Defines Scale-invariant feature transform (SIFT), the most celebrated key points detection method. https://en.wikipedia.org/wiki/Scale-invariant_feature_transform
+
+15/08/2024
+599-conformal.m4v
+Holomorphic functions (differentiable over complex numbers) define conformal maps, which are angle-preserving. https://en.wikipedia.org/wiki/Conformal_map https://en.wikipedia.org/wiki/Holomorphic_function
+
+16/08/2024
+600-kernel-svm.m4v
+Oldies but goldies: B. Boser, I. Guyon, V. Vapnik, A Training Algorithm for Optimal Margin Classifiers, 1992. Introduced kernel SVM for non-parametric classification. https://en.wikipedia.org/wiki/Support-vector_machine
+
+17/08/2024
+601-shapeley.png
+The Shapley-Folkman-Starr theorem states that the Minkowski sum « convexifies » sets.  https://en.wikipedia.org/wiki/Shapley%E2%80%93Folkman_lemma
+
+18/08/2024
+602-sir-model.png
+Oldies but goldies: W. Kermack, A. McKendrick, Contributions to the mathematical theory of epidemics, 1927. Proposed the SIR model, the most basic mathematical model of infectious disease transmission. https://en.wikipedia.org/wiki/Kermack%E2%80%93McKendrick_theory
+
+19/08/2024
+603-hear-shape-cat.m4v
+Can you hear the shape of a drum? The eigenvectors of the Laplacian depend on the geometry of the domain. https://en.wikipedia.org/wiki/Hearing_the_shape_of_a_drum
+
+20/08/2024
+604-lions-mercier.m4v
+Oldies but goldies: P. L. Lions and B. Mercier, Splitting Algorithms for the Sum of Two Nonlinear Operators, 1979. Douglas-Rachford algorithm (dual of ADMM) minimizes the sum of two convex functions. A cornerstone of non-smooth optimization. The typical convergence pattern is spiraling. https://regularize.wordpress.com/2017/02/24/the-origin-of-the-douglas-rachford-iteration/
+
+21/08/2024
+605-electric-field.m4v
+In the static regime, the electric field generated by point sources is the superposition of radial electric monopoles. https://en.wikipedia.org/wiki/Electromagnetic_field https://en.wikipedia.org/wiki/Magnetic_dipole 
+
+22/08/2024
+606-percolation.m4v
+Oldies but goldies: John Hammersley, Percolation processes, 1957. Percolation on a square random lattice exhibits a phase transition when the probability of occupation is 1/2. https://en.wikipedia.org/wiki/Percolation_theory
+
+23/08/2024
+607-elephant-flatten.m4v
+Surface parameterization computes a diffeomorphism between a 3-D surface and a "simple" domain. Here parameterizing an elephant on a sphere and half an elephant on a disk. http://sites.fas.harvard.edu/~cs277/handouts/param.pdf 
+
+24/08/2024
+608-bernoulli.m4v
+Jacob Bernoulli, Ars Conjectandi, 1713. Introduces many concepts central to probability, including the binomial distribution. https://en.wikipedia.org/wiki/Ars_Conjectandi
+
+25/08/2024
+609-newton-lagrange.m4v
+The dynamics of a system of rods (multiple pendulums) is an ODE evolution on a 2nd-order algebraic variety. Defines highly complex patterns as soon as n>2.   https://en.wikipedia.org/wiki/Double_pendulum
+
+26/08/2024
+610-rbf-nn.m4v
+Oldies but goldies: David Broomhead, David Lowe, Multivariable Functional Interpolation and Adaptive Networks, 1988. Introduces RBF neural networks. https://en.wikipedia.org/wiki/Radial_basis_function_network
+
+27/08/2024
+611-mean-curv.m4v
+The mean curvature motion is the most fundamental curve evolution. Equivalent for curves of the heat equation. Independent of parameterization, minimizes the length of the curve. Shrinks the curves toward an ellipse. https://en.wikipedia.org/wiki/Curve-shortening_flow https://en.wikipedia.org/wiki/Mean_curvature_flow 
+
+28/08/2024
+612-gouraud.m4v
+Oldies but goldies: Henri Gouraud, Continuous shading of curved surfaces, 1971. Gouraud shading is the basic method to render illuminated surfaces by interpolation. https://en.wikipedia.org/wiki/Gouraud_shading 
+
+29/08/2024
+613-slerp.png
+Spherical interpolation (SLERP) of quaternions defines the geodesic over the rotations group. Storing rotations as quaternions is very convenient. https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation https://en.wikipedia.org/wiki/Slerp
+
+30/08/2024
+614-strassen.png
+Oldies but goldies: Volker Strassen, Gaussian Elimination is not Optimal, 1969. Strassen algorithm reduces the complexity of matrix multiplication in terms of number of multiplications. https://en.wikipedia.org/wiki/Strassen_algorithm
+
+31/08/2024
+615-fourier-cat.m4v
+Fourier approximation of a cat. https://xkcd.com/26/
+
+01/09/2024
+616-logistic-map.m4v
+Oldies but goldies: Robert May, Simple mathematical models with complicated dynamics, 1976. The logistic map is the simplest dynamical system that exhibits bifurcations toward chaotic behavior as a function of its parameter r. https://en.wikipedia.org/wiki/Logistic_map
+
+02/09/2024
+617-softmax.png
+The soft-argmax is the gradient of the soft-max (log-sum-exp). Central to perform classification using logistic loss. Needs to be stabilized using the log-sum-exp trick. https://en.wikipedia.org/wiki/Softmax_function https://en.wikipedia.org/wiki/LogSumExp 
+
+03/09/2024
+618-lyapounov.png
+Oldies but goldies: A Lyapunov, The general problem of the stability of motion, 1892. Lyapunov functions of an ODE are functions that decay along the flows of the ODE. Basic method to show convergence to stationary point and stability. https://en.wikipedia.org/wiki/Lyapunov_function
+
+04/09/2024
+619-collisions.m4v
+During elastic collision, particles of equal mass simply exchange their velocities. https://en.wikipedia.org/wiki/Elastic_collision https://en.wikipedia.org/wiki/Inelastic_collision
+
+05/09/2024
+620-prim-algo.m4v
+Oldies but goldies: Prim, R. C, Shortest connection networks And some generalizations, 1957. Computes the minimum spanning tree in n*log(n) operations. https://en.wikipedia.org/wiki/Kruskal%27s_algorithm
+
+06/09/2024
+621-thin-plate.m4v
+Thin plate (biharmonic) splines are an interpolation method with a closed form thanks to the theory of reproducing Hilbert spaces. Defines a Sobolev space of smooth functions. https://en.wikipedia.org/wiki/Thin_plate_spline https://en.wikipedia.org/wiki/Radial_basis_function https://en.wikipedia.org/wiki/Reproducing_kernel_Hilbert_space 
+
+07/09/2024
+622-cellular-automata.m4v
+Oldies but goldies: Martin Gardner, Mathematical Games, The fantastic combinations of John Conway's new solitaire game "life", 1970. The Game of Life is the most celebrated 2D cellular automaton. https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life 
+
+08/09/2024
+623-real-algebraic.png
+Tarski–Seidenberg theorem: semi-algebraicity is stable by projection. The most fundamental result of semi-algebraic geometry.  Equivalent to the elimination of the existential quantifier. https://en.wikipedia.org/wiki/Tarski%E2%80%93Seidenberg_theorem
+
+09/09/2024
+624-bernstein.m4v
+Oldies but goldies: S.  Bernstein, Démonstration du theoreme de Weierstrass fondee sur le calcul des probabilites, 1912. Constructive and quantitative proof of Weierstrass polynomial density in continuous function using Bernstein's polynomials. https://en.wikipedia.org/wiki/Bernstein_polynomial
+
+10/09/2024
+625-kac-poly.m4v
+Zeros of random polynomials define point processes.  For iid coefficients, zeros cluster along the unit circle as the degree increases.  http://math.iisc.ernet.in/~manju/GAF_book.pdf
+
+11/09/2024
+626-newton-fractal.png
+Oldies but goldies: Isaac Newton, De analysi per aequationes numero terminorum infinitas, 1669. The standard second-order method for root finding. Understanding its global convergence is hard. https://en.wikipedia.org/wiki/Newton%27s_method
+
+12/09/2024
+627-bb-steps.m4v
+Barzilai–Borwein method selects the step size for a gradient descent using a cheap approximation of the Hessian. Performs usually better than line search. https://en.wikipedia.org/wiki/Gradient_descent#Choosing_the_step_size_and_descent_direction
+
+13/09/2024
+628-noether.m4v
+Oldies but goldies: Emmy Noether, Ableitung der Elementarteilertheorie aus der Gruppentheorie, 1926. Introduces what are now called Betti numbers, which are topological invariants, which can be computed for simplicial homology using linear algebra. #noethember https://en.wikipedia.org/wiki/Betti_number
+
+14/09/2024
+629-tsp.m4v
+The traveling salesman problem looks for the shortest Hamiltonian cycle in a graph. https://en.wikipedia.org/wiki/Travelling_salesman_problem 
+
+15/09/2024
+630-subdiv-surf.png
+Oldies but goldies: Derose, T.; Kass, M.; Truong, T., Subdivision surfaces in character animation, 1998. Showcases the use of subdivision surfaces for movie production.  
+
+16/09/2024
+631-wavelets.png
+The continuous wavelet transform was introduced by Grossman and Morlet. The decay of wavelet coefficients across scales characterizes the local regularity of a function. https://en.wikipedia.org/wiki/Continuous_wavelet_transform
+
+17/09/2024
+632-rendering-equation.m4v
+Oldies but goldies: James  Kajiya, The rendering equation, 1986. Describe the conservation of light as an integral equation that is at the heart of global rendering techniques such as radiosity. https://en.wikipedia.org/wiki/Rendering_equation
+
+18/09/2024
+633-heat-mean.m4v
+Local averaging is consistent with the linear heat equation. The local median is consistent with the non-linear mean curvature motion. Linear blurs edges, and non-linear preserves edges. Axiomatized by L. Alvarez, F. Guichard, P.-L. Lions, and J.-M. Morel. https://link.springer.com/article/10.1007/BF00375127 
+
+19/09/2024
+634-mcadam-ellipses.png
+Oldies but goldies: MacAdam, Visual sensitivities to color differences in daylight, 1942. Showed that color perception can be modeled using an anisotropic metric. https://en.wikipedia.org/wiki/MacAdam_ellipse
+
+20/09/2024
+635-cart.m4v
+Classification and Regression Trees (CART) define structured recursive classification and regression functions. O(n*log(n)) time global optimization (despite the exponential number of models) is achieved by dynamic programming. https://en.wikipedia.org/wiki/Decision_tree_learning 
+
+21/09/2024
+636-schor-ellipse.png
+Oldies but goldies: Naum Z. Shor, Utilization of the operation of space dilatation in the minimization of convex functions, 1972. Introduces the ellipsoid method, which was later shown to provide a polynomial time algorithm for linear programming. https://en.wikipedia.org/wiki/Ellipsoid_method
+
+22/09/2024
+637-gale-shapeley.png
+The stable marriage is solved by the Gale-Shapley algorithm. Shapley and Roth got the Nobel Prize in economy for this. It is not symmetric (i<->j) but gives an optimal match for each i. https://en.wikipedia.org/wiki/Stable_marriage_problem 
+
+23/09/2024
+638-varadhan.png
+Oldies but goldies: Sathamangalam Srinivasa Varadhan, On the behavior of the fundamental solution of the heat equation with variable coefficients, 1967. Shows that the heat kernel on a manifold is approximately a geodesic Gaussian kernel for a small time. http://onlinelibrary.wiley.com/doi/10.1002/cpa.3160200210/abstract https://fr.wikipedia.org/wiki/Sathamangalam_R._Srinivasa_Varadhan
+
+24/09/2024
+639-sphere-harmonics.m4v
+Approximation of a function on the sphere using an increasing number of spherical harmonics. https://en.wikipedia.org/wiki/Spherical_harmonics 
+
+25/09/2024
+640-svd.png
+Oldies but goldies: G. H. Golub, Christian Reinsch, Singular value decomposition and least squares solutions, 1970. The most popular algorithm to compute efficiently the SVD decomposition. https://en.wikipedia.org/wiki/Singular_value_decomposition 
+
+26/09/2024
+641-roots.m4v
+Interpolating coefficients of polynomials generates interpolations between 2D point sets. Displayed using colors/level-sets for the angle/modulus of complex numbers. https://en.wikipedia.org/wiki/Properties_of_polynomial_roots  https://en.wikipedia.org/wiki/Vieta%27s_formulas
+
+27/09/2024
+642-logistic.png
+Oldies but goldies: David Cox, The regression analysis of binary sequences, 1958. Introduces logistic regression, one of the most widely used classification methods. https://en.wikipedia.org/wiki/Logistic_regression 
+
+28/09/2024
+643-julia.m4v
+Julia sets are attraction basins of iterated complex maps. The best-known example is quadratic polynomials. https://en.wikipedia.org/wiki/Julia_set
+
+29/09/2024
+644-bm3d.m4v
+Oldies but goldies: Kostadin Dabov, Alessandro Foi, Vladimir Katkovnik, Karen Egiazarian, Image denoising by sparse 3D transform-domain collaborative filtering, 2007. BM3D was the state-of-the-art image denoising method for a long time. http://www.cs.tut.fi/~foi/GCF-BM3D/
+
+30/09/2024
+645-fourier-low-approx.m4v
+Low-frequency Fourier approximation of a signal and an image generates ringing phenomena. https://en.wikipedia.org/wiki/Gibbs_phenomenon http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/python/introduction_4_fourier_wavelets.ipynb 
+
+01/10/2024
+646-mandelbrot.m4v
+Oldies but goldies: Benoit Mandelbrot, Fractal aspects of the iteration of z→λz(1-z) for complex λ and z, 1980. Exposes the fractal nature of Julia's sets and Mandelbrot's set. https://en.wikipedia.org/wiki/Mandelbrot_set
+
+02/10/2024
+647-perspective.png
+The perspective transform turns a 1D convex function into a 2D positively homogeneous convex function. Fundamental in convex analysis. At the heart of Cizsar divergences. http://www.math.univ-toulouse.fr/Archive-MIP/publis/files/07.24.pdf
+
+03/10/2024
+648-burer-monteiro.m4v
+Oldies but goldies: Samuel Burer, Renato Monteiro, A Nonlinear Programming Algorithm for Solving Semidefinite Programs via Low-rank Factorization, 2001. Propose to use non-convex methods to solve large-scale convex problems, a very influential idea. http://www.optimization-online.org/DB_FILE/2001/03/296.pdf
+
+04/10/2024
+649-bilateral-filter.m4v
+The bilateral filter is a non-linear edge-preserving filter where weights operate on both space and range values. https://en.wikipedia.org/wiki/Bilateral_filter
+
+05/10/2024
+650-karmarkar.m4v
+Oldies but goldies: Narendra Karmarkar, A New Polynomial Time Algorithm for Linear Programming, 1984. First efficient interior point method solving linear programs in polynomial time. https://en.wikipedia.org/wiki/Karmarkar%27s_algorithm
+
+06/10/2024
+651-sparse-factors.png
+Sparse Cholesky factorization is obtained by applying the algorithm after a careful reordering of the rows/columns. The minimum degree heuristic is surprisingly efficient. https://en.wikipedia.org/wiki/Minimum_degree_algorithm
+
+07/10/2024
+652-chew-algo.png
+Oldies but goldies: Paul Chew, Guaranteed-quality mesh generation for curved surfaces, 1993. With Ruppert's method, the first algorithm for provably good quality meshing of constrained domains. Based on the crucial idea of Delaunay refinement. https://en.wikipedia.org/wiki/Chew%27s_second_algorithm https://en.wikipedia.org/wiki/Ruppert%27s_algorithm
+
+08/10/2024
+653-moreau-smooth.png
+Moreau-Yosida regularization smoothes a function. It is the inf-convolution with a quadratic function. Its gradient is Id - the proximal operator. https://en.wikipedia.org/wiki/Convex_conjugate#Infimal_convolution
+
+09/10/2024
+654-coarea.png
+Oldies but goldies: Herbert Federer, Curvature measures, 1959. The co-area formula expresses the Total Variation semi-norm as the total perimeters of level sets. Enables the computation of TV for non-smooth functions. https://en.wikipedia.org/wiki/Coarea_formula
+
+10/10/2024
+655-saddle.png
+Saddle points come with lots of flavors. Quadratic saddle are non-degenerate and repulse gradient descent. Higher-order saddle points can attract gradient descent in a lot of directions. http://www.offconvex.org/2016/03/22/saddlepoints/ https://en.wikipedia.org/wiki/Saddle_point
+
+11/10/2024
+656-kalman.m4v
+Oldies but goldies: R.E. Kalman, A New Approach to Linear Filtering and Prediction Problems, 1960. Kalman filter defines recursively an estimator of the parameters of a Gaussian dynamical process.  The basic method to control navigation systems. https://en.wikipedia.org/wiki/Kalman_filter
+
+12/10/2024
+657-projections.png
+The unreasonable effectiveness of non-smooth optimization: sharp singularities attract solutions of optimization problems (here a projection on a set).  
+
+13/10/2024
+658-john-ellipse.m4v
+Oldies but goldies: Fritz John, Extremum problems with inequalities as subsidiary conditions, 1948. Proves the uniqueness of a maximum enclosed ellipsoid for compact convex sets.
+
+14/10/2024
+659-enveloppe.png
+The envelope of a set of curves is another curve tangent to all these curves. Caustics are a particular case. https://en.wikipedia.org/wiki/Envelope_(mathematics)
+
+15/10/2024
+660-cellular-autom.m4v
+Oldies but goldies: S.  Wolfram, Statistical mechanics of cellular automata, 1983. Studies cellular automata and the chaotic behavior of certain rules such as rule 30. https://en.wikipedia.org/wiki/Cellular_automaton
+
+16/10/2024
+661-minmax.png
+Gradient descent/ascent can be inefficient in finding saddle point (Nash equilibrium) for min-max games, because of spiraling behavior.  https://en.wikipedia.org/wiki/Nash_equilibrium  
+
+17/10/2024
+662-geodesics-fmm.m4v
+Oldies but goldies: Ron Kimmel, James Sethian, Computing geodesic paths on manifolds, 1998. Extends the fast marching method to work on triangulated surfaces. http://www.pnas.org/content/95/15/8431
+
+18/10/2024
+663-phi-diverg.png
+Csiszar divergences compare the relative densities of two measures with 1. Does not require any reference measure. Handles arbitrary measures (discrete or continuous). The canonical way to compare measures having the same support (strong topology). https://en.wikipedia.org/wiki/F-divergence
+
+19/10/2024
+664-conv-hull.m4v
+Oldies but goldies: David G. Kirkpatrick and Raimund Seidel, The ultimate planar convex hull algorithm?, 1986. The first output-sensitive optimal 2D convex hull algorithm runs in O(n*log(h)) for a hull of h points among n. https://en.wikipedia.org/wiki/Kirkpatrick%E2%80%93Seidel_algorithm
+
+20/10/2024
+665-error-diffusion.m4v
+Error diffusion is the simplest dithering algorithm which quantizes an image to binary values. https://en.wikipedia.org/wiki/Error_diffusion https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering 
+
+21/10/2024
+666-isomap.png
+Oldies but goldies: J. B. Tenenbaum, V. de Silva, J. C. Langford, A Global Geometric Framework for Nonlinear Dimensionality Reduction, 2000. Isomap is one of the first manifold learning algorithms. https://en.wikipedia.org/wiki/Isomap http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/matlab/shapes_7_isomap.ipynb
+
+22/10/2024
+667-lp-balls.m4v
+The l^p functional is convex and hence a norm for p>=1. It is sparsity-inducing for p<=1. The l^1 norm is the heart of the lasso, aka basis pursuit. https://en.wikipedia.org/wiki/Basis_pursuit_denoising https://en.wikipedia.org/wiki/Lasso_(statistics) 
+
+23/10/2024
+668-som.m4v
+Oldies but goldies: Teuvo  Kohonen, Self-Organized Formation of Topologically Correct Feature Maps, 1982. Self-organizing maps of Kohonen define a map between a 2D space to the data, by minimizing a quantization error and a regularity penalty. https://en.wikipedia.org/wiki/Self-organizing_map
+
+24/10/2024
+669-ica.png
+Independent component analysis estimates a mixing matrix leveraging the non-Gaussianity and independence of the sources. Solves a matrix factorization problem.  https://en.wikipedia.org/wiki/Independent_component_analysis
+
+25/10/2024
+670-nash-eq.png
+Oldies but goldies: Nash, John, Equilibrium points in n-person games, 1950. Extend min-max saddle points to several players. https://en.wikipedia.org/wiki/Nash_equilibrium
+
+26/10/2024
+671-ot-1d.m4v
+There exists a single increasing map between two distributions, it is the optimal transport, and it is defined from the cumulative functions. https://en.wikipedia.org/wiki/Histogram_equalization
+
+27/10/2024
+672-kernel-svm.m4v
+Oldies but goldies: Corinna Cortes, Vladimir Vapnik, Support-vector networks, 1995. Defines a kernelized version of the support vector machine of Vapnik, Chervonenkis. Very popular for classification. https://en.wikipedia.org/wiki/Support_vector_machine 
+
+28/10/2024
+673-moreau-polar.png
+Moreau's decomposition generalizes orthogonal decomposition from linear spaces to convex cones. https://www.convexoptimization.com/wikimization/index.php/Moreau's_decomposition_theorem https://en.wikipedia.org/wiki/Convex_cone
+
+29/10/2024
+674-penrose.m4v
+Oldies but goldies: R. Penrose, The role of aesthetics in pure and applied mathematical research, 1974. Penrose tilings are aperiodic tilings obtained using typically 2 isosceles triangles with two types of edge labelings (so 4 types of triangles). A way to generate the tiling is by applying iterative edge splitting using the golden ratio. https://en.wikipedia.org/wiki/Penrose_tiling https://github.com/mathworks/penrose-tiling
+
+30/10/2024
+675-gaussian-products.m4v
+Gaussian functions are stable under pointwise and convolution products. The Fourier transform interleaves these two algebraic structures. 
+
+31/10/2024
+676-hamming.png
+Oldies but goldies: R. Hamming, Error detecting and error correcting codes, 1950. Introduces the first efficient binary error-correcting codes. Can correct any single-bit error, or detect all single-bit and two-bit errors. https://en.wikipedia.org/wiki/Hamming(7,4)  https://en.wikipedia.org/wiki/Hamming_code 
+
+01/11/2024
+677-bregman.png
+Bregman divergences are convex distance-like functionals that are locally Euclidean. Most algorithms handling Euclidean distances generalize to Bregman divergences. https://en.wikipedia.org/wiki/Bregman_divergence
+
+02/11/2024
+678-alpha-shape.m4v
+Oldies but goldies: Herbert Edelsbrunner, David Kirkpatrick, Raimund Seidel, On the shape of a set of points in the plane, 1983. Defines alpha-shapes, a multiscale family of simplicial complexes that generalizes convex hull and is useful for topological data analysis and shape reconstruction. https://en.wikipedia.org/wiki/Alpha_shape
+
+03/11/2024
+679-law-max.m4v
+The max of n independent Gaussians concentrates around sqrt(2log(n)). The max central limit theorem allows one to quantify this. https://en.wikipedia.org/wiki/Fisher%E2%80%93Tippett%E2%80%93Gnedenko_theorem
+
+04/11/2024
+680-lorenz.m4v
+Oldies but goldies:  Edward N. Lorenz, Deterministic nonperiodic flow, 1963. Lorenz attractor is the set of limit trajectories for a simplified mathematical model for atmospheric convection. It has a fractal geometry. https://en.wikipedia.org/wiki/Lorenz_system
+
+05/11/2024
+681-perron-frob.m4v
+Markov chains with positive transitions converge toward the stationary distribution. https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem
+
+06/11/2024
+682-kanitza.png
+Oldies but goldies: Gaetano Kanizsa, Subjective Contours, 1976. Revitalized the study of illusory contours from Gestalt theory and had a profound impact on computer and biological vision. https://en.wikipedia.org/wiki/Illusory_contours 
+
+07/11/2024
+683-kalman.m4v
+Kalman filter defines recursively an estimator of the parameters of a Gaussian dynamical process.  The basic method to control navigation systems. https://en.wikipedia.org/wiki/Kalman_filter
+
+08/11/2024
+684-poisson-edit.png
+Oldies but goldies: Patrick Perez, Michel Gangnet, Andrew Blake, Poisson Image Editing, 2003. A surprisingly simple method for seamless copy/pasting. https://www.ipol.im/pub/art/2016/163/
+
+09/11/2024
+685-daubechies.m4v
+Compactly supported orthogonal wavelets are defined using filter banks. https://en.wikipedia.org/wiki/Daubechies_wavelet  https://en.wikipedia.org/wiki/Ingrid_Daubechies
+
+10/11/2024
+686-shape-drum.m4v
+Oldies but goldies: Mark Kac, Can you hear the shape of a drum? 1966. Non-isometric shapes can have the same Laplacian eigenvalues (spectrum). Displaying here some Laplacian eigenvectors. https://en.wikipedia.org/wiki/Hearing_the_shape_of_a_drum
+
+11/11/2024
+687-texture-synth.m4v
+Photo-realistic texture synthesis methods perform pixels, patches or more complicated features recopy from the input to the output. https://en.wikipedia.org/wiki/Texture_synthesis
+
+12/11/2024
+688-knn.png
+Oldies but goldies: Evelyn Fix, Joseph Hodges, Discriminatory analysis, nonparametric discrimination: Consistency properties, 1951. Introduces k-nearest neighbors, which is the baseline non-parametric regression and classification method. https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm
+
+13/11/2024
+689-mccann.png
+Displacement interpolation aka Optimal Transport: discrete vs continuous. https://hal.archives-ouvertes.fr/hal-00763270
+
+14/11/2024
+690-mean-val-interp.png
+Oldies but goldies: Michael S. Floater, Mean value coordinates, 2003. The first construction of smooth positive barycentric coordinates for general polygons. Used for interpolation of warpings.
+
+15/11/2024
+691-point-process.m4v
+The Poisson point process has a flat power spectrum while the Poisson disk exhibits a desirable "blue noise" spectrum. Matches the arrangement of photoreceptors in the retina.  https://en.wikipedia.org/wiki/Supersampling#Poisson_disc https://en.wikipedia.org/wiki/Point_process https://en.wikipedia.org/wiki/Halftone 
+
+16/11/2024
+692-hellinger.png
+Oldies but goldies: E. Hellinger, Neue Begrundung der Theorie quadratischer Formen von unendlichvielen Veränderlichen, 1909. Introduces the (now called) Hellinger distance, arguably with the total variation norm the most widely used distance between probability distributions. https://en.wikipedia.org/wiki/Hellinger_distance
+
+17/11/2024
+693-dft.png
+The discrete Fourier basis is a sampling of the continuous Fourier basis. They are both orthogonal. This is (almost) magic! https://en.wikipedia.org/wiki/Discrete_Fourier_transform 
+
+18/11/2024
+694-rbf.m4v
+Oldies but goldies:  Rolland L. Hardy, Multiquadric equations of topography and other irregular surfaces, 1971. Introduces radial basis functions interpolation. In some cases (e.g. Gaussian and polyharmonic), corresponds to regression in a reproducing Hilbert space. https://en.wikipedia.org/wiki/Radial_basis_function 
+
+19/11/2024
+695-rosenbrok.m4v
+The Rosenbrock function is the most famous test function for optimization algorithms. https://en.wikipedia.org/wiki/Rosenbrock_function
+
+20/11/2024
+696-corner-detect.png
+Oldies but goldies: Chris Harris, Mike Stephens, A combined corner and edge detector, 1988. The most frequently used corner detector, based on the eigenvalues of the structure tensor. https://en.wikipedia.org/wiki/Harris_Corner_Detector
+
+21/11/2024
+697-proj-fw.m4v
+Projected gradient and Frank-Wolfe are the cornerstones of constrained optimization. PG typically evolves on the boundary while FW operates as an interior point method. https://en.wikipedia.org/wiki/Frank%E2%80%93Wolfe_algorithm
+
+22/11/2024
+698-sinkhorn.m4v
+Oldies but goldies: Richard Sinkhorn, A relationship between arbitrary positive matrices and doubly stochastic matrices, 1964. The first proof of the convergence of the diagonal scaling algorithm (aka IPFP, RAS, etc) toward a uniquely defined bistochastic matrix. https://en.wikipedia.org/wiki/Sinkhorn%27s_theorem https://en.wikipedia.org/wiki/Iterative_proportional_fitting 
+
+23/11/2024
+699-advection.m4v
+Gradient descent on particles' positions (Lagrangian) is equivalent to an advection linear PDE on the density of particles (Eulerian). https://en.wikipedia.org/wiki/Lagrangian_and_Eulerian_specification_of_the_flow_field 
+
+24/11/2024
+700-bicubic.m4v
+Oldies but goldies: R. Keys, Cubic convolution interpolation for digital image processing, 1980. Introduces bicubic interpolation, the most frequently used image interpolation method. https://en.wikipedia.org/wiki/Bicubic_interpolation 
 `;

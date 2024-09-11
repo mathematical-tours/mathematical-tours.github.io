@@ -1,13 +1,13 @@
 % !TEX root = ../FundationsDataScience.tex
 
-\chapter{Fourier Transforms}
+\chapter{Fourier and Convolution}
 \label{sec-fourier}
 
-The main references for this chapter is \cite{mallat2008wavelet}.
+The main reference for this chapter is \cite{mallat2008wavelet}.
 %
-The Fourier transforms offers a perfect blend of analysis (solution of PDEs, approximation of functions), algebra (characters of groups, representation theory) and computer science (the FFT). 
+The Fourier transform offers a perfect blend of analysis (solution of PDEs, approximation of functions), algebra (characters of groups, representation theory), and computer science (the FFT). 
 %
-It is the basics of signal processing because it allows to compute efficiently and study theoretically convolution operator, which are the shift-invariant operators. 
+It is the basics of signal processing because it allows us to compute efficiently and study theoretically convolution operators, which are the shift-invariant operators. 
 %
 This chapter offers a glimpse of all these different facets. 
 
@@ -21,26 +21,26 @@ This chapter offers a glimpse of all these different facets.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Hilbertian bases.}
 
-A large class of method in data sciences (including for instance most signal processing tasks, but also data pre-processing for machine learning) operate by first projecting the input data on some basis. A particularly simple instance of this is when the basis is orthogonal, since in this case one has a simple reconstruction formula and conservation of energy, which is crucial to do a theoretical analysis. We explain this in a general Hilbert space, which can be for instance $\Hh = L^2([0,1]^d)$ when dealing with continuous signal, or $\Hh=\RR^N$ for discrete signal.  
+A large class of methods in data sciences (including for instance most signal processing tasks, but also data pre-processing for machine learning) operate by first projecting the input data on some basis. A particularly simple instance of this is when the basis is orthogonal since in this case, one has a simple reconstruction formula and conservation of energy, which is crucial to do a theoretical analysis. We explain this in a general Hilbert space, which can be for instance $\Hh = L^2([0,1]^d)$ when dealing with continuous signal, or $\Hh=\RR^N$ for discrete signal.  
 
-An (complex) Hilbert space $(\Hh,\dotp{\cdot}{\cdot})$ is complete, where $\dotp{\cdot}{\cdot}$ is an hermitian inner product (i.e. $\dotp{f}{g}$ is the conjugate of $\dotp{g}{f}$). If it is separable, it can be equipped with an Hilbertian orthogonal basis $(\phi_n)_{n \in \NN}$, which means that one can expand any $f \in \Hh$ as
+An (complex) Hilbert space $(\Hh,\dotp{\cdot}{\cdot})$ is complete, where $\dotp{\cdot}{\cdot}$ is an hermitian inner product (i.e. $\dotp{f}{g}$ is the conjugate of $\dotp{g}{f}$). If it is separable, it can be equipped with a Hilbertian orthogonal basis $(\phi_k)_{k \in \NN}$, which means that one can expand any $f \in \Hh$ as
 \eq{
-	f = \sum_{n} \dotp{f}{\phi_n} \phi_n 
+	f = \sum_{k} \dotp{f}{\phi_k} \phi_k 
 }
-where the convergence is in the sense of $\norm{f}^2 \eqdef \dotp{f}{f}$, i.e. $\norm{ f - \sum_{n=0}^N \dotp{f}{\phi_n} \phi_n } \rightarrow 0$ as $N \rightarrow +\infty$. One also have the conservation of energy 
+where the convergence is in the sense of $\norm{f}^2 \eqdef \dotp{f}{f}$, i.e. $\norm{ f - \sum_{k=0}^N \dotp{f}{\phi_k} \phi_k } \rightarrow 0$ as $N \rightarrow +\infty$. One also has the conservation of energy 
 \eq{
-	\norm{f}^2 = \sum_n \dotp{f}{\phi_n}^2.
+	\norm{f}^2 = \sum_k \dotp{f}{\phi_k}^2.
 }
 
-A way to construct such an ortho-basis is using Gram-Schmidt orthogonalization procedure. From some family $(\bar\phi_n)_n$, one defines $\phi_0=\bar\phi_0/\norm{\bar\phi_0}$, $\phi_n=\tilde\phi_n/\norm{\tilde\phi_n}$ where $\tilde\phi_n$ is computed as  $\tilde\phi_n=\bar\phi_n - \sum_{i<n} a_i \phi_i$, and by orthogonality $a_i = \dotp{\bar \phi_n}{\phi_i}$. 
+A way to construct such an ortho-basis is using the Gram-Schmidt orthogonalization procedure. From some family $(\bar\phi_k)_k$, one defines $\phi_0=\bar\phi_0/\norm{\bar\phi_0}$, $\phi_k=\tilde\phi_k/\norm{\tilde\phi_k}$ where $\tilde\phi_n$ is computed as  $\tilde\phi_k=\bar\phi_k - \sum_{i<k} a_i \phi_i$, and by orthogonality $a_i = \dotp{\bar \phi_i}{\phi_i}$. 
 
-On $L^2([-1,1])$ equipped with the usual inner product, orthogonalization of monomials defines the Legendre polynomials, so that
+On $L^2([-1,1])$ equipped with the usual inner product, orthogonalization of monomials defines the Legendre polynomials so that
 \eq{
 	\phi_0(x)=1, \quad \phi_1(x)=x, \quad \phi_2(x) = \frac{1}{2}(3x^2-1), \quad \text{etc.}
 }
-On $L^2(\RR)$ equipped with a Gaussian measure $e^{x^2}\d x$, this leads to functions of the form $P_n(x) e^{-x^2}$ where $P_n$ are Hermite polynomials, $P_0(x)=1, P_1(x)=x, P_2(x)=x^2-1$. Intuitively, orthogonality forces $\phi_n$ to have $n$ ``oscillations'', e.g. orthogonal polynomials have exactly $n$ zeros.
+On $L^2(\RR)$ equipped with a Gaussian measure $e^{-x^2}\d x$, this leads to functions of the form $P_k(x) e^{-x^2}$ where $P_k$ are Hermite polynomials, $P_0(x)=1, P_1(x)=x, P_2(x)=x^2-1$. Intuitively, orthogonality forces $\phi_k$ to have $k$ ``oscillations'', e.g. orthogonal polynomials have exactly $n$ zeros.
 
-Another example is provided by the Shannon interpolation theorem, which states that $( \sinc(x-n) )_n$ is an orthogonal basis of $\enscond{f}{\supp(\hat f) \subset [-\pi,\pi]}$ and the reconstruction formula is $f=\sum_n f(n) \sinc(x-n)$ so that $f_n = \dotp{f}{\sinc(x-n)}$. The convergence is in $L^2$ but it is actually also pointwise as shown in the proof of the previous chapter. 
+Another example is provided by the Shannon interpolation theorem, which states that $( \sinc(x-k) )_k$ is an orthogonal basis of $\enscond{f}{\supp(\hat f) \subset [-\pi,\pi]}$ and the reconstruction formula is $f=\sum_k f(k) \sinc(x-k)$ so that $\dotp{f}{\sinc(x-k)} = f(k)$. The convergence is in $L^2$ but it is actually also pointwise as shown in the proof of the previous chapter. 
 
 
 Another way (that we do not detail here) to construct orthogonal bases is to consider the eigenvectors of some symmetric operator. We will show below that Fourier bases can be obtained this way, by considering translation-invariant operators (convolutions). 
@@ -49,19 +49,19 @@ Another way (that we do not detail here) to construct orthogonal bases is to con
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Fourier basis on $\RR/2\pi\ZZ$.}
 
-There is a flurry of different Fourier basis depending on the space on which it is defined. To get an orthogonal basis, it is important to consider compact spaces (otherwise one obtain a notion of Fourier transform, which is not a decomposition on a basis). 
+There is a flurry of different Fourier basis depending on the space on which it is defined. To get an orthogonal basis, it is important to consider compact spaces (otherwise one obtains a notion of Fourier transform, which is not a decomposition on a basis). 
 
 On $L^2(\TT)$ where $\TT=\RR/2\pi\ZZ$, equipped with $\dotp{f}{g} \eqdef \frac{1}{2\pi}\int_\TT f(x) \bar g(x) \d x$, one can use the Fourier basis 
 \eql{\label{eq-fourier-basis-1d}
-	\phi_n(x) \eqdef e^{\imath n x}
+	\phi_k(x) \eqdef e^{\imath k x}
 	\qforq
-	n \in \ZZ. 
+	k \in \ZZ. 
 }
 One thus has
 \eql{\label{eq-defn-fourier-coeffs}
-	f = \sum_{n} \hat f_n e^{\imath n \cdot}
+	f = \sum_{n} \hat f_kk e^{\imath k \cdot}
 	\qwhereq
-	\hat f_n \eqdef \frac{1}{2\pi}\int_0^{2\pi} f(x) e^{-\imath n x} \d x, 
+	\hat f_k \eqdef \frac{1}{2\pi}\int_0^{2\pi} f(x) e^{-\imath k x} \d x, 
 }
 in $L^2(\TT)$ sense. Pointwise convergence is delicate, see Section~\ref{subsec-sampling}.
 
@@ -149,27 +149,33 @@ This is also used for denoising applications in signal and image processing.
 	Filtering an irregular signal with a Gaussian filter of increasing filter size $\si$. %	
 }{fig-filtering-1d}
 
-%%% FIG %%%
-\wrapf{2-fourier/convolution-fourier}{Commutative diagram of convolution-Fourier.}
 %%%
+\begin{prop}
 For $(f,g) \in L^1(\XX)^2$ (so on $\XX=\TT$, also in any $L^p(\XX)$), one has
 \eql{\label{eq-convol-fourier}
-	\Ff(f \star g) = \hat f \odot \hat g
-} 
-which means that $\Ff$ is a morphism of algebra. For instance if $\XX=\RR$, its range is included in the algebra of continuous functions with vanishing limits in $\pm\infty$.
+	\Ff(f \star g) = \hat f \odot \hat g.
+}
+For $\XX=\RR$, then $(f \odot g)(x) = f(x) g(x)$ where $f,g$ are continuous functions.  
+For $\XX=\TT$, then $\odot$ operates on $\ell^1(\ZZ)$ (pointwise multiplication of sequences). 
+\end{prop}
 
-As shown in Figure~\ref{fig-splines}
+
+%%% FIG %%%
+\wrapf{2-fourier/convolution-fourier}{Commutative diagram of convolution-Fourier.}
+This means that $\Ff$ is a morphism of algebra. For instance, if $\XX=\RR$, its range is included in the algebra of continuous functions with vanishing limits in $\pm\infty$.
+
+As shown in Figure~\ref{fig-splines}, successive convolution of a box leads to a piecewise polynomial of increasing smoothness, often called cardinal splines.
 
 \begin{figure}
 \centering
 \includegraphics[width=.3\linewidth]{2-fourier/splines}
 \caption{\label{fig-splines}
-Cardinal splines are defined by successive convolutions;  
+Cardinal splines are defined by successive convolutions.
 }
 \end{figure}
 
 
-Note also that the convolution is used extensively in probability and statistics, because if we denote $f_X$ the probability density (with respect to Lebesgue or any measure) of some random vector $X$, then if $X$ and $Y$ are independent random variable, then $f_{X+Y}=f_X \star f_Y$. 
+Note also that the convolution is used extensively in probability and statistics, because if we denote $f_X$ the probability density (with respect to Lebesgue or any measure) of some random vector $X$, then if $X$ and $Y$ are independent random variables, then $f_{X+Y}=f_X \star f_Y$. 
 
 
 \texttt{Associated code: fourier/test\_denoising.m and fourier/test\_fft2.m}
@@ -178,9 +184,9 @@ Note also that the convolution is used extensively in probability and statistics
 \subsection{Translation Invariant Operators}
 
 \wrapf{2-fourier/translation-inv}{Commutative diagram for translation invariance.}
-Translation invariant operators (which commutes with translation) are fundamental because in most situations, input (signal, image, etc) should be processed without spatial preference.
-%
-The following propositions shows that any translation invariant\footnote{One should rather actually say ``translation equivariant''.} (i.e. which commutes with translations) operator is actually a ``convolution'' against a distribution with bounded Fourier transform. 
+Translation invariant operators (which commute with translation) are fundamental because in most situations, input (signal, image, etc) should be processed without spatial preference.
+
+The following propositions show that any translation invariant operator (one should rather actually say ``translation equivariant''), i.e. which commutes with translations,   is actually a ``convolution'' against a distribution with bounded Fourier transform. 
 %
 The proof and conclusion (regularity of the convolution kernel) vary depending on the topology on the input and output spaces.
 %
@@ -216,7 +222,7 @@ The heuristic proof using distributions is that $f(x) = (f\star \de)(x) = \int f
 	
 	Conversely, we define $\ell : f \mapsto H(f)(0) \in \RR$, which is legit since $H(f) \in \Cc^0(\XX)$. 
 	%
-	Since $H$ is continuous, there exists $C$ such that $\norm{Hf}_\infty \leq C \norm{f}_2$, and hence $|\ell(f)| \leq C \norm{f}_2$, so that $f$ is a continuous linear form on the Hilbert space $L^2(\XX)$. Hence, according to Fr\'echet-Riesz theorem, there exists $h \in L^2(\XX)$ such that $\ell(f)=\dotp{f}{h}$.
+	Since $H$ is continuous, there exists $C$ such that $\norm{Hf}_\infty \leq C \norm{f}_2$, and hence $|\ell(f)| \leq C \norm{f}_2$, so that $\ell$ is a continuous linear form on the Hilbert space $L^2(\XX)$. Hence, according to Fr\'echet-Riesz theorem, there exists $h \in L^2(\XX)$ such that $\ell(f)=\dotp{f}{h}$.
 	%
 	Hence, $\foralls x \in \XX$, 
 	\eq{
@@ -240,7 +246,7 @@ We now study, on $\TT$, the case of convolution which can output non-continuous 
 	We denote $\phi_n \eqdef e^{\imath n \cdot}$. 
 	One has
 	\eq{
-		H(\phi_n) = e^{\imath n \tau} H(T_\tau(\phi_n)) = e^{\imath n \tau} T_\tau(H(\phi_n)).
+		H(\phi_n) = H(T_\tau T_{-\tau }\phi_n) = H(T_\tau e^{\imath n \tau } \phi_n)  = e^{\imath n \tau} H(T_\tau(\phi_n)) = e^{\imath n \tau} T_\tau(H(\phi_n)).
 	}
 	Thus, for all $n$, 
 	\eq{
@@ -249,19 +255,21 @@ We now study, on $\TT$, the case of convolution which can output non-continuous 
 		= e^{\imath n \tau} \dotp{H(\phi_n)}{ T_{-\tau}(\phi_m) }
 		=  e^{\imath (n-m) \tau} \dotp{H(\phi_n)}{ \phi_m }
 	}
-	So for $n \neq m$, $\dotp{H(\phi_n)}{\phi_m} = 0$, and we define $c_n \eqdef \dotp{H(\phi_n)}{\phi_n}$. Since $H$ is continuous, $\norm{Hf}_{L^2(\TT)} \leq C \norm{f}_{L^2(\TT)}$ for some constant $C$, and thus
+	So for $n \neq m$, $\dotp{H(\phi_n)}{\phi_m} = 0$, and we define $c_n \eqdef \dotp{H(\phi_n)}{\phi_n}$.
+	We thus have $H(\phi_n) = c_n \phi_n$.
+	Since $H$ is continuous, $\norm{Hf}_{L^2(\TT)} \leq C \norm{f}_{L^2(\TT)}$ for some constant $C$, and thus
 	by Cauchy-Schwartz 
 	\eq{
 		|c_n| = |\dotp{H(\phi_n)}{\phi_n}| \leq \norm{H(\phi_n)} \norm{\phi_n} \leq C 
 	}	
 	because $\norm{\phi_n}=1$, so that $c \in \ell^\infty(\ZZ)$.
 	%
-	By continuity, recalling that by definition $\hat f_n \eqdef \dotp{f}{\phi_n}$, 
+	By continuity of $H$, recalling that by definition $\hat f_n \eqdef \dotp{f}{\phi_n}$, 
 	\eq{
 		H(f) = \lim_N H( \sum_{n=-N}^N \hat f_n \phi_n ) = \lim_N \sum_{n=-N}^N \hat f_n H(\phi_n)
 		= \lim_N \sum_{n=-N}^N c_n \hat f_n \phi_n = \sum_{n \in \ZZ} c_n \hat f_n \phi_n
 	} 
-	so that in particular one has the desired result.
+	where we used that $H(\phi_n) = c_n \phi_n$, so that in particular one has the desired result.
 \end{proof}
 
 This theorem thus states that translation invariant operators are those which are ``diagonal'' in the Fourier ortho-basis. 
@@ -280,7 +288,7 @@ can be thought as the Fourier transform $\Ff( \Pi_1 \odot f )$ of the discrete d
 	\Pi_s = \sum_n \de_{sn}
 }
 for $s \in \RR$, 
-where $\de_a$ is the Dirac mass at location $a \in \RR$, i.e. the distribution such that $\int f \d(\d_a)=f(a)$ for any continuous $f$. Indeed, one can multiply a distribution by a continuous function, and the definition of the Fourier transform of a distribution $\mu$ is a distributions $\Ff(\mu)$ such that that 
+where $\de_a$ is the Dirac mass at location $a \in \RR$, i.e. the distribution such that $\int f \d(\d_a)=f(a)$ for any continuous $f$. Indeed, one can multiply a distribution by a continuous function, and the definition of the Fourier transform of a distribution $\mu$ is a distribution $\Ff(\mu)$ such that that 
 \eq{
 	\foralls g \in \Ss(\RR), \quad \int_\RR g(x) \d \Ff(\mu) = \int_\RR \Ff^*(g) \d \mu, 
 	\qwhereq
@@ -320,7 +328,7 @@ which is a smooth function which grows unbounded with $N \rightarrow +\infty$ as
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Discrete Ortho-bases}
 
-Discrete signals are finite dimensional vector $f \in \CC^N$ where $N$ is the number of samples and where each $f_n$ is the value of the signal at a 1D or 2D location. For a 2-D images $f \in \CC^N \simeq \CC^{N_0 \times N_0}$, $N = N_0 \times N_0$, where $N_0$ is the number of pixels along each direction.
+Discrete signals are finite-dimensional vectors $f \in \CC^N$ where $N$ is the number of samples and where each $f_n$ is the value of the signal at a 1D or 2D location. For a 2-D images $f \in \CC^N \simeq \CC^{N_0 \times N_0}$, $N = N_0 \times N_0$, where $N_0$ is the number of pixels along each direction.
 
 Discrete signals and images are processed using a discrete inner product that mimics the continuous $\Ldeux$ inner product
 \eq{
@@ -331,28 +339,28 @@ One thus defines a distance between discretized vectors as
 	\norm{f-g}^2 = \sum_{n=0}^{N-1} |f_n-g_n|^2.
 }
 
-Exactly as in the continuous case, a discrete orthogonal basis $\{ \psi_m \}_{0 \leq m < N }$ of $\CC^N$, satisfies
+Exactly as in the continuous case, a discrete orthogonal basis $\{ \psi_k \}_{0 \leq k < N }$ of $\CC^N$, satisfies
 \eql{\label{eq-orthobasis-disc}
-	\dotp{\psi_m}{\psi_{m'}} = \de_{m-m'}.
+	\dotp{\psi_k}{\psi_{k'}} = \de_{k-k'}.
 }
 The decomposition of a signal in such an ortho-basis is written
 \eq{
-	f = \sum_{m=0}^{N-1} \dotp{f}{\psi_m} \psi_m.
+	f = \sum_{k=0}^{N-1} \dotp{f}{\psi_k} \psi_k.
 }
 It satisfies a conservation of energy
 \eq{
 	\norm{f}^2 = \sum_{n=0}^{N-1} |f_n|^2 = 
-\sum_{m=0}^{N-1} |\dotp{f}{\psi_m}|^2
+\sum_{k=0}^{N-1} |\dotp{f}{\psi_k}|^2
 }
 
-Computing the set of all inner product $\{\dotp{f}{\psi_m}\}_{0 \leq m < N}$ is done in a brute force way in $O(N^2)$ operations.
-This is not feasible for large datasets where $N$ is of the order of millions. When designing an ortho-basis, one should keep this limitation in mind and enforce some structure in the basis elements so that the decomposition can be computed with fast algorithm. This is the case for the Fourier and wavelet bases, that enjoy respectively $O(N\log(N))$ and $O(N)$ algorithms.
+Computing the set of all inner product $\{\dotp{f}{\psi_k}\}_{0 \leq k < N}$ is done in a brute force way in $O(N^2)$ operations.
+This is not feasible for large datasets where $N$ is of the order of millions. When designing an ortho-basis, one should keep this limitation in mind and enforce some structure in the basis elements so that the decomposition can be computed with a fast algorithm. This is the case for the Fourier and wavelet bases, that enjoy respectively $O(N\log(N))$ and $O(N)$ algorithms.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Discrete Fourier transform}
 
-We denote $f = (f_n)_{n=0}^{N-1} \in \RR^N$, but we insists that such vector should really be understood as being indexed by $n \in \ZZ/N\ZZ$, which is a finite commutative group for the addition. This corresponds to using periodic boundary conditions. 
+We denote $f = (f_n)_{n=0}^{N-1} \in \RR^N$, but we insist that such vector should be understood as being indexed by $n \in \ZZ/N\ZZ$, which is a finite commutative group for the addition. This corresponds to using periodic boundary conditions. 
 
 The discrete Fourier transform is defined as
 \eql{\label{eq-dft}
@@ -386,7 +394,7 @@ The following proposition shows that this corresponds to a decomposition in an o
 		\dotp{\phi_k}{\phi_\ell} = \sum_n e^{\piN (k-\ell) n} = 
 		\frac{ 1 - e^{\piN (k-\ell) N} }{ 1 - e^{\piN (k-\ell)} } = 0
 	}
-	which is the sum of a geometric serie (equivalently, sum of equi-spaced points on a circle). 
+	which is the sum of a geometric series (equivalently, the sum of equispaced points on a circle). 
 	%
 	The inversion formula is simply $f = \sum_k \dotp{f}{\phi_k} \frac{\phi_k}{\norm{\phi_k}^2}$.
 \end{proof}
@@ -398,12 +406,12 @@ The following proposition shows that this corresponds to a decomposition in an o
 Assuming $N=2N'$, one has 
 \begin{align*}
 	\hat f_{2k} &= \sum_{n=0}^{N'-1} (f_n + f_{n+N/2}) e^{ -\frac{2\imath\pi}{N'} k n } \\
-	\hat f_{2k+1} &= \sum_{n=0}^{N'-1} e^{ -\frac{2\imath\pi}{N'} n } (f_n - f_{n+N/2}) e^{ -\frac{2\imath\pi}{N'} k n }.
+	\hat f_{2k+1} &= \sum_{n=0}^{N'-1} e^{ -\frac{2\imath\pi}{N} n } (f_n - f_{n+N/2}) e^{ -\frac{2\imath\pi}{N'} k n }.
 \end{align*}
 For the second line, we used the computation
 \eq{
 	e^{-\frac{2\imath\pi}{N}(2k+1)(n+N/2)} =
-	e^{-\frac{2\imath\pi}{N}(2kn+kN+n+N/2)} = - e^{ -\frac{2\imath\pi}{N'} n } e^{ -\frac{2\imath\pi}{N'} k n }.
+	e^{-\frac{2\imath\pi}{N}(2kn+kN+n+N/2)} = - e^{ -\frac{2\imath\pi}{N} n } e^{ -\frac{2\imath\pi}{N'} k n }.
 }
 Denoting $\Ff_N(f)=\hat f$ the discrete Fourier transform on $\RR^N$, and 
 introducing the notation $f_e = (f_n + f_{n+N/2})_n \in \RR^{N'}$, $f_o = (f_n - f_{n+N/2})_n \in \RR^{N'}$
@@ -413,7 +421,7 @@ and $\al_N = (  e^{ -\frac{2\imath\pi}{N'} n } )_{n} \in \RR^{N'}$, one has the 
 }
 where $\Ii_N$ is the ``interleaving'' operator, defined by $\Ii_N(a,b) \eqdef (a_1,b_1,a_2,b_2,\ldots,a_{N'},b_{N'})$.
 %
-There iterations define the so-called Fast Fourier Transform algorithm, which works here when $N$ is a power of 2. These iterations can be extended to arbitrary number $N$, but a workaround is to simply pad with 0 (or use more complicated extensions) to have vector with size that are power of $2$. 
+Their iterations define the so-called Fast Fourier Transform algorithm, which works here when $N$ is a power of 2. These iterations can be extended to arbitrary number $N$, but a workaround is to simply pad with 0 (or use more complicated extensions) to have vectors with size that are power of $2$. 
 
 This algorithm can also be interpreted as a factorization of the Fourier matrix into $O(\log(N))$ product of matrices. 
 
@@ -467,9 +475,9 @@ This defines an commutative algebra structure $(\RR^N,+,\star)$, with neutral el
 \begin{proof}
 	We denote $T : g \mapsto f \star g$. One has 
 	\eq{
-		(T \phi_\ell)_n = \sum_k f_k e^{ \piN \ell(n-k) } = e^{ \piN \ell n } \hat f_\ell.
+		(T \phi_\ell)_n = (f \star \phi_\ell)_n = \sum_p f_p e^{ \piN \ell(n-p) } = e^{ \piN \ell n } \hat f_\ell = \hat f_\ell (\phi_\ell)_n.
 	}
-	This shows that $(\phi_\ell)_\ell$ are the $N$ eigenvectors of $T$ with associated eigenvalues $\hat f_\ell$. So $T$ is diagonalizable in this basis. Denoting $F=(  e^{ -\piN k n } )_{k,n}$ the matrix of the Fourier transform, the Fourier inversion formula~\eqref{eq-dft-inv} reads $F^{-1} = \frac{1}{N}F^*$ where $F^*=\bar F^\top$ is the adjoint matrix (trans-conjugate). The diagonalization of $T$ now reads
+	This shows that $(\phi_\ell)_\ell$ are the $N$ eigenvectors of $T$ with associated eigenvalues $\hat f_\ell$. So $T$ is diagonalizable on this basis. Denoting $F=(  e^{ -\piN k n } )_{k,n}$ the matrix of the Fourier transform, the Fourier inversion formula~\eqref{eq-dft-inv} reads $F^{-1} = \frac{1}{N}F^*$ where $F^*=\bar F^\top$ is the adjoint matrix (trans-conjugate). The diagonalization of $T$ now reads
 	\eq{
 		T = F^{-1} \diag(\hat f) F =  \qarrq
 		\Ff(T g) = \diag(\hat f) F g \qarrq
@@ -479,7 +487,7 @@ This defines an commutative algebra structure $(\RR^N,+,\star)$, with neutral el
 
 This proposition shows that one can compute in $O(N\log(N))$ operation via the formula
 \eq{	
-	f \star g = \FF^{-1}( \hat f \odot \hat g ).
+	f \star g = \Ff^{-1}( \hat f \odot \hat g ).
 }
 This is very advantageous with respect to the naive implementation of formula~\eqref{eq-finite-convol}, in the case where $f$ and $g$ have large support. In case where $|\Supp(g)|=P$ is small, then direct implementation is $O(PN)$ which might be advantageous. An example is $g=[1,1,0,\ldots,0,1]/3$, the moving average, where
 \eq{
@@ -487,13 +495,39 @@ This is very advantageous with respect to the naive implementation of formula~\e
 }
 needs $3N$ operations.
 
-WARNING: this is wrong, one needs also to carie reminders in the multiplication. 
-An example of application of the FFT is the multiplication of large polynomial, and thus of large integers (viewing the expansion in a certain basis as a polynomial). Indeed
+
+\paragraph{Convolution as translation invariant operator.}
+
+We define the translation operator on $\ZZ/N\ZZ$ as $(Tf)_n \eqdef f_{n-\tau}$ where $n-\tau$ is computed modulo $N$. The following proposition mimics the previous one on $\RR$ and $\RR/\ZZ$, but this time on $\ZZ/N\ZZ$. It is simpler because there is no convergence issue, and one can directly define the impulse response.
+
+\begin{prop}
+	If $H : \RR^N \rightarrow \RR^N$ is a linear operator. Then $H \circ T_\tau = T_\tau \circ H$ for all $\tau$ if and only if there exists $h \in \RR^N$ (often called the impulse response) so that $Hf = f \star h$.
+\end{prop}
+
+\begin{proof}
+	For the only statement, we first note that $T_\tau = f \star \delta_{\tau}$ is a convolution against a translated Dirac $\delta_\tau=T_\tau(\delta)$ where $\delta=(1,0,\ldots,0)$. By commutativity of the convolution, one has if $Hf = f \star h$.
+	$$
+		H \circ T_\tau(f) = h \star \delta_\tau \star f = \delta_\tau \star h \star f
+		T_\tau \circ H(f).
+	$$	
+	For the ``if'' statement, we define $h \eqdef H(\delta)$. Then 
+	$$
+		H(f) = H( \sum_i f_i (T_{i} \delta) ) = \sum_i f_i H(T_i \delta) = \sum_i f_i T_i H(\delta) = \sum_i f_i h_{\cdot-i} = f \star h.
+	$$
+	 
+\end{proof}
+
+
+\paragraph{Polynomial multiplication.}
+
+
+An example of the application of the FFT is the multiplication of large polynomials, and thus of large integers (viewing the expansion in a certain basis as a polynomial). Indeed
 \eq{
 	(\sum_{i=0}^A a_i X_i)( \sum_{j=0}^B b_i X^j ) = 
 	\sum_{k=0}^{A+B} ( \sum_{i+j=k} a_i b_j ) X^k
 }
-One can write $\sum_{i+j=k} a_i b_j = (\bar a \star \bar b)_k$ when one defines $\bar a,\bar b \in \RR^{A+B}$ by zero padding. 
+Ignoring for the sake of simplicity of the exposure that one needs to caries over reminder during the multiplication (which can be achieved in linear time), 
+one can write $\sum_{i+j=k} a_i b_j = (\bar a \star \bar b)_k$ when one defines $\bar a,\bar b \in \RR^{A+B}$ by zero padding. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -502,13 +536,13 @@ One can write $\sum_{i+j=k} a_i b_j = (\bar a \star \bar b)_k$ when one defines 
 \section{Discretisation Issues}
 \label{sec-fourier-discretization}
 
-Beside computing convolutions, another major application of the FFT is to approximate the Fourier transform and its inverse, thus leading to a computationally efficient spectral interpolation method.
+Besides computing convolutions, another major application of the FFT is to approximate the Fourier transform and its inverse, thus leading to a computationally efficient spectral interpolation method.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Fourier approximation via spatial zero padding.}
 
-It is possible to view the discrete finite Fourier transform~\eqref{eq-dft} as a first order approximation to compute Fourier coefficients, or rather actually samples from the Fourier transform~\eqref{eq-fourier-transform}. Supposing that $f$ is a smooth enough function is supported on $[0,1]$, we consider the discrete Fourier transform of the vector $f^Q \eqdef (f(n/N))_{n=0}^{Q-1} \in \RR^Q$  where $Q \geq N$ induced a padding by $0$ (since $f(n/N)=0$ for $n > N$)
+It is possible to view the discrete finite Fourier transform~\eqref{eq-dft} as a first-order approximation to compute Fourier coefficients, or rather actually samples from the Fourier transform~\eqref{eq-fourier-transform}. Supposing that $f$ is a smooth enough function is supported on $[0,1]$, we consider the discrete Fourier transform of the vector $f^Q \eqdef (f(n/N))_{n=0}^{Q-1} \in \RR^Q$  where $Q \geq N$ induced a padding by $0$ (since $f(n/N)=0$ for $n > N$)
 \eq{
 	\foralls k \in \range{-\frac{Q}{2},\frac{Q}{2}}, \quad
 	\frac{1}{N} \hat f_k^Q = \frac{1}{N} \sum_{n=0}^{N-1} f\pa{\frac{n}{N}} e^{-\frac{2\imath\pi}{Q} n k}
@@ -539,7 +573,7 @@ If one has at its disposal $N$ uniform discrete samples $f^N=(f^N_n)_{n=0}^{N-1}
 }
 and then zero-pad it to obtain a vector of length $Q$.
 %
-For simplicity, we assume $N=2N'+1$ is odd, and this computation can be also done (but is more involved) with even size.
+For simplicity, we assume $N=2N'+1$ is odd, and this computation can be also done (but is more involved) with an even size.
 %
 Indexing the frequencies as $-N' \leq k \leq N'$ The padding vector is of the form, 
 \eq{
@@ -568,7 +602,7 @@ Here we use the following summation rule for geometric series for $\rho=e^{\imat
 	\sum_{i=a}^b \rho^i = \frac{ \rho^{a-\frac{1}{2}} - \rho^{b+\frac{1}{2}} }{ \rho^{-\frac{1}{2}} - \rho^{\frac{1}{2}} }
 	= \frac{ \sin( (b+\frac{1}{2}) \om ) }{ \sin(\om/2) }.
 }
-This zero-padding method leads to a discrete version of the Shannon interpolation formula~\eqref{eq-shannong-interp}, which allows to comput the interpolation on a grid of size $Q$ are cost $O(Q\log(Q))$. Increasing $N$ increases the accuracy of the formula, since $\sinc_N \rightarrow \sinc$ as $N \rightarrow +\infty$.
+This zero-padding method leads to a discrete version of the Shannon interpolation formula~\eqref{eq-shannong-interp}, which allows to compute the interpolation on a grid of size $Q$ are cost $O(Q\log(Q))$. Increasing $N$ increases the accuracy of the formula, since $\sinc_N \rightarrow \sinc$ as $N \rightarrow +\infty$.
 
 \begin{figure}
 \centering
@@ -623,26 +657,26 @@ under hypotheses of integrability matching exactly those in 1-D.
 
 Given an Hilbertian basis $(\phi_{n_1})_{n_1 \in \NN}$ of $L^2(\XX)$, one construct an Hilbertian basis of $L^2(\XX^d)$ by tensorization
 \eql{\label{eq-tensor-product}
-	\foralls n=(n_1,\ldots,n_d) \in \NN^d, \quad
+	\foralls k=(k_1,\ldots,k_d) \in \NN^d, \quad
 	\foralls x \in \XX^d, \quad
-	\phi_n(x) = \phi_{n_1}(x_1) \ldots \phi_{n_d}(x_d).
+	\phi_k(x) = \phi_{k_1}(x_1) \ldots \phi_{k_d}(x_d).
 }
-Orthogonality is simple to check, and one can also prove convergence for sum of the form $\sum_{\norm{n}_\infty \leq N} \dotp{f}{\phi_n} \phi_n \rightarrow f$ in $L^2(\XX^d)$.
+Orthogonality is simple to check, and one can also prove convergence for sums of the form $\sum_{\norm{k}_\infty \leq N} \dotp{f}{\phi_k} \phi_k \rightarrow f$ in $L^2(\XX^d)$.
 
 %%% FIG %%%
 \wrapf{2-fourier/torus}{The 2-dimensional torus $\TT^2=(\RR/2\pi\ZZ)^2$}
 %%%
 For the multi-dimensional torus $(\RR/2\pi\ZZ)^d$, using the Fourier basis~\eqref{eq-fourier-basis-1d}, this leads to consider the basis
 \eq{
-	\foralls n \in \RR^d, \quad \phi_n(x) = e^{\imath \dotp{x}{n}}
+	\foralls k \in \ZZ^d, \quad \phi_k(x) = e^{\imath \dotp{x}{k}}
 } 
-which is indeed an Hilbertian orthonormal basis for the inner product $\dotp{f}{g} \eqdef \frac{1}{(2\pi)^d} \int_{\TT^d} f(x)\bar g(x)\d x$. 
+which is indeed a Hilbertian orthonormal basis for the inner product $\dotp{f}{g} \eqdef \frac{1}{(2\pi)^d} \int_{\TT^d} f(x)\bar g(x)\d x$. 
 %
 This defines the Fourier transform and the reconstruction formula on $L^2(\TT^d)$
 \eq{
-	\hat f_n \eqdef \frac{1}{(2\pi)^d} \int_{\TT^d} f(x) e^{-\imath \dotp{x}{n}}  \d x
+	\hat f_k \eqdef \frac{1}{(2\pi)^d} \int_{\TT^d} f(x) e^{-\imath \dotp{x}{k}}  \d x
 	\qandq
-	f = \sum_{n \in \ZZ^d} \hat f_n e^{\imath \dotp{x}{n}}.
+	f = \sum_{k \in \ZZ^d} \hat f_k e^{\imath \dotp{x}{k}}.
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -682,7 +716,7 @@ The basis $(\phi_k)_k$ is indeed orthonormal for this inner product. The Fourier
 %%%%
 \paragraph{Fast Fourier Transform.}
 
-We detail the algorithm in dimension $d=2$ for notation simplicity, but this extends similarly in arbitrary dimension. 
+We detail the algorithm in dimension $d=2$ for notation simplicity, but this extends similarly in arbitrary dimensions. 
 %
 The general idea is that if a fast algorithm is available to compute ortho-decompositions on two 1-D bases $(\phi_{k_1}^{1})_{k_1=1}^{N_1}$, $(\phi_{k_2}^{2})_{k_2=1}^{N_2}$, is extended to compute decomposition on the tensor product basis 
 $(\phi_{k_1}^{1} \otimes \phi_{k_2}^{2})_{k_1,k_2}$ by apply succesively the algorithm on the ``rows'' and then ``columns'' (the order does not matters) of the matrix $(f_n)_{n=(n_1,n_2)} \in \RR^{N_1 \times N_2}$. 
@@ -702,7 +736,7 @@ If we represent $f \in \RR^{N_1 \times N_2}$ as a matrix, and denote $F_N=(e^{-\
 \eq{
 	\hat f = F_{N_1} \times f \times F_{N_2}^* \in \RR^{N_1 \times N_2}.
 }
-But of course these multiplications are not computed explicitly (one uses the FFT).
+But of course, these multiplications are not computed explicitly (one uses the FFT).
 
 \myfigure{
 \tabquatre{
@@ -744,7 +778,7 @@ Similarly, finite discrete convolution of vectors $f \in \RR^{N_1 \times N_2}$ e
 }
 where additions and subtractions of vectors are performed modulo $(N_1,N_2)$.
 
-The Fourier-convolution theorem is still valid in all this cases, namely $\Ff(f \star g)=\hat f \odot \hat g$. In the finite case, this offers a fast $O(N \log(N))$ method to compute convolutions even if $f$ and $g$ do not have small support.
+The Fourier-convolution theorem is still valid in all these cases, namely $\Ff(f \star g)=\hat f \odot \hat g$. In the finite case, this offers a fast $O(N \log(N))$ method to compute convolutions even if $f$ and $g$ do not have small support.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -756,7 +790,7 @@ The Fourier-convolution theorem is still valid in all this cases, namely $\Ff(f 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{On Continuous Domains}
 
-We here give only the intuition without formal proofs.
+We here give only the intuition without formal proof.
 
 One $\XX=\RR$ or $\TT$, one has
 \eq{
@@ -770,7 +804,7 @@ Similarly on $\XX=\RR^d$ (see Section~\ref{sec-fourier-multiple-dim} for the def
 }
 (and similarly on $\TT$ replacing $\om$ by $n \in \ZZ^d$).
 %
-The Fourier transform (or Fourier coefficients) are thus powerful to study linear differential equations with constant coefficients, because they are turned into algebraic equations.
+The Fourier transform (or Fourier coefficients) are thus powerful to study linear differential equations with constant coefficients because they are turned into algebraic equations.
 
 \begin{figure}
 \centering
@@ -833,7 +867,7 @@ Note that for a finite group $G$ with $|G|=N$, then since $N \times n=0$ for any
 \eql{\label{eq-char-finite-group}
 	\chi(n) \in \enscond{ e^{\piN k} }{ 0 \leq k \leq N-1 }.
 }
-So in particular $\hat G$ is a finite group (since there is a finite number of application between two finite sets) and $\chi^{-1}=\bar\chi$. In the case of a cyclic group, the dual is actually simple to describe.
+So in particular $\hat G$ is a finite group (since there is a finite number of applications between two finite sets) and $\chi^{-1}=\bar\chi$. In the case of a cyclic group, the dual is simple to describe.
 
 \begin{prop}\label{prop-iso-cyclic}
 	For $G=\ZZ/N\ZZ$, then $\hat G=( \phi_k )_{k=0}^{N-1}$ where $\phi_k=( e^{\piN nk} )_n$ and $k \mapsto \phi_k$ defines a (non-canonical) isomorphism $G \sim \hat G$. 
@@ -845,7 +879,7 @@ So in particular $\hat G$ is a finite group (since there is a finite number of a
 	\eq{
 		\chi(n)=\chi(1)^n=^{\piN k n} = \phi_k(n).
 	}
-	Note that all these applications are different (because $\phi_k(1)$ are all distincts) which shows that $|G|=|\hat G|$ so that they are isomorphic. 
+	Note that all these applications are different (because $\phi_k(1)$ are all distinct) which shows that $|G|=|\hat G|$ so that they are isomorphic. 
 \end{proof}
 
 This proposition thus shows that characters of cyclic groups are exactly the discrete Fourier orthonormal basis defined in~\eqref{eq-dft}. 
@@ -888,7 +922,7 @@ This construction, thanks to the structure theorem, leads to a constructive proo
 	One concludes thanks to Proposition~\ref{prop-iso-cyclic}, since one has $\hat G_k \sim G_k$.
 \end{proof}
 
-Note that the isomorphism $\hat G \sim G$ is not ``canonical'' since it depends on the indexing of the roots of unity on the circle. Similarly to the case of duality of vector space, the isomorphism $\hat{\hat{G}} \sim G$ can be made canonical by considering the evaluation map
+Note that the isomorphism $\hat G \sim G$ is not ``canonical'' since it depends on the indexing of the roots of unity on the circle. Similarly to the case of the duality of vector space, the isomorphism $\hat{\hat{G}} \sim G$ can be made canonical by considering the evaluation map
 \eq{
 	g \in G \longmapsto e_g \in \hat{\hat{G}}
 	\qwhereq
@@ -915,7 +949,7 @@ by tensorizing these functions together, one thus obtains that the characters co
 %%%
 \paragraph{Infinite groups.}
 
-For an infinite group with a finite number of generator, one has  $Q>0$, and the definition of $\hat G$ should impose the continuity of the characters (and also use an invariant measure on $G$ to define inner products). In the case $G=\ZZ$, the dual are indexed by a continuous parameter, 
+For an infinite group with a finite number of generators, one has  $Q>0$, and the definition of $\hat G$ should impose the continuity of the characters (and also use an invariant measure on $G$ to define inner products). In the case $G=\ZZ$, the dual vectors are indexed by a continuous parameter, 
 \eq{
 	\hat \ZZ = \enscond{ \phi_\om : n \mapsto e^{\imath n \om} \in \CC^\ZZ }{  \om \in \RR/2\pi\ZZ }
 }
@@ -929,30 +963,30 @@ The ``decomposition'' of a sequence $(c_n)_{n \in \ZZ}$ on the set of characters
 
 Similarly, for $G=\RR/2\pi\ZZ$, one has $\hat G=\ZZ$, with orthonormal characters $\phi_n=e^{\imath \cdot n}$, so that the decomposition of functions in $L^2(G)$ is the computation of Fourier coefficients.
 %
-Intuitively, an Hilbertian theory is associated to a compact group, which comes with an invariant measure. 
+Intuitively, a Hilbertian theory is associated with a compact group, which comes with an invariant measure. 
 
 %%%
 \paragraph{Non-commutative groups.}
  
-For non-commutative group, one observes that $G$ is not isometric to $\hat G$. A typical example is the symmetric group $\Si_N$ of $N$ elements, where one can show that $\hat G = \{\Id,\epsilon\}$ where $\epsilon(\si) = (-1)^{q}$ is the signature, where $q$ is the number of permutations involved in a decomposition of $\si \in \Si_N$. 
+For noncommutative group, one observes that $G$ is not isometric to $\hat G$. A typical example is the symmetric group $\Si_N$ of $N$ elements, where one can show that $\hat G = \{\Id,\epsilon\}$ where $\epsilon(\si) = (-1)^{q}$ is the signature, where $q$ is the number of permutations involved in a decomposition of $\si \in \Si_N$. 
 
 In order to study non-commutative groups, one has to replace morphisms $\chi : G \rightarrow \CC^*$ by morphisms $\rho : G \rightarrow \text{GL}(\CC^{n_\rho})$ for some $n_\rho$, which are called ``representations'' of the group $G$. For $(g,g') \in G$ (denoting now multiplicatively the operation on $G$), one should thus have $\rho(gg')=\rho(g) \circ \rho(g')$. When $n_\rho=1$, identifying $\text{GL}(\CC) \sim \CC^*$, one retrieves the definition of characters. Note that if $\rho$ is a representation, then $\chi(g) \eqdef \tr(\rho(g))$, where $\tr$ is the trace, defines a character. 
 
-If there is a subspace $V$ stable by all the $\rho(g)$, one can build $W$ such that $\RR^{n_\rho}=V+W$ which is also stable, thus reducing the study of $\rho$ to the study on a small space (matrices have a block diagonal form). It suffice to consider the inner product
+If there is a subspace $V$ stable by all the $\rho(g)$, one can build $W$ such that $\RR^{n_\rho}=V+W$ which is also stable, thus reducing the study of $\rho$ to the study on a small space (matrices have a block diagonal form). It suffices to consider the inner product
 \eq{
 	\dotp{x}{y} \eqdef \sum_{g \in G} \dotp{\rho(g)x}{\rho(g)y}_{\RR^{n_\rho}}
 }
 and select the orthogonal $V^\bot$ for this product. Note that when using an ortho-basis of $\RR^{n_\rho}$ for this inner product, the matrices associated to the $\rho(g)$ are unitary.
 %
-In order to limit the set of such representations, one is only interested in ``elementary'' ones, which does not have invariant sub-spaces, and are called ``irreducible'' (otherwise one could create arbitrary large representation by stacking others in a block diagonal way). 
+In order to limit the set of such representations, one is only interested in ``elementary'' ones, which do not have invariant sub-spaces, and are called ``irreducible'' (otherwise one could create arbitrary large representation by stacking others in a block diagonal way). 
 %
-One also only consider these irreductible representation up to isomorphism, where two representation $(\rho,\rho')$ are said to be isomorphic if $\rho(g) = U^{-1} \rho(g) U$ where $U \in \text{GL}(\CC^d)$ is a change of basis. The set of all these representations up to isomomorphisms is called the dual group and denoted $\hat G$.
+One also only considers these irreducible representations up to isomorphism, where two representations $(\rho,\rho')$ are said to be isomorphic if $\rho(g) = U^{-1} \rho(g) U$ where $U \in \text{GL}(\CC^d)$ is a change of basis. The set of all these representations up to isomorphism is called the dual group and denoted $\hat G$.
 
 For the symmetric group, there is an explicit description of the set of irreducible representations.  
 %
-For instance, for $G=\Sigma_3$, $|G|=6$, and there is two representation of dimension 1 (the identity and the signature, which are the caracters) and one representation of dimension 2, which is obtained by identifying $G$ with the isometric of the equilateral triangle in $\RR^2$, and the dimensions indeed satisfy $6 = |G| = \sum n_\rho^2 = 1+1+2^2$. 
+For instance, for $G=\Sigma_3$, $|G|=6$, and there are two representations of dimension 1 (the identity and the signature, which are the characters) and one representation of dimension 2, which is obtained by identifying $G$ with the isometric of the equilateral triangle in $\RR^2$, and the dimensions indeed satisfy $6 = |G| = \sum n_\rho^2 = 1+1+2^2$. 
 
-One can show that the dimensions $n_\rho$ of these irreducible representations $\rho \in \hat G$ satisfies $\sum_{\rho \in \hat G} n_\rho^2 = N$ and that the entries of the matrices involved in these representation define an orthogonal basis of the space of functions $f : G \rightarrow \CC$ (note however that this set of basis function is not canonical since it depends on a particular choice of basis for each representation up to isomorphism).
+One can show that the dimensions $n_\rho$ of these irreducible representations $\rho \in \hat G$ satisfies $\sum_{\rho \in \hat G} n_\rho^2 = N$ and that the entries of the matrices involved in these representations define an orthogonal basis of the space of functions $f : G \rightarrow \CC$ (note however that this set of basis function is not canonical since it depends on a particular choice of basis for each representation up to isomorphism).
 %
 The associated Fourier transform of a function $f : G \rightarrow \Cc$ is defined as
 \eq{
@@ -986,15 +1020,11 @@ One then has
 \end{align*}
 \end{proof}
 
-
-
-
-
 One can define the convolution of two functions $f,h : G \rightarrow \CC$ as
 \eq{
 	(f \star h)(a) \eqdef \sum_{bc=a} f(b) h(c)
 }
-(beware that it is not commutative anymore). The Fourier transform diagonalize these convolution operators, has stated next.
+(beware that it is not commutative anymore). The Fourier transform diagonalizes these convolution operators, as stated next.
 
 \begin{prop}
 Denoting $\Ff(f) = \hat f$
@@ -1012,9 +1042,9 @@ where we made the change of variable $z=y^{-1}x$.
 \end{proof}
 
 
-For certain groups, there exists fast Fourier transforms to compute $\hat f$, an example being the permutation group, but the structure of these algorithm is much more involved than in the case $G=\ZZ/N\ZZ$. 
+For certain groups, there exists fast Fourier transforms to compute $\hat f$, an example being the permutation group, but the structure of these algorithms is much more involved than in the case $G=\ZZ/N\ZZ$. 
 
-This theory extends to compact group by considering a discrete but infinite set of representations. A typical example is to analyze signals defined on the rotation groups SO$(3)$, on which one can compute explicitly the representation using the basis of sphereical harmonics detailed in Section~\ref{sec-spherical-harm} below. In this case, one has a representation of dimension $2\ell+1$ for each frequency index $\ell$. 
+This theory extends to compact groups by considering a discrete but infinite set of representations. A typical example is to analyze signals defined on the rotation groups SO$(3)$, on which one can compute explicitly the representation using the basis of spherical harmonics detailed in Section~\ref{sec-spherical-harm} below. In this case, one has a representation of dimension $2\ell+1$ for each frequency index $\ell$. 
  
 %
 % It is possible to lift the 3-D sphere $\SS^2$ on the group SO$(3)$ since it operate transitively on the sphere, for instance defining for $f : \SS^2 \rightarrow \CC$ its lifted version $f_L(g) = f(g(o))$ where $o$ is any point on the sphere. 
@@ -1024,7 +1054,7 @@ This theory extends to compact group by considering a discrete but infinite set 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Bit of Spectral Theory}
 
-In order to define Fourier methods on general domains $\XX$, one can use the aforementioned group-theoretic approach if $\XX=G$ is a group, or also if a group acts transitively on $\XX$. An alternative way is to describe the equivalent of Fourier basis functions as diagonalizing a specific differential operator (as we have seen in Section~\ref{sec-fourier-pdes} that it is in some sense a way to characterise the Fourier basis). Of particular interest is the Laplacian, since it is the lowest order rotation-invariant differential operator, and that there exists natural generalization on domains such as surfaces or graphs.
+In order to define Fourier methods on general domains $\XX$, one can use the aforementioned group-theoretic approach if $\XX=G$ is a group, or also if a group acts transitively on $\XX$. An alternative way is to describe the equivalent of Fourier basis functions as diagonalizing a specific differential operator (as we have seen in Section~\ref{sec-fourier-pdes} that it is in some sense a way to characterize the Fourier basis). Of particular interest is the Laplacian, since it is the lowest order rotation-invariant differential operator, and that there exists natural generalization on domains such as surfaces or graphs.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1044,7 +1074,7 @@ In the case of a flat torus $\XX=(\RR/\ZZ)^d$, then writing $x=(x_1,\ldots,x_d)$
 \eq{
 	\De f = \sum_{s=1}^d \frac{\partial^2 f}{\partial^2 x_s}.
 } 
-Similarly to~\eqref{eq-lapl-fourier} (which was for an unbounded domain), then one can chose for this eigen-functions $\phi_n$ the Fourier basis~\eqref{eq-fourier-basis-1d} and $\la_n=-\norm{n}^2$
+Similarly to~\eqref{eq-lapl-fourier} (which was for an unbounded domain), then one can choose for this eigenfunctions $\phi_n$ the Fourier basis~\eqref{eq-fourier-basis-1d} and $\la_n=-\norm{n}^2$
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Spherical Harmonics}
@@ -1070,7 +1100,7 @@ For a fixed $\ell$, the space $V_\ell = \text{span}( \phi_{\ell,m} )$ is an eige
 \subsection{On a Graph}
 
 \wrapf{2-fourier/graph}{Weighted graph.}
-We assume $\XX$ is a graph of $N$ vertices, simply indexed $\{1,\ldots,N\}$. Its ``geometry'' is described by a connectivity matrix of weights $W=(w_{i,j})_{i \sim j}$ where we denote $i \sim j$ to indicate that $(i,j)$ is an edge of the graph for $(i,j) \in \XX^2$. We assume that this weight matrix and the connectity is symmetric, $w_{i,j}=w_{j,i}$. 
+We assume $\XX$ is a graph of $N$ vertices, simply indexed $\{1,\ldots,N\}$. Its ``geometry'' is described by a connectivity matrix of weights $W=(w_{i,j})_{i \sim j}$ where we denote $i \sim j$ to indicate that $(i,j)$ is an edge of the graph for $(i,j) \in \XX^2$. We assume that this weight matrix and the connectivity is symmetric, $w_{i,j}=w_{j,i}$. 
 
 The graph Laplacian $\Delta : \RR^N \rightarrow \RR^N$ is computing the difference between the average of values around a point and the value at this point
 \eq{
@@ -1104,7 +1134,7 @@ where $P$ is the number of (ordered) edges $E=\enscond{(i,j)}{i \sim j, i<j}$.
 	\end{align*}
 \end{proof}
 
-This proposition shows that $\Delta$ is a negative semi-definite operator, which thus diagonalizes in an ortho-basis $(\phi_n)_{n=1}^N$, with $\phi_1=1$, with eigenvalues $0 \geq \la_1 \geq \la_N$. If $\XX$ is connected, one can show that $\la_1 <0$. In the case of a regular graph associated to a uniform grid, one retrieves the discrete Fourier basis~\eqref{eq-dft}. 
+This proposition shows that $\Delta$ is a negative semi-definite operator, which thus diagonalizes in an ortho-basis $(\phi_n)_{n=1}^N$, with $\phi_1=1$, with eigenvalues $0 \geq \la_1 \geq \la_N$. If $\XX$ is connected, one can show that $\la_1 <0$. In the case of a regular graph associated with a uniform grid, one retrieves the discrete Fourier basis~\eqref{eq-dft}. 
 
 More details and application of Laplacians on graphs can be found in Chapter~\ref{chap-meshes}, see in particular Section~\ref{sec-grad-lapl-meshes}.
 
@@ -1114,7 +1144,7 @@ More details and application of Laplacians on graphs can be found in Chapter~\re
 \subsection{Other things}
 
 Multiplication of polynomials (\texttt{Code text\_polymult.m}).
-
+%
 Fourier transform for finite-field valued functions.
 
 

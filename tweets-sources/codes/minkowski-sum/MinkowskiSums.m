@@ -9,6 +9,7 @@ names = {'elephant', 'bunny'};
 
 names = {'france', 'triskel'};
 names = {'', ''};
+names = {'cat', 'cat'};
 
 if not(exist('test'))
     test = 0;
