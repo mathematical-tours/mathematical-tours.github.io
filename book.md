@@ -17,8 +17,8 @@ This book draft presents an overview of important mathematical and numerical fou
 
 Chapters Available as Individual PDFs
 ----------------
-
-- [Shannon Theory](book-sources/chapters-pdf/shannon.pdf)
+- [Shannon Coding Theory](book-sources/chapters-pdf/shannon-coding.pdf)
+- [Shannon Sampling Theory](book-sources/chapters-pdf/shannon.pdf)
 - [Fourier Transforms](book-sources/chapters-pdf/fourier.pdf)
 - [Wavelets](book-sources/chapters-pdf/wavelets.pdf)
 - [Linear and Non-linear Approximation](book-sources/chapters-pdf/approximation.pdf)

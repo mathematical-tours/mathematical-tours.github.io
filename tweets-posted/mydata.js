@@ -2616,7 +2616,7 @@ Sparse Cholesky factorization is obtained by applying the algorithm after a care
 
 07/10/2024
 652-chew-algo.png
-Oldies but goldies: Paul Chew, Guaranteed-quality mesh generation for curved surfaces, 1993. With Ruppert's method, the first algorithm for provably good quality meshing of constrained domains. Based on the crucial idea of Delaunay refinement. https://en.wikipedia.org/wiki/Chew%27s_second_algorithm https://en.wikipedia.org/wiki/Ruppert%27s_algorithm
+Oldies but goldies: Paul Chew, Guaranteed-quality mesh generation for curved surfaces, 1993. With Ruppert's method, the first algorithm for provably good quality meshing of constrained domains. Based on Delaunay refinement. https://en.wikipedia.org/wiki/Chew%27s_second_algorithm
 
 08/10/2024
 653-moreau-smooth.png
@@ -2632,7 +2632,7 @@ Saddle points come with lots of flavors. Quadratic saddle are non-degenerate and
 
 11/10/2024
 656-kalman.m4v
-Oldies but goldies: R.E. Kalman, A New Approach to Linear Filtering and Prediction Problems, 1960. Kalman filter defines recursively an estimator of the parameters of a Gaussian dynamical process.  The basic method to control navigation systems. https://en.wikipedia.org/wiki/Kalman_filter
+Oldies but goldies: R.E. Kalman, A New Approach to Linear Filtering and Prediction Problems, 1960. Kalman filter defines recursively an estimator of the parameters of a Gaussian dynamical process. Basic method to control navigation systems. https://en.wikipedia.org/wiki/Kalman_filter
 
 12/10/2024
 657-projections.png
@@ -2660,7 +2660,7 @@ Oldies but goldies: Ron Kimmel, James Sethian, Computing geodesic paths on manif
 
 18/10/2024
 663-phi-diverg.png
-Csiszar divergences compare the relative densities of two measures with 1. Does not require any reference measure. Handles arbitrary measures (discrete or continuous). The canonical way to compare measures having the same support (strong topology). https://en.wikipedia.org/wiki/F-divergence
+Csiszar divergences compare the relative densities of two measures with 1. Does not require any reference measure. Handles arbitrary measures (discrete or continuous). https://en.wikipedia.org/wiki/F-divergence
 
 19/10/2024
 664-conv-hull.m4v
@@ -2672,11 +2672,11 @@ Error diffusion is the simplest dithering algorithm which quantizes an image to 
 
 21/10/2024
 666-isomap.png
-Oldies but goldies: J. B. Tenenbaum, V. de Silva, J. C. Langford, A Global Geometric Framework for Nonlinear Dimensionality Reduction, 2000. Isomap is one of the first manifold learning algorithms. https://en.wikipedia.org/wiki/Isomap http://nbviewer.jupyter.org/github/gpeyre/numerical-tours/blob/master/matlab/shapes_7_isomap.ipynb
+Oldies but goldies: J. B. Tenenbaum, V. de Silva, J. C. Langford, A Global Geometric Framework for Nonlinear Dimensionality Reduction, 2000. Isomap is one of the first manifold learning algorithms. https://en.wikipedia.org/wiki/Isomap
 
 22/10/2024
 667-lp-balls.m4v
-The l^p functional is convex and hence a norm for p>=1. It is sparsity-inducing for p<=1. The l^1 norm is the heart of the lasso, aka basis pursuit. https://en.wikipedia.org/wiki/Basis_pursuit_denoising https://en.wikipedia.org/wiki/Lasso_(statistics) 
+The l^p functional is convex and hence a norm for p>=1. It is sparsity-inducing for p<=1. The l^1 norm is the heart of the lasso, aka basis pursuit. https://en.wikipedia.org/wiki/Lasso_(statistics) 
 
 23/10/2024
 668-som.m4v
