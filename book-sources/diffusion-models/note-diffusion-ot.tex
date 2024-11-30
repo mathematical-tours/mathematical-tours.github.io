@@ -19,7 +19,7 @@ Generative models aim to build a transportation map $T$ between a reference dist
 %
 We denote by $T_\sharp \alpha$ the push-forward of $\alpha$ by $T$ (if $\alpha$ is made of Dirac masses at $x_i$, then $T_\sharp \alpha$ is composed of Dirac masses at $T(x_i)$). The goal is thus to find $T$ such that $T_\sharp \alpha = \beta$.
 %
-It is easy to see that such a map always exists for any $\beta$, but finding an explicit constructive method for $T$ is surprisingly non-trivial. Two standard approaches are optimal transport and integrating backward the advection field associated with a diffusion.
+It is easy to see that such a map always exists for any $\beta$, but finding an explicit constructive method for $T$ is surprisingly non-trivial. Two standard approaches are optimal transport and integrating backward the advection field associated with diffusion. Two other classes of methods are flow matching (but for a Gaussian latent space, it is the same as the diffusion model up to a time reparameterization, so the same reasoning applies) and Dacorogna-Moser construction where $\beta_t = (1-t)\alpha+t \beta$ (which is problematic if the densities do not have the same support). 
 
 \section{Optimal Transport}
 
@@ -45,6 +45,8 @@ Diffusion models consider an interpolation $\beta_t$ between $\beta_0 = \beta$ a
 \includegraphics[width=.63\linewidth]{fig-interp.pdf}
 \end{center}
 
+
+
 Rewriting these equations in divergence form as
 $$
 	\frac{\partial \beta_t}{\partial t} + \text{div}[ v \beta_t ] = 0
@@ -66,9 +68,16 @@ As a side note, the ML community is particularly excited about this idea because
 
 \section{Inverse Flow Maps Are Not Optimal Transport}
 
-It is natural to wonder whether the inverse flow map $T=S_\infty^{-1}$ is the solution to \eqref{eq:monge}. In dimension 1, $S_t$ defines a diffeomorphism, so $S_\infty$ is monotonic and so is $T=S_\infty^{-1}$. Thus, it is the gradient of a convex function, making it optimal by Brenier's theorem. If $\beta$ is Gaussian, up to a rotation of the space to make the covariance diagonal, the diffusion map is defined by a monotonic map along each axis and is also an optimal transport.
+It is natural to wonder whether the inverse flow map $T=S_\infty^{-1}$ is the solution to \eqref{eq:monge}. In dimension 1, $S_t$ defines a diffeomorphism, so $S_\infty$ is monotonic and so is $T=S_\infty^{-1}$. Thus, it is the gradient of a convex function, making it optimal by Brenier's theorem. If $\beta$ is Gaussian, up to a rotation of the space to make the covariance diagonal, the diffusion map is defined by a monotonic map along each axis and is also an optimal transport. A last example is the radial case, so that $\beta_t$ is also radial, and only only needs to study the radial evolution, and in this case, it is also an optimal transport.
+%
+The figure below shows the diffusion map for the case where $\beta$ is supported in three Dirac. In this case, the mapping defines a tesselation of the space (a Voronoi tesselation for OT) and the tesselation of diffusion is most likely different from the one of OT.   
 
-Lavenant and Santambrogio showed  by contradiction that, in general, the inverse flow map is not the optimal transport. They construct a $\beta$ close to the isotropic Gaussian $\alpha$, but instead of proving the conjecture is false for $\beta$, they show there exists some $t \geq 0$ such that the inverse flow map $T_t$ from $\alpha$ to $\beta_t$ is not an optimal transport. They actually shows that for some $t_0>0$, $T_t$ is not an optimal transform for all $t \in (0,t_0]$ (0 is excluded). 
+\begin{center}
+\includegraphics[width=.5\linewidth]{3-diracs.png}
+\end{center}
+
+
+Lavenant and Santambrogio showed by contradiction that, in general, the inverse flow map is not the optimal transport. They construct a $\beta$ close to the isotropic Gaussian $\alpha$, but instead of proving the conjecture is false for $\beta$, they show there exists some $t \geq 0$ such that the inverse flow map $T_t$ from $\alpha$ to $\beta_t$ is not an optimal transport. They actually shows that $T_t$ is not an optimal transform for $t$ which can be arbitrary close to 0 (but not necessarily 0 \ldots).
 
 We denote $S_t$ the flow map from $\beta_0 = \beta$ to $\beta_t$. If the conjecture is true, the inverse flow map $T_t$ from $\alpha$ to $\beta_t$ is an optimal transport for all $t$. By the composition rule of flow maps, this map is:
 \begin{equation}
