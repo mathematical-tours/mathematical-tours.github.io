@@ -1,6 +1,6 @@
 \section{Wasserstein (gradient) Flows}
 
-The goal of this section is to expose the connection between optimal transport and certain evolutions over the space of probability distributions, particularly solutions to some PDEs and generative models using diffusion. The exposition is informal, focusing on intuition rather than rigorous proof. We work over the space $\mathcal{X} = \mathbb{R}^d$.
+The goal of this section is to expose the connection between optimal transport and certain evolutions over the space of probability distributions, particularly solutions to some PDEs and generative models using diffusion. The exposition is informal, focusing on intuition rather than rigorous proof. We work over the space $\mathcal{X} = \mathbb{R}^d$. It is also the opportunity to draw connexion with recent applications in ML, most notably analyzing the training dynamic of MLP, modeling deep transformers, and flow matching for generative models.
 
 \subsection{Evolutions over the Space of Measures}
 
@@ -165,7 +165,7 @@ In general, analyzing \eqref{eq:wassflow-pde} is challenging. A simple case is w
 
 \subsection{Training Two-Layer MLPs as Wasserstein Flows}
 
-In this section, we replace the variable $x$ with $\theta$ to align with customary notation in machine learning.
+In this section, we replace the variable $x$ with $\theta$ to align with customary notation in machine learning. 
 
 We consider a two-layer MLP $g_\theta : u \in \mathbb{R}^d \to \mathbb{R}$ with $n$ neurons:
 \begin{equation}
@@ -243,7 +243,7 @@ This formulation was first introduced by Michael Sander in the Sinkformer's pape
 
 Generative models aim to build a transportation map $T$ between a reference distribution $\alpha$ (typically an isotropic Gaussian) and the target data distribution $\beta$. It is easy to see that such a map always exists for any $\beta$, but finding an explicit constructive method for $T$ is surprisingly non-trivial. 
 %
-Optimal transport is one approach to achieving this, but it is computationally expensive and raises questions about how to estimate it from samples. A recent idea, first introduced in diffusion models and later systematically developed in flow matching, is to obtain $T$ by integrating a time-dependent vector field $v_t$. The key insight is that valid vector fields can be found via a simple conditional expectation, i.e., through a least squares problem, making the estimation feasible from finite samples of $\alpha$ and $\beta$.
+Optimal transport is one approach to achieving this, but it is computationally expensive and raises questions about how to estimate it from samples. A recent idea, first introduced in diffusion models and later systematically developed in flow matching, is to obtain $T$ by integrating a time-dependent vector field $v_t$. This idea was introduced by Yaron Lipman and his collaborators. The key insight is that valid vector fields can be found via a simple conditional expectation, i.e., through a least squares problem, making the estimation feasible from finite samples of $\alpha$ and $\beta$.
 
 We consider a coupling $\pi$ between $\alpha$ and $\beta$. The simplest choice is the ``independent'' coupling $\pi = \alpha \otimes \beta$. More complex couplings, such as an OT coupling, could also be considered, but they are computationally expensive. Using $\pi$, the interpolation between $\alpha = \alpha_0$ (at $t=0$) and $\beta = \alpha_1$ (at $t=1$) is obtained by push-forwarding using a linear interpolation:
 \begin{equation}

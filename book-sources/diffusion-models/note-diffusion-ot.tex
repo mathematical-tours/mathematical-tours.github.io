@@ -45,8 +45,6 @@ Diffusion models consider an interpolation $\beta_t$ between $\beta_0 = \beta$ a
 \includegraphics[width=.63\linewidth]{fig-interp.pdf}
 \end{center}
 
-
-
 Rewriting these equations in divergence form as
 $$
 	\frac{\partial \beta_t}{\partial t} + \text{div}[ v \beta_t ] = 0
@@ -66,9 +64,41 @@ One has $S_0 = \text{Id}$ and $(S_t)_\sharp \beta_0 = \beta_t$. Thus, in the lim
 
 As a side note, the ML community is particularly excited about this idea because $\nabla \log(\beta_t)$ can be efficiently approximated from samples using denoising-based optimization. Numerically, the inverse flow map is approximated by considering a large, finite $t$ and computing $T_t = S_t^{-1}$ by integrating the ODE. In practice, a stochastic ODE is often used, making the map non-deterministic, though this requires adjusting the bias term $x$ in the ODE to account for extra diffusion.
 
+\section{Flow matching}
+
+Another related construction is flow matching. It is more general because $\alpha$ is not required to be an isotropic Gaussian, and it contains OT as a special case. 
+%
+With respect to diffusion models, it considers $t \in [0,1]$ in place of $t \in [0,+\infty]$.
+%
+It assumes the knowledge of a coupling $\pi$ between $\alpha$ and $\beta$. The simplest choice is the ``independent'' coupling $\pi = \alpha \otimes \beta$. More complex couplings, such as an OT coupling, could also be considered, but they are computationally too expensive. Using $\pi$, the interpolation between $\alpha = \alpha_0$ (at $t=0$) and $\beta = \alpha_1$ (at $t=1$) is obtained by push-forwarding using a linear interpolation:
+\begin{equation}
+    \alpha_t := (P_t)_\sharp \pi, \quad \text{where } P_t(x, y) := (1-t)x + ty. \label{eq:interp-coupling}
+\end{equation}
+If $\pi = \alpha \otimes \beta$ and $\alpha = \frac{1}{n} \sum_i \delta_{x_i}$, $\beta = \frac{1}{m} \sum_j \delta_{y_j}$, then $\alpha_t$ consists of $n \times m$ Dirac masses traveling in straight lines:
+\begin{equation}
+    \alpha_t = \frac{1}{nm} \sum_{i,j} \delta_{(1-t)x_i + ty_j}.
+\end{equation}
+If $\pi = (\mathrm{Id}, T)_\sharp \alpha$ is a Brenier-type coupling, then $\alpha_t = ((1-t)\mathrm{Id} + tT)_\sharp \alpha$ is the so-called McCann OT interpolation.
+%
+This interpolation is not directly useful for sampling from $\beta$, but it can be used to define a flow field $v_t$ so that the Eulerian advection equation holds:
+\begin{equation}
+    \frac{\partial \alpha_t}{\partial t} + \mathrm{div}(\alpha_t v_t) = 0. \label{eq:eulerian-advection}
+\end{equation}
+A valid $v_t$ can be found by solving the regression problem:
+\begin{equation}
+    \min_{(v_t)_t} \int \|v_t((1-t)x + ty) - (y - x)\|^2 \, \mathrm{d}\pi(x, y). \label{eq:flow-matching}
+\end{equation}
+Intuitively, this means that $v_t(x)$ at some point $x$ should be the average velocity of all trajectories passing through $x$
+$$
+		v_t(z) = \mathbb{E}_{(x, y) \sim \pi} \big[ y - x \, \big| \, z = (1-t)x + t y \big].
+$$
+Numerically, $v_t(x)$ can be parameterized by a neural network (e.g., a U-Net for vision tasks) and estimated using stochastic gradient descent on the objective in \eqref{eq:flow-matching}.
+%
+If $\alpha$ is an isotropic, after a change of variable $t \in [0,+\infty[ \to 1-e^{e^{t}} \in [0,1[$ then $v_t$ is the score $\nabla \log(\alpha_t)$ and score matching interpolation is equivalent to computing the inverse flow map. In the following, we thus only consider the inverse flow map.
+
 \section{Inverse Flow Maps Are Not Optimal Transport}
 
-It is natural to wonder whether the inverse flow map $T=S_\infty^{-1}$ is the solution to \eqref{eq:monge}. In dimension 1, $S_t$ defines a diffeomorphism, so $S_\infty$ is monotonic and so is $T=S_\infty^{-1}$. Thus, it is the gradient of a convex function, making it optimal by Brenier's theorem. If $\beta$ is Gaussian, up to a rotation of the space to make the covariance diagonal, the diffusion map is defined by a monotonic map along each axis and is also an optimal transport. A last example is the radial case, so that $\beta_t$ is also radial, and only only needs to study the radial evolution, and in this case, it is also an optimal transport.
+It is natural to wonder whether the inverse flow map $T=S_\infty^{-1}$ is the solution to \eqref{eq:monge}. In dimension 1, $S_t$ defines a diffeomorphism, so $S_\infty$ is monotonic and so is $T=S_\infty^{-1}$. Thus, it is the gradient of a convex function, making it optimal by Brenier's theorem. If $\beta$ is Gaussian, up to a rotation of the space to make the covariance diagonal, the diffusion map is defined by a monotonic map along each axis and is also an optimal transport. A last example is the radial case, so that $\beta_t$ is also radial, and only needs to study the radial evolution, and in this case, it is also an optimal transport.
 %
 The figure below shows the diffusion map for the case where $\beta$ is supported in three Dirac. In this case, the mapping defines a tesselation of the space (a Voronoi tesselation for OT) and the tesselation of diffusion is most likely different from the one of OT.   
 
