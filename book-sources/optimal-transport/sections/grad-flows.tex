@@ -273,9 +273,9 @@ A valid $v_t$ can be found by solving the regression problem:
     \min_{(v_t)_t} \int \|v_t((1-t)x + ty) - (y - x)\|^2 \, \mathrm{d}\pi(x, y). \label{eq:flow-matching}
 \end{equation}
 Intuitively, this means that $v_t(x)$ at some point $x$ should be the average velocity of all trajectories passing through $x$
-$$
+\begin{equation}\label{eq:flow-match-conditional}
 		v_t(z) = \mathbb{E}_{(x, y) \sim \pi} \big[ y - x \, \big| \, z = (1-t)x + t y \big].
-$$
+\end{equation}
 Numerically, $v_t(x)$ can be parameterized by a neural network (e.g., a U-Net for vision tasks) and estimated using stochastic gradient descent on the objective in \eqref{eq:flow-matching}.
 
 Once $v_t$ is estimated, integrating the ODE $\dot{x} = v_t(x)$ defines the transport map $T_t$, ensuring that $\alpha_t = (T_t)_\sharp \alpha$ produces the same interpolation as \eqref{eq:interp-coupling}, though with a different particle system. Instead of a coupling, this approach uses a deterministic map.
@@ -283,3 +283,50 @@ The sampling procedure consists in first drawing $X_0 \sim \alpha$, and then int
 The resulting $X_{t=1}$ is distributed according to $\alpha_1 = \beta$.
 
 It is customary to choose $\alpha$ as an isotropic Gaussian. In this case, $\alpha_t$ corresponds to a Gaussian convolution of $\beta$, and this method is equivalent to the diffusion model, up to an exponential reparameterization of time.
+
+\paragraph{Proof of the flow matching formula.}
+
+First, let us recall the definition of the interpolated density \(\alpha_t\) and the velocity field \(v_t\). For \(t \in [0, 1]\), let \([x, y]_t := (1-t)x + ty\) denote the linear interpolation between \(x \sim \alpha_0\) and \(y \sim \alpha_1\). According to~\eqref{eq:interp-coupling}, the density \(\alpha_t\) is defined heuristically as:
+\[
+\alpha_t(z) = \int \delta(z - [x, y]_t) \, \mathrm{d}\alpha_0(x)\mathrm{d}\alpha_1(y),
+\]
+and rigorously for any test function \(\varphi(z)\) as:
+\begin{equation}
+\int \varphi(z) \, \mathrm{d}\alpha_t(z) = \int \varphi([x, y]_t) \, \mathrm{d}\alpha_0(x)\mathrm{d}\alpha_1(y). \label{eq:alpha_t}
+\end{equation}
+Following~\eqref{eq:flow-match-conditional}, the velocity field \(v_t\) is defined heuristically as:
+\[
+v_t(z) = \frac{1}{\alpha_t(z)} \int \delta(z - [x, y]_t)(y - x) \, \mathrm{d}\alpha_0(x)\mathrm{d}\alpha_1(y),
+\]
+and rigorously for any vector field \(m(z)\) as:
+\begin{equation}
+\int \langle m(z), v_t(z) \rangle \, \mathrm{d}\alpha_t(z) = \int \langle m([x, y]_t), y - x \rangle \, \mathrm{d}\alpha_0(x)\mathrm{d}\alpha_1(y). \label{eq:v_t}
+\end{equation}
+We aim to prove that the density \(\alpha_t\) satisfies the continuity equation:
+\[
+\frac{\partial \alpha_t}{\partial t} + \mathrm{div}(\alpha_t v_t) = 0.
+\]
+In a rigorous sense, this means showing that for any smooth test function \(\varphi(z)\):
+\begin{equation}
+\frac{\mathrm{d}}{\mathrm{d}t} \int \varphi(z) \, \mathrm{d}\alpha_t(z) + \int \langle v_t(z), \nabla \varphi(z) \rangle \, \mathrm{d}\alpha_t(z) = 0. \label{eq:continuity}
+\end{equation}
+To prove \eqref{eq:continuity}, we compute both terms separately and show that they cancel out. First, consider the time derivative of \(\int \varphi(z) \, \mathrm{d}\alpha_t(z)\). Using \eqref{eq:alpha_t}, we differentiate under the integral sign:
+\[
+\frac{\mathrm{d}}{\mathrm{d}t} \int \varphi(z) \, \mathrm{d}\alpha_t(z) = \int \frac{\mathrm{d}}{\mathrm{d}t} \varphi([x, y]_t) \, \mathrm{d}\alpha_0(x)\mathrm{d}\alpha_1(y).
+\]
+Applying the chain rule to \(\varphi([x, y]_t)\):
+\[
+\frac{\mathrm{d}}{\mathrm{d}t} \varphi([x, y]_t) = \left\langle \nabla \varphi([x, y]_t), y - x \right\rangle.
+\]
+Thus:
+\[
+\frac{\mathrm{d}}{\mathrm{d}t} \int \varphi(z) \, \mathrm{d}\alpha_t(z) = \int \left\langle \nabla \varphi([x, y]_t), y - x \right\rangle \, \mathrm{d}\alpha_0(x)\mathrm{d}\alpha_1(y). \label{eq:time_derivative}
+\]
+Next, for the term involving \(\mathrm{div}(\alpha_t v_t)\), we use the definition of \(v_t\) in \eqref{eq:v_t} with \(m(z) = \nabla \varphi(z)\). Substituting this into the expression for \(v_t\), we get:
+\[
+\int \langle v_t(z), \nabla \varphi(z) \rangle \, \mathrm{d}\alpha_t(z) = \int \langle \nabla \varphi([x, y]_t), y - x \rangle \, \mathrm{d}\alpha_0(x)\mathrm{d}\alpha_1(y).
+\]
+Comparing this result with \eqref{eq:time_derivative}, we see that:
+\[
+\frac{\mathrm{d}}{\mathrm{d}t} \int \varphi(z) \, \mathrm{d}\alpha_t(z) + \int \langle v_t(z), \nabla \varphi(z) \rangle \, \mathrm{d}\alpha_t(z) = 0.
+\]
