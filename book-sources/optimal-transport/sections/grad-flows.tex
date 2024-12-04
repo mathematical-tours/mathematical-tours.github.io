@@ -1,3 +1,5 @@
+% !TEX root = ../CourseOT.tex
+
 \section{Wasserstein (gradient) Flows}
 
 The goal of this section is to expose the connection between optimal transport and certain evolutions over the space of probability distributions, particularly solutions to some PDEs and generative models using diffusion. The exposition is informal, focusing on intuition rather than rigorous proof. We work over the space $\mathcal{X} = \mathbb{R}^d$. It is also the opportunity to draw connexion with recent applications in ML, most notably analyzing the training dynamic of MLP, modeling deep transformers, and flow matching for generative models.
@@ -27,6 +29,12 @@ It is important to note that for a given evolution $\alpha_t$, there are infinit
     \mathrm{div}(v_t \alpha_t) = -\partial_t \alpha_t. \label{eq:inverse-flow}
 \end{equation}
 This is because modifying $v_t$ by a divergence-free field does not affect the density evolution. Consequently, there are infinitely many particle evolutions that result in the same density. Reconstructing particle evolution from observed density evolution (sometimes called ``trajectory inference'') is thus an ill-posed inverse problem.
+%
+A simple choice is to choose  
+\begin{equation}\label{eq:dacorogna-moser}
+    v_t = - \frac{1}{\alpha_t} \nabla \Delta^{-1}(\partial_t \alpha_t).
+\end{equation}
+which was initially proposed by Dacorogna and Moser. A difficulty with this choice is that it is not well defined when $\alpha_t$ vanishes, and also it is not a gradient field, which might be desirable in some cases. In the following, we will consider technics were $v_t$ will be a gradient by design, it is well defined and can be computed more efficiently without explicitely inverting a Laplacian.  
 
 When employing optimal transport techniques, one typically assumes vector fields with minimal norms, selecting a specific $v_t$ via a least-effort principle. Using the Monge formulation for measures with density, we have
 \begin{equation}
@@ -34,10 +42,10 @@ When employing optimal transport techniques, one typically assumes vector fields
 \end{equation}
 where $\mathrm{W}_2$ is the Wasserstein-2 distance. By Brenier's theorem, the solution is the gradient of a function, $v_t = \nabla \psi_t$, and $|x|^2 + \tau \varphi(x)$ is convex. Thus, if $\tau$ is small and assuming $v_t = \nabla \psi_t$, \eqref{eq:inverse-flow} leads to the specific choice
 \begin{equation}
-    v_t = -\partial_t \Delta_{\alpha_t}^{-1}(\alpha_t),
+    v_t = -  \nabla \Delta^{-1}(\partial_t \alpha_t),
 \end{equation}
 where $\Delta_\alpha(\varphi) := \mathrm{div}(\nabla \varphi \alpha)$ is a weighted Laplacian. 
-
+%
 In the following, we will use similar ideas to define $\alpha_t$, rather than assuming it is given.
 
 
@@ -80,7 +88,7 @@ Here, $\nabla_W f(\alpha_t)(x) \in \mathbb{R}^d$ is a vector field and is a grad
 \begin{equation}
     \nabla_W f(\alpha) = \nabla_{\mathbb{R}^d} \varphi, \quad \text{where } \varphi := \delta f(\alpha).
 \end{equation}
-The function $\delta f(\alpha) \in \mathcal{C}(\mathbb{R}^d)$ is known as the first variation or Fréchet (directional) derivative, satisfying for any $\beta \in \mathcal{P}(\mathbb{R}^d)$:
+The function $\delta f(\alpha) \in \mathcal{C}(\mathbb{R}^d)$ is known as the first variation or Fr\'echet (directional) derivative, satisfying for any $\beta \in \mathcal{P}(\mathbb{R}^d)$:
 \begin{equation}
     f((1-\tau)\alpha + \tau \beta) = f(\alpha + \tau \rho) = f(\alpha) + \tau \int [\delta f(\alpha)](x) \mathrm{d} \rho(x) + o(\tau),
 \end{equation}
@@ -89,7 +97,7 @@ where $\rho = \beta - \alpha$ is a zero-mean measure.
 %%%%
 \paragraph{Heuristic derivation of the Wasserstein gradient formula.}
 
-An heuristic way to see why~\eqref{eq:wassflow-pde} holds with this specific choice of vector field $\nabla_W f(\alpha)$ is first re-write \eqref{eq:jko-discr} as a minimization over displacement fields $v$ so that $\alpha = (\mathrm{Id} + \tau v)_\sharp \alpha_t$, i.e. considering
+An heuristic way to see why~\eqref{eq:wassflow-pde} holds with this specific choice of vector field $\nabla_W f(\alpha)$ is first re-write \eqref{eq:jko-discr} as a minimization over displacement fields $v$ so that $\alpha = (\mathrm{Id} + \tau v)_\sharp \alpha_t$, i.e. similarely to~\eqref{eq:monge-field} considering
 $$
 	\min_{v} \frac{1}{2 \tau} \tau^2 \|v\|_{L^2(\alpha_t)}^2 + f( (\mathrm{Id} + \tau v)_\sharp \alpha_t ).
 $$
@@ -166,7 +174,7 @@ In general, analyzing \eqref{eq:wassflow-pde} is challenging. A simple case is w
 \subsection{Training Two-Layer MLPs as Wasserstein Flows}
 
 In this section, we replace the variable $x$ with $\theta$ to align with customary notation in machine learning. 
-
+%
 We consider a two-layer MLP $g_\theta : u \in \mathbb{R}^d \to \mathbb{R}$ with $n$ neurons:
 \begin{equation}
     g_\theta(u) := \frac{1}{n} \sum_i \psi(\theta_i, u), \quad \text{where } \psi(\theta_i, u) := a_i \langle u, w_i \rangle,
@@ -186,7 +194,8 @@ Since $\alpha \mapsto G_\alpha$ is linear, if $\ell$ is convex, then $f$ is a co
     \dot{\theta} = -\nabla F(\theta), \quad \text{where } F(\theta) := f\left(\frac{1}{n} \sum_i \delta_{\theta_i}\right).
 \end{equation}
 This is equivalent to the PDE \eqref{eq:wassflow-pde} on the neuron density, where the Wasserstein gradient is used.
-
+%
+Let us write in more detail this PDE in this specific case. 
 For $\ell(s, s') = \frac{1}{2}(s - s')^2$, the first variation of $f$ is:
 \begin{equation}
     \delta f(\alpha)(\theta) = \frac{1}{N} \sum_{k=1}^N \left(\int \psi(\theta', u_k) \, \mathrm{d} \alpha(\theta') - y_k\right) \psi(\theta, u_k),
@@ -204,7 +213,7 @@ Thus, the Wasserstein gradient becomes:
 \begin{equation}
     \nabla_W f(\alpha)(\theta) = \int \nabla_\theta k(\theta, \theta') \, \mathrm{d} \alpha(\theta') + \nabla_\theta g(\theta).
 \end{equation}
-This corresponds to a Wasserstein flow of the sum of a quadratic and a linear interaction potential. These functions are not geodesically convex because neither $k$ nor $-g$ are convex, making convergence analysis challenging.
+This corresponds to a Wasserstein flow of the sum of a quadratic and a linear interaction potential. These functions are not geodesically convex because neither $k$ nor $g$ are convex, making convergence analysis challenging.
 
 A breakthrough was achieved by Chizat and Bach, who proved that if the initialization has enough Dirac masses, the flow cannot become stuck in local minima or saddle points. This result leverages the classical convexity of the function $f$ and the 1-homogeneity of $\psi((a, w), u)$ with respect to the external weights $a$.
 

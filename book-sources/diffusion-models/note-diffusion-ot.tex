@@ -12,14 +12,16 @@
 \maketitle
 
 \begin{abstract}
-	This note recaps the main ingredient of the very neat proof of Hugo Lavenant and Filippo Santambrogio~\cite{LavenantSantambrogio20} that in general, diffusion models do not define optimal transport mapping. We keep the derivation informal, the goal being to insist on the proof techniques, which is not fully constructive but relies on the nice idea of differentiating through time a family of diffusion mappings to reach a contradiction.
+	This note recaps the main ingredients of the very neat proof of Hugo Lavenant and Filippo Santambrogio~\cite{LavenantSantambrogio20} that in general, diffusion models do not define optimal transport mapping. We keep the derivation informal, the goal being to insist on the proof techniques, which is not fully constructive but relies on the nice idea of differentiating through time a family of diffusion mappings to reach a contradiction.
 \end{abstract}
 
 Generative models aim to build a transportation map $T$ between a reference distribution $\alpha$ (typically an isotropic Gaussian) and the data distribution $\beta$.
 %
 We denote by $T_\sharp \alpha$ the push-forward of $\alpha$ by $T$ (if $\alpha$ is made of Dirac masses at $x_i$, then $T_\sharp \alpha$ is composed of Dirac masses at $T(x_i)$). The goal is thus to find $T$ such that $T_\sharp \alpha = \beta$.
 %
-It is easy to see that such a map always exists for any $\beta$, but finding an explicit constructive method for $T$ is surprisingly non-trivial. Two standard approaches are optimal transport and integrating backward the advection field associated with diffusion. Two other classes of methods are flow matching (but for a Gaussian latent space, it is the same as the diffusion model up to a time reparameterization, so the same reasoning applies) and Dacorogna-Moser construction where $\beta_t = (1-t)\alpha+t \beta$ (which is problematic if the densities do not have the same support). 
+It is easy to see that such a map always exists for any $\beta$, but finding an explicit constructive method for $T$ is surprisingly non-trivial. Two standard approaches are optimal transport and integrating backward the advection field associated some interpolation $\alpha_t$ between $\alpha$ and $\beta$. The usual choice is to construct this interpolation with a diffusion (in this case $\beta$ is a Gaussian), or more generally using a linear interpolation of independent particles from $\alpha$ and $\beta$ (which leads to the flow matching, and is a diffusion when $\beta$ is a Gaussian).
+%
+A last method, that we not consider here, is to use simply a linear interpolation of densities $\beta_t = (1-t)\alpha+t \beta$, which is often called the Dacorogna-Moser construction (which is problematic if the densities do not have the same support). 
 
 \section{Optimal Transport}
 

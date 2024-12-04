@@ -27,6 +27,7 @@ myplotS = @(x,y,ms,col)plot(x,y, '.', 'MarkerSize', ms, 'MarkerEdgeColor', col, 
 n0 = 140;
 n0 = 100;
 xy = {};
+img = {};
 for i=1:2
     f = load_image(names{i},n0);
     f = sum(f,3);
@@ -34,6 +35,7 @@ for i=1:2
     if f(1)==1
         f=1-f;
     end
+    img{i} = f;
     I = find(f(:));
     [x,y] = ind2sub([n0 n0],I);
     xy{i} = [x(:) y(:)];
@@ -64,6 +66,29 @@ subplot(2,1,1);
 myplot(xy{1}(:,1), xy{1}(:,2), 'r');
 subplot(2,1,2);
 myplot(xy{2}(:,1), xy{2}(:,2), 'b');
+
+
+
+q = 80; % #frames
+tlist = linspace(0,1,q);
+if 1
+    % just linear interpolation
+    for k=1:length(tlist)
+        t=tlist(k);
+        col = [1-t;0;t];
+        B = (1-t)*img{1} + t*img{2}; 
+        Br = [];
+        for r=1:3
+            Br(:,:,r) = B * col(r) + (1-B);
+        end
+        clf; imageplot(Br);
+        imwrite(rescale(Br), [rep 'interp-dens-' znum2str(k,2) '.png']);
+        drawnow;
+    end
+    return;
+end
+
+
 
 %%
 % Solve the linprog of OT between the dense clouds.
@@ -96,8 +121,7 @@ end
 %%
 % Render using density estimator.
 
-q = 80; % #frames
-tlist = linspace(0,1,q);
+
 for k=1:length(tlist)
     t=tlist(k);
     col = [1-t;0;t];
