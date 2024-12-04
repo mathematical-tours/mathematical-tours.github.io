@@ -25,6 +25,7 @@ myplotS = @(x,y,ms,col)plot(x,y, '.', 'MarkerSize', ms, 'MarkerEdgeColor', col, 
 
 % load the shapes
 n0 = 140;
+n0 = 100;
 xy = {};
 for i=1:2
     f = load_image(names{i},n0);
@@ -67,30 +68,42 @@ myplot(xy{2}(:,1), xy{2}(:,2), 'b');
 %%
 % Solve the linprog of OT between the dense clouds.
 
+meth = 'flow-matching';
+meth = 'ot-lsap';
+meth = 'ot';
+
 a = ones(N(1),1) / N(1);
 b = ones(N(2),1) / N(2);
 C = distmat(xy{1}',xy{2}').^2;
-if use_lsap
-    C1 = int32( round(C*1e6) );
-    [J,varrho,u,v] = hungarianLSAP(C1);
-    I = (1:N(1))';
-    gammaij = ones(N(1),1)/N(1);
-else
-    [cost,gamma] = mexEMD(a,b,C);
-    [I,J,gammaij] = find(gamma);
+switch meth
+    case 'ot-lsap'
+        C1 = int32( round(C*1e6) );
+        [J,varrho,u,v] = hungarianLSAP(C1);
+        I = (1:N(1))';
+        gammaij = ones(N(1),1)/N(1);
+    case 'ot'
+        [cost,gamma] = mexEMD(a,b,C);
+        [I,J,gammaij] = find(gamma);
+    case 'flow-matching'
+        [I,J] = meshgrid(1:N(1),1:N(2));
+        I = I(:); J = J(:);
+        Ntgt = round(.2*prod(N)); % number of keps points
+        s = randperm(prod(N)); s = s(1:Ntgt); % sub-sample
+        I = I(s); J = J(s);
+        gammaij = ones(prod(Ntgt),1)/Ntgt;
 end
 
 %%
 % Render using density estimator.
 
-q = 50; % #frames
+q = 80; % #frames
 tlist = linspace(0,1,q);
 for k=1:length(tlist)
     t=tlist(k);
     col = [1-t;0;t];
     Xt = (1-t)*xy{1}(I,:) + t*xy{2}(J,:);
     %%% render as point clouds
-    if 1
+    if 0
         Nt = length(I);
         s = ones(Nt,1)*20; % size
         col = cat(2,(xy{1}(I,:)), ones(Nt,1));
@@ -113,7 +126,7 @@ for k=1:length(tlist)
         saveas(gcf, [rep 'anim-' znum2str(k,2) '.png']);
     else
         %%% render as image
-        K = 8;
+        K = 10; % up-sampling
         n1 = n0*K;
         Xt1 = round( K*Xt*(n0-1) + 1);
         A = zeros(n1,n1);
@@ -124,6 +137,7 @@ for k=1:length(tlist)
         end
         nF = 128*2; % width of the convolution kernel
         s = K*2;
+        s = K*.75;
         g = exp(-(-nF:nF).^2 / (2*s^2) );
         B = conv2(conv2(A, g, 'same')', g, 'same')';
         %

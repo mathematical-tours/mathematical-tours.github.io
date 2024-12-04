@@ -2849,6 +2849,7 @@ The Hartley orthogonal matrix is associated to cas=cos+sin function. Defines an 
 04/12/2024
 710-fw.m4v
 Oldies but goldies: M Frank and P Wolfe, An algorithm for quadratic programming, 1956. F-W algorithm (aka conditional gradient) optimizes functions on linear spaces by iteratively extracting extremal points of the constraints. https://en.wikipedia.org/wiki/Frank%E2%80%93Wolfe_algorithm
+
 05/12/2024
 711-parabolic-pdes.m4v
 Parabolic PDEs come with lots of flavors: heat, total variation, advection, Navier Stokes, etc. https://en.wikipedia.org/wiki/Partial_differential_equation https://en.wikipedia.org/wiki/Fluid_dynamics
