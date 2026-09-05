@@ -3147,3 +3147,74 @@ Divided the logistic curve by `log(2)`, so it meets the binary loss at zero marg
 - Numerically checked the underlying Shannon interpolation formulas (integer-sample error below `1e-15`, comparison with a long cardinal sum below `5e-15`), entropy contour construction (residual below `1e-15`), the convolution against independent quadrature (error below `2e-12`), and the FFT wiring against direct complex DFTs of lengths 8, 16, and 32 (error below `2e-13`). Checked the normalized logistic loss at the boundary and across positive and negative margins, and its derivative against finite differences.
 
 Detailed publication checks, numerical records, and page renders are retained in `build/figure-feedback/`. The separate-volume checks are in `build/figure-processing/`; the final build, PDF-link, and shared-label reports remain in `build/build-report.json`, `build/pdf-audit.json`, and `build/label-number-audit.json`.
+
+
+## Figure 2.2: clean TikZ overview of the four Fourier settings
+
+Replaced `figures/fourier/fourier-transforms.pdf` in the reading editions with the editable vector diagram `figures/tikz/fourier-four-settings.tex`. Preserved Figure 2.2 and its caption, “Four settings for Fourier analysis, linked by sampling and periodization.”
+
+- Reorganized the two dense tables into four clearly labeled settings: continuous/nonperiodic, continuous/periodic, discrete/nonperiodic, and discrete/periodic. Each panel pairs the signal with its Fourier representation and states the corresponding domains.
+- Made the spatial operations explicit: horizontal arrows periodize and vertical arrows sample. With spatial period `2 pi` and sampling step `h=2 pi/N`, both paths lead to the same finite signal `b_n=p(hn)=sum_j a_(n+jN)`.
+- Reconciled the original unit-period and `2 pi` conventions with those used in the chapter. Displayed the correct factors `1/(2 pi)` for the Fourier coefficients of the periodized signal, `1/h` in the sampled-signal Poisson formula, and `N` in the aliasing relation for the unnormalized DFT. Removed the original unqualified “isometry” label; the displayed forward transforms are not unitary with these normalizations.
+- Included the relation between periodization and sampling in the Fourier domain, together with a Schwartz-class condition ensuring that the displayed sums and transforms are well defined. Used the book's fonts, restrained colors, thin arrows, and consistent panel spacing.
+- Added the original/new pair to the comparison volume with the exact caption and figure number. The inventory now contains 92 reconstructions and 92 comparison pages, plus the comparison cover. Updated the corresponding documentation and inventory counts.
+
+Validation: checked the two spatial paths, Poisson formula, DFT sampling identity, and aliased Fourier coefficients on a modulated Gaussian for `N=7,16,31`; the largest numerical error was below `6e-14`. Independently integrated the periodic signal to check the Fourier-coefficient factor, with error below `2e-15`. Verified that the new PDF contains only vector graphics, embeds its fonts, and has no text outside its page boundaries. Visually checked the standalone drawing, its book and chapter pages, the adjacent book pages, and its comparison page.
+
+Rebuilt the 273-page book, all 19 standalone chapters (the Fourier chapter has 24 pages), and the 93-page comparison volume. All 21 PDFs compile with zero warnings, missing characters, or overfull/underfull boxes. All 758 shared labels, 1,791 internal reading-edition links, 150 chapter-to-book links, and 208 comparison-to-book links pass validation. Detailed checks and renders are in `build/fourier-settings/`.
+
+
+## Figure redraws, compact panel rows, and chapter dates — 5 September 2026
+
+Completed the requested figure pass in the main book and all independent chapters. Added 13 editable TikZ drawings for eight numbered figures, and refined 33 existing drawings to support the requested compact layouts. Figure numbers below refer to the user's starting edition unless a change is explicitly stated.
+
+### New TikZ reconstructions
+
+| Figure | Corrections and refinements |
+| --- | --- |
+| 2.4 — Running average | Replaced the original plot with a vector signal and its exact convolution with the unit-mass box on `[-1/2,1/2]`. The dashed average is obtained by analytically integrating each mode of the illustrated trigonometric signal. Shaded the averaging interval, marked the value at `x`, and displayed its integral. Separated the interval-endpoint labels. |
+| 4.1 — Scaling functions | Replaced all three original panels with the genuine Shannon scaling function `sinc`, using the chapter's convention `phi_(j,n)(x)=2^(-j/2) phi(2^(-j)x-n)`. The reference, coarser translated, and finer atoms share one horizontal coordinate and amplitude convention. Their centers are `0`, `4*2^j`, and `0`; their relative scales are `1`, `2`, and `1/2`, with peaks `1`, `1/sqrt(2)`, and `sqrt(2)`. Corrected the misplaced third atom in the original, whose label has translation index zero. The caption identifies the Shannon example and the common coordinates. |
+| 5.2 — Ordered coefficients | Drew a decreasing discrete sequence with retained and discarded coefficients distinguished. Placed `T` between `d_(M+1)` and `d_M`, consistent with strict thresholding, instead of on the last retained coefficient. Included the retained-count and orthonormal tail-energy identities. |
+| 5.3 — Hard thresholding | Drew the exact graph, with open endpoints on the diagonal branches and closed endpoints on the zero branch at both cutoffs. Removed the misleading vertical jump segments. Explicitly stated the zero-at-equality convention. |
+| 6.1 — Thresholding and quantization | Drew both functions with dimensionless axes. Distinguished hard thresholding, which sends `+/-T` to zero, from the chapter's integer quantizer `sign(x) floor(abs(x)/T)`, which sends them to `+/-1`. Every step has the appropriate open or closed endpoint; the quantizer's zero bin is `(-T,T)`. |
+| 6.3 — Probability distributions | Replaced three schematic plots with normalized distributions on a shared seven-symbol alphabet and a common vertical scale. Used a uniform distribution, a point mass at zero, and a symmetric concentrated distribution. Displayed their entropies: `log_2(7)`, zero, and approximately `2.491` bits. The caption specifies the alphabet and entropy units. |
+| 7.12 — Hard and soft thresholding | Replaced the original with exact solid and dashed graphs. Preserved the hard-threshold endpoint convention and the continuous soft-threshold shrinkage by `T`. Both outputs vanish at the cutoffs. |
+| 8.5 — Regularized absolute value | Replotted `sqrt(x^2+epsilon^2)` exactly for `epsilon=0.1` and `0.01`, with identical axes near the origin and dashed `abs(x)` for comparison. Marked the value `epsilon` at zero. The new plots convey the stated smoothing parameters, which the coarse original plots did not reliably show. |
+
+The mathematical choices are documented next to each original/new pair in the separate comparison volume. Original assets remain available there.
+
+### Diagram structure and panel layout
+
+| Figure or group | Final arrangement |
+| --- | --- |
+| 2.6 — Fourier transform of convolution | Compact commutative square, with convolution and pointwise multiplication as horizontal operations and Fourier transforms as vertical operations. Removed the redundant repeated identity and excessive spacing. |
+| 2.8 — Translation invariance | Compact commutative square expressing `H T_tau = T_tau H`, with the translation convention beneath it. |
+| 4.7 — Periodized basis functions | Both panels on one row, with labels enlarged within the smaller drawing coordinates. |
+| 4.9 — Haar inner products | Scaling-function and wavelet overlap diagrams side by side. Preserved signed overlap integrals and the `1/sqrt(2)` normalization of the filter coefficients. |
+| 4.24 — Filter constraints | Replaced the sinusoidal squared magnitudes with an exactly complementary order-four half-band polynomial. The curves have flatter maxima and minima. With `s=sin^2(omega/2)`, the low-pass energy is `2(1-s)^4(1+4s+10s^2+20s^3)`; the high-pass energy is its complement to two and equals the shifted low-pass energy. |
+| Former 4.25 — Duplicate complementarity plot | Removed the duplicate figure and redirected its reference to 4.24. Its old label remains an alias of 4.24. |
+| Former 4.26, now 4.25 — Vanishing moments | Put the filter-zero/moment equivalence on one line. Kept the distinction between magnitude curves and derivatives of the filter symbols, and the qualifier that the illustrated example has two vanishing moments. |
+| 10.3 and its continuation | First two panels on one row; the remaining three on a second row under the continued caption. Redesigned the scalar objectives with compact regimes, exact minimizers, and one-sided tangents. Preserved the isolated value at zero in the hard-penalty objective. |
+| 13.6 — PCA proof matrices | Retained the linear-program panel above; placed the two matrices together below it. Moved their proof identities below the matrices, preserving dimensions, orthonormality, and the row-norm bounds. |
+| 13.15 — Logistic classification | One-dimensional and two-dimensional illustrations on one row. Enlarged the labels, consolidated the shared formula and decision boundary, and preserved the perpendicular transition-width geometry. |
+| 14.3 — Least-squares coercivity | Both panels on one row. Moved the rank/kernel statements and minimizer descriptions above or below the surfaces to retain legible type. |
+| 14.4 and its former continuation | Fused all four panels into one row under one caption. Used exact nonconvex, convex, strictly convex, and convex-with-a-flat-interval examples. Defined the intermediate point and secant value in the caption. The former continued label remains an alias. |
+| 14.7 — Stationary points | Three panels on one row. Used an exact double-well quartic, a stationary cubic inflection, and the convex surface with its supporting plane. Horizontal tangents and the different optimality implications remain explicit. |
+| 14.9 and its continuation | Taylor line and tangent plane on one row; level-set tangent and nested level sets on a second row under the continued caption. Repositioned formulas and explanatory text to remain legible. |
+| 14.10 — Gradient descent | Both step-size and exact-line-search diagrams on one row. Preserved the computed iterates, normal directions, and orthogonality marker. |
+| 15.2 and its continuation | Two panels on each row. Both chapter occurrences now share the refined scalar-objective drawings. |
+| Former 15.4 and 15.5 — Stochastic gradients | Merged the unbiased-gradient illustration and SGD trajectory into one two-panel Figure 15.4. Preserved the arithmetic-mean vector and qualified schematic trajectory. Both old labels resolve to the combined figure; subsequent figures are renumbered automatically. |
+
+Added a shared panel-row command with aligned top edges and consistent panel headings. Smaller source drawings retain readable text without shrinking long explanatory paragraphs into the panels. The three remaining continued groups retain their figure numbers. Refreshed all comparison headings, full captions, page links, and panel identifiers from the compiled book.
+
+### Publication dates and verification
+
+- Chapter-opening dates now appear only when building independent chapter PDFs. The full book retains its cover date and has no repeated date on numbered chapter openings. Standalone book-title, author, and affiliation mastheads are preserved.
+- Rebuilt the **265-page book**, **all 19 independent chapters**, and the **106-page comparison volume** (cover plus 105 comparisons across 17 chapters). All 21 outputs have zero compilation warnings, missing characters, or overfull/underfull boxes.
+- Checked every reconstruction against actual compilation inputs: all 105 appear in the book and owning chapter; their original assets appear in the comparison PDF and are absent from the reading editions. The removed duplicate filter asset is also absent from the book.
+- Verified all 105 comparison captions and numbers against the main book, all 758 shared labels, 1,789 internal reading-edition links, 150 chapter-to-book links, and 247 comparison-to-book links. All destinations resolve. All reconstruction PDFs are single-page vector drawings with embedded fonts; fonts are also embedded in the reading and comparison PDFs.
+- Checked the actual PDF positions of all 17 panel rows for alignment and separation. Visually reviewed the 23 book pages containing the requested figures, all 46 comparison pages for drawings changed in this pass, and nine representative cover/chapter pages. Corrected overlapping annotations during this review.
+- Independently checked the running-average formula against quadrature (maximum error below `3e-15`) and filter complementarity (error below `2e-15`). Checked threshold endpoints, coefficient selection, distribution normalization and entropies, scaling centers and amplitudes, regularized absolute values, secant inequalities, scalar minimizers, and the arithmetic-mean gradient vector.
+- Confirmed that the edition date occurs only on the book cover and exactly once, on the opening page, in each independent chapter.
+
+The detailed numerical checks, publication audits, and rendered pages are retained in `build/figure-layout-pass/`. The shared build, PDF, and label reports are in `build/build-report.json`, `build/pdf-audit.json`, and `build/label-number-audit.json`. Updated the book, TikZ, and comparison-volume documentation to reflect the 105-drawing inventory.

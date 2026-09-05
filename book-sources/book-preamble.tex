@@ -66,8 +66,10 @@
 \newcommand{\chapteroverview}[1]{%
   \begingroup
     \sffamily\setlength{\parindent}{0pt}%
-    \noindent{\small\color{BookMuted}\BookEditionDate}\par
-    \nobreak\smallskip
+    \ifdefined\StandaloneChapter
+      \noindent{\small\color{BookMuted}\BookEditionDate}\par
+      \nobreak\smallskip
+    \fi
     \noindent\color{BookInk}#1\par
   \endgroup
   \medskip}
@@ -114,14 +116,20 @@
   \end{figure}}
 
 % Keep reconstructed diagrams at their natural, readable type size, reducing
-% only drawings wider than the available line. Long panel sequences continue
-% under the same figure number instead of shrinking their mathematical labels.
+% only drawings wider than the available line. Compact source drawings keep
+% labels readable within panel rows; longer sequences can use continued captions.
 \newsavebox{\BookDrawingBox}
 \newcommand{\BookDrawing}[1]{%
   \sbox{\BookDrawingBox}{\includegraphics{#1}}%
   \ifdim\wd\BookDrawingBox>.96\linewidth
     \resizebox{.96\linewidth}{!}{\usebox{\BookDrawingBox}}%
   \else\usebox{\BookDrawingBox}\fi}
+% Compact rows keep a consistent panel label and align the top edges.
+\newcommand{\BookPanel}[3]{%
+  \begin{minipage}[t]{#1\linewidth}\vspace{0pt}\centering
+    {\small\sffamily\color{BookMuted}Panel #2\par}\smallskip
+    \BookDrawing{#3}%
+  \end{minipage}}
 \DeclareCaptionLabelFormat{bookcontinued}{#1~#2 (continued)}
 \newcommand{\BookContinuedFigure}{%
   \ContinuedFloat\captionsetup{list=false,labelformat=bookcontinued}}

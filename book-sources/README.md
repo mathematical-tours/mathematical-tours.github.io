@@ -56,11 +56,11 @@ Each landscape comparison page places the original scan beside an editable TikZ
 reconstruction, with the **exact figure number and full caption from the compiled
 main book**, a link to its book page, and notes explaining the mathematical
 interpretation. Components of a shared figure have an additional panel number.
-All 91 reconstructed illustrations now appear in the book and standalone chapters.
+All 105 reconstructed illustrations now appear in the book and standalone chapters.
 The original scans are retained in this separate comparison volume. Larger panel
 sequences continue under the same figure number, with explicit panel identifiers.
 
-There are 91 comparisons across 14 chapters. The sources, shared drawing style,
+There are 105 comparisons across 17 chapters. The sources, shared drawing style,
 and inventory are in [`figures/tikz/`](figures/tikz/README.md). The normal build
 compiles changed TikZ sources, builds the main book, then regenerates the separate
 comparison volume using its current labels and captions. The comparison PDF's
@@ -70,3 +70,6 @@ in its subdirectory so its links to `../FundationsDataScience.pdf` keep working.
 This uses TikZ, PGFPlots, and `standalone`, included in a full
 TeX Live installation. The figure-by-figure correction record is in
 [`corrections.md`](corrections.md#hand-drawn-figure-reconstruction-pass).
+
+Chapter-opening dates appear only in the independent chapter PDFs. The complete
+book retains its cover date. Publication details are shared in `book-metadata.tex`.

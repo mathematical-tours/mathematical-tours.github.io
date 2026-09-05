@@ -1,6 +1,6 @@
 # Figure comparisons
 
-Open [figure-comparisons.pdf](figure-comparisons.pdf) to review all 91 original/TikZ
+Open [figure-comparisons.pdf](figure-comparisons.pdf) to review all 105 original/TikZ
 pairs. Each page contains:
 
 - The exact figure number and complete caption from the main book.
@@ -16,7 +16,7 @@ meaning. These identifiers also appear above grouped panels in the main book.
 Long groups may continue under the same figure number on another page; the
 comparison link targets the page containing that particular panel.
 
-All 91 reconstructions are now used in the main book and standalone chapters.
+All 105 reconstructions are now used in the main book and standalone chapters.
 This separate volume preserves the original scans for comparison.
 
 Run `make` from `book-sources/` to rebuild the book, all standalone chapters, and

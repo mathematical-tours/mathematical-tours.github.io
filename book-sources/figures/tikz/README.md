@@ -1,7 +1,7 @@
-# Editable reconstructions of hand-drawn figures
+# Editable figure reconstructions
 
-These 91 standalone TikZ drawings reconstruct the active book's hand-drawn
-illustrations. The four JSON manifests map every source to its original asset,
+These 105 standalone TikZ drawings reconstruct sketches, schematic plots, and
+the four-settings Fourier summary diagram from the active book. The five JSON manifests map every source to its original asset,
 owning chapter, mathematical context, and interpretation notes. The drawings use
 the definitions and conventions of the current chapter text. Illustrative points
 and shapes are identified as examples rather than measurements recovered from a
@@ -43,10 +43,10 @@ even if later book edits change its number. The machine-readable mapping is in
 The detailed inventory and mathematical decisions are recorded in
 [`corrections.md`](../../corrections.md#hand-drawn-figure-reconstruction-pass).
 
-All 91 manifest entries have `in_book: true`. The reading editions use the TikZ
+All 105 manifest entries have `in_book: true`. The reading editions use the TikZ
 PDFs at their natural size, reduced only when needed to fit the text width.
-Separate reconstructed components have explicit panel headings. Four long
-sequences use continued figures to retain their number and legible lettering;
+Separate reconstructed components have explicit panel headings and compact
+rows. Three sequences use continued figures to retain their number;
 the comparison links target the page containing the corresponding component.
 Original assets remain available for review and are not deleted.
 
