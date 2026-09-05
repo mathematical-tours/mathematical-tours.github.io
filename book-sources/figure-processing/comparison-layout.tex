@@ -1,0 +1,46 @@
+% Dedicated comparison pages; this layout is not loaded by the main book.
+% Imported captions use the same upright "def." marker as the book; reset the
+% text font explicitly inside math instead of combining fontaxes shape codes.
+\renewcommand{\eqdef}{\ensuremath{\stackrel{\mbox{\normalfont\tiny def.}}{=}}}
+\newsavebox{\ReviewHeading}
+\newsavebox{\ReviewNotes}
+\newlength{\ReviewPanelHeight}
+\newcommand{\ReviewFigure}[9]{%
+  \pdfbookmark[1]{Figure #9 -- #8}{review-#7}%
+  \label{comparison-#7}%
+  \begin{lrbox}{\ReviewHeading}\begin{minipage}{\linewidth}
+    {\sffamily\small\color{BookMuted}\BookTitle\hfill FIGURE COMPARISON\par}%
+    \vspace{3mm}%
+    {\sffamily\Large\bfseries\color{BookAccent}Figure~\ref{#1}%
+      \hfill\small\mdseries Main book, page~\pageref{#1}\par}%
+    \vspace{2mm}%
+    {\normalsize\color{BookInk}\nameref*{#1}\par}%
+    \vspace{3mm}%
+    {\sffamily\bfseries\color{BookInk}#8\enspace /\enspace #2\par}%
+    \vspace{1mm}%
+    {\small #5\par}%
+  \end{minipage}\end{lrbox}%
+  \begin{lrbox}{\ReviewNotes}\begin{minipage}{\linewidth}
+    {\color{BookAccent}\hrule height .4pt}\vspace{2mm}%
+    {\small\textbf{Reading the reconstruction.} #6\par}%
+  \end{minipage}\end{lrbox}%
+  \setlength{\ReviewPanelHeight}{\dimexpr\textheight-\ht\ReviewHeading-\dp\ReviewHeading-\ht\ReviewNotes-\dp\ReviewNotes-23mm\relax}%
+  \ifdim\ReviewPanelHeight>88mm\setlength{\ReviewPanelHeight}{88mm}\fi%
+  \ifdim\ReviewPanelHeight<50mm
+    \PackageError{figure-comparisons}{Insufficient figure space for #7}{Shorten review prose or adjust the comparison layout.}%
+  \fi%
+  \noindent\usebox{\ReviewHeading}\par\vspace{4mm}%
+  \noindent\begin{minipage}[t]{.485\linewidth}
+    {\sffamily\bfseries\color{BookMuted}Original\par}\vspace{2mm}%
+    \parbox[c][\ReviewPanelHeight][c]{\linewidth}{\centering
+      \includegraphics[width=\linewidth,height=\dimexpr\ReviewPanelHeight-1mm\relax,keepaspectratio]{#3}}%
+  \end{minipage}\hfill
+  \begin{minipage}[t]{.485\linewidth}
+    {\sffamily\bfseries\color{BookAccent}TikZ reconstruction\par}\vspace{2mm}%
+    \parbox[c][\ReviewPanelHeight][c]{\linewidth}{\centering
+      \includegraphics[width=\linewidth,height=\dimexpr\ReviewPanelHeight-1mm\relax,keepaspectratio]{#4}}%
+  \end{minipage}\par\vspace{3mm}%
+  \noindent\usebox{\ReviewNotes}\par\vfill
+  {\scriptsize\sffamily\color{BookMuted}\detokenize{#7}\hfill\thepage\par}%
+  \clearpage
+}

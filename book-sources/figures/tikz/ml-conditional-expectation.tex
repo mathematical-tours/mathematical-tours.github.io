@@ -1,28 +1,47 @@
 % Editable reconstruction; interpretation recorded in root.json.
 \input{figures/tikz/tikz-preamble.tex}
 \begin{document}
-
 \begin{tikzpicture}[x=1cm,y=1cm]
-\pgfmathsetmacro{\conditionalmean}{.28+.35*sin(59.5)}
-\begin{scope}[x=1.1cm,y=1.2cm]
-\draw[axis] (-2.15,-1.7)--(2.4,-1.7) node[right] {$x$};
-\draw[axis] (-2.15,-1.7)--(-2.15,1.9) node[above] {$y$};
-\foreach \shift in {-.6,-.3,.3,.6}{\draw[accent!28,domain=-1.9:1.9,samples=100] plot (\x,{.4*\x+.35*sin(85*\x)+\shift});}
-\draw[curve,domain=-1.9:1.9,samples=100] plot (\x,{.4*\x+.35*sin(85*\x)});
-\draw[signalred] (.7,-1.7)--(.7,1.7);
+\pgfmathdeclarefunction{mean}{1}{\pgfmathparse{.4*#1+.35*sin(85*#1)}}
+% Centered but asymmetric noise: .75*(-.3)+.25*(.9)=0.
+\pgfmathdeclarefunction{noise}{1}{\pgfmathparse{
+ (.75*exp(-((#1+.3)/.28)^2/2)+.25*exp(-((#1-.9)/.28)^2/2))/(.28*sqrt(2*pi))}}
+\pgfmathsetmacro{\conditionalmean}{mean(.7)}
+\begin{scope}
+\draw[axis] (-2,-2.05)--(2.2,-2.05) node[right] {$x$};
+\draw[axis] (-2,-2.05)--(-2,2.7) node[above] {$y$};
+% Let X be uniform on [-1.75,1.75], independent of the mixture noise.
+% Joint density is noise(y-mean(x))/3.5 on that strip. The color scale is
+% relative to its maximum; the finite y window is not a support claim.
+\foreach \j in {0,...,89}{
+ \pgfmathsetmacro{\lo}{-1.1+.03*\j}
+ \pgfmathsetmacro{\hi}{\lo+.031}
+ \pgfmathtruncatemacro{\shade}{min(48,45*noise(\lo+.015))}
+ \fill[accent!\shade] plot[domain=-1.75:1.75,samples=70] (\x,{mean(\x)+\lo})
+  --plot[domain=1.75:-1.75,samples=70] (\x,{mean(\x)+\hi})--cycle;
+}
+\draw[curve,domain=-1.75:1.75,samples=100] plot (\x,{mean(\x)});
+\draw[signalred,line width=1pt] (.7,-2.05)--(.7,2.45);
 \fill[ink] (.7,\conditionalmean) circle(2pt);
-\node[below] at (.7,-1.7) {$x_0$};
-\node[above left,font=\scriptsize] at (-.2,.4) {$m(x)=\mathbb E[Y\mid X=x]$};
-\node[font=\scriptsize] at (0,-2.22) {A vertical slice at the fixed input $x_0$.};
+\node[below] at (.7,-2.05) {$x_0$};
+\node[font=\scriptsize,fill=white,inner sep=2pt] at (-.15,2.62) {$m(x)=\mathbb E[Y\mid X=x]$};
+\node[font=\scriptsize] at (0,-2.65) {Darker shading: higher joint density.};
 \end{scope}
-\begin{scope}[shift={(7.8,-.7)},x=1.15cm,y=1.65cm]
-\draw[axis] (-1.8,0)--(2.05,0) node[right] {$y$};
-\draw[axis] (-1.8,0)--(-1.8,1.55);
-\draw[curve,domain=-1.65:1.85,samples=160] plot (\x,{exp(-((\x-\conditionalmean)/.45)^2/2)/(.45*sqrt(2*pi))});
-\draw[guide] (\conditionalmean,0)--(\conditionalmean,1.03);
-\node[below] at (\conditionalmean,0) {$m(x_0)$};
-\node[align=center] at (.1,1.68) {$\displaystyle p(y\mid x_0)=\frac{\pi(x_0,y)}{p_X(x_0)}$};
-\node[font=\scriptsize,align=center] at (.1,-.8) {$\displaystyle m(x_0)=\int y\,p(y\mid x_0)\,\mathrm dy$};
+\draw[->,signalred,line width=.8pt] (2.45,.7)--(4.4,.7)
+ node[midway,above=3pt,font=\scriptsize,align=center] {Fix $x=x_0$\\and normalize};
+\begin{scope}[shift={(6.85,-.6)},x=1.15cm,y=2cm]
+\draw[axis] (-1.6,0)--(2.7,0) node[right] {$y$};
+\draw[axis] (-1.6,0)--(-1.6,1.4);
+\fill[accent!12] (-1.5,0) plot[domain=-1.5:2.6,samples=220]
+ (\x,{noise(\x-\conditionalmean)})--(2.6,0)--cycle;
+\draw[curve,domain=-1.5:2.6,samples=220] plot (\x,{noise(\x-\conditionalmean)});
+\draw[signalred,dashed] (\conditionalmean,0)--(\conditionalmean,1.2);
+\fill[signalred] (\conditionalmean,0) circle(1.6pt);
+\node[below=3pt,signalred] at (\conditionalmean,0) {$m(x_0)$};
+\node[font=\scriptsize,signalred,above] at (\conditionalmean,1.2) {mean};
+\node at (.45,1.6) {$\displaystyle p(y\mid x_0)=\frac{\pi(x_0,y)}{p_X(x_0)}$};
+\node[font=\scriptsize] at (.45,-.65) {$\displaystyle m(x_0)=\int y\,p(y\mid x_0)\,\mathrm dy$};
 \end{scope}
+\node[font=\scriptsize] at (6.9,-2.65) {The mean need not be the most likely output.};
 \end{tikzpicture}
 \end{document}

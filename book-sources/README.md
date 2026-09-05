@@ -10,12 +10,13 @@ Install Python 3 and a full TeX Live distribution (MacTeX on macOS), with
 `pdflatex` and `bibtex` on your path. No Python packages are required.
 
 ```sh
-make                 # complete book and every active standalone chapter
-make book            # complete book only
+make                 # book, all standalone chapters, and figure comparisons
+make book            # book and figure comparisons
 python3 scripts/build_book.py --chapter fourier
 ```
 
-The outputs are `FundationsDataScience.pdf` and `chapters-pdf/<chapter>.pdf`.
+The outputs are `FundationsDataScience.pdf`, `chapters-pdf/<chapter>.pdf`, and
+`figure-processing/figure-comparisons.pdf`.
 The selected-chapter command also rebuilds the book to obtain current reference
 numbers. Each standalone chapter contains its own references, retains the book's
 chapter/equation/theorem numbering, and links references to other chapters to
@@ -48,16 +49,24 @@ the normal build uses the included PDF and needs no additional Python package.
 
 ## Reviewing the hand-drawn figures
 
-The book and affected standalone chapters include **Figure reconstructions for
-review** sections, accessible from the book's contents and PDF bookmarks. Each
-landscape page places the original scan beside an editable TikZ reconstruction,
-with a note explaining the mathematics, deliberate corrections, and any uncertain
-interpretation. The original figures remain in the chapter text while the new
-versions are reviewed.
+The comparisons are collected in
+[`figure-processing/figure-comparisons.pdf`](figure-processing/figure-comparisons.pdf).
+The book and standalone chapters contain no trailing comparison sections.
+Each landscape comparison page places the original scan beside an editable TikZ
+reconstruction, with the **exact figure number and full caption from the compiled
+main book**, a link to its book page, and notes explaining the mathematical
+interpretation. Components of a shared figure have an additional panel number.
+All 91 reconstructed illustrations now appear in the book and standalone chapters.
+The original scans are retained in this separate comparison volume. Larger panel
+sequences continue under the same figure number, with explicit panel identifiers.
 
 There are 91 comparisons across 14 chapters. The sources, shared drawing style,
 and inventory are in [`figures/tikz/`](figures/tikz/README.md). The normal build
-compiles changed TikZ sources and regenerates the comparison sections before
-building the PDFs. This uses TikZ, PGFPlots, and `standalone`, included in a full
+compiles changed TikZ sources, builds the main book, then regenerates the separate
+comparison volume using its current labels and captions. The comparison PDF's
+bookmarks and stable footer identifiers make individual drawings easy to refer to.
+`figure-processing/figure-index.json` records the mapping. Keep the comparison PDF
+in its subdirectory so its links to `../FundationsDataScience.pdf` keep working.
+This uses TikZ, PGFPlots, and `standalone`, included in a full
 TeX Live installation. The figure-by-figure correction record is in
 [`corrections.md`](corrections.md#hand-drawn-figure-reconstruction-pass).

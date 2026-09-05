@@ -11,7 +11,7 @@ import re
 import shutil
 import subprocess
 import sys
-from tikz_reviews import build_reviews
+from tikz_reviews import build_reviews, prepare_comparisons
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build"
@@ -127,8 +127,13 @@ def main():
     build_reviews(ROOT, BUILD, chapter_list(), run, DIAGNOSTIC, args.jobs)
     print("Building the complete book...", flush=True)
     book = compile_document(MAIN, ROOT / f"{MAIN}.tex", BUILD / "book")
-    reports = [book]
     print(f"Book: {book['pages']} pages, {len(book['diagnostics'])} diagnostics", flush=True)
+    prepare_comparisons(ROOT, BUILD, chapter_list())
+    print("Building the separate figure comparison volume...", flush=True)
+    comparisons = compile_document("figure-comparisons", ROOT / "figure-processing/figure-comparisons.tex",
+                                   BUILD / "figure-processing")
+    reports = [book, comparisons]
+    print(f"Comparisons: {comparisons['pages']} pages, {len(comparisons['diagnostics'])} diagnostics", flush=True)
     if not args.book_only:
         selected = [(n, i) for i, n in enumerate(chapter_list(), 1) if args.chapter is None or args.chapter == n]
         with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
@@ -143,9 +148,13 @@ def main():
         print(f"Unresolved diagnostics; PDFs have not been published. See {report_path}", file=sys.stderr)
         return 1
     (ROOT / "chapters-pdf").mkdir(exist_ok=True)
+    (ROOT / "figure-processing").mkdir(exist_ok=True)
     for report in reports:
         destination = ROOT / f"{MAIN}.pdf" if report["name"] == MAIN else ROOT / "chapters-pdf" / f"{report['name']}.pdf"
+        if report["name"] == "figure-comparisons":
+            destination = ROOT / "figure-processing/figure-comparisons.pdf"
         shutil.copy2(report["pdf"], destination)
+    shutil.copy2(BUILD / "figure-processing/figure-index.json", ROOT / "figure-processing/figure-index.json")
     print(f"Published {len(reports)} PDFs. Report: {report_path}")
     return 0
 

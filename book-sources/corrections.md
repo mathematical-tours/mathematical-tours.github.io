@@ -2737,3 +2737,413 @@ Source: `chapters/optim-nonsmooth.tex`.
 - Rendered and visually inspected the cover and all **38 chapter-opening pages**, including the long optimization titles at full resolution. Headings, dates, overviews, and technical text are complete and have no clipping or overlaps.
 - Rechecked embedded fonts, **1,833 internal links**, **150 chapter-to-book links**, and **725 shared label numbers** with no issues. All **91 original/TikZ comparisons** remain present in the book and in the corresponding standalone chapters.
 - Validation records are in `build/build-report.json`, `build/chapter-overviews-reviews/source-audit.json`, `build/chapter-overviews-reviews/pdf-audit.json`, `build/pdf-audit.json`, `build/label-number-audit.json`, `build/tikz-pdf-audit.json`, and `build/qa/chapter-overviews/`.
+
+## Second TikZ figure pass: mathematical purpose and visual clarity
+
+Completed a contextual review of all **91 reconstructions** on **2026-09-05**. Each drawing was compared with its original scan, its editable source, and the surrounding definitions, formulas, or proof. **51 drawing sources were refined and 40 were retained after review**; one retained drawing also received a correction to its interpretation note. All original assets and the original/new comparison structure are preserved.
+
+The main corrections make sample grids and Fourier transforms consistent, repair projected geometry and kernel scaling, distinguish conditional means from modes, expose the constraints used in the PCA proof, and align optimization arrows, tangents, and network operations with their definitions. The individual decisions are recorded below.
+
+### Sampling and quantization
+
+#### Sampling and spectral overlap (`shannon-sampling-aliasing`)
+
+Drawing refined. Made the lost out-of-band mass and its in-band alias contribution visible with red fills; superimposed the original spectrum for a direct comparison and added exact-recovery/failure conclusions. Linked the supporting sampling theorem and Poisson formula.
+
+#### Uniform scalar quantization (`shannon-quantizer`)
+
+Drawing refined. Added a vertical error segment at a fixed normalized input and the resulting T/2 reconstruction bound. Preserved half-open cells and index/dequantization distinction.
+
+Retained after contextual and visual checks:
+
+- **The cardinal sine** (`shannon-sinc`). Continuous value at zero, all integer zeros, normalization and oscillation signs are correct and readable.
+- **Cardinal B-splines of degrees zero, one, and two** (`shannon-splines`). Convolution-defined supports/heights, quadratic pieces and box endpoint conventions are correct; no additional annotation is needed.
+- **Two frequencies with identical samples** (`shannon-aliasing`). Both cosines agree at every integer and the spectral folding arrows use the correct signed shifts of 2 pi.
+
+
+### Fourier analysis
+
+#### Convolution with a box window (`fourier-convolution`)
+
+Drawing refined. Checked convolution equation `eq-convol-1d` and the scanned box-window sketch. The shaded integral correctly covered `[x-epsilon,x+epsilon]`, but the heading immediately above that interval defined the unshifted box as a function of `t`. It now names the actual factor `g(x-t)` and its support; a separate small definition retains the unshifted, unnormalized box. The original signal and shaded geometry are unchanged. The resulting convolution remains an integral, not a local average. Rendered labels, guides, bracket, and integral have clear separation.
+
+#### One radix-two FFT step (`fourier-fft`)
+
+Drawing refined. Checked the decimation-in-frequency recursion immediately before `fig-fft`. The difference branch must be multiplied componentwise by the vector of twiddle factors before its half-size transform. Changed the ambiguous multiplication sign in that block to the chapter's circle-dot notation. Sum/difference definitions, negative exponential sign, transform sizes, and even/odd interleaving are unchanged and correct. The previously repaired odd-frequency label remains clear of its block and connector.
+
+#### Spatial zero padding refines frequency sampling (`fourier-padding-spatial`)
+
+Drawing refined. The previous schematic did not have one consistent sample count: the last spatial marker coincided with the point labeled `T=Q/N`, whereas the grid ends at `T-1/N`, and the frequency marker count did not follow from the physical sample grid. The two continuous profiles were also unrelated illustrative curves.
+
+Replaced these with a fully specified analytic example: `N=12`, `Q=24`, and `f(x)=sin²(pi x)` on `[0,1]`, zero elsewhere. There are now 12 original samples and 12 added zeros, with the final sample at `23/12` and an unoccupied endpoint at `T=2`. The frequency plot has exactly 24 signed bins, `k=-12,...,11`, at angular frequencies `pi k`; the positive Nyquist endpoint is not duplicated. The continuous curve is the magnitude of the true Fourier transform, while distinct red markers show the normalized DFT magnitudes. Added the spatial sample step, concrete sample counts, analytic signal definition, and a short legend. Retained the approximation sign, because a finite Riemann sum is not the continuous integral.
+
+The figure now ties the endpoint, sample counts, frequency step, Nyquist interval, normalization, and actual transform pair together. It introduces no empirical data. The original scan and its intentionally qualified reconstruction status are retained. Detailed derivation and numerical checks appear below.
+
+#### Spectral zero padding interpolates the samples (`fourier-padding-fourier`)
+
+Drawing refined. Checked the chapter signed-frequency padding convention and inverse factor `Q/N`. The existing polynomial has five original samples, 15 fine-grid samples, and exactly five nonzero retained frequency magnitudes. The analytic values and scale factor are internally consistent. Added the already-used values `N=5, Q=15` to the drawing so readers can reconcile the visible sample counts with the generic formula. No curves, coefficients, sample positions, or formulas were changed. The title fits without colliding with the transform arrows or spectral heading.
+
+#### A plane wave and its normal direction (`fourier-wave`)
+
+Drawing refined. Checked the tensor-product plane-wave formula and constant-phase interpretation. The original marked base point was slightly displaced from the phase line that its right-angle marker purported to meet. Moved it onto the actual line, emphasized that line, and rebuilt the marker at the exact incidence. The phase-line tangent is proportional to `(-0.6,1)`; the displayed wave vector is proportional to `(4.2,2.52)`, whose inner product with that tangent is zero. Extended the arrow beyond the plotted stripe field so its omega label cannot be crossed by another phase line. The geometry indicates a normal direction, not an asserted physical propagation direction.
+
+#### A periodic two-dimensional grid (`fourier-torus-discrete`)
+
+Drawing refined. Checked that the displayed four-by-four grid represents a product of cyclic index sets, with the last distinct index followed by zero after one more step. Both wrap arrows preserve the intended coordinate directions and do not identify the first and last displayed vertices. The top coordinate label touched the red wrapping curve. Moved that label above the curve with clear space. No grid geometry, adjacency, modular convention, or formula changed.
+
+#### Colatitude and azimuth on the sphere (`fourier-spherical-coordinates`)
+
+Drawing refined. The old freehand point, equatorial projection, polar arc, and equatorial ellipse could not be obtained from one projected unit sphere. Replaced them with one explicit orthographic construction. The viewing elevation is 30 degrees; the illustrative point has colatitude 50 degrees and azimuth 38 degrees. Its radial vector, equatorial projection, both angle arcs, equator, and poles now use the same projection. The projected poles correctly lie inside the circular silhouette, and the front and back equator use solid and dashed strokes consistently. Added “orthographic view” to prevent reading screen angles as actual spatial angles. Moved angle, point, and pole labels away from curves during the close rendering check.
+
+Theta remains colatitude from the positive north axis, as required by the chapter formula; the ambiguous original angle has not been silently reinterpreted as latitude. The manifest explains the deliberate resolution and the illustrative viewing parameters. The projection also passed an independent check.
+
+Retained after contextual and visual checks:
+
+- **Convolution becomes multiplication** (`fourier-convolution-fourier`). Checked `eq-convol-fourier`, all four arrows, domains, and the chapter Fourier normalization.
+- **Cardinal splines by convolution** (`fourier-splines`). Checked the exact centered box, triangular spline, and quadratic spline against their successive convolutions.
+- **Translation equivariance** (`fourier-translation-inv`). Checked the definition `T_tau f(x)=f(x-tau)` and the commuting identity `H T_tau=T_tau H`.
+- **Fourier modes align at the Dirac comb** (`fourier-poisson-distrib`). Checked the chapter distributional Poisson identity.
+- **A square with opposite edges identified** (`fourier-torus`). Checked the product quotient `(R/2pi Z)²`.
+- **Heat diffusion is Gaussian convolution** (`fourier-heat`). Checked the Fourier multiplier `exp(-t omega²)`, the one-dimensional Gaussian normalization, and variance `2t`.
+- **Continuum and discrete Laplacian spectra** (`fourier-finite-difference-spectrum`). Checked `eq-disc-diff-2` and `eq-fft-lapl`.
+- **A small geodesic ball on a surface** (`fourier-laplacian-surface`). Checked the small-geodesic-ball mean-value expansion, including the division by ball volume and coefficient `epsilon²/[2(d+2)]`.
+- **A weighted graph and its local Laplacian** (`fourier-weighted-graph`). Checked the local adjacency drawing, symmetric nonnegative edge weights, and chapter sign `Delta=W-D`.
+
+
+### Source coding
+
+#### Kraft inequality: disjoint descendant blocks (`coding-kraft-necessity`)
+
+Drawing refined. Tinted descendant subtrees, associated codeword rings with their blocks, added edge bits and the general 2^(m-l) descendant count.
+
+#### Kraft inequality: packing prescribed lengths (`coding-kraft-sufficiency`)
+
+Drawing refined. Exposed the dyadic construction with tinted subtrees, edge bits, and a left-to-right largest-block-first packing arrow; retained the unused leaf and strict inequality.
+
+Retained after contextual and visual checks:
+
+- **Entropy on the probability simplex** (`coding-entropy-extrema`). Binary entropy extrema and the numerical ternary entropy contours are consistent with the entropy lemma; the original ambiguity remains explicitly qualified.
+
+
+### Wavelets
+
+#### Orthogonalizing a cardinal spline (`wavelets-spline-orthogonalization`)
+
+Drawing refined. Rechecked the linear-spline Gramian `A(omega)=(2+cos omega)/3` and the orthogonalization multiplier. The existing numerical profile is consistent with the Fourier coefficients of `A^(-1/2)` and was preserved exactly. Added axis ticks to distinguish the compact generator's interval `[-1,1]` from the displayed orthogonalized interval `[-4,4]`, which uses a compressed horizontal scale. This prevents the narrow-looking central peak from implying a narrower support. Raised the function labels to avoid the orthogonalized peak touching its label, and separated the support descriptions from the new ticks. The four degree examples and all numerical coordinates are unchanged. Manifest notes explicitly state the different horizontal scales.
+
+#### Sharp and smooth frequency partitions (`wavelets-shannon-spline-bands`)
+
+Drawing refined. Checked the chapter dilation convention and the exact Shannon bands. The scale-minus-one band already had the necessary factor two. Added the identity `2^(-j)|psi-hat_(j,0)(omega)|²=|psi-hat(2^j omega)|²` immediately before the all-scale energy partition, explaining why energies at different scales can be drawn with equal height. Retained the exact sharp bands, the qualified schematic smooth-overlap row, and the restriction of the partition statement to almost every nonzero frequency. The new formula is separated from the axis and partition formula, with no curve changes.
+
+#### Wrapping a function around the unit interval (`wavelets-periodization`)
+
+Drawing refined. The previous figure used a Gaussian and a truncated three-term sum while writing the infinite periodization identity. The omitted terms were visually negligible, but the illustrated equality was not literally exact. Replaced the illustrative function by a compact cosine-squared bump centered at `0.87` with support radius `0.25`. Only the original and its left-shifted copy contribute on `[0,1]`, so the visible sum is now the full periodization. Matching endpoint markers have exactly the same value. Retained the original visual lesson of a right-side bump wrapping across the left endpoint. Manifest notes specify the analytic example and continue to avoid claiming that it is a particular orthogonal wavelet.
+
+#### Vanishing moments and flat filter zeros (`wavelets-vanishing-moments`)
+
+Drawing refined. Checked `eq-cond-vm-fourier` and its proof under the stated QMF and differentiability assumptions. The existing magnitude curves correspond to a two-moment filter pair: their zeros have order two, whereas the formulas state the general p-moment equivalence. Added a short sentence distinguishing the drawn magnitudes from the complex filter symbols whose derivatives appear in the formulas. This prevents interpreting a derivative condition as a statement only about magnitude, which would omit phase information. Neither curve nor the zero/moment formulas changed. The footer fits with clear separation from the equivalence display.
+
+Retained after contextual and visual checks:
+
+- **One representative of each periodic translate** (`wavelets-periodic-translates`). Checked the chapter period-one convention and representative indices `0<=n<2^(-j)`.
+- **Haar filter coefficients from overlap integrals** (`wavelets-haar-inner-products`). Checked `eq-dfn-h-g` and the Haar sign convention.
+- **Complementary low-pass and high-pass energies** (`wavelets-filter-constraints`). Checked the orthogonality and QMF constraints.
+
+
+### Approximation
+
+#### Approximation rates across signal models (`approximation-rates`)
+
+Drawing refined. Restored the original Sobolev interpretation in both the sketch headings and rate table, and identified the class as `H^alpha` in the explanatory text. Generic “smooth” labels could conflate Sobolev regularity with noninteger Holder regularity, whose endpoint distinction the chapter explicitly discusses. Retained squared-L2 rate conventions, the condition `alpha >= 1` for the displayed piecewise-smooth rates, the wavelet regularity/moment/boundary requirements, and the uniform bound on the BV class. Verified the rate entries: `M^(-2 alpha)` in one dimension, `M^(-alpha)` in two; `M^-1` for the linear/jump-limited one-dimensional cases; `M^-1/2` for the displayed linear BV/cartoon cases and `M^-1` for nonlinear wavelets; `M^-2` for adaptive cartoon triangulations and `M^-2 (log M)^3` for curvelets. These are upper rates under the stated assumptions. Anchored the explanatory paragraph below the actual table boundary and protected short formulas from stretched word spacing. The smooth analytic sketch and smooth closed cartoon contour remain.
+
+
+### Inverse problems
+
+#### Capped inversion and Tikhonov filtering (`inverse-problems-variance-bound`)
+
+Drawing refined. Kept the explicitly qualified interpretation of the original plateau as the capped inverse `1/max(sigma,tau)`, rather than truncated SVD. Set both drawings to common axis scales and explicitly imposed `tau=sqrt(lambda)>0`. The capped gain is `1/tau`, whereas Tikhonov's maximum is `1/(2 sqrt(lambda))`; their rendered maxima now have the correct factor of two. Both dashed reciprocal curves also have the same scale. This makes their visual comparison mathematically meaningful without changing the chapter's filter formulas.
+
+#### The source-order dependence of the bias bound (`inverse-problems-bias-bound`)
+
+Drawing refined. Verified the corrected maximum at `sigma*=sqrt(beta lambda/(2-beta))` for `0<beta<2`, the limiting supremum `lambda` for `beta=2`, and the divergence for `beta>2` over the entire nonnegative half-line. Added the assumption `lambda>0` and a direct distinction between this uniform half-line supremum and the bounded spectrum of a fixed bounded operator. Thus the last panel cannot be read as claiming that the bias of every fixed bounded operator is infinite. Protected inline spectral relations from stretched spacing.
+
+
+### Sparse regularization
+
+#### Soft thresholding: 0<lambda<y (`sparse-regularization-soft-objective-2`)
+
+Drawing refined. Restored the one-sided supporting tangent segments present in the original sketch, with slopes `-y-lambda` and `lambda-y` at zero. Added the complete subdifferential `[-y-lambda,lambda-y]` and an unobtrusive tangent legend. For the plotted `y=2`, `lambda=0.7`, the minimizer remains `1.3` and its value `1.155`; both tangent lines are supporting lines below the convex objective. The negative right derivative explains why the minimizer is positive.
+
+#### Soft thresholding: lambda=y (`sparse-regularization-soft-objective-3`)
+
+Drawing refined. Added the same exact one-sided tangent geometry and full subdifferential in the threshold case `lambda=y=2`. The right tangent is horizontal, the left slope is `-4`, and zero is the minimizer with objective value `2`. This now visibly explains the boundary of the zero-minimizer regime.
+
+#### Soft thresholding: lambda>y (`sparse-regularization-soft-objective-4`)
+
+Drawing refined. Added the exact one-sided tangent geometry and full subdifferential for `lambda=2.7>y=2`. The left/right slopes are `-4.7` and `0.7`; the interval contains zero in its interior, and the minimizer remains zero with value `2`. The tangent segments and text do not obscure the objective.
+
+Retained after contextual and visual checks:
+
+- **Hard thresholding as a scalar minimization** (`sparse-regularization-hard-objective`). Checked the caption normalization `F(x)=(x-y)^2+T^2 1_{x!=0}`.
+- **Soft thresholding: lambda=0** (`sparse-regularization-soft-objective-1`). Checked `lambda=0`, `y=2`: the graph is the smooth parabola `F(x)=(x-2)^2/2` with minimizer `2` and minimum zero.
+
+
+### Sparse recovery theory
+
+#### Interior points and failure of exact recovery (`sparse-theory-polytope-proof`)
+
+Drawing refined. Retained the onto-map hypothesis, `r=||x0||1>0`, and normalized point `q=Ax0/r`. Constructed the extended point exactly on the ray through `q=(0.85,-0.72)` and on the polygon edge from `(2,0)` to `(1.2,-1.65)`: its multiplier is `2/(0.85+0.8*0.72/1.65)`. Replaced the second panel's double-headed marker by the directed displacement `h`, marked `q+h`, and moved that label away from the polygon edge. Broke the proof formulas into readable lines. Both panels concern failure of optimality through interior membership; they do not imply uniqueness of a boundary representation.
+
+#### Removing a dependent active coefficient (`sparse-theory-injectivity`)
+
+Drawing refined. Explicitly marked both finite endpoints of the sign-preserving interval: the first coefficient vanishes at `t_-=-1` and the third at `t_+=4` for the displayed trajectories `x=(0.5,3,1)`, `h=(0.5,-0.25,-0.25)`. Added the minimizer hypothesis: `Ah=0` alone preserves fidelity but does not imply a constant l1 norm. At a minimizer, the affine norm has zero slope while signs are fixed; continuity gives constancy at the endpoints too. Distinguished fixed signs in the open interval from endpoint zeros, and moved a trajectory label off its line.
+
+#### Parameter region for sign consistency (`sparse-theory-recovery-region`)
+
+Drawing refined. Verified the two strict conditions `delta+lambda<T/K` and `R delta<S lambda`, and their intersection at `lambda_max=TR/[K(R+S)]`. The plotted values `T/K=3.91` and `S/R=0.7` give the exact intersection `(2.3,1.61)`. Replaced the filled intersection point by an open marker and clarified that the oblique boundaries are excluded. Explicitly retained `delta>=0`: the zero-noise axis is admissible at positive lambda satisfying the displayed strict conditions. The smaller triangle also has the stated strict cutoff.
+
+#### Convolution of a discrete measure (`sparse-theory-convolution-spikes`)
+
+Drawing refined. Corrected a real scale inconsistency: the individual Gaussian kernels had peak `1.8`, while the output used unit-peak Gaussians with the displayed weights. The kernels now have unit peaks, so the spike heights `1.9` and `1.15` and the output `1.9 K(.-z_j)+1.15 K(.-z_i)` agree exactly on a common vertical scale. Aligned the spike positions with the translated-kernel centers at `0.8` and `2.35`, and added corresponding output-location labels. Preserved the distinction between coefficient indices and spatial grid locations, and the equality between the measure operator and `Ax`.
+
+Retained after contextual and visual checks:
+
+- **Bregman divergence as a vertical gap** (`sparse-theory-bregman`). Verified the strictly convex quadratic and its tangent: at the displayed base point the value and slope agree, and the indicated vertical gap is exactly the Bregman divergence.
+- **A strict subgradient margin controls the error** (`sparse-theory-bregman-l1`). Checked the required base point `x0=0` and the strict subgradient margin `|eta|<1`.
+
+
+### Machine learning and PCA
+
+#### PCA directions and projected variance (`ml-pca-variance`)
+
+Drawing refined. Highlighted one actual observation and its orthogonal projection to clarify which coordinates enter the empirical variance. Computed ellipse semiaxes directly from the displayed 36-point cloud, and separated eigenvector labels from the projection marker.
+
+#### Nearest-centroid assignment and Voronoi cells (`ml-voronoi`)
+
+Drawing refined. Added the centroid segment and its perpendicular-bisector right-angle marker, making the construction of a shared boundary explicit.
+
+#### Conditional expectation as the mean of a slice (`ml-conditional-expectation`)
+
+Drawing refined. Replaced the symmetric-noise example by a centered asymmetric Gaussian mixture. The conditional mean is now visibly different from the mode. Color displays the actual joint density for a uniform input, an arrow explains conditioning/normalization, and the normalized slice uses the same noise law and mean function.
+
+#### Four nearest neighbors of a query point (`ml-nearest-neighbors`)
+
+Drawing refined. Shaded the selected neighborhood and labeled its radius as the exact fourth-neighbor distance. Kept distance ordering and all excluded observations unchanged.
+
+#### Logistic probability and transition width (`ml-logistic-one-dimension`)
+
+Drawing refined. Replaced a single generically labeled width arrow with two correctly scaled measurements, each tied to the actual 0.1 and 0.9 crossings for its slope.
+
+#### The same decision boundary at two parameter norms (`ml-logistic-two-dimensions`)
+
+Drawing refined. Labeled the probability contours and added normal dimension arrows, giving the exact width 2 log(9)/t. Moved contour labels away from the clipping frame.
+
+#### The polytope bounding the PCA objective (`ml-pca-linear-program`)
+
+Drawing refined. Changed the 3D projection so the cutting face has visible area (1.4 square cm rather than .02). Distinguished hidden and removed edges, marked the excluded cube vertex, removed an unexplained 2D guide, and exposed feasibility and maximizing vertices. Moved the beta2 label away from the cut-face equation.
+
+Retained after contextual and visual checks:
+
+- **A joint probability model for input and output** (`ml-joint-model`). Gaussian contour geometry and the two coordinate projections illustrate a joint observation clearly; Gaussianity remains an illustrative choice.
+- **An affine fit and a nonlinear regression function** (`ml-linear-fit`). The displayed line is the least-squares affine fit to the displayed points, and residuals are vertical; the nonlinear conditional mean is clearly distinguished.
+- **Rows are observations; columns are features** (`ml-pca-data-matrix`). Rows, columns, centering, covariance normalization and SVD dimensions agree with the proof.
+- **Linear compression followed by reconstruction** (`ml-pca-compression-reconstruction`). Matrix shapes, rank bound and composition order correctly distinguish arbitrary linear maps from the optimal orthogonal projection.
+- **Row norms of the rotated basis** (`ml-pca-row-norms`). B has p rows and k orthonormal columns; row vectors and their squared norms correctly produce total mass k.
+- **Completing the columns to an orthogonal matrix** (`ml-pca-orthogonal-extension`). The full orthogonal completion gives unit full-row norms and the beta_i <= 1 bound with correct dimensions.
+
+
+### Smooth optimization
+
+#### Linear regression (`smooth-linear-regression`)
+
+Drawing refined. Replaced the schematic slope 0.45 with the exact least-squares slope of the fifteen displayed observations, approximately 0.4589391976. The line is now labeled by the minimizing parameter rather than an unspecified parameter. Its slope is `sum(a_i y_i)/sum(a_i²)`; the normal-equation residual is approximately −1.3×10⁻¹⁵. Marked and labeled the vertical residual for the selected observation in red, matching the chapter's convention `y_i−〈a_i,x〉`. Retained a homogeneous scalar-feature model with no intercept and stated this interpretation in the notes. Moved the line label above the cloud to keep the right margin clear.
+
+#### A linear classifier (`smooth-linear-classifier`)
+
+Drawing refined. Added the feature-space origin and a right-angle marker between the parameter vector and the separating hyperplane. These annotations make the homogeneous classifier's geometry explicit. Checked that each positive observation has positive score and each negative observation has negative score. Preserved the boundary and normal directions; their dot product is zero to the precision of the stored coordinates. Positioned the origin label below and to the right so that the separating line does not cross the glyph.
+
+#### Existence and uniqueness of minimizers (`smooth-minimizer-examples`)
+
+Drawing refined. Distinguished the two nonattainment mechanisms directly in the drawing: `inf f=−∞` for the downward quadratic and `inf f=0`, not attained, for the exponential. Enlarged the exponential's displayed profile, preserving a positive gap above its horizontal asymptote. Added continuation arrows to the unbounded profiles. Retained the two-point, interval, and singleton minimizer examples and their exact highlighted minimizer sets. Increased the lower canvas margin to accommodate the explanatory labels.
+
+#### Least squares with a nontrivial kernel (`smooth-least-squares-flat`)
+
+Drawing refined. Added a second arrowhead to the highlighted affine minimizer line. The drawing now communicates unboundedness in both kernel directions, as required for `x-star+ker(A)`, rather than resembling a single ray. Retained the trough geometry and the nontrivial-kernel hypothesis.
+
+#### Failure of the secant inequality (`smooth-secant-nonconvex`)
+
+Drawing refined. Added the explicit reversed secant inequality below the picture, together with the definition of the interior point. Verified that the graph and interpolated endpoint value are compared at the same abscissa: the marked graph value is 3 and the secant value is approximately 1.31863. Preserved the original nonconvex geometry. Expanded the lower canvas after rendering exposed a cropped second equation line; the final equation is complete.
+
+#### Convexity and the secant inequality (`smooth-secant-convex`)
+
+Drawing refined. Connected the interpolated endpoint-value label to its red point with a fine leader and placed the label above the graph. Added the convexity inequality and interior-point definition below the axes. Verified the endpoint values, the interior graph value, and the supporting tangent against the representative quadratic. Expanded the lower canvas so both formula lines render completely.
+
+#### Strict convexity (`smooth-strict-convexity`)
+
+Drawing refined. Added a marked interior midpoint on both the graph and secant, joined by a red double arrow showing the positive strictness gap. The graph value is 0.6056, the secant value is 1.4806, and the gap is exactly 0.875. Stated the strict inequality and `0<t<1` explicitly. The supporting tangent, endpoint values, and distinct endpoint positions were retained.
+
+#### Convexity with an affine interval (`smooth-nonstrict-convexity`)
+
+Drawing refined. Added the exact secant-equality identity on the affine interval and defined the interior point. Verified that the two surrounding Bézier pieces are convex and that their slopes join the straight interval without a downward jump. In a cubic parameter, their curvature numerators are respectively `4.464−4.032t−0.108t²` and `19.44+10.08t+62.64t²`, both positive for `0≤t≤1`. Thus the diagram really is convex, while its affine interval prevents strict convexity.
+
+#### The gradient is a vector field (`smooth-gradient-field`)
+
+Drawing refined. Made arrow length agree with the displayed identity `gradient f(x)=x`. Each arrow now starts at a marked point q and ends at 2q, so its displacement is exactly q in the same coordinates. Previously the arrows represented one-half of their base vectors without stating the scale. Added small base-point markers and retained the zero gradient at the minimizer. The accompanying projected bowl remains an uncalibrated illustration of the same radial objective.
+
+#### A stationary point need not be an extremum (`smooth-stationary-inflection`)
+
+Drawing retained; interpretation note corrected. Verified the cubic, its horizontal tangent at the origin, and the precise statement that the stationary inflection point is neither a minimum nor a maximum. Removed the stale manifest claim about an old chapter caption, because the current chapter already uses the corrected terminology. The source drawing and PDF appearance were retained.
+
+#### PCA and least-squares level sets (`smooth-pca-quadratic-geometry`)
+
+Drawing refined. Moved all width annotations out of the ellipses and into separate lines above the two panels. This removes the white label boxes that interrupted several contours and hid the geometry. Preserved all twelve data points, the common eigenvectors, every ellipse, and the exact covariance construction. The empirical mean is zero and the covariance in principal coordinates is `diag(1,0.105625)`. The covariance axis ratio is 0.325; the quadratic level-set ratio is its reciprocal. Retained the explicit common scale factors in the bottom caption. Increased title clearance so the new width lines and the eigenvector labels do not touch.
+
+#### A first-order Taylor approximation (`smooth-taylor-line`)
+
+Drawing refined. Corrected an unused named tangent-point coordinate from 2.6264 to the actual value 2.5466, then used that named point for both the gap arrow and point marker. Added a label for the tangent value at z, complementing the label for the true function value. The exact values are `f(x)=1.4598`, `f(z)=3.1888`, and `T_x(z)=2.5466`; the affine line has derivative 0.418 at x. The remainder is therefore represented by the correct vertical gap.
+
+#### Gradients and nested level sets (`smooth-nested-level-sets`)
+
+Drawing refined. Replaced labels that interrupted the three ellipses with a separate key using the contours' three intensities. All level curves are now complete and the ordering of their values remains explicit. Added the qualification that arrow lengths are schematic; the arrows depict normal directions, which are generally not radial for an ellipse. Removed the redundant teal arrow underneath the highlighted red gradient arrow. Retained the mathematically correct outward normal directions.
+
+#### Exact line search (`smooth-exact-line-search`)
+
+Drawing refined. Added the actual quadratic objective to the drawing, so the level sets and numerical trajectory have an explicit common interpretation. Connected the small final steps that had previously appeared as isolated points. Recomputed the trajectory from `(3,1.1)` using the exact quadratic line-search formula; the stored coordinates agree to their displayed precision. Consecutive gradient inner products vanish to numerical precision, with a maximum residual below 9×10⁻¹⁶. Preserved the right-angle marker and the exact-search formula.
+
+#### The optimal quadratic step size (`smooth-quadratic-contraction`)
+
+Drawing refined. Stated that μ and L are the actual smallest and largest eigenvalues, making the displayed equality for h valid rather than merely an upper bound. Stated the representative ratio `L=3μ` that determines the symbolic drawing. Moved the optimal contraction-value label into open space, removing the white box that had interrupted the smaller dashed branch. Verified the maximum of the two absolute-value branches, the optimal step `2/(L+μ)`, the minimum `(L−μ)/(L+μ)`, and the strict contraction interval `0<τ<2/L`.
+
+Retained after contextual and visual checks:
+
+- **Convexity of functions and sets** (`smooth-convex-examples`). Checked the three function graphs, their epigraphs, and the corresponding set diagrams against the convexity definitions.
+- **Classification losses** (`smooth-classification-losses`). Checked the negative-margin variable, the unscaled logistic loss, the hinge breakpoint at −1, and the 0–1 jump at zero.
+- **Coercive least squares** (`smooth-least-squares-coercive`). Verified the full-column-rank hypothesis, the unique quadratic minimizer, and the projection of the minimizer onto the domain.
+- **Stationarity at local extrema** (`smooth-stationary-extrema`). Verified the two minima and central maximum of the representative double well, their horizontal tangents, and the statement that the derivative vanishes at every marked point.
+- **Stationarity for a convex objective** (`smooth-stationary-convex`). Checked that the projected horizontal plane passes through the bowl's minimum and supports the graph from below.
+- **A tangent plane** (`smooth-taylor-plane`). Verified the plane against the representative paraboloid: at the selected domain point `(−1,0)`, the surface height is 0.9 and the tangent has equation `z=0.1−0.8u`.
+- **The gradient is orthogonal to a level curve** (`smooth-level-set-tangent`). Checked the level-curve membership, the marked curve point, and the perpendicular tangent and gradient at the leftmost point of the ellipse.
+- **Step-size effects in gradient descent** (`smooth-gradient-step-size`). Rechecked the two exact trajectories for the displayed quadratic with Hessian `diag(1,5)`.
+- **Quadratic upper and lower bounds** (`smooth-curvature-bounds`). Verified the three representative quadratics: the lower curvature is 0.11, the objective curvature is 0.21, and the upper curvature is 0.30.
+
+
+### Stochastic optimization
+
+#### An unbiased stochastic gradient (`advanced-unbiased-gradient`)
+
+Drawing refined. Added the uniform sampling distribution required for the arithmetic-mean objective. Lightly shaded the triangle joining the three individual gradient endpoints; the mean endpoint is its centroid. The vectors are `(−2,4)`, `(3,3)`, and `(1,2)`, whose mean is `(2/3,3)`. Preserved the exact mean arrow, moved its label away from the triangle boundary, and retained the expectation identity. The new geometry makes unbiasedness visible as an arithmetic average.
+
+#### Stochastic gradient trajectories (`advanced-sgd-trajectory`)
+
+Drawing refined. Replaced the phrase implying that convergent step sizes suffice with a direct description of an illustrative trajectory and shrinking neighborhoods. The assumptions on the objective and noise are also needed for convergence. Replaced the final solid segment by a dotted continuation so that a displayed finite iterate is not identified with the limit minimizer. The ellipses remain qualitative neighborhoods, not confidence regions, and the notes retain that limitation.
+
+
+### Deep learning
+
+#### A fully connected feedforward network (`deep-learning-fully-connected`)
+
+Drawing refined. Retained the three inputs, two hidden layers of four units, three outputs, and all `12+16+12=40` adjacent-layer connections. Replaced generic input/output component labels by `(x0)_i` and `(x3)_i`, and identified the concrete layer vectors `x0,x1,x2,x3`. The final vector is explicitly a score vector, avoiding confusion with the chapter's training target `y`. The general layer recurrence is preserved. All labels and connections remain legible; crossings are not rendered as nodes.
+
+#### Feature maps in a convolutional network (`deep-learning-convolutional`)
+
+Drawing refined. Corrected activation notation in the two feature-producing arrows: the chapter's `rho_l` already includes downsampling, which this diagram shows as a separate operation. The arrows now use the pointwise activations `tilde rho_0` and `tilde rho_1`, followed by the separately shown downsampling steps. Named the output score vector `x_L`, avoiding confusion with a target `y`. Verified `n_l=bar n_l d_l`, RGB input `d0=3`, and channel counts preserved through each downsampling. The original's unreadable exact spatial/filter dimensions remain explicitly qualified in the manifest rather than invented.
+
+
+### Convex analysis
+
+Retained after contextual and visual checks:
+
+- **Convexity of functions and sets** (`convex-analysis-convex-examples`). Checked all six panels.
+- **Supporting affine functions at a kink** (`convex-analysis-subdifferential`). Checked the displayed convex kink `1.1+|z|+0.12 z^2`: all five drawn slopes from `-1` to `1` are global supporting slopes at zero.
+- **Graphs of two subdifferentials** (`convex-analysis-subdiff-l1`). Verified the full closed interval `[-1,1]` at the kink of absolute value.
+- **Normal cones at boundary, interior, and exterior points** (`convex-analysis-normal-cones`). Checked the polygon geometry and the outward directions at each selected boundary point, including the negative-quadrant cone at `(0,0)` and the cone bounded by angles `-45` and `45` degrees at `(4.5,1.5)`.
+
+
+### Nonsmooth optimization
+
+#### Projection and proximal maps (`optim-nonsmooth-prox-projection`)
+
+Drawing refined. Verified every projection pair for the quarter disk: axis projections, the origin, endpoints of the circular arc, and the diagonal arc projection all satisfy the corresponding normal-cone condition. Named the right-hand function explicitly as `f(u,v)=(u^2+2v^2)/2`. For the exact proximal pair `x=(1.4,1.35)` and `z=(0.7,0.45)`, one has `x-z=(0.7,0.9)=grad f(z)`. Replaced separately rounded ellipse radii by radii computed from `f(z)`, so the point lies exactly on the highlighted level set. Shortened the title and retained the essential qualification that the sublevel set depends on the input.
+
+### Verification of the second TikZ pass
+
+- Rebuilt the complete 341-page book and all 19 standalone chapter PDFs. All 20 final documents have zero compilation diagnostics, including warnings, missing characters, and overfull or underfull boxes.
+- Preserved all 91 original/TikZ comparisons in the book and the same 91 comparisons across the standalone chapters. The original scanned figures remain beside the reconstructions for review.
+- Checked all 91 individual figure PDFs and all 91 integrated book comparison pages visually. Compared the standalone review pages with their book counterparts: 59 render identically above the footer; the other 32 differ by the expected 3 mm mirrored-margin offset and were separately checked visually. No clipping, overlapping labels, or truncated explanatory notes were found in the final comparison pages.
+- Verified that all 91 reconstruction PDFs are current, single-page vector figures with embedded fonts, no raster image objects, and no text extending beyond the page boundaries.
+- Checked 1,839 internal PDF links, 150 chapter-to-book links, and 725 shared labels. All link destinations and shared equation/figure numbers pass. Adjusted the PCA context sentence so its reference resolves correctly to equation (13.6).
+- Independently checked representative quantitative constructions: aliasing mass, PCA covariance and semiaxes, the asymmetric conditional-density mixture, nearest-neighbor distances, FFT padding grids, spherical projection, least-squares regression, convexity gaps, gradient vectors, and proximal geometry. These checks complement the contextual review of every reconstruction; figures that are schematic remain explicitly qualified as such.
+
+Detailed review records, numerical checks, page renders, and final build reports are retained locally under `build/tikz-pass2/`. The PDF and reference audits are recorded in `build/pdf-audit.json`, `build/tikz-pdf-audit.json`, and `build/label-number-audit.json`.
+
+## Separate figure comparison volume
+
+Moved the review material out of the reading editions and into `figure-processing/figure-comparisons.pdf`. The complete book and all standalone chapters now end normally, without trailing original/TikZ comparison sections or review entries in the table of contents.
+
+- Preserved all 91 side-by-side comparisons, their interpretation notes, and their stable drawing identifiers. The separate volume has a cover and 91 comparison pages, ordered by the main book's figure numbers.
+- Matched every original asset to its enclosing figure in the chapter source. The comparisons cover 69 numbered book figures; several figures contain multiple separately reconstructed panels. Each comparison prints the exact book figure number and full caption, followed by an explicit panel identifier when needed. The reconstruction's descriptive title remains separate from the book caption.
+- Added 25 missing reference labels to existing numbered captions without changing their wording. Added captions and numbers to four previously unnumbered sketches, so every reconstruction has a precise book reference:
+
+| Figure | Caption added to the main book |
+| --- | --- |
+| 13.4 | Rows of the centered data matrix are observations; columns are features. |
+| 13.5 | Linear compression followed by reconstruction. |
+| 14.6 | The gradient as a vector field. |
+| 14.12 | Quadratic upper and lower bounds for a smooth strongly convex function. |
+
+- Added links from comparison headings and page references to the corresponding figures in `../FundationsDataScience.pdf`. Added 14 chapter bookmarks and 91 individual comparison bookmarks.
+- Added `figure-processing/figure-index.json`, recording each stable identifier, current figure number, complete caption in LaTeX, book page, comparison PDF page, panel, and source asset. The manifest fields `book_label` and `book_panel` maintain the association with the original figure.
+- Updated the normal build to compile the book first, derive comparison captions and numbers from its stabilized references, then publish the separate volume alongside the book and chapter PDFs. The build rejects missing figure labels and continues to reject any final compilation diagnostics. It uses reference data only from the active chapters.
+- Added a dedicated landscape layout that reserves space for the caption and notes before sizing the image panels. Kept the book's fonts and colors, added authorship, affiliation, and date to the comparison cover, and fixed a font-shape substitution when importing the upright definition marker in a mathematical caption.
+- Removed the former shared `figure-reviews.tex` integration and documented the new output and reference workflow in the root README, the TikZ README, and `figure-processing/README.md`.
+
+### Verification
+
+The rebuilt main book has 250 pages; the separate comparison volume has 92. All 21 output PDFs (book, 19 chapters, and comparisons) compile with zero warnings, missing characters, or overfull/underfull boxes. Verified the absence of review pages in all 20 reading PDFs, the source-to-caption mapping for all 91 comparisons, and all 754 shared labels. Checked 1,791 internal links and 150 chapter-to-book links in the reading PDFs, plus 203 comparison-to-book links. All destinations resolve.
+
+Visually checked the comparison cover and every comparison page, as well as all pages containing the four newly captioned sketches in the main book and standalone chapters. The comparison PDF has embedded fonts, valid bookmarks, and no text outside page boundaries. Validation records and page renders are retained in `build/figure-processing/`; the main PDF and label audits are in `build/pdf-audit.json` and `build/label-number-audit.json`.
+
+
+## Publication of the TikZ figures and requested corrections
+
+Replaced all 91 reviewed illustrations with their editable TikZ reconstructions in the main book and standalone chapters. Also replaced four repeated occurrences of the scalar soft-thresholding drawings in the advanced optimization chapter. This updates 95 image occurrences across 70 numbered figures; the separate comparison volume retains all 91 original/new pairs and their interpretation notes. Original assets remain available on disk.
+
+### Figure 1.4: sampling with and without aliasing
+
+Rebuilt the diagram around the four stages in the supplied `figure-processing/shannon-interp/` reference images: original signal, sampling, interpolation kernel, and reconstruction. The two cases appear side by side, each with matched frequency and time views. With unit sample spacing, the examples are `sinc(t/4)^4` (bandlimited to the Nyquist interval) and `sinc(t/2)^4` (overlapping spectral replicas). The signal/spectrum pairs and the aliased reconstruction are computed from exact formulas rather than drawn independently. The reconstruction passes through the sample points in both cases, while only the bandlimited case recovers the original signal. Added consistent axes, the cardinal interpolation formula, spectral-replica guides, and a legend distinguishing the folded spectral mass and the dashed original signal. Adjusted heading and formula spacing after rendering.
+
+### Figure 2.3: convolution and the marked output value
+
+Added a dashed curve representing the convolution with the displayed box kernel and a marked point at `(x,(f*g)(x))`. The curve is the exact moving integral of the illustrative signal; the shaded integral and marked value agree. Kept the chapter's unnormalized box convention: its mass is `2 epsilon`, so the output is an integral, not a unit-mass average. Updated the caption and reconstruction notes accordingly.
+
+### Figure 2.10: FFT connections and interleaving
+
+Separated the two input halves and drew all four connections to the sum and difference blocks. Crossing wires have a small visual bridge so that crossings cannot be mistaken for junctions. Preserved the twiddle multiplication before the lower half-size Fourier transform. Added six explicit arrows showing how the first three entries of the even- and odd-frequency streams alternate in the output. Corrected the accompanying interleaving definition to use zero-based indices consistently with the DFT. Moved the lower formulas to clear the interleaving legend.
+
+### Figure 3.4: entropy contours and the probability constraint
+
+Added the requested left panel in the positive `(p1,p2)` quadrant. It plots actual level sets of `H2(p1,p2)=-p1 log2(p1)-p2 log2(p2)`, the line `p1+p2=1`, and the constrained maximizer `(1/2,1/2)`. The level `H2=1` is tangent to the constraint there. The unconstrained entropy extension has its maximum at `(1/e,1/e)`; the contours correctly reflect this different center. Numeric labels lie on their corresponding contours. Retained the middle binary-entropy restriction and the right three-symbol simplex, and expanded the caption to explain all three views.
+
+### Figure 14.1: normalized logistic upper bound
+
+Divided the logistic curve by `log(2)`, so it meets the binary loss at zero margin with value one and upper bounds it everywhere. Updated the legend, vertical scale, and boundary marker. Applied the same normalization to the chapter's loss definition and derivative, which is the sigmoid divided by `log(2)`. Clarified the convention that zero margin counts as an error and that the bound is tight at that boundary. Retained the hinge loss and the open/closed endpoint markers for the binary loss.
+
+### Layout and references
+
+- Use the vector drawings at their natural size, shrinking only those wider than the available text area. This preserves their lettering instead of inheriting the scans' small layout dimensions.
+- Stack separately reconstructed components with explicit panel headings. Four long sequences use continued captions under the same figure number: the scalar penalties in Chapters 10 and 15, the convexity examples, and the Taylor/level-set illustrations. The original figure numbers are preserved.
+- Updated directional references and captions where panels moved from horizontal arrangements to stacked layouts. Comparison links point to the page containing the corresponding panel, including continued figures.
+- Removed blank paragraph breaks from two captions when transferring them into standard figure environments; this fixes a caption-anchor compilation error.
+- Marked every reconstruction as published in the manifests and generated figure index. Updated the root, TikZ, and comparison-volume documentation to describe the published figures and the separate archive of originals.
+
+
+### Verification of the published replacements
+
+- Rebuilt the 272-page main book, all 19 standalone chapters, and the 92-page comparison PDF. All 21 outputs have zero compilation warnings, missing characters, or overfull/underfull boxes.
+- Verified from the actual compilation inputs that every one of the 91 TikZ drawings appears in the book and its owning chapter, and that the four repeated soft-thresholding drawings are also replaced. None of their original assets is included in the reading editions; every original and reconstruction is included in the comparison volume.
+- Checked all 91 comparison numbers, complete captions, panel identifiers, and links against the main book. Verified 758 shared labels, 1,791 internal links and 150 chapter-to-book links in the reading PDFs, and 203 comparison-to-book links. All destinations resolve.
+- Visually checked all 65 book pages containing replacements, all 91 comparison pages, and 12 standalone pages covering the five requested corrections and the larger panel arrangements. No visible clipping, overlapping labels, or truncated captions remain. An extraction-only bounds flag on the entropy page comes from hidden, clipped text in pre-existing plot assets; the rendered page is clean.
+- Confirmed that all 91 individual reconstruction PDFs are single-page vector drawings with embedded fonts, no raster image objects, and text within their page boundaries. Fonts are also embedded in the reading and comparison PDFs.
+- Numerically checked the underlying Shannon interpolation formulas (integer-sample error below `1e-15`, comparison with a long cardinal sum below `5e-15`), entropy contour construction (residual below `1e-15`), the convolution against independent quadrature (error below `2e-12`), and the FFT wiring against direct complex DFTs of lengths 8, 16, and 32 (error below `2e-13`). Checked the normalized logistic loss at the boundary and across positive and negative margins, and its derivative against finite differences.
+
+Detailed publication checks, numerical records, and page renders are retained in `build/figure-feedback/`. The separate-volume checks are in `build/figure-processing/`; the final build, PDF-link, and shared-label reports remain in `build/build-report.json`, `build/pdf-audit.json`, and `build/label-number-audit.json`.

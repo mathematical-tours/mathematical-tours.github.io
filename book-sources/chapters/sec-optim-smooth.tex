@@ -29,14 +29,18 @@ In learning, $f(x)$ is typically an empirical risk for regression or classificat
 Let $A \in \RR^{n \times p}$ be the matrix with feature vectors $a_i$ as its rows.
 
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.2\linewidth]{optim-smooth/ml-exemp-1} \quad
-\includegraphics[width=.2\linewidth]{optim-smooth/ml-exemp-2} \quad
-\includegraphics[width=.3\linewidth]{optim-smooth/classif-loss}
-\caption{\label{fig-ml-ex}
-Left: linear regression. Middle: linear classifier. Right: classification loss.
-}
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/smooth-linear-regression}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
+\BookDrawing{tikz/smooth-linear-classifier}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 3\par}\smallskip
+\BookDrawing{tikz/smooth-classification-losses}
+\caption{Panels 1 and 2: linear regression and a linear classifier. Panel 3: the 0-1 loss and its normalized logistic and hinge upper bounds, both tight at zero margin.}
+\label{fig-ml-ex}
 \end{figure}
 
 
@@ -59,9 +63,9 @@ For classification, $y_i \in \{-1,1\}$, in which case
 \eql{\label{eq-classif}
 	f(x) = \sum_{i=1}^n \ell(-y_i \dotp{x}{a_i}) = L( - \diag(y) A x )
 }
-where $\ell$ is a smooth approximation of the 0-1 loss $1_{\RR^+}$.
+where $\ell$ is a smooth convex surrogate for the 0-1 loss $\mathbf{1}_{[0,\infty)}$, counting zero margin as an error.
 %
-For instance $\ell(u)=\log(1+\exp(u))$, and $\diag(y) \in \RR^{n \times n}$ is the diagonal matrix with $y_i$ along the diagonal (see Fig.~\ref{fig-ml-ex}, right). Here the separable loss function $L:\RR^n\rightarrow\RR$ is, for $z \in \RR^n$, $L(z)=\sum_i \ell(z_i)$.
+For instance, $\ell(u)=\log(1+\exp(u))/\log 2$ satisfies $\ell(u)\geq\mathbf{1}_{[0,\infty)}(u)$, with equality at $u=0$. The normalization makes this upper bound tight at the decision boundary. The matrix $\diag(y) \in \RR^{n \times n}$ is the diagonal matrix with $y_i$ along the diagonal (see Figure~\ref{fig-ml-ex}, panel 3). The separable loss function $L:\RR^n\rightarrow\RR$ is, for $z \in \RR^n$, $L(z)=\sum_i \ell(z_i)$.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -74,12 +78,11 @@ For instance $\ell(u)=\log(1+\exp(u))$, and $\diag(y) \in \RR^{n \times n}$ is t
 
 Problem~\eqref{eq-general-pbm} need not have a minimizer. An objective $f$ may be unbounded below: for $f(x)=-x^2$, the infimum is $-\infty$. The objective $f$ can also have a finite unattained infimum: for $f(x)=e^{-x}$, it is $\inf f=0$.
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.9\linewidth]{optim-smooth/uniqueness}
-\caption{\label{fig-minimizer-exists}
-Left: no minimizer. Middle: multiple minimizers. Right: a unique minimizer.
-}
+\BookDrawing{tikz/smooth-minimizer-examples}
+\caption{Left: no minimizer. Middle: multiple minimizers. Right: a unique minimizer.}
+\label{fig-minimizer-exists}
 \end{figure}
 
 A continuous function attains its minimum on a nonempty compact set $\Om\subset\RR^p$. In finite dimensions, compactness means that $\Om$ is closed and bounded. Lower semicontinuity suffices for attainment, but we use continuity here. For unconstrained minimization, coercivity provides a compact set to which the search can be restricted: $f(x) \rightarrow +\infty$ as $\norm x\rightarrow+\infty$. For any $x_0 \in \RR^p$, consider the sublevel set
@@ -88,13 +91,15 @@ A continuous function attains its minimum on a nonempty compact set $\Om\subset\
 }
 Coercivity makes this set bounded, and continuity of $f$ makes it closed. For a continuous convex function, coercivity is in fact equivalent to a nonempty bounded minimizer set. Convexity matters: $f(x)=\min(1,x^2)$ has a unique minimizer but is not coercive.
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.2\linewidth]{optim-smooth/least-square-1} \quad
-\includegraphics[width=.2\linewidth]{optim-smooth/least-square-2} 
-\caption{\label{fig-least-square}
-Coercivity condition for least squares.
-}
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/smooth-least-squares-coercive}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
+\BookDrawing{tikz/smooth-least-squares-flat}
+\caption{Coercivity condition for least squares.}
+\label{fig-least-square}
 \end{figure}
 
 \begin{exmp}[Least squares]
@@ -124,33 +129,41 @@ Thus the squared loss~\eqref{eq-least-square} is convex, since $\norm{\cdot}^2/2
 %
 Similarly, convexity of $\ell$ implies convexity of $L$ and of the classification objective~\eqref{eq-classif}.
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\begin{tabular}{cccc}
-\includegraphics[width=.2\linewidth]{optim-smooth/cvx-vs-noncvx-1} &
-\includegraphics[width=.2\linewidth]{optim-smooth/cvx-vs-noncvx-2} &
-\includegraphics[width=.2\linewidth]{optim-smooth/strictly-cvx-2} &
-\includegraphics[width=.15\linewidth]{optim-smooth/strictly-cvx-1} 
-\end{tabular}
-\caption{\label{fig-cvx-vs-noncvx}
-Convex and nonconvex functions; strictly convex and convex but not strictly convex functions.
-}
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/smooth-secant-nonconvex}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
+\BookDrawing{tikz/smooth-secant-convex}
+\caption{Convex and nonconvex functions; strictly convex and convex but not strictly convex functions.}
+\label{fig-cvx-vs-noncvx}
+\end{figure}
+\begin{figure}[tbp]
+\BookContinuedFigure
+\centering
+{\small\sffamily\color{BookMuted}Panel 3\par}\smallskip
+\BookDrawing{tikz/smooth-strict-convexity}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 4\par}\smallskip
+\BookDrawing{tikz/smooth-nonstrict-convexity}
+\caption{Convex and nonconvex functions; strictly convex and convex but not strictly convex functions.}
+\label{fig-cvx-vs-noncvx-continued}
 \end{figure}
 
 
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.6\linewidth]{optim-smooth/convex-examples.png} 
-\caption{\label{fig-cvx-set}
-Comparison of convex functions $f : \RR^p \rightarrow \RR$ (for $p=1$) and convex sets $C \subset \RR^p$ (for $p=2$).
-}
+\BookDrawing{tikz/smooth-convex-examples}
+\caption{Comparison of convex functions $f : \RR^p \rightarrow \RR$ (for $p=1$) and convex sets $C \subset \RR^p$ (for $p=2$).}
+\label{fig-cvx-set}
 \end{figure}
 
 %%%
 \paragraph{Strict convexity.}
 
-When $f$ is convex, one can strengthen the condition~\eqref{eq-convexity-def} and impose that the inequality is strict for distinct $x,y$ and $t\in]0,1[$ (see Fig.~\ref{fig-cvx-vs-noncvx}, right), i.e.
+When $f$ is convex, one can strengthen the condition~\eqref{eq-convexity-def} and impose that the inequality is strict for distinct $x,y$ and $t\in]0,1[$ (see Figure~\ref{fig-cvx-vs-noncvx-continued}, panels 3 and 4), i.e.
 \eql{\label{eq-strict-convexity-def}
 	\foralls t \in ]0,1[, \quad
 		f((1-t)x + t y) < (1-t)f(x) + t f(y).
@@ -188,7 +201,12 @@ Indeed, if $x_1^\star$ and $x_2^\star$ are minimizers, so that in particular $f(
 \subsection{Gradient}
 
 
-\wrapfSimple{optim-smooth/gradient-vector-field}
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-gradient-field}
+\caption{The gradient as a vector field.}
+\label{fig-review-smooth-gradient-field}
+\end{figure}
 When all coordinate derivatives of $f$ exist, define
 \eq{
 	\nabla f(x) \eqdef \pa{\pd{f(x)}{x_1}, \ldots,\pd{f(x)}{x_p}}^\top \in \RR^p
@@ -276,14 +294,18 @@ Stationarity alone therefore neither certifies a local minimum nor guarantees co
 %
 Convexity of $f$ makes stationarity sufficient as well as necessary.
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.2\linewidth]{optim-smooth/first-order-1} \quad
-\includegraphics[width=.15\linewidth]{optim-smooth/first-order-2} \quad
-\includegraphics[width=.2\linewidth]{optim-smooth/first-order-3} 
-\caption{\label{fig-first-order}
-Local extrema (left), a stationary inflection point (middle), and a global minimizer (right).
-}
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/smooth-stationary-extrema}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
+\BookDrawing{tikz/smooth-stationary-inflection}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 3\par}\smallskip
+\BookDrawing{tikz/smooth-stationary-convex}
+\caption{Local extrema (panel 1), a stationary inflection point (panel 2), and a global minimizer (panel 3).}
+\label{fig-first-order}
 \end{figure}
 
 
@@ -380,12 +402,11 @@ Since $C$ is symmetric, choose an orthogonal matrix $U=(u_1,\ldots,u_p)$ whose c
 } 
 Here $( U^\top x )_k = \dotp{x}{u_k}$ is the coordinate $k$ of $x$ in the basis $U$. Since $\dotp{Cx}{x}=\norm{Ax}^2$, this shows that all eigenvalues are nonnegative.
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.5\linewidth]{optim-smooth/link-pca}
-\caption{\label{fig-link-pca}
-Left: point clouds $(a_i)_i$ and their principal directions. Right: the quadratic part of $f(x)$.
-}
+\BookDrawing{tikz/smooth-pca-quadratic-geometry}
+\caption{Left: point clouds $(a_i)_i$ and their principal directions. Right: the quadratic part of $f(x)$.}
+\label{fig-link-pca}
 \end{figure}
 
 Order the eigenvalues as $\la_1 \geq \la_2 \geq \ldots \geq \la_p$. Projection of $a_i$ onto the leading $m$ eigenvectors gives principal component analysis (PCA), the optimal linear reconstruction in squared error. It is used for compression, dimensionality reduction, and visualization in two dimensions ($m=2$) or three dimensions ($m=3$).
@@ -417,7 +438,7 @@ Using $(AB)^\top = B^\top A^\top$ and $\diag(y)^\top=\diag(y)$ gives
 \eq{
 	\nabla f(x) = -A^\top \diag(y) \nabla L( -\diag(y) Ax). 
 }
-Since $L(z)=\sum_i\ell(z_i)$, its gradient is $\nabla L(z)=(\ell'(z_i))_{i=1}^n$. For logistic loss, $\ell'(u)=e^u/(1+e^u)$. Evaluated at the negative margin $u=-y_i\dotp{x}{a_i}$, this sigmoid is large for incorrectly classified observations and weights their contribution to the gradient.
+Since $L(z)=\sum_i\ell(z_i)$, its gradient is $\nabla L(z)=(\ell'(z_i))_{i=1}^n$. For the normalized logistic loss, $\ell'(u)=e^u/((1+e^u)\log 2)$. Evaluated at the negative margin $u=-y_i\dotp{x}{a_i}$, this scaled sigmoid is large for incorrectly classified observations and weights their contribution to the gradient.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -487,16 +508,28 @@ The Taylor expansion~\eqref{eq-grad-dfn} approximates $f$ near $x$ by an affine 
 Figure~\ref{fig-expansion-taylor} illustrates the approximation. First-order methods use $f$ through its local model $T_x$.
 
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.2\linewidth]{optim-smooth/taylor-exp-1} \quad
-\includegraphics[width=.18\linewidth]{optim-smooth/taylor-exp-2} \quad
-\includegraphics[width=.18\linewidth]{optim-smooth/level-sets-1} \quad
-\includegraphics[width=.25\linewidth]{optim-smooth/level-sets-2} 
-\caption{\label{fig-expansion-taylor}
-	Left: first-order Taylor approximations in one and two dimensions.
-	Right: the gradient is orthogonal to the level set; the diagram illustrates the proof.
-}
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/smooth-taylor-line}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
+\BookDrawing{tikz/smooth-taylor-plane}
+\caption{Panels 1 and 2: first-order Taylor approximations in one and two dimensions.
+	Panels 3 and 4: the gradient is orthogonal to the level set; the diagram illustrates the proof.}
+\label{fig-expansion-taylor}
+\end{figure}
+\begin{figure}[tbp]
+\BookContinuedFigure
+\centering
+{\small\sffamily\color{BookMuted}Panel 3\par}\smallskip
+\BookDrawing{tikz/smooth-level-set-tangent}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 4\par}\smallskip
+\BookDrawing{tikz/smooth-nested-level-sets}
+\caption{Panels 1 and 2: first-order Taylor approximations in one and two dimensions.
+	Panels 3 and 4: the gradient is orthogonal to the level set; the diagram illustrates the proof.}
+\label{fig-expansion-taylor-continued}
 \end{figure}
 
 A nonzero gradient $\nabla f(x)$ points uphill locally, so $-\nabla f(x)$ is a descent direction. At a fixed point $x$, examine $f$ along the ray
@@ -519,7 +552,7 @@ so the step from $x$ to $x-\tau \nabla f(x)$ decreases the objective.
 	\eq{
 		\Ll_s \eqdef \enscond{x}{f(x)=s}.		
 	}
-	Assume $f$ is continuously differentiable near $x$ and $\nabla f(x)\neq0$. Then $x$ is a regular point of the level set $\Ll_{f(x)}$. The gradient is normal to its tangent space and points toward increasing values of $f$; see Figure~\ref{fig-expansion-taylor}, right.
+	Assume $f$ is continuously differentiable near $x$ and $\nabla f(x)\neq0$. Then $x$ is a regular point of the level set $\Ll_{f(x)}$. The gradient is normal to its tangent space and points toward increasing values of $f$; see Figure~\ref{fig-expansion-taylor-continued}, panels 3 and 4.
 	%
 	Take a smooth curve through $x$ in $\Ll_s$, parameterized by $t \in \RR \mapsto c(t)$ with $c(0)=x$.
 	%	
@@ -527,7 +560,7 @@ so the step from $x$ to $x-\tau \nabla f(x)$ decreases the objective.
 	\eq{
 		h(t) = f(c(0) + t c'(0) + o(t)) = h(0)+t\dotp{c'(0)}{\nabla f(c(0))} + o(t)
 	}	
-	i.e. $h'(0) = \dotp{c'(0)}{\nabla f(x)}=0$, so that $\nabla f(x)$ is orthogonal to the tangent $c'(0)$ of the curve $c$, which lies in the tangent plane of $\Ll_s$  (as shown on Fig.~\ref{fig-expansion-taylor}, right).  Since the curve $c$ is arbitrary, the whole tangent plane is thus orthogonal to $\nabla f(x)$. 
+	i.e. $h'(0) = \dotp{c'(0)}{\nabla f(x)}=0$, so that $\nabla f(x)$ is orthogonal to the tangent $c'(0)$ of the curve $c$, which lies in the tangent plane of $\Ll_s$  (as shown in Figure~\ref{fig-expansion-taylor-continued}, panel 3).  Since the curve $c$ is arbitrary, the whole tangent plane is thus orthogonal to $\nabla f(x)$.
 \end{rem}
 
 \begin{rem}[Local optimal descent direction]
@@ -553,13 +586,15 @@ The parameter $\tau_k>0$ is the step size, or learning rate. A sufficiently smal
 One may fix $\tau_k=\tau$ or adapt $\tau_k$ at each iteration; see Figure~\ref{fig-gradesc}.
 
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.3\linewidth]{optim-smooth/grad-desc-1} \quad
-\includegraphics[width=.3\linewidth]{optim-smooth/grad-desc-2} 
-\caption{\label{fig-gradesc}
-Effect of the step size $\tau$ on gradient descent (left) and exact line search (right).
-}
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/smooth-gradient-step-size}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
+\BookDrawing{tikz/smooth-exact-line-search}
+\caption{Effect of the step size $\tau$ on gradient descent (panel 1) and exact line search (panel 2).}
+\label{fig-gradesc}
 \end{figure}
 
 
@@ -682,12 +717,11 @@ The quadratic $\frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b}$ is convex exactly when th
 
 
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.35\linewidth]{optim-smooth/proof-quadr}
-\caption{\label{fig-grad-desc-contract}
-Contraction constant $h(\tau)$ for a quadratic function.
-}
+\BookDrawing{tikz/smooth-quadratic-contraction}
+\caption{Contraction constant $h(\tau)$ for a quadratic function.}
+\label{fig-grad-desc-contract}
 \end{figure}
 
 Note that when the inverse condition number $\xi\eqdef\mu/L\ll1$
@@ -868,7 +902,12 @@ Integrating these local bounds yields global inequalities that support an analys
 %%%
 \paragraph{Smoothness and strong convexity.}
 
-\wrapfSimple{optim-smooth/up-low-bounds}
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-curvature-bounds}
+\caption{Quadratic upper and lower bounds for a smooth strongly convex function.}
+\label{fig-review-smooth-curvature-bounds}
+\end{figure}
 For $L>0$, quantify the smoothness of $f$ by requiring an $L$-Lipschitz gradient:
 \eql{\label{eq-lipsch-grad}\tag{$\Rr_L$}
 	\foralls (x,x') \in (\RR^p)^2, \quad

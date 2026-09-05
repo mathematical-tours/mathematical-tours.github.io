@@ -113,8 +113,20 @@
     \includegraphics[width=.3\linewidth]{#1}
   \end{figure}}
 
+% Keep reconstructed diagrams at their natural, readable type size, reducing
+% only drawings wider than the available line. Long panel sequences continue
+% under the same figure number instead of shrinking their mathematical labels.
+\newsavebox{\BookDrawingBox}
+\newcommand{\BookDrawing}[1]{%
+  \sbox{\BookDrawingBox}{\includegraphics{#1}}%
+  \ifdim\wd\BookDrawingBox>.96\linewidth
+    \resizebox{.96\linewidth}{!}{\usebox{\BookDrawingBox}}%
+  \else\usebox{\BookDrawingBox}\fi}
+\DeclareCaptionLabelFormat{bookcontinued}{#1~#2 (continued)}
+\newcommand{\BookContinuedFigure}{%
+  \ContinuedFloat\captionsetup{list=false,labelformat=bookcontinued}}
+
 \newcommand{\myauthor}[3]{#1\protect\footnote{#2, \protect\url{#3}}}
-\input{figure-reviews}
 \ifdefined\BookExternalReferences
   \externaldocument{\BookExternalReferences}[../FundationsDataScience.pdf]
 \fi
