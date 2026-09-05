@@ -1,0 +1,27 @@
+\documentclass[tikz,border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{newpxtext,newpxmath}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\definecolor{teal}{HTML}{146C78}
+\definecolor{orange}{HTML}{CB693F}
+\definecolor{ink}{HTML}{203746}
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11cm,height=6.6cm,xmin=0,xmax=20,ymin=0,ymax=1.8,
+  xlabel={Poisson mean $\lambda$},ylabel={$\operatorname{Var}(\phi(X))$},
+  axis lines=left,axis line style={ink},tick style={ink},
+  ticklabel style={font=\small},grid=major,grid style={gray!15},
+  legend style={at={(.97,.97)},anchor=north east,draw=none,font=\small},
+  legend cell align=left]
+  \addplot[teal,very thick] table[x=mean,y=anscombe] {figures/denoising/variance-stabilization-corrected.dat};
+  \addlegendentry{Anscombe: $2\sqrt{x+3/8}$}
+  \addplot[orange,very thick] table[x=mean,y=freeman] {figures/denoising/variance-stabilization-corrected.dat};
+  \addlegendentry{Freeman--Tukey: $\sqrt{x}+\sqrt{x+1}$}
+  \addplot[ink,thick,dashed] table[x=mean,y=square_root] {figures/denoising/variance-stabilization-corrected.dat};
+  \addlegendentry{Square root: $2\sqrt{x}$}
+  \addplot[gray,dotted,forget plot] coordinates {(0,1) (20,1)};
+\end{axis}
+\end{tikzpicture}
+\end{document}

@@ -1,68 +1,70 @@
 % !TEX root = ../FundationsDataScience.tex
 
 \chapter{Inverse Problems}
+\label{chap-invpbm}
+\chapteroverview{Inverse problems seek to reconstruct a signal from measurements that blur, omit, or mix its values. Direct inversion can amplify noise or leave several signals indistinguishable, so reconstruction must incorporate assumptions about the unknown signal. We study how spectral and variational regularization stabilize inversion, derive error bounds for quadratic penalties, and develop methods for deconvolution, inpainting, and tomography.}
 
 The main references for this chapter are~\cite{mallat2008wavelet,scherzer2009variational,engl1996regularization}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Inverse Problems Regularization}
+\section{Regularization of Inverse Problems}
 
-Increasing the resolution of signals and images requires to solve an ill posed inverse problem. This corresponds to inverting a linear measurement operator that reduces the resolution of the image. This chapter makes use of convex regularization introduced in Chapter \ref{chap-variational} to stabilize this inverse problem.
+We extend the convex regularization introduced in Chapter \ref{chap-variational} to linear measurement operators.
 
-We consider a (usually) continuous linear map $\Phi : \Ss \rightarrow \Hh$ where $\Ss$ can be an Hilbert or a more general Banach space.
+We consider a bounded linear map $\Phi : \Ss \rightarrow \Hh$, where the signal space $\Ss$ is a Hilbert space or, more generally, a Banach space. The data space $\Hh$ is a Hilbert space.
 %
-This operator is intended to capture the hardware acquisition process, which maps a high resolution unknown signal $f_0 \in \Ss$ to a noisy low-resolution obervation 
+The operator models acquisition: an unknown high-resolution signal $f_0 \in \Ss$ gives rise to the noisy observation
 \eq{
 	y = \Phi f_0 + w \in \Hh
 }
-where $w \in \Hh$ models the acquisition noise. In this section, we do not use a random noise model, and simply assume that $\norm{w}_\Hh$ is bounded.
+where $w \in \Hh$ represents acquisition noise. Here the noise is deterministic; we assume only that $\norm{w}_\Hh$ is bounded.
 
-In most applications, $\Hh=\RR^P$ is finite dimensional, because the hardware involved in the acquisition can only record a finite (and often small) number $P$ of observations.
+An acquisition device records finitely many observations, so applications usually take $\Hh=\RR^P$. The number $P$ may be small relative to the desired reconstruction dimension.
 %
-Furthermore, in order to implement numerically a recovery process on a computer, it also makes sense to restrict the attention to $\Ss=\RR^N$,  where $N$ is number of point on the discretization grid, and is usually very large, $N \gg P$. 
+For numerical implementation, we discretize the signal space as $\Ss=\RR^N$, where $N$ is the number of grid points. Usually the grid is much finer than the measurement set, so $N \gg P$.
 %
-However, in order to perform a mathematical analysis of the recovery process, and to be able to introduce meaningful models on the unknown $f_0$, it still makes sense to consider infinite dimensional functional space (especially for the data space $\Ss$).
+Infinite-dimensional function spaces remain useful for modeling the unknown $f_0$ and analyzing recovery, particularly when choosing the signal space $\Ss$.
 
-The difficulty of this problem is that the direct inversion of $\Phi$ is in general impossible or not advisable because $\Phi^{-1}$ have a large norm or is even discontinuous. This is further increased by the addition of some measurement noise $w$, so that the relation $\Phi^{-1} y=f_0+\Phi^{-1}w$ would leads to an explosion of the noise $\Phi^{-1}w$.
+Direct inversion may be impossible because $\Phi$ is not injective or the data do not lie in its range. Even when an inverse exists on the range, it may have a large norm or be unbounded. Applying it to noisy data amplifies the perturbation: formally, $\Phi^{-1}y=f_0+\Phi^{-1}w$.
 
-We now gives a few representative examples of forward operators $\Phi$.
+We now give a few representative examples of forward operators $\Phi$.
 
 %%%
 \paragraph{Denoising.}
 
-The case of the identity operator $\Phi=\Id_\Ss$, $\Ss=\Hh$ corresponds to the classical denoising problem, already treated in Chapters \ref{chap-denoising} and \ref{chap-variational}. 
+The identity operator $\Phi=\Id_\Ss$ with $\Ss=\Hh$ gives the denoising problem studied in Chapters \ref{chap-denoising} and \ref{chap-variational}.
 
 %%%
 \paragraph{De-blurring and super-resolution.}
 
-For a general operator $\Phi$, the recovery of $f_0$ is more challenging, and this requires to perform both an inversion and a denoising. For many problem, this two goals are in contradiction, since usually inverting the operator increases the noise level.
+For a general operator $\Phi$, recovering $f_0$ requires both inversion and denoising. These goals often conflict because inversion amplifies noise.
 %
-This is for instance the case for the deblurring problem, where $\Phi$ is a translation invariant operator, that corresponds to a low pass filtering with some kernel $h$
+For example, in deblurring, $\Phi$ is a translation-invariant operator corresponding to low-pass filtering with a kernel $h$
 \eql{\label{eq-deblurring-operator}
 	\Phi f = f \star h.
 }
-One can for instance consider this convolution over $\Ss=\Hh=L^2(\TT^d)$, see Proposition~\ref{prop-ti-convol-l2}. 
+A periodic model takes $\Ss=\Hh=L^2(\TT^d)$; see Proposition~\ref{prop-ti-convol-l2}.
 %
-In practice, this convolution is followed by a sampling on a grid $\Phi f = \enscond{(f \star h)(x_k)}{0 \leq k< P}$, see Figure \ref{fig-ip}, middle, for an example of a low resolution image $\Phi f_0$.
+In practice, the blurred signal is sampled on a grid: $\Phi f = \enscond{(f \star h)(x_k)}{0 \leq k< P}$. Figure \ref{fig-ip}, middle, shows the resulting low-resolution image $\Phi f_0$.
 %
-Inverting such operator has important industrial application to upsample the content of digital photos and to compute high definition videos from low definition videos.
+Inverting such operators is useful for increasing the resolution of digital photographs and videos.
 
 
 %%%
 \paragraph{Interpolation and inpainting.}
 
-Inpainting corresponds to interpolating missing pixels in an image. This is modelled by a diagonal operator over the spacial domain
+Inpainting reconstructs missing pixels. We model the masking operation by an operator that is diagonal in the spatial domain:
 \eql{\label{eq-inp-operator}
 	(\Phi f)(x) = \choice{
 	0 \qifq x \in \Om,\\
 	f(x) \qifq x \notin \Om.
 	}
 }
-where $\Om \subset [0,1]^d$ (continuous model) or $\{0,\ldots,N-1\}$ which is then a set of missing pixels.
+Here $\Omega$ is the missing region, either a subset of $[0,1]^d$ in the continuous model or a set of pixel indices in the discrete model.
 %
-Figure \ref{fig-ip}, right, shows an example of damaged image $\Phi f_0$.
+Figure \ref{fig-ip}, right, shows an example of a damaged image $\Phi f_0$.
 
 \myfigure{
 \tabtrois{
@@ -72,41 +74,41 @@ Figure \ref{fig-ip}, right, shows an example of damaged image $\Phi f_0$.
 Original $f_0$ & Low resolution $\Phi f_0$ & Masked $\Phi f_0$
 }
 }{%
-	Example of inverse problem operators. %	
+	Examples of forward operators in inverse problems. %
 }{fig-ip}
 
 
 %%%
 \paragraph{Medical imaging.}
 
-Most medical imaging acquisition device only gives indirect access to the signal of interest, and is usually well approximated by such a linear operator $\Phi$.
+Many medical imaging devices provide indirect access to the signal of interest, with acquisition processes that can be approximated by a linear operator $\Phi$.
 %
-In scanners, the acquisition operator is the Radon transform, which, thanks to the Fourier slice theorem, is equivalent to partial Fourier mesurments along radial lines.
+For a tomographic scanner, the Radon transform models acquisition. The Fourier slice theorem relates these measurements to Fourier data along radial lines.
 % 
-Medical resonance imaging (MRI) is also equivalent to partial Fourier measures
-\eql{\label{eq-inp-operator}
+An idealized magnetic resonance imaging (MRI) model also uses partial Fourier measurements:
+\eql{\label{eq-partial-fourier-operator}
 	\Phi f= \enscond{ \hat f(x) }{ x \in \Om }.
 }
-Here, $\Om$ is a set of radial line for a scanner, and smooth curves (e.g. spirals) for MRI. 
+Here $\Om$ consists of radial lines for tomography or acquisition trajectories such as spirals for MRI.
 
-Other indirect application are obtained by electric or magnetic fields measurements of the brain activity (corresponding to MEG/EEG). Denoting $\Om \subset \RR^3$ the region around which measurements are performed (e.g. the head), in a crude approximation of these measurements, one can assume $\Phi f = \enscond{(\psi \star f)(x)}{x \in \partial \Om}$ where $\psi(x)$ is a kernel accounting for the decay of the electric or magnetic field, e.g. $\psi(x)=1/\norm{x}^2$. 
-
-
+Electroencephalography (EEG) and magnetoencephalography (MEG) also infer internal activity from measurements at sensors outside the sources. Abstractly, such a linearized model can be written as $(\Phi f)(s)=\int K(s,x)f(x)\,\mathrm{d}x$, where the kernel depends on the geometry and physical model. Unlike a simple image blur, this kernel need not be translation invariant.
 
 %%%
 \paragraph{Regression for supervised learning.}
 
-While the focus of this chapter is on imaging science, a closely related problem is supervised learning using linear model. The typical notations associated to this problem are usually different, which causes confusion. This problem is detailed in Chapter~\ref{sec-regression}, which draws connection between regression and inverse problems. 
+Linear supervised learning is closely related to the imaging problems studied here, although it uses different notation. Section~\ref{sec-regression} develops the connection between regression and inverse problems.
 %
-In statistical learning, one observes pairs $(x_i,y_i)_{i=1}^n$ of $n$ observation, where the features are $x_i \in \RR^p$. One seeks for a linear prediction model of the form $y_i = \dotp{\be}{x_i}$ where the unknown parameter is $\be \in \RR^p$. Storing all the $x_i$ as rows of a matrix $X \in \RR^{n \times p}$, supervised learning aims at approximately solving $X \be \approx y$. The problem is similar to the inverse problem $\Phi f=y$ where one performs the change of variable $\Phi \mapsto X$ and $f \mapsto \be$, with dimensions $(P,N) \rightarrow (n,p)$. 
+In statistical learning, the data are $n$ pairs $(x_i,y_i)_{i=1}^n$ with feature vectors $x_i \in \RR^p$. A linear prediction model has the form $y_i = \dotp{\be}{x_i}$, with unknown parameter $\be \in \RR^p$. Placing the vectors $x_i$ in the rows of $X \in \RR^{n \times p}$ gives the approximate system $X \be \approx y$. This corresponds to the inverse problem $\Phi f=y$ under the substitutions $\Phi \mapsto X$ and $f \mapsto \be$, with dimensions $(P,N) \rightarrow (n,p)$.
 %
-In statistical learning, one does not assume some well specified model $y=\Phi f_0+w$, and the major difference is that the matrix $X$ is random, which add extra ``noise'' which needs to be controlled as $n \rightarrow +\infty$. The recovery is performed by the normalized ridge regression problem
+In statistical learning, the model need not be correctly specified, and the design matrix $X$ is often random. Its sampling fluctuations must then be controlled as $n\to\infty$.
+
+Ridge regression estimates the parameter by solving the normalized problem
 \eq{
 	\umin{\be} \frac{1}{2n}\norm{X \be-y}^2 + \la \norm{\be}^2
 }
-so that the natural change of variable should be $\frac{1}{n}X^*X \sim \Phi^*\Phi$ (empirical covariance) and $\frac{1}{n}X^*y \sim \Phi^*y$.
+The corresponding empirical quantities are therefore $\frac{1}{n}X^*X \sim \Phi^*\Phi$ for the covariance and $\frac{1}{n}X^*y \sim \Phi^*y$ for the data term.
 %
-The law of large number shows that $\frac{1}{n}X^*X$ and $\frac{1}{n}X^*y$ are contaminated by a noise of amplitude $1/\sqrt{n}$, which plays the role of $\norm{w}$. 
+For independent observations in fixed dimension and with suitable finite moments, these empirical quantities fluctuate around their expectations at order $n^{-1/2}$. In growing dimension, the relevant norm bounds also depend on the dimension and tail assumptions.
 
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -114,34 +116,34 @@ The law of large number shows that $\frac{1}{n}X^*X$ and $\frac{1}{n}X^*y$ are c
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Warmup: Oracle Linear Inversion}
 
-We first consider a simpler setup were we seek for an ``optimal'' inversion method which is assumed to be diagonal in some basis. We will see later that these denoiser can also be seen as solving a multi-dimensional optimization problem (here, the optimization is just 1-dimensional over each basis coefficient). 
+We first seek an oracle estimator among inversion methods that act diagonally in a fixed basis, allowing the gains to depend on the unknown clean signal. The optimization then separates into one scalar problem per coefficient. Later we will obtain such estimators from a single optimization problem on the signal space.
 
-We consider the inversion of an operator which is diagonal in an ortho-basis $(\psi_k)$:
+Assume that the forward operator is diagonal in an orthonormal basis $(\psi_k)$:
 $$
 	\Phi f = \sum_k \phi_k \dotp{f}{\psi_k} \, \psi_k,
 $$
-where typically $\phi_k$ are attenuation factors. 
+where the coefficients $\phi_k$ typically represent attenuation.
 %
 The observation model is
 $$
 	Y = \Phi f_0 + w
 $$
-where $w$ is a Gaussian white noise.
+where $w$ is Gaussian white noise with variance $\sigma^2$. In a real orthonormal basis, its coefficients are independent centered Gaussians. In a complex Fourier basis they still have mean zero and second moment $\sigma^2$, which suffices for the risk calculation below. We work in finite dimension; infinite-dimensional white noise requires a generalized random-process interpretation.
 %
 For instance, if $(\psi_k)_k$ is the Fourier basis, this corresponds to a deconvolution problem $\Phi f = h \star f$ where $\hat h_k = \phi_k$. We consider the same diagonal estimator $\tilde{f}$ as in the denoising case:
 $$
 	\tilde{f} \coloneqq \sum_k \lambda_k \dotp{Y}{\psi_k} \, \psi_k.
 $$
 
-The estimation error we aim at minimizing with respect to $\lambda$ is thus
+We minimize the mean squared error with respect to $\lambda$:
 $$
 	\mathbb{E}_w  \|\tilde{f} - f_0\|^2  = \sum_k \mathbb{E}  \left| \dotp{\tilde{f} - f_0}{\psi_k} \right|^2 = \sum_k \mathbb{E} \left| \lambda_k (\phi_k c_k + \dotp{w}{\psi_k}) - c_k \right|^2 .
 $$
-Leveraging the independence and the zero mean of the noise,
+Writing $c_k=\langle f_0,\psi_k\rangle$ and using the zero mean and variance of the noise,
 $$
 	\mathbb{E}_w \|\tilde{f} - f_0\|^2 = \sum_k |c_k|^2 | \phi_k \lambda_k - 1 |^2 + |\lambda_k|^2 \sigma^2 .
 $$
-The optimal oracle denoiser solves
+The optimal coefficient of the oracle estimator solves
 $$
 	\min_{\lambda_k} |c_k|^2 | \phi_k \lambda_k - 1 |^2 + |\lambda_k|^2 \sigma^2 ,
 $$
@@ -153,29 +155,26 @@ which gives
 $$
 	\lambda_k = \frac{ |c_k|^2 \bar{\phi_k} }{ |c_k|^2 |\phi_k|^2 + \sigma^2 }.
 $$
-When $\sigma \to 0$ (no noise), then, assuming $\phi_k \neq 0$ so that the filter is invertible, one obtains the brute force inversion of the filter, independently of the signal content:
+For $\phi_k \neq 0$ and $c_k\neq0$, the oracle gains approach direct inversion as the noise vanishes:
 $$
-	\lambda_k = \frac{1}{\phi_k}.
+	\lambda_k \longrightarrow \frac{1}{\phi_k}\qquad\text{as }\sigma\to0.
 $$
-As $\sigma$ increases, this inversion is attenuated. For instance, if we consider a smooth signal over a Fourier basis, it can be modeled as having a polynomial decay $c_k^2 = 1/k^\alpha$. We consider also a low pass convolution with polynomial decay $|\phi_k|^2 = 1/k^\beta$, then
-
-$$
-	\lambda_k = \frac{ 1/ k^{\beta/2} }{  1 + \sigma^2 / k^{\alpha+\beta}  }.
-$$
-The shape of lambda is a bell curve: its limit is 1 for $k \to 0$ and is 0 for $k \to \infty$.
-It starts increasing to boost higher frequencies canceled by the filter, and then it decreases to prevent the explosion of the noise. 
-It peaks at a maximum value at 
-$$
-	k^\star = \left( \frac{\sigma^2 \beta}{\alpha} \right)^{\frac{1}{\alpha + \beta}}.
-$$
-
+As $\sigma$ increases, inversion is attenuated. For a simple Fourier-domain example, let $k\geq1$, $|c_k|^2=k^{-\alpha}$ and $\phi_k=k^{-\beta/2}$, with $\alpha,\beta>0$. Then
+\eq{
+ \lambda_k=\frac{k^{\beta/2}}{1+\sigma^2 k^{\alpha+\beta}}.
+}
+At low frequencies this filter approximately compensates for attenuation, whereas at high frequencies it suppresses noise. Treating $k$ as a positive real variable, its maximum occurs at
+\eq{
+ k^\star=\left(\frac{\beta}{(2\alpha+\beta)\sigma^2}\right)^{1/(\alpha+\beta)}.
+}
+On the discrete range $k\geq1$, the maximum is attained near this value, or at the lowest frequency if $k^\star<1$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Theoretical Study of Quadratic Regularization}
 
-We now give a glimpse on the typical approach to obtain theoretical guarantee on recovery quality in the case of Hilbert space. The goal is not to be exhaustive, but rather to insist on the modelling hypotethese, namely smoothness implies a so called ``source condition'', and the inherent limitations of quadratic methods (namely slow rates and the impossibility to recover information in $\ker(\Phi)$, i.e. to achieve super-resolution). 
+We outline a standard approach to recovery guarantees in Hilbert spaces. The emphasis is on modeling assumptions expressed through source conditions, and on limitations of the squared-norm penalty, notably saturation of convergence rates and loss of components in $\ker(\Phi)$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Singular Value Decomposition}
@@ -184,22 +183,22 @@ We now give a glimpse on the typical approach to obtain theoretical guarantee on
 %%%%%%%%%%
 \paragraph{Finite dimension.}
 
-Let us start by the simple finite dimensional case $\Phi \in \RR^{P \times N}$ so that $\Ss=\RR^N$ and $\Hh=\RR^P$ are Hilbert spaces.
+We begin with the finite-dimensional case $\Phi \in \RR^{P \times N}$ so that $\Ss=\RR^N$ and $\Hh=\RR^P$ are Hilbert spaces.
 %
-In this case, the Singular Value Decomposition (SVD) is the key to analyze the operator very precisely, and to describe linear inversion process.  
+In this case, the singular value decomposition (SVD) provides a precise description of the operator and of linear inversion.
 
 \begin{prop}[SVD]\label{prop-svd}
-	There exists $(U,V) \in \RR^{P \times R} \times \RR^{N \times R}$, where $R=\rank(\Phi)=\dim(\Im(\Phi))$, with $U^\top U=V^\top V=\Id_R$, i.e. having orthogonal columns $(u_m)_{m=1}^R \subset \RR^N, (v_m)_{m=1}^R \subset \RR^P$,  and $(\si_m)_{m=1}^R$ with $\si_m>0$, such that
+    There exist matrices $(U,V) \in \RR^{P \times R} \times \RR^{N \times R}$, with $R=\rank(\Phi)=\dim(\Im(\Phi))$, satisfying $U^\top U=V^\top V=\Id_R$. Their orthonormal columns $(u_m)_{m=1}^R \subset \RR^P, (v_m)_{m=1}^R \subset \RR^N$ and singular values $(\si_m)_{m=1}^R$, with $\si_m>0$, satisfy
 	\eql{\label{eq-svd-expan}
 		\Phi = U\diag_m(\si_m) V^\top = \sum_{m=1}^R \si_m u_m v_m^\top.
 	}
 \end{prop}
 
 \begin{proof}
-	We first analyze the problem, and notice that if $\Phi = U \Si V^\top$ with $\Si = \diag_m(\si_m)$, then 
-	$\Phi\Phi^\top=U \Si^2 U^\top$ and then $V^\top = \Si^{-1} U^\top \Phi$.
+    To motivate the construction, suppose that $\Phi = U \Si V^\top$ with $\Si = \diag_m(\si_m)$. Then
+    $\Phi\Phi^\top=U \Si^2 U^\top$, which determines the left singular vectors, and $V^\top = \Si^{-1} U^\top \Phi$ determines the right ones.
 	%
-	We can use this insight. Since $\Phi\Phi^\top$ is a positive symmetric matrix, we write its eigendecomposition as $\Phi\Phi^\top=U \Si^2 U^\top$ where $\Si = \diag_{m=1}^R(\si_m)$ with $\si_m>0$. We then define $V \eqdef \Phi^\top U \Si^{-1}$.
+    Since $\Phi\Phi^\top$ is symmetric and positive semidefinite, its eigendecomposition on its range is $\Phi\Phi^\top=U \Si^2 U^\top$, where $\Si = \diag_{m=1}^R(\si_m)$ with $\si_m>0$. Define $V \eqdef \Phi^\top U \Si^{-1}$.
 	% 
 	One then verifies that 
 	\eq{
@@ -210,55 +209,55 @@ In this case, the Singular Value Decomposition (SVD) is the key to analyze the o
 	} 
 \end{proof}
 
-This theorem is still valid with complex matrice, replacing $^\top$ by $^*$.
+The theorem also holds for complex matrices, with $^\top$ replaced by $^*$.
 %
 Expression~\eqref{eq-svd-expan} describes $\Phi$ as a sum of rank-1 matrices $u_m v_m^\top$.
 %
-One usually order the singular values $(\si_m)_m$ in decaying order $\si_1 \geq \ldots \geq \si_R$. If these values are different, then the SVD is unique up to $\pm 1$ sign change on the singular vectors.  
+One usually orders the singular values $(\si_m)_m$ in decreasing order $\si_1 \geq \ldots \geq \si_R$. If the positive singular values are distinct, the real reduced SVD is unique up to simultaneous sign changes of each pair $(u_m,v_m)$. In the complex case, simultaneous multiplication by a unit-modulus scalar replaces the sign change.
 
-The left singular vectors $U$ is an orthonormal basis of $\Im(\Phi)$, while the right singular values is an orthonormal basis of $\Im(\Phi^\top)=\ker(\Phi)^\bot$.
+The columns of $U$ form an orthonormal basis of $\Im(\Phi)$, while the columns of $V$ form an orthonormal basis of $\Im(\Phi^\top)=\ker(\Phi)^\bot$.
 %
-The decomposition~\eqref{eq-svd-expan} is often call the ``reduced'' SVD because one has only kept the $R$ non-zero singular values.
-The ``full'' SVD is obtained by completing $U$ and $V$ to define orthonormal bases of the full spaces $\RR^P$ and $\RR^N$. Then $\Si$ becomes a rectangular matrix of size $P\times N$.
+The decomposition~\eqref{eq-svd-expan} is called the reduced SVD because it retains only the $R$ nonzero singular values.
+The full SVD completes the columns of $U$ and $V$ to orthonormal bases of $\RR^P$ and $\RR^N$, respectively. The diagonal factor $\Si$ then has size $P\times N$.
 
-A typical example is for $\Phi f=f \star h$ over $\RR^P=\RR^N$, in which case the Fourier transform diagonalizes the convolution, i.e.
+For a periodic discrete convolution $\Phi f=h\star f$, let $F$ be the unitary discrete Fourier matrix. Then
 \eql{\label{eq-diag-filter-finite}
-	\Phi = (u_m)_m^* \diag(\hat h_m) (u_m)_m
+ \Phi=F^*\diag(\hat h_m)F,
 }
-where $(u_m)_n \eqdef \frac{1}{\sqrt{N}}e^{\frac{2\imath\pi}{N}nm}$ so that the singular values are $\si_m=|\hat h_m|$ (removing the zero values) and the singular vectors are $(u_m)_n$ and $(v_m \th_m)_n$ where $\th_m \eqdef |\hat h_m|/\hat h_m$ is a unit complex number. 
+where $\hat h_m$ denotes the convolution multiplier (the unnormalized DFT of $h$ for the usual discrete convolution). If $q_m=F^*e_m$ and $\hat h_m\neq0$, one may take $v_m=q_m$, $u_m=(\hat h_m/|\hat h_m|)q_m$, and $\sigma_m=|\hat h_m|$.
 
-Computing the SVD of a full matrix $\Phi \in \RR^{N \times N}$ has complexity $N^3$. 
+Computing the SVD of a dense matrix $\Phi \in \RR^{N \times N}$ typically costs $O(N^3)$ operations.
 
 %%%%%%%%%%
 \paragraph{Compact operators.}
 
-One can extend the decomposition to compact operators $\Phi : \Ss \rightarrow \Hh$ between separable Hilbert space. A compact operator is such that $\Phi B_1$ is pre-compact where $B_1=\enscond{s \in \Ss}{\norm{s}\leq 1}$ is the unit-ball. This means that for any sequence $(\Phi s_k)_k$ where $s_k \in B_1$ one can extract a converging sub-sequence. Note that in infinite dimension, the identity operator $\Phi : \Ss \rightarrow \Ss$ is never compact.
+The SVD extends to compact operators $\Phi : \Ss \rightarrow \Hh$ between separable Hilbert spaces. Compactness means that $\Phi B_1$ is relatively compact, where $B_1=\enscond{s \in \Ss}{\norm{s}\leq 1}$ is the unit ball. Equivalently, every sequence $(\Phi s_k)_k$ with $s_k \in B_1$ has a convergent subsequence. In infinite dimension, the identity operator $\Phi : \Ss \rightarrow \Ss$ is not compact.
 
-Compact operators $\Phi$ can be shown to be equivalently defined as those for which an expansion of the form~\eqref{eq-svd-expan} holds
+Equivalently, compact operators $\Phi$ admit an expansion analogous to~\eqref{eq-svd-expan}:
 \eql{\label{eq-svd-operators}
- 	\Phi = \sum_{m=1}^{+\infty} \si_m u_m v_m^\top
+	\Phi = \sum_{m=1}^{+\infty} \si_m \langle\,\cdot\,,v_m\rangle u_m
 }
-where $(\si_m)_m$ is a decaying sequence converging to $0$, $\si_m \rightarrow 0$.
+Here $(u_m)$ and $(v_m)$ are orthonormal systems in $\Hh$ and $\Ss$, respectively, and the positive singular values decrease to zero; finite-rank operators give a finite sum.
 %
-Here in~\eqref{eq-svd-operators} convergence holds in the operator norm, which is the algebra norm on linear operator inherited from those of $\Ss$ and $\Hh$
+Convergence in~\eqref{eq-svd-operators} holds in the operator norm induced by the norms on $\Ss$ and $\Hh$
 \eq{
-	\norm{\Phi}_{\Ll(\Ss,\Hh)} \eqdef \umin{ \norm{\Phi u}_\Hh }{ \norm{u}_\Ss \leq 1 }.
+	\norm{\Phi}_{\Ll(\Ss,\Hh)} \eqdef \sup_{\norm{u}_\Ss\leq1}\norm{\Phi u}_\Hh.
 }
-For $\Phi$ having an SVD decomposition~\eqref{eq-svd-operators}, $\norm{\Phi}_{\Ll(\Ss,\Hh)}=\si_1$.
+For a nonzero operator $\Phi$ with the expansion~\eqref{eq-svd-operators}, $\norm{\Phi}_{\Ll(\Ss,\Hh)}=\si_1$.
 
-When $\si_m=0$ for $m>R$, $\Phi$ has a finite rank $R=\dim(\Im(\Phi))$. As we explain in the sections below, when using \textit{linear} recovery methods (such as quadratic regularization), the inverse problem is equivalent to a finite dimensional problem, since one can restrict its attention to functions in $\ker(\Phi)^\bot$ which as dimension $R$. Of course, this is not true anymore when one can retrieve function inside $\ker(\Phi)$, which is often referred to as a ``super-resolution'' effect of non-linear methods.
+If only $R$ singular values are positive, then $\Phi$ has finite rank $R=\dim(\Im(\Phi))$. Squared-norm regularization restricts the reconstruction to $\ker(\Phi)^\bot$, a space of dimension $R$, so the problem reduces to finite dimension. Nonlinear methods can also recover components in $\ker(\Phi)$ under suitable priors; this is sometimes called super-resolution.
 %
-Another definition of compact operator is that they are the limit of finite rank operator. They are thus in some sense the extension of finite dimensional matrices, and are the correct setting to model ill-posed inverse problems. This definition can be extended to linear operator between Banach spaces, but this conclusion does not holds.
+Between Hilbert spaces, compact operators are exactly the operator-norm limits of finite-rank operators. This approximation property need not hold for arbitrary Banach spaces, although the definition of compactness itself extends to them.
 
-Typical example of compact operator are matrix-like operator with a continuous kernel $k(x,y)$ for $(x,y) \in \Om$ where $\Om$ is a compact sub-set of $\RR^d$ (or the torus $\TT^d$), i.e.
+Examples include integral operators on $L^2(\Om)$ with a continuous kernel $k(x,y)$ defined for $(x,y) \in \Om\times\Om$, where $\Om$ is a compact subset of $\RR^d$ or the torus $\TT^d$:
 \eq{
 	(\Phi f)(x) = \int_{\Om} k(x,y) f(y) \d y
 } 
 where $\d y$ is the Lebesgue measure. 
 %
-An example of such a setting which generalizes~\eqref{eq-diag-filter-finite} is when $\Phi f = f \star h$ on $\TT^d=(\RR/2\pi\ZZ)^d$, which is corresponds to a translation invariant kernel $k(x,y) = h(x-y)$, in which case $u_m(x)=(2\pi)^{-d/2} e^{\imath \om x}$, $\si_m = |\hat f_m|$.
+Convolution $\Phi f = f \star h$ on $\TT^d=(\RR/2\pi\ZZ)^d$ generalizes~\eqref{eq-diag-filter-finite}. Its kernel $k(x,y) = h(x-y)$ is translation invariant, and the Fourier functions $q_m(x)=(2\pi)^{-d/2}e^{\imath m\cdot x}$ diagonalize the operator. Its singular values are $\sigma_m=|\hat h_m|$, where $\hat h_m=\int_{\TT^d}h(x)e^{-\imath m\cdot x}\,\mathrm{d}x$ denotes the convolution multiplier.
 % 
-Another example on $\Om=[0,1]$ is the integration, $(\Phi f)(x) = \int_{0}^x f(y) \d y$, which corresponds to $k$ being the indicator of the ``triangle'', $k(x,y)=1_{x \leq y}$.
+Another example on $\Om=[0,1]$ is the integration operator $(\Phi f)(x) = \int_{0}^x f(y) \d y$, which has the square-integrable kernel $k(x,y)=1_{y\leq x}$ and is also compact.
 
 %\eql{\label{eq-filtering-inversion}
 %	\hat f^+[\om] = \hat y[\om] / \hat h[\om] = \hat f_0[\om]
@@ -267,15 +266,15 @@ Another example on $\Om=[0,1]$ is the integration, $(\Phi f)(x) = \int_{0}^x f(y
 
 
 %%%%%%%%%%
-\paragraph{Pseudo inverse.}
+\paragraph{Pseudoinverse.}
 
-In the case where $w=0$, it makes to try to directly solve $\Phi f = y$. The two obstruction for this is that one not necessarily has $y \in \Im(\Phi)$ and even so, there are an infinite number of solutions if $\ker(\Phi) \neq \{0\}$. The usual workaround is to solve this equation in the least square sense 
+We first work in finite dimension, or more generally assume that $\Im(\Phi)$ is closed. Even without noise, $\Phi f=y$ may be inconsistent, and a nontrivial kernel makes a solution nonunique. The Moore--Penrose pseudoinverse selects the least-squares solution of minimum norm
 \eq{
 	f^+ \eqdef \uargmin{ \Phi f=y^+ } \norm{f}_\Ss
 	\qwhereq
 	y^+ = \Proj_{\Im(\Phi)}(y) = \uargmin{ z \in \Im(\Phi) } \norm{y-z}_\Hh. 
 }
-The following proposition shows how to compute this least square solution using the SVD and by solving linear systems involving either $\Phi\Phi^*$ or $\Phi^*\Phi$. 
+The next proposition expresses the pseudoinverse through the SVD. Under injectivity or surjectivity, it also gives formulas involving linear systems with $\Phi\Phi^*$ or $\Phi^*\Phi$.
 
 \begin{prop}\label{prop-pseudo-inv}
 	One has
@@ -284,21 +283,23 @@ The following proposition shows how to compute this least square solution using 
 		\qwhereq
 		\Phi^+ = V \diag_m(1/\si_m) U^*.
 	}
-	In case that $\Im(\Phi)=\Hh$, one has $\Phi^+ = \Phi^* (\Phi\Phi^*)^{-1}$.
-	In case that $\ker(\Phi)=\{0\}$, one has $\Phi^+ = (\Phi^* \Phi)^{-1} \Phi^*$.
+	If $\Im(\Phi)=\Hh$, one has $\Phi^+ = \Phi^* (\Phi\Phi^*)^{-1}$.
+	If $\ker(\Phi)=\{0\}$, one has $\Phi^+ = (\Phi^* \Phi)^{-1} \Phi^*$.
 \end{prop}
 
 \begin{proof}
-	Since $U$ is an ortho-basis of $\Im(\Phi)$, $y^+=UU^* y$, and thus $\Phi f=y^+$ reads
-	$U \Si V^* f = UU^* y$ and hence $V^* f = \Si^{-1} U^* y$. Decomposition orthogonally $f=f_0+r$ where $f_0 \in \ker(\Phi)^\bot$ and $r \in \ker(\Phi)$, one has $f_0=VV^* f = V \Si^{-1} U^* y = \Phi^+ y$ is a constant. Minimizing $\norm{f}^2=\norm{f_0}^2+\norm{r}^2$ is thus equivalent to minimizing $\norm{r}$ and hence $r=0$ which is the desired result.
+    The columns of $U$ form an orthonormal basis of $\Im(\Phi)$, so $y^+=UU^* y$. Thus $\Phi f=y^+$ becomes
+    $U \Si V^* f = UU^* y$, or $V^* f = \Si^{-1} U^* y$. In the orthogonal decomposition $f=f_0+r$, with $f_0 \in \ker(\Phi)^\bot$ and $r \in \ker(\Phi)$, the data fix $f_0=VV^*f=V\Si^{-1}U^*y=\Phi^+y$. Since $\norm{f}^2=\norm{f_0}^2+\norm{r}^2$, minimizing the total norm amounts to minimizing $\norm{r}$, which gives $r=0$.
 	%
-	If $\Im(\Phi)=\Hh$, then $R=N$ so that $\Phi\Phi^* = U \Si^2 U^*$ is the eigen-decomposition of an invertible and $(\Phi\Phi^*)^{-1} = U \Si^{-2} U^*$.
+	If $\Im(\Phi)=\Hh$, then $R=P$ so that $\Phi\Phi^* = U \Si^2 U^*$ is the eigendecomposition of an invertible matrix, and $(\Phi\Phi^*)^{-1} = U \Si^{-2} U^*$.
 	One then verifies $\Phi^* (\Phi\Phi^*)^{-1} = V \Si U^* U \Si^{-2} U^*$ which is the desired result.
 	%
-	One deals similarly with the second case. 
+	The second case follows similarly.
 \end{proof}
 
-For convolution operators $\Phi f = f \star h$, then 
+In infinite dimension, a compact operator of infinite rank has nonclosed range. Its pseudoinverse is unbounded and is defined only for data satisfying the corresponding square-summability condition on the inverse-weighted SVD coefficients. The projections and inverse formulas above cannot then be used on arbitrary data.
+
+For convolution operators $\Phi f = f\star h$, the spectral formula gives
 \eq{
 	\Phi^+ y = y \star h^+
 	\qwhereq
@@ -313,101 +314,108 @@ For convolution operators $\Phi f = f \star h$, then
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Tikonov Regularization}
+\subsection{Tikhonov Regularization}
+\label{sec-tikhonov}
 
 %%%%
 \paragraph{Regularized inverse.}
 
-When there is noise, using formula~\eqref{eq-pseudo-inverse} is not acceptable, because then 
+For an ill-conditioned operator, applying the unregularized inverse to noisy data can be unstable, since
 \eq{
 	\Phi^+ y = \Phi^+\Phi f_0 + \Phi^+ w = f_0^+ + \Phi^+ w
 	\qwhereq
-	f_0^+ \eqdef \Proj_{\ker(\Phi)^\bot}, 
+	f_0^+ \eqdef \Proj_{\ker(\Phi)^\bot}(f_0),
 }
-so that the recovery error is $\norm{\Phi^+ y -f_0^+} = \norm{\Phi^+ w}$. This quantity can be as larges as $\norm{w}/\si_R$ if $w \propto u_R$. The noise is thus amplified by the inverse $1/\si_R$ of the smallest amplitude non-zero singular values, which can be very large. In infinite dimension, one typically has $R=+\infty$, so that the inverse is actually not bounded (discontinuous). It is thus mendatory to replace $\Phi^+$ by a regularized approximate inverse, which should have the form 
+The recovery error is therefore $\norm{\Phi^+ y -f_0^+} = \norm{\Phi^+ w}$. It reaches $\norm{w}/\si_R$ when $w \propto u_R$, so a small singular value produces a large amplification factor $1/\si_R$. In the infinite-rank case $R=+\infty$, the compact operator's pseudoinverse is unbounded. To control this amplification, replace $\Phi^+$ by a regularized inverse of the form
 \eql{\label{eq-regul-pinv}
 	\Phi^+_\la = V \diag_m(\mu_\la(\si_m)) U^*
 } 
-where $\mu_\la$, indexed by some parameter $\la>0$, is a regularization of the inverse, that should typically satisfies 
+where the spectral filter $\mu_\la$ depends on a parameter $\la>0$ and satisfies the boundedness and consistency conditions
 \eq{
-	\mu_\la(\si) \leq C_\la < +\infty 
+	|\mu_\la(\si)| \leq C_\la < +\infty
 	\qandq
 	\lim_{\la \rightarrow 0} \mu_\la(\si) = \frac{1}{\si}.
 }
-Figure~\ref{fig-bound-regul-variance}, left, shows a typical example of such a regularized inverse curve, obtained by thresholding.
+Figure~\ref{fig-bound-regul-variance}, left, illustrates a capped reciprocal filter, which limits the amplification of small singular values.
 
 
 %%%%
 \paragraph{Variational regularization.}
 
-A typical example of such regularized inverse is obtained by considering a penalized least square involving a regularization functional
+A typical regularized inverse is obtained by solving a penalized least-squares problem
 \eql{\label{eq-regul-inv}
 	f_\la \eqdef \uargmin{f \in \Ss} \norm{y-\Phi f}_\Hh^2 + \la J(f)
 }
-where $J$ is some regularization functional which should at least be continuous on $\Ss$. The simplest example is the quadratic norm $J=\norm{\cdot}_\Ss^2$, 
+where $J$ is a regularization functional. For general convex priors, lower semicontinuity, rather than continuity, is the natural assumption; existence also requires compactness or coercivity conditions. The simplest example is the quadratic norm $J=\norm{\cdot}_\Ss^2$,
 \eql{\label{eq-regul-normsq}
 	f_\la \eqdef \uargmin{f \in \Ss} \norm{y-\Phi f}_\Hh^2 + \la \norm{f}^2
 }
-which is indeed a special case of~\eqref{eq-regul-pinv} as proved in Proposition~\ref{prop-var-regul-svd} below. In this case, the regularized solution is obtained by solving a linear system
+Proposition~\ref{prop-var-regul-svd} shows that this estimator is a special case of~\eqref{eq-regul-pinv}. Its normal equations give
 \eql{\label{eq-sol-quad-reg-svd}
-	f_\la = (\Phi^*\Phi + \la \Id_{P})^{-1} \Phi^* y.
+	f_\la = (\Phi^*\Phi + \la \Id_{\Ss})^{-1} \Phi^* y.
 }
-This shows that $f_\la \in \Im(\Phi^*) = \ker(\Phi)^\bot$, and that it depends linearly on $y$. 
+This shows that $f_\la \in \Im(\Phi^*)\subset\ker(\Phi)^\bot$, and that it depends linearly on $y$.
 
 \begin{prop}\label{prop-var-regul-svd}
-	The solution of~\eqref{eq-regul-normsq} has the form $f_\la = \Phi^+_\la y$ as defined in~\eqref{eq-regul-pinv} for the specific choice of function
+    The solution of~\eqref{eq-regul-normsq} is $f_\la = \Phi^+_\la y$, with the regularized inverse~\eqref{eq-regul-pinv} defined by the filter
 	\eq{
-		\foralls \si \in \RR, \quad \mu_\la(\si) = \frac{\si}{\si^2+\la}.
+		\foralls \si \geq0, \quad \mu_\la(\si) = \frac{\si}{\si^2+\la}.
 	}
 \end{prop} 
 \begin{proof}
-Using expression~\eqref{eq-sol-quad-reg-svd} and plugging the SVD $\Phi = U \Si V^*$ leads to
+The normal equations are $(\Phi^*\Phi+\lambda\Id_\Ss)f_\lambda=\Phi^*y$. Taking components along $v_m$ gives
 \eq{
-	\Phi_\la^+ = (V \Si^2 V^* + \la VV^*)^{-1} V \Si U^* = V^* (\Si^2 + \la)^{-1} \Si U^*
+ (\sigma_m^2+\lambda)\langle f_\lambda,v_m\rangle
+ =\sigma_m\langle y,u_m\rangle.
 }
-which is the desired expression since $(\Si^2 + \la)^{-1} \Si = \diag(\mu_\la(\si_m))_m$.
+The component in $\ker(\Phi)$ vanishes because $\lambda>0$. Thus
+\eq{
+ f_\lambda=\sum_m\frac{\sigma_m}{\sigma_m^2+\lambda}\langle y,u_m\rangle v_m,
+}
+which proves the formula.
+
 \end{proof}
 
-A special case is when $\Phi f = f \star h$ is a convolution operator. In this case, the regularized inverse is computed in $O(N \log(N))$ operation using the FFT as follow
+For convolution $\Phi f = f \star h$, the FFT computes the regularized inverse in $O(N \log(N))$ operations:
 \eq{
-	\hat f_{\la,m} = \frac{\hat h_m^*}{|\hat h_m|^2 + \si^2} \hat y_m. 
+	\hat f_{\la,m} = \frac{\hat h_m^*}{|\hat h_m|^2 + \la} \hat y_m.
 }
 
-Figure~\ref{fig-bound-regul-variance} contrast the regularization curve associated to quadratic regularization~\eqref{eq-sol-quad-reg-svd} (right) to the simpler thresholding curve (left). 
+Figure~\ref{fig-bound-regul-variance} compares quadratic regularization~\eqref{eq-sol-quad-reg-svd} (right) with a capped reciprocal filter (left).
 
-The question is to understand how to choose $\la$ as a function of the noise level $\norm{w}_\Hh$ in order to guarantees that $f_\la \rightarrow f_0$ and furthermore establish convergence speed. One first needs to ensure at least $f_0=f_0^+$, which in turns requires that $f_0 \in \Im(\Phi^*)=\ker(\Phi)^\bot$. Indeed, an important drawback of linear recovery methods (such as quadratic regularization) is that necessarily $f_\la \in \Im(\Phi^*)=\ker(\Phi^\bot)$ so that no information can be recovered inside $\ker(\Phi)$. Non-linear methods must be used to achieve a ``super-resoltution'' effect and recover this missing information.
+We choose $\lambda$ according to the noise level and seek a rate for $f_\lambda\to f_0$. This requires $f_0=f_0^+$, equivalently $f_0\in\overline{\Im(\Phi^*)}=\ker(\Phi)^\bot$: squared-norm regularization always produces $f_\la\in\Im(\Phi^*)\subset\ker(\Phi)^\bot$, so it cannot recover a kernel component of $f_0$. Nonlinear priors can recover such components when additional structure makes the signal identifiable.
 
 %%%%
 \paragraph{Source condition.}
 
-In order to ensure convergence speed, one quantify this condition and impose a so-called source condition of order $\be$, which reads
+To obtain a convergence rate, we impose a source condition of order $\be$, which reads
 \eql{\label{eq-source-cond-init}
-	f_0 \in \Im( (\Phi^*\Phi)^\be ) = \Im( V \diag( \si_m^{2\be} ) V^* ).
+	f_0 \in \Im( (\Phi^*\Phi)^{\be/2} ) = \Im( V \diag( \si_m^{\be} ) V^* ).
 }
-In some sense, the larger $\be$, the farther $f_0$ is away from $\ker(\Phi)$, and thus the inversion problem is ``easy''. 
-This condition means that there should exists $z \in \RR^P$ such that $f_0 = V \diag( \si_m^{2\be} ) V^* z$, i.e. $z =V \diag( \si_m^{-2\be} ) V^* f_0$. In order to control the strength of this source condition, we assume $\norm{z} \leq \rho$ where $\rho>0$. The source condition thus corresponds to the following constraint
+For a fixed bound on the source vector, larger $\beta$ imposes stronger decay along directions with small singular values and makes stable inversion easier.
+The condition asserts the existence of $z\in\Ss$ such that $f_0 = V \diag( \si_m^{\be} ) V^* z$. Choose the source vector of minimum norm, $z=V\diag(\sigma_m^{-\beta})V^*f_0$, and impose $\norm{z} \leq \rho$ for some $\rho>0$. This is equivalent to the coefficient bound
 \eql{\label{eq-source-cond-quad}\tag{$S_{\be,\rho}$}
-	\sum_m \si_m^{-2\be} \dotp{f_0}{v_m}^2 \leq \rho^2 < +\infty. 
+	\sum_m \si_m^{-2\be} |\dotp{f_0}{v_m}|^2 \leq \rho^2 < +\infty.
 }
 
 
-This is a Sobolev-type constraint, similar to those imposed in~\ref{eq-discr-sobol}. A prototypical example is for a low-pass filter $\Phi f = f \star h$ where $h$ as a slow polynomial-like decay of frequency, i.e. $|\hat h_m| \sim 1/m^{\al}$ for large $m$. In this case, since $v_m$ is the Fourier basis, the source condition~\eqref{eq-source-cond-quad} reads
+The assumptions $\beta>0$ and $f_0\in\ker(\Phi)^\bot$ are part of the source condition; the coefficient bound alone leaves kernel components unconstrained. The bound resembles the Sobolev constraint in~\ref{eq-discr-sobol}. For example, consider a low-pass convolution $\Phi f = f \star h$ where the kernel $h$ has a polynomially decaying multiplier: $|\hat h_m| \sim 1/m^{\al}$ for large $m$. Since the vectors $v_m$ are Fourier modes, \eqref{eq-source-cond-quad} gives, up to constants and the Fourier normalization, a bound of the form
 \eq{
-	\sum_m \norm{m}^{2\al\be} |\hat f_m|^2 \leq \rho^2 < +\infty, 
+	\sum_m \norm{m}^{2\al\be} |\hat f_m|^2 \leq \rho^2 < +\infty.
 }
-which is a Sobolev ball of radius $\rho$ and differential order $\al\be$. 
+This is a Sobolev-type coefficient bound of smoothness order $\al\be$.
 
 
 %%%%
 \paragraph{Sublinear convergence speed.}
 
-The following theorem shows that this source condition leads to a convergence speed of the regularization. 
+The following theorem gives the convergence rate implied by this source condition.
 %
-Imposing a bound $\norm{w} \leq \de$ on the noise, the theoretical analysis of the inverse problem thus depends on the parameters $(\de,\rho,\be)$. Assuming $f_0 \in \ker(\Phi)^\bot$, the goal of the theoretical analysis corresponds to studying the speed of convergence of $f_\la$ toward $f_0$, when using $y=\Phi f_0+w$ as $\de \rightarrow 0$. This requires to decide how $\la$ should depends on $\de$.
+With the noise bound $\norm{w} \leq \de$, recovery depends on the parameters $(\de,\rho,\be)$. Assuming $f_0 \in \ker(\Phi)^\bot$, we study the convergence of $f_\la$ to $f_0$ for data $y=\Phi f_0+w$ as $\de \rightarrow 0$. The analysis also determines how $\la$ should depend on $\de$.
 
 
 \begin{thm}\label{thm-sublin-quad}
-	Assuming the source condition~\eqref{eq-source-cond-quad} with $0 < \be \leq 2$, then the solution of~\eqref{eq-regul-normsq} for $\norm{w} \leq \de$ satisfies
+	Let $\delta>0$. Under the source condition~\eqref{eq-source-cond-quad} with $0 < \be \leq 2$, the solution of~\eqref{eq-regul-normsq} for $\norm{w} \leq \de$ satisfies
 	\eq{
 		\norm{f_\la - f_0} \leq C \rho^{\frac{1}{\be+1}} \de^{\frac{\be}{\be+1}}
 	}
@@ -419,7 +427,7 @@ Imposing a bound $\norm{w} \leq \de$ on the noise, the theoretical analysis of t
 \end{thm}
 
 \begin{proof}
-	Because of the source condition, $f_0 \in \Im(\Phi^*)$. 
+	The source condition implies $f_0\in\ker(\Phi)^\bot$.
 	%
 	We decompose
 	\eq{
@@ -427,40 +435,40 @@ Imposing a bound $\norm{w} \leq \de$ on the noise, the theoretical analysis of t
 		\qwhereq		
 		f_{\la}^0 \eqdef \Phi_\la^+ ( \Phi f_0 ), 
 	}
-	so that $f_\la = f_{\la}^0 + \Phi_\la^+ w$, one has for any regularized inverse of the form~\eqref{eq-regul-pinv} 
+	Thus $f_\la = f_{\la}^0 + \Phi_\la^+ w$, and for any regularized inverse of the form~\eqref{eq-regul-pinv}
 	\eql{\label{eq-rate-tikhon}
 		\norm{f_\la - f_0} \leq \norm{ f_\la - f_{\la}^0 } + \norm{ f_{\la}^0 - f_0 } .
 	}
-	The term $\norm{ f_\la - f_{\la}^0 }$ is a variance term which account for residual noise, and thus decays when $\la$ increases (more regularization).
+    The noise-propagation term $\norm{f_\lambda-f_\lambda^0}$ measures the effect of measurement noise. For Tikhonov regularization it decreases as $\la$ increases and is often called the variance term.
 	%
-	The term $\norm{ f_{\la}^0 - f_0 }$ is independent of the noise, it is a bias term coming from the approximartion (smoothing) of $f_0$, and thus increases when $\la$ increases. The choice of an optimal $\la$ thus results in a bias-variance tradeoff between these two terms.
+    The bias term $\norm{ f_{\la}^0 - f_0 }$ is independent of the noise and measures the smoothing of $f_0$. For Tikhonov regularization it increases with $\la$. Choosing $\la$ therefore balances bias against noise amplification.
 	%
 	Assuming 
 	\eq{
-		\foralls \si\geq 0, \quad  \mu_\la(\si) \leq C_\la
+		\foralls \si\geq 0, \quad  |\mu_\la(\si)| \leq C_\la
 	}
 	the variance term is bounded as
 	\eq{
-		\norm{ f_\la - f_{\la}^0 }^2 =  \norm{ \Phi_\la^+ w }^2 = \sum_m \mu_\la(\si_m)^2 w_m^2 \leq C_\la^2 \norm{w}_\Hh^2.
+		\norm{ f_\la - f_{\la}^0 }^2 =  \norm{ \Phi_\la^+ w }^2 = \sum_m \mu_\la(\si_m)^2 |w_m|^2 \leq C_\la^2 \norm{w}_\Hh^2.
 	}
-	The bias term is bounded as, since $\frac{f_{0,m}^2}{\si_m^{2\be}} = z_m^2$, 
+	Using $\frac{|f_{0,m}|^2}{\si_m^{2\be}} = |z_m|^2$, we bound the bias term as follows:
 	\eql{\label{eq-proof-ip-quad-1}
-		\norm{ f_{\la}^0 - f_0 }^2 = \sum_m ( 1 - \mu_\la(\si_m) \si_m)^2 f_{0,m}^2 
-		= \sum_m \pa{ (1 - \mu_\la(\si_m) \si_m) \si_m^{\be} }^2  \frac{f_{0,m}^2}{\si_m^{2\be}}
+		\norm{ f_{\la}^0 - f_0 }^2 = \sum_m ( 1 - \mu_\la(\si_m) \si_m)^2 |f_{0,m}|^2
+		= \sum_m \pa{ (1 - \mu_\la(\si_m) \si_m) \si_m^{\be} }^2  \frac{|f_{0,m}|^2}{\si_m^{2\be}}
 		\leq D_{\la,\be}^2 \rho^2
 	}
 	where we assumed
 	\eql{\label{eq-proof-ip-quad-2}
 		\foralls \si\geq 0, \quad \abs{ (1 - \mu_\la(\si) \si ) \si^{\be} } \leq D_{\la,\be}.
 	}
-	Note that for $\be>2$, one has $D_{\la,\be}=+\infty$
+	For $\be>2$, the supremum over all $\sigma\geq0$ is infinite. On the bounded spectrum of a fixed operator, the bias remains bounded, but the resulting rate saturates.
 	Putting~\eqref{eq-proof-ip-quad-1} and~\eqref{eq-proof-ip-quad-2} together, one obtains
 	\eql{\label{eq-bound-global-quad}
 		\norm{f_\la - f_0} \leq C_\la \de + D_{\la,\be} \rho. 
 	}
 	In the case of the regularization~\eqref{eq-regul-normsq}, one has $\mu_\la(\si) = \frac{\si}{\si^2+\la}$, and
 	thus $( 1 - \mu_\la(\si) \si )\si^{\be} = \frac{\la \si^\be}{\si^2+\la}$. 
-	For $\be \leq 2$, one verifies (see Figure~\ref{fig-bound-regul-variance} and~\ref{fig-bound-regul}) that 
+	For $\be \leq 2$, one verifies (see Figure~\ref{fig-bound-regul-variance} and~\ref{fig-ip-bound-regul}) that
 	\eq{
 		C_\la = \frac{1}{2\sqrt{\la}}
 		\qandq
@@ -468,7 +476,7 @@ Imposing a bound $\norm{w} \leq \de$ on the noise, the theoretical analysis of t
 	}
 	for some constant $c_\be$.
 	%
-	Equalizing the contributions of the two terms in~\eqref{eq-bound-global-quad} (a better constant would be reached by finding the best $\la$) leads to selecting $\frac{\de}{\sqrt{\la}} = \la^{\frac{\be}{2}} \rho$ i.e. $\la = (\de/\rho)^{\frac{2}{\be+1}}$. With this choice, 
+    Balancing the two terms in~\eqref{eq-bound-global-quad} gives the correct order; optimizing over $\la$ would improve only the constant. Set $\frac{\de}{\sqrt{\la}} = \la^{\frac{\be}{2}} \rho$, which gives $\la = (\de/\rho)^{\frac{2}{\be+1}}$. Then
 	\eq{
 		\norm{f_\la - f_0} = O( \de/\sqrt{\la} ) = O( \de (\de/\rho)^{-\frac{1}{\be+1}} ) 
 		= O( \de^{\frac{\be}{\be+1}} \rho^{\frac{1}{\be+1}} ) .
@@ -481,7 +489,7 @@ Imposing a bound $\norm{w} \leq \de$ on the noise, the theoretical analysis of t
 \centering
 \includegraphics[width=.4\linewidth]{inverse-problems/bound-variance} 
 \caption{\label{fig-bound-regul-variance}
-Bounding $\mu_{\la}(\si) \leq C_\la = \frac{1}{2\sqrt{\la}}$.
+Left: capping reciprocal singular values. Right: the Tikhonov bound $\mu_{\la}(\si) \leq C_\la = \frac{1}{2\sqrt{\la}}$.
 }
 \end{figure}
 
@@ -489,51 +497,51 @@ Bounding $\mu_{\la}(\si) \leq C_\la = \frac{1}{2\sqrt{\la}}$.
 \begin{figure}
 \centering
 \includegraphics[width=.6\linewidth]{inverse-problems/bound-bias} \quad
-\caption{\label{fig-bound-regul}
+\caption{\label{fig-ip-bound-regul}
 Bounding $\la \frac{\si^\be}{\la+\si^2} \leq D_{\la,\be}$. 
 }
 \end{figure}
 
 
 
-This theorem shows that using larger $\be \leq 2$ leads to faster convergence rates as $\norm{w}$ drops to zero.
-The rate~\eqref{eq-rate-tikhon} however suffers from a ``saturation'' effect, indeed, choosing $\be > 2$ does not helps (it gives the same rate as $\be=2$), and the best possible rate is thus 
+Larger source orders $\be \leq 2$ therefore give faster convergence as $\norm{w}$ tends to zero.
+The rate in Theorem~\ref{thm-sublin-quad} saturates: choosing $\be > 2$ gives the same general worst-case rate as $\be=2$. The best rate obtainable in this way is
 \eq{
 	\norm{f_\la - f_0} = O( \rho^{\frac{1}{3}} \de^{\frac{2}{3}} ).
 }
-By choosing more alternative regularization functional $\mu_\la$ and choosing $\be$ large enough, one can show that it is possible to reach rate $\norm{f_\la - f_0} = O( \de^{1-\kappa} )$ for an arbitrary small $\kappa>0$.
+Alternative spectral filters $\mu_\la$, together with sufficiently large $\be$, can give the rate $\norm{f_\la - f_0} = O( \de^{1-\kappa} )$ for arbitrarily small $\kappa>0$.
 %
-Figure~\ref{fig-bound-regul-variance} contrast the regularization curve associated to quadratic regularization~\eqref{eq-sol-quad-reg-svd} (right) to the simpler thresholding curve (left) which does not suffers from saturation. Quadratic regularization however is much simpler to implement because it does not need to compute an SVD, is defined using a variational optimization problem and is computable as the solution of a linear system. 
+The capped inverse in Figure~\ref{fig-bound-regul-variance}, left, avoids this finite-order saturation, whereas Tikhonov regularization is limited to source orders $\beta\leq2$. Quadratic regularization is easier to implement: its variational formulation leads to a linear system and does not require an SVD.
 %
-One cannot however reach a linear rate $\norm{f_\la - f_0}=O(\norm{w})$. Such rates are achievable using non-linear sparse $\ell^1$ regularizations as detailed in Chapter~\ref{chap-sparse-regul}. 
+For compact operators with nonclosed range, no uniform linear rate follows over these source balls from finite-order source conditions alone. Linear rates are possible in finite dimension with a fixed smallest positive singular value, or under different structural assumptions, such as those used for sparse $\ell^1$ regularization in Chapter~\ref{chap-sparse-regul}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Quadratic Regularization}
 
-After this theoretical study in infinite dimension, we now turn our attention to more practical matters, and focus only on the finite dimensional setting.
+We now turn from infinite-dimensional recovery theory to numerical methods in finite dimension.
 
 %%%%
 \paragraph{Convex regularization.}
 
-Following~\eqref{eq-regul-inv}, the ill-posed problem of recovering an approximation of the high resolution image $f_0 \in \RR^N$ from noisy measures $y = \Phi f_0 + w \in \RR^P$ is regularized by solving a convex optimization problem
+As in~\eqref{eq-regul-inv}, we reconstruct a high-resolution image $f_0 \in \RR^N$ from noisy measurements $y = \Phi f_0 + w \in \RR^P$ by minimizing a convex regularized objective:
 \eql{\label{eq-ip-regul}
 	f_\la \in  \uargmin{ f \in \RR^N }\; \Ee(f) \eqdef \frac{1}{2} \norm{y-\Phi f}^2 + \la J(f)
 }
-where $\norm{y-\Phi f}^2$ is the data fitting term (here $\norm{\cdot}$ is the $\ell^2$ norm on $\RR^P$) and $J(f)$ is a convex functional on $\RR^N$.
+Here $\norm{y-\Phi f}^2$ measures data fidelity, with $\norm{\cdot}$ denoting the $\ell^2$ norm on $\RR^P$, and $J(f)$ is a convex penalty on $\RR^N$.
 
-The Lagrange multiplier $\la$ weights the importance of these two terms, and is in practice difficult to set.
-Simulation can be performed on high resolution signal $f_0$ to calibrate the multiplier by minimizing the super-resolution error $\norm{f_0-\tilde f}$, but this is usually difficult to do on real life problems.
+The regularization parameter $\la>0$ balances these two terms and can be difficult to choose in practice.
+In simulations with a known reference signal $f_0$, the parameter can be calibrated by minimizing the reconstruction error $\norm{f_0-\tilde f}$. Such a reference is generally unavailable in applications.
 
 
-In the case where there is no noise, $w = 0$, the Lagrange multiplier $\la$ should be set as small as possible. In the limit where $\la \rightarrow 0$, the unconstrained optimization problem~\eqref{eq-ip-regul} becomes a constrained optimization, as the following proposition explains.
+For noiseless data, $w = 0$, we study small values of $\la$. As $\la \rightarrow 0$, minimizers of~\eqref{eq-ip-regul} approach solutions of a constrained problem under the assumptions below.
 %
-Let us stress that, without loss of generality, we can assume that $y \in \Im(\Phi)$, because one has the orthogonal decomposition
+We may assume $y \in \Im(\Phi)$ without changing the minimizers, since orthogonality gives
 \eq{
 	\norm{y-\Phi f}^2 = \norm{y-\Proj_{\Im(\Phi)}(y)}^2 + \norm{\Proj_{\Im(\Phi)}(y)-\Phi f}^2
 }
-so that one can replace $y$ by $\Proj_{\Im(\Phi)}(y)$ in~\eqref{eq-ip-regul}. 
+The first term is independent of $f$, so replacing $y$ by $\Proj_{\Im(\Phi)}(y)$ in~\eqref{eq-ip-regul} changes only an additive constant.
 
 Let us recall that a function $J$ is coercive if
 \eq{
@@ -541,41 +549,41 @@ Let us recall that a function $J$ is coercive if
 }
 i.e.
 \eq{
-	\foralls K, \; \exists R, \norm{x} \geq R \qarrq |J(f)| \geq K.
+	\foralls K\in\RR,\;\exists R>0,\quad\norm{f}\geq R\qarrq J(f)\geq K.
 }
-This means that its non-empty levelsets $\enscond{f}{J(f) \leq c}$ are bounded (and hence compact) for all $c$.
+Equivalently, every sublevel set $\enscond{f}{J(f) \leq c}$ is bounded. In finite dimension, lower semicontinuity of $J$ then makes these sets compact.
 
 \begin{prop}\label{prop-gamma-conv-regul}
-We assume that $J$ is coercive and that $y \in \Im(\Phi)$. Then, if for each $\la$, $f_\la$ is a solution of~\eqref{eq-ip-regul}, then $(f_\la)_\la$ is a bounded set and any accumulation point $f^\star$ is a solution of
+Assume that $J:\RR^N\to\RR$ is lower semicontinuous and coercive and that $y\in\Im(\Phi)$. For each $\la$, let $f_\la$ solve~\eqref{eq-ip-regul}. The family $(f_\la)_\la$ is bounded, and every accumulation point $f^\star$ as $\la\downarrow0$ solves
 \eql{\label{eq-ip-regul-noiseless}
-	f^\star = \uargmin{f \in \RR^N} \enscond{J(f)}{\Phi f = y}.
+	f^\star \in \uargmin{f \in \RR^N} \enscond{J(f)}{\Phi f = y}.
 }
 \end{prop}
 
 \begin{proof}
-	Denoting $h$, any solution to~\eqref{eq-ip-regul-noiseless}, which in particular satisfies $\Phi h = y$, because of the optimality condition of $f_\la$ for~\eqref{eq-ip-regul}, one has
+	Lower semicontinuity and coercivity ensure that $J$ attains its minimum on the nonempty closed constraint set $\{f:\Phi f=y\}$. Let $h$ be such a minimizer. Optimality of $f_\la$ in~\eqref{eq-ip-regul} gives
 	\eq{
 		\frac{1}{2\la} \norm{\Phi f_\la-y}^2 + J(f_\la) \leq \frac{1}{2\la} \norm{\Phi h-y}^2 + J(h) = J(h). 
 	}
-	This shows that $J(f_\la) \leq J(h)$ so that since $J$ is coercive the set $(f_\la)_\la$ is bounded and thus one can consider an accumulation point $f_{\la_k} \rightarrow f^\star$ for $k \rightarrow +\infty$.  Since $\norm{\Phi f_{\la_k}-y}^2 \leq \la_k J(h)$, one has in the limit $\Phi f^\star = y$, so that $f^\star$ satisfies the constraints in~\eqref{eq-ip-regul-noiseless}. Furthermore, by continuity of $J$, passing to the limit in $J(f_{\la_k}) \leq J(h)$, one obtains $J(f^\star) \leq J(h)$ so that $f^\star$ is a solution of~\eqref{eq-ip-regul-noiseless}. 
+    The inequality $J(f_\la) \leq J(h)$ and coercivity of $J$ make $(f_\la)_\la$ bounded. Choose a convergent subsequence $f_{\la_k} \rightarrow f^\star$ as $k \rightarrow +\infty$. Write $m=\inf J> -\infty$. The estimate $\norm{\Phi f_{\la_k}-y}^2\leq2\la_k(J(h)-m)$ and the limit $\la_k\to0$ imply $\Phi f^\star = y$, so $f^\star$ is feasible for~\eqref{eq-ip-regul-noiseless}. Lower semicontinuity of $J$, applied to $J(f_{\la_k}) \leq J(h)$, gives $J(f^\star) \leq J(h)$. Thus $f^\star$ solves~\eqref{eq-ip-regul-noiseless}.
 \end{proof}
 
-Note that it is possible to extend this proposition in the case where $J$ is not necessarily coercive on the full space (for instance the TV functionals in Section~\ref{sec-tv-regul} below) but on the orthogonal to $\ker(\Phi)$. The proof is more difficult.
+Full coercivity of $J$ can be replaced by boundedness of joint sublevel sets of $J(f)$ and $\norm{\Phi f}$. For seminorm penalties such as TV, this holds when $\ker(\Phi)$ intersects the nullspace of the seminorm only at zero; in particular, the measurements must detect constant images.
 
 
 %%%%
 \paragraph{Quadratic Regularization.}
 
-The simplest class of prior functional are quadratic, and can be written as
+The simplest prior functionals are quadratic, and can be written as
 \eql{\label{eq-quad-regul}
 	J(f) = \frac{1}{2}\norm{G f}_{\RR^K}^2 = \frac{1}{2} \dotp{L f}{f}_{\RR^N}
 }
 where $G \in \RR^{K \times N}$ and 
-where $L=G^*G \in \RR^{N \times N}$ is a positive semi-definite matrix.
+$L=G^*G \in \RR^{N \times N}$ is a positive semidefinite matrix.
 %
 The special case~\eqref{eq-regul-normsq} is recovered when setting $G=L=\Id_N$. 
 
-Writing down the first order optimality conditions for~\eqref{eq-ip-regul} leads to
+Writing down the first-order optimality conditions for~\eqref{eq-ip-regul} leads to
 \eq{
 	\nabla \Ee(f) = \Phi^*( \Phi f - y ) + \la L f = 0, 
 }
@@ -583,74 +591,74 @@ hence, if
 \eq{
 	\ker(\Phi) \cap \ker(G) = \{0\}, 
 }
-then~\eqref{eq-quad-regul} has a unique minimizer $f_\la$, which is obtained by solving a linear system
+then~\eqref{eq-ip-regul} has a unique minimizer $f_\la$, which is obtained by solving a linear system
 \eql{\label{eq-ip-quad-explicit}
 	f_\la = ( \Phi^* \Phi + \la L )^{-1} \Phi^* y.  
 }
-In the special case where $L$ is diagonalized by the singular basis $(v_m)_m$ of $\Phi$, i.e. $L=V \diag(\al_m^2) V^*$, then $f_\la$ reads in this basis 
+If $L$ is diagonal in a full right-singular basis of $\Phi$, with eigenvalues $\alpha_m^2$, then, for the positive singular values,
 \eql{\label{eq-sing-diag-ip}
-	\dotp{f_{\la}}{v_m} = \frac{\si_m}{\si_m^2 + \la \al_m^2} \dotp{y}{v_m}.
+	\dotp{f_{\la}}{v_m} = \frac{\si_m}{\si_m^2 + \la \al_m^2} \dotp{y}{u_m}.
 }
 
 
 %%%
 \paragraph{Example of convolution.}
 
-A specific example is for convolution operator 
+Consider the convolution operator
 \eql{\label{eq-convol-example}
 	\Phi f = h \star f, 
 }
-and using $G=\nabla$ be a discretization of the gradient operator, such as for instance using first order finite differences~\eqref{eq-disc-diff-1}. This corresponds to the discrete Sobolev prior introduced in Section~\ref{subsec-disc-priors}.
+and $G=\nabla$, a discretization of the gradient operator, for example using first-order finite differences~\eqref{eq-disc-diff-1}. This corresponds to the discrete Sobolev prior introduced in Section~\ref{subsec-disc-priors}.
 %
-Such an operator compute, for a $d$-dimensional signal $f \in \RR^N$ (for instance a 1-D signal for $d=1$ or an image when $d=2$), an approximation $\nabla f_n \in \RR^d$ of the gradient vector at each sample location $n$. Thus typically, $\nabla : f \mapsto (\nabla f_n)_n \in \RR^{N \times d}$ maps to $d$-dimensional vector fields.
+Such an operator computes, for a $d$-dimensional signal $f \in \RR^N$ (for instance a 1-D signal for $d=1$ or an image when $d=2$), an approximation $\nabla f_n \in \RR^d$ of the gradient vector at each sample location $n$. Thus typically, $\nabla : f \mapsto (\nabla f_n)_n \in \RR^{N \times d}$ maps to $d$-dimensional vector fields.
 %
 Then $-\nabla^* : \RR^{N \times d} \rightarrow \RR^N$ is a discretized divergence operator.
 %
-In this case, $\De=-GG^*$ is a discretization of the Laplacian, which is itself a convolution operator. One then has
+In this case, $\De=-G^*G$ is a discretization of the Laplacian, which is itself a convolution operator. One then has
 \eql{\label{eq-quad-regul-convol}
 	\hat f_{\la,m} = \frac{\hat h_m^* \hat y_m}{|\hat h_m|^2 - \la \hat d_{2,m}}, 
 }
-where $\hat d_2$ is the Fourier transform of the filter $d_2$ corresponding to the Laplacian. For instance, in dimension 1, using first order finite differences, the expression for $\hat d_{2,m}$ is given in~\eqref{eq-fft-lapl}.
+where $\hat d_2$ is the Fourier transform of the filter $d_2$ corresponding to the Laplacian. For instance, in dimension 1, using first-order finite differences, the expression for $\hat d_{2,m}$ is given in~\eqref{eq-fft-lapl}.
 
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Solving Linear System}
+\subsection{Solving Linear Systems}
 
-When $\Phi$ and $L$ do not share the same singular spaces, using~\eqref{eq-sing-diag-ip} is not possible, so that one needs to solve the linear system~\eqref{eq-ip-quad-explicit}, which can be rewritten as
+If $\Phi$ and $L$ are not simultaneously diagonalizable in the required bases, the coefficient formula~\eqref{eq-sing-diag-ip} is unavailable. We instead solve~\eqref{eq-ip-quad-explicit}, written as
 \eq{
 	A f = b \qwhereq A \eqdef \Phi^* \Phi + \la L \qandq b = \Phi^* y. 
 } 
-It is possible to solve exactly this linear system with direct methods for moderate $N$ (up to a few thousands), and the numerical complexity for a generic $A$ is $O(N^3)$. Since the involved matrix $A$ is symmetric, the best option is to use Choleski factorization $A=BB^*$ where $B$ is lower-triangular. In favorable cases, this factorization (possibly with some re-re-ordering of the row and columns) can take advantage of some sparsity in $A$.
+For moderate $N$, up to a few thousand, direct methods solve this system at a cost of $O(N^3)$ for a generic $A$. Since $A$ is symmetric positive definite, Cholesky factorization $A=BB^*$ is a natural choice, with $B$ lower triangular. Reordering the rows and columns can help preserve sparsity in the factors of $A$.
 
-For large $N$, such exact resolution is not an option, and should use approximate iterative solvers, which only access $A$ through matrix-vector multiplication. This is especially advantageous for imaging applications, where such multiplications are in general much faster than a naive $O(N^2)$ explicit computation. If the matrix $A$ is highly sparse, this typically necessitates $O(N)$ operations. 
+For large $N$, iterative solvers access $A$ only through matrix-vector products. In imaging, operator structure often makes these products much cheaper than a dense $O(N^2)$ computation. For a sufficiently sparse matrix $A$, the cost is typically $O(N)$.
 %
-In the case where $A$ is symmetric and positive definite (which is the case here), the most well known method is the conjugate gradient methods, which is actually an optimization method solving
+When $A$ is symmetric positive definite, as assumed here, the conjugate gradient method solves the equivalent quadratic minimization problem
 \eql{\label{eq-quad-func}
-	\umin{f \in \RR^N} \Ee(f) \eqdef \Qq(f) \eqdef \dotp{A f}{f} - \dotp{f}{b}	
+	\umin{f \in \RR^N} \Ee(f) \eqdef \Qq(f) \eqdef \frac12\dotp{A f}{f} - \dotp{f}{b}
 }
-which is equivalent to the initial minimization~\eqref{eq-ip-regul}. Instead of doing a naive gradient descent (as studied in Section~\ref{sec-grad-descent} below), stating from an arbitrary $\itz{f}$, it compute a new iterate $\iit{f}$ from the previous iterates as
+This objective agrees with~\eqref{eq-ip-regul} up to a constant. Starting from any $\itz{f}$, conjugate gradients computes $\iit{f}$ by minimizing over the affine space generated by all gradients obtained so far, rather than taking a single gradient step as in Section~\ref{sec-grad-descent}:
 \eq{
 	\iit{f} \eqdef \uargmin{f} \enscond{ \Ee(f) }{ f \in \it{f} + \Span(\nabla \Ee(\itz{f}), \ldots,\nabla \Ee(f^{\ell}) ) }.
 }
-The crucial and remarkable fact is that this minimization can be computed in closed form at the cost of two matrix-vector product per iteration, for $k \geq 1$ (posing initially $\itz{d} = \nabla \Ee(\itz{f}) = A\itz{f}-b$)
+This subspace minimization requires only one matrix-vector product per iteration. For $\ell\geq1$, with initialization $\itz{d} = \nabla \Ee(\itz{f}) = A\itz{f}-b$, the recurrence is
 \eql{\label{eq-iter-cgs}
 	\iit{f} = \it{f} - \tau_\ell \it{d}
 	\qwhereq	
-	\it{d} =  g_\ell + \frac{ \norm{ \it{g} }^2 }{ \norm{g^{(\ell-1)}}^2 } d^{(\ell-1)}
+	\it{d} =  \it{g} + \frac{ \norm{ \it{g} }^2 }{ \norm{g^{(\ell-1)}}^2 } d^{(\ell-1)}
 	\qandq
 	\tau_\ell = \frac{
-			\dotp{ g_\ell }{\it{d}}
+			\dotp{ \it{g} }{\it{d}}
 		}{ 
 			\dotp{A \it{d}}{\it{d}} 
 		}			
 }
-$\it{g} \eqdef \nabla \Ee(\it{f}) = A\it{f}-b$.
+where $\it{g}\eqdef\nabla\Ee(\it{f})=A\it{f}-b$. The iteration stops as soon as $\it{g}=0$.
 %
-It can also be shown that the direction $\it{d}$ are orthogonal, so that after $\ell=N$ iterations, the conjugate gradient computes the unique solution $f^{(\ell)}$ of the linear system $A f = b$.  It is however rarely used this way (as an exact solver), and in practice much less than $N$ iterates are computed.
+It can also be shown that the directions $\it{d}$ are $A$-orthogonal (conjugate), so that after at most $N$ iterations in exact arithmetic, the conjugate gradient method computes the unique solution $f^{(\ell)}$ of the linear system $A f = b$.  In practice, it is usually used as an approximate solver, with far fewer than $N$ iterations.
 %
-It should also be noted that iterations~\eqref{eq-iter-cgs} can be carried over for an arbitrary smooth convex function $\Ee$, and it typically improves over the gradient descent (although in practice quasi-Newton method are often preferred). 
+Nonlinear conjugate-gradient methods extend this idea to smooth objectives, but require a line search and additional safeguards. The linear-system step-size formula and finite-termination property above do not carry over unchanged.
 
 
 
@@ -663,16 +671,16 @@ It should also be noted that iterations~\eqref{eq-iter-cgs} can be carried over 
 \subsection{Total Variation Regularization}
 \label{sec-tv-regul}
 
-A major issue with quadratic regularization such as~\eqref{eq-quad-regul} is that they typically leads to blurry recovered data $f_\la$, which is thus not a good approximation of $f_0$ when it contains sharp transition such as edges in images. 
+Quadratic regularization~\eqref{eq-quad-regul} often produces a blurred reconstruction $f_\la$. This can poorly approximate a signal $f_0$ with sharp transitions, such as image edges.
 %
-This is can clearly be seen in the convolutive case~\eqref{eq-quad-regul-convol}, this the restoration operator $\Phi_\la^+ \Phi$ is a filtering, which tends to smooth sharp part of the data.
+In the convolutional case~\eqref{eq-quad-regul-convol}, the restoration operator is a filter, which tends to smooth sharp features.
 
-This phenomena can also be understood because the restored data $f_\la$ always belongs to $\Im(\Phi^*)=\ker(\Phi)^\bot$, and thus cannot contains ``high frequency'' details that are lost in the kernel of $\Phi$. To alleviate this shortcoming, and recover missing information in the kernel, it is thus necessarily to consider non-quadratic and in fact non-smooth regularization. 
+For the squared-norm penalty, the restored signal belongs to $\ker(\Phi)^\bot$, so missing components cannot be recovered. This statement does not hold for every quadratic penalty: a different matrix $L$ can couple observed and unobserved components. Nonquadratic priors, particularly nonsmooth ones such as TV and $\ell^1$, encode structures such as edges and sparse coefficients that quadratic penalties do not model well.
 
 %%
 \paragraph{Total variation.}
 
-The most well know instance of such a non-quadratic and non-smooth regularization is the total variation prior. For smooth function $f : \RR^d \mapsto \RR$, this amounts to replacing the quadratic Sobolev energy (often called Dirichlet energy) 
+Total variation is a widely used nonquadratic, nonsmooth prior. For smooth functions $f : \RR^d \mapsto \RR$, it replaces the Sobolev or Dirichlet energy
 \eq{
 	\Jsob(f) \eqdef \frac{1}{2} \int_{\RR^d} \norm{\nabla f}_{\RR^d}^2 \d x, 
 }
@@ -680,86 +688,86 @@ where $\nabla f(x) = (\partial_{x_1} f(x), \ldots, \partial_{x_d} f(x))^\top$ is
 \eq{
 	\Jtv(f) \eqdef \int_{\RR^d} \norm{\nabla f}_{\RR^d} \d x.
 }
-We refer also to Section~\ref{sec-sob-tv-cont} about these priors.
+Section~\ref{sec-sob-tv-cont} gives further background on these priors.
 %
-Simply ``removing'' the square $^2$ inside the integral might seems light a small change, but in fact it is a game changer. 
+Removing the square $^2$ from the integrand changes which functions have finite energy.
 
-Indeed, while $\Jsob(1_{\Om}) = +\infty$ where $1_{\Om}$ is the indicator a set $\Om$ with finite perimeter $|\Om|<+\infty$, one can show that $\Jtv(1_{\Om})=|\Om|$, if one interpret $\nabla f$ as a distribution $Df$ (actually a vectorial Radon measure) and $\int_{\RR^d} \norm{\nabla f}_{\RR^d} \d x$ is replaced by the total mass $|Df|(\Om)$ of this distribution $m=Df$
+For a nontrivial bounded set $\Omega$ with a smooth boundary, $\Jsob(1_\Omega)=+\infty$, whereas $\Jtv(1_\Omega)=\operatorname{Per}(\Omega)<+\infty$. More generally, an integrable function $f$ is of bounded variation when its distributional gradient $Df$ is a finite vector-valued Radon measure. Its total variation is
 \eq{
- 	|m|(\Om) = \sup \enscond{\int_{\RR^d}\dotp{h(x)}{\d m(x)}}{ h \in \Cc(\RR^d \mapsto \RR^d),  \foralls x, \norm{h(x)} \leq 1}.
+ \Jtv(f)=|Df|(\RR^d)
+ =\sup_{\substack{h\in\Cc_c^1(\RR^d;\RR^d)\\ \norm{h}_\infty\leq1}}
+ \int_{\RR^d}f(x)\diverg h(x)\,\mathrm{d}x.
 }
-The total variation of a function such that $Df$ has a bounded total mass (a so-called bounded variation function) is hence defined as
+For a finite vector measure $m$, its total mass is equivalently
 \eq{
-	\Jtv(f) \eqdef \sup \enscond{  \int_{\RR^d} f(x) \diverg(h)(x) \d x  }{ h \in \Cc^1_c(\RR^d;\RR^d), \norm{h}_\infty \leq 1 }.
+ |m|(\RR^d)=\sup_{\substack{h\in\Cc_c(\RR^d;\RR^d)\\ \norm{h}_\infty\leq1}}
+ \int_{\RR^d}\langle h,\mathrm{d}m\rangle.
 }
-Generalizing the fact that $\Jtv(1_\Om)=|\Om|$, the functional co-area formula reads
+The coarea formula for $f\in\mathrm{BV}(\RR^d)$ reads
 \eq{
-	\Jtv(f) = \int_\RR \Hh_{d-1}( L_t(f) ) \d t
-	\qwhereq
-	L_t(f) = \enscond{x}{f(x)=t}
+ \Jtv(f)=\int_{\RR}\operatorname{Per}(\{f>t\})\,\mathrm{d}t.
 }
-and where $\Hh_{d-1}$ is the Hausforf measures of dimension $d-1$, for instance, for $d=2$ if $L$ has finite perimeter $|L|$, then $\Hh_{d-1}(L)=|L|$ is the perimeter of $L$.
-
+For smooth functions, this agrees, for almost every level, with integrating the $(d-1)$-dimensional Hausdorff measure of the level sets. For general BV functions, superlevel-set perimeters, rather than measures of the pointwise sets $\{f=t\}$, are required.
 
 %%
 \paragraph{Discretized Total variation.}
 
-For discretized data $f \in \RR^N$, one can define a discretized TV semi-norm as detailed in Section~\ref{subsec-disc-priors}, and it reads, generalizing~\eqref{eq-discr-tv} to any dimension
+For discrete data $f \in \RR^N$, the construction in Section~\ref{subsec-disc-priors} generalizes~\eqref{eq-discr-tv} to any spatial dimension:
 \eq{
 	\Jtv(f) = \sum_n \norm{\nabla f_n}_{\RR^d}
 }
-where $\nabla f_n \in \RR^d$ is a finite difference gradient at location indexed by $n$. 
+where $\nabla f_n \in \RR^d$ approximates the spatial gradient at grid point $n$.
 
 
-The discrete total variation prior $\Jtv(f)$ defined in \eqref{eq-discr-tv} is a convex but non differentiable function of $f$, since a term of the form $\norm{\nabla f_n}$ is non differentiable if $\nabla f_n=0$.
+The discrete total variation prior $\Jtv(f)$ defined in \eqref{eq-discr-tv} is a convex but nondifferentiable function of $f$, since a term of the form $\norm{\nabla f_n}$ is nondifferentiable if $\nabla f_n=0$.
 %
-We defer to chapters~\ref{chap-convex-optim} and~\ref{chap-conv-duality} the study of advanced non-smooth convex optimization technics that allows to handle this kind of functionals.
+Chapters~\ref{chap-convex-optim} and~\ref{chap-conv-duality} develop nonsmooth convex optimization methods for such functionals.
 
-In order to be able to use simple gradient descent methods, one needs to smooth the TV functional. The general machinery proceeds by replacing the non-smooth $\ell^2$ Euclidean norm $\norm{\cdot}$ by a smoothed version, for instance
+To use classical gradient descent, we replace the nonsmooth $\ell^2$ norm $\norm{\cdot}$ by a differentiable approximation, for example
 \eq{
-	\foralls u \in \RR^d, \quad \norm{u}_\epsilon \eqdef \sqrt{ \epsilon^2 + \norm{u} }.
+	\foralls u \in \RR^d, \quad \norm{u}_\epsilon \eqdef \sqrt{ \epsilon^2 + \norm{u}^2 }.
 }
-This leads to the definition of a smoothed approximate TV functional, already introduced in~\eqref{eq-tv-smoothed}, 
+This gives the smoothed TV functional already introduced in~\eqref{eq-tv-smoothed}:
 \eq{
 	\Jtv^\epsilon(f) \eqdef \sum_n \norm{\nabla f_n}_\epsilon
 }
-One has the following asymptotics for $\epsilon \rightarrow \{0,+\infty\}$
+For fixed $u$, the limits as $\epsilon\downarrow0$ and $\epsilon\to+\infty$ are described by
 \eq{
 	\norm{u}_\epsilon \overset{\epsilon\rightarrow 0}{\longrightarrow}	\norm{u}
 	\qandq
-	\norm{u}_\epsilon = \epsilon + \frac{1}{2\epsilon} \norm{u}^2 + O(1/\epsilon^2)
+	\norm{u}_\epsilon = \epsilon + \frac{1}{2\epsilon} \norm{u}^2 + O(\epsilon^{-3})
 }
-which suggest that $\Jtv^\epsilon$ interpolates between $\Jtv$ and $\Jsob$.
+Thus $\Jtv^\epsilon$ connects $\Jtv$ to a rescaled version of $\Jsob$, up to an additive constant.
 
-The resulting inverse  regularization problem~\eqref{eq-ip-regul} thus reads 
+The resulting regularized inverse problem~\eqref{eq-ip-regul} thus reads
 \eql{\label{eq-ip-tv-eps}
 	f_\la \eqdef \uargmin{f \in \RR^N} \Ee(f) = \frac{1}{2}\norm{y-\Phi f}^2 + \la \Jtv^\epsilon(f)
 }
-It is a strictly convex problem (because $\norm{\cdot}_\epsilon$ is strictly convex for $\epsilon>0$) so that its solution $f_\la$ is unique. 
+If $\ker(\Phi)\cap\ker(\nabla)=\{0\}$, the objective is coercive and strictly convex, so it has a unique minimizer. Strict convexity of $\norm{\cdot}_\epsilon$ alone does not ensure uniqueness after composition with the gradient, whose nullspace contains constants.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Gradient Descent Method}
-\label{sec-grad-descent}
+\label{sec-ip-grad-descent}
 
-The optimization program~\eqref{eq-ip-tv-eps} is a example of smooth unconstrained convex optimization of the form
+The optimization program~\eqref{eq-ip-tv-eps} is an example of smooth unconstrained convex optimization of the form
 \eql{\label{eq-min-smooth-uncons-ip}
 	\umin{f \in \RR^N} \Ee(f)
 }
-where $\Ee : \RR^N \rightarrow \RR$ is a $\Cc^1$ function. Recall that the gradient $\nabla \Ee : \RR^N \mapsto \RR^N$ of this functional (not to be confound with the discretized gradient $\nabla f \in \RR^N$ of $f$) is defined by the following first order relation
+where $\Ee : \RR^N \rightarrow \RR$ is a $\Cc^1$ function. Recall that the gradient $\nabla \Ee : \RR^N \mapsto \RR^N$ of this functional (not to be confused with the discretized gradient $\nabla f \in \RR^{N\times d}$ of $f$) is defined by the following first-order relation
 \eq{
-	\Ee(f+r) = \Ee(f) + \dotp{f}{r}_{\RR^N} + O(\norm{r}_{\RR^N}^2)
+	\Ee(f+r) = \Ee(f) + \dotp{\nabla\Ee(f)}{r}_{\RR^N} + o(\norm{r}_{\RR^N})
 }
-where we used $O(\norm{r}_{\RR^N}^2)$ in place of $o(\norm{r}_{\RR^N})$ (for differentiable function) because we assume here $\Ee$ is of class $\Cc^1$ (i.e. the gradient is continuous). 
+A locally Lipschitz gradient improves the remainder to $O(\norm{r}^2)$. Mere continuity of the gradient does not give this stronger estimate.
 
 For such a function, the gradient descent algorithm is defined as
-\eql{\label{eq-grad-desc}
+\eql{\label{eq-ip-grad-desc}
 	\iit{f} \eqdef \it{f} - \tau_\ell \nabla \Ee( \it{f} ), 
 }
-where the step size $\tau_\ell>0$ should be small enough to guarantee convergence, but large enough for this algorithm to be fast.
+The step size $\tau_\ell>0$ must balance stability against progress per iteration.
 
-We refer to Section~\ref{sec-grad-descent} for a detailed analysis of the convergence of the gradient descent, and a study of the influence of the step size $\tau_\ell$.
+Section~\ref{sec-grad-descent} analyzes convergence and explains how it depends on the step size $\tau_\ell$.
 
 
 
@@ -769,64 +777,57 @@ We refer to Section~\ref{sec-grad-descent} for a detailed analysis of the conver
 
 Note that the gradient of a quadratic function $\Qq(f)$ of the form~\eqref{eq-quad-func} reads
 \eq{
-	\nabla \Gg(f) = Af-b.
+	\nabla \Qq(f) = Af-b.
 }
-In particular, one retrieves that the first order optimality condition $\nabla \Gg(f)=0$ is equivalent to the linear system $Af=b$. 
+In particular, the first-order optimality condition $\nabla \Qq(f)=0$ is equivalent to the linear system $Af=b$.
 
 For the quadratic fidelity term $\Gg(f)=\frac{1}{2}\norm{\Phi f-y}^2$, one thus obtains
 \eq{
-	\nabla \Gg(f) = \Phi^*(\Phi y - y). 
+	\nabla \Gg(f) = \Phi^*(\Phi f - y).
 }
 
 In the special case of the regularized TV problem~\eqref{eq-ip-tv-eps}, the gradient of $\Ee$ reads
 \eq{
-	\nabla \Ee(f) = \Phi^*(\Phi y - y) + \la \nabla \Jtv^\epsilon(f).
+	\nabla \Ee(f) = \Phi^*(\Phi f - y) + \la \nabla \Jtv^\epsilon(f).
 }
-Recall the chain rule for differential reads $\partial (\Gg_1 \circ \Gg_2) = \partial \Gg_1 \circ \partial \Gg_2$, but that gradient vectors are actually transposed of differentials, so that for $\Ee = \Ff \circ \Hh$ where $\Ff : \RR^P \rightarrow \RR$ and $\Hh : \RR^N \rightarrow \RR^P$, one has
+For differentiable maps $\Ff:\RR^P\to\RR$ and $\Hh:\RR^N\to\RR^P$, the chain rule gives
 \eq{
-	\nabla \Ee(f) = [ \partial \Hh( f ) ]^*\pa{ \nabla \Ff( \Hh f ) }.
+ \nabla(\Ff\circ\Hh)(f)=D\Hh(f)^*\nabla\Ff(\Hh(f)).
 }
+Apply it to $\Jtv^\epsilon=\norm{\cdot}_{1,\epsilon}\circ\nabla$, where $\norm{u}_{1,\epsilon}=\sum_n\sqrt{\epsilon^2+\norm{u_n}^2}$. The result is
+\eq{
+ \nabla\Jtv^\epsilon(f)=\nabla^*\Nn^\epsilon(\nabla f)
+ =-\diverg(\Nn^\epsilon(\nabla f)),
+ \qquad \Nn^\epsilon(u)_n=\frac{u_n}{\sqrt{\epsilon^2+\norm{u_n}^2}}.
+}
+Thus the gradient of the energy is computed by taking finite differences, normalizing the resulting vector field, and applying minus the divergence.
 
-Since $\Jtv^\epsilon = \norm{\cdot}_{1,\epsilon} \circ \nabla$, one thus has
+Since $\diverg=-\nabla^*$, their operator norms are equal. For unscaled forward differences in $d$ dimensions with periodic boundaries, $\norm{\nabla}_{\mathrm{op}}\leq2\sqrt d$. The Hessian of $u\mapsto\sqrt{\epsilon^2+\norm{u}^2}$ is
 \eq{
-	\nabla \Jtv^\epsilon = \nabla^\star \circ ( \partial \norm{\cdot}_{1,\epsilon} )
-	\qwhereq
-	\norm{u}_{1,\epsilon} = \sum_n \norm{u_n}_\epsilon
+ \frac{\Id_d}{\sqrt{\epsilon^2+\norm{u}^2}}
+ -\frac{uu^*}{(\epsilon^2+\norm{u}^2)^{3/2}},
 }
-so that 
+and is bounded above by $\epsilon^{-1}\Id_d$. Consequently, a Lipschitz constant for the gradient of $\Ee$ is
 \eq{
-	\Jtv^\epsilon(f) = -\diverg( \Nn^\epsilon( \nabla f) ), 
+ L=\norm{\Phi}_{\mathrm{op}}^2+
+ \frac{\lambda\norm{\nabla}_{\mathrm{op}}^2}{\epsilon}.
 }
-where $\Nn^\epsilon(u) = ( u_n/\norm{u_n}_\epsilon )_n$ is the smoothed-normalization operator of vector fields (the differential of $\norm{\cdot}_{1,\epsilon}$), and where $\diverg=-\nabla^*$ is minus the adjoint of the gradient.
+The smallest eigenvalue of this pointwise Hessian is $\epsilon^2/(\epsilon^2+\norm{u}^2)^{3/2}$, which tends to zero as $\norm{u}\to\infty$. Thus smoothed TV is not globally strongly convex. If $\Phi$ is injective, the fidelity term supplies a global strong-convexity constant $\sigma_{\min}(\Phi)^2$; otherwise additional analysis on bounded sublevel sets is needed.
 
-Since $\diverg=-\nabla^*$, their Lipschitz constants are equal $\norm{\diverg}_\text{op}=\norm{\nabla}_\text{op}$, and is for instance equal to $\sqrt{2d}$ for the discretized gradient operator. 
-%
-Computation shows that the Hessian of $\norm{\cdot}_\epsilon$ is bounded by $1/\epsilon$, so that for the smoothed-TV functional, the Lipschitz constant of the gradient is upper-bounded by
-\eq{
-	L = \frac{\norm{\nabla}^2}{\epsilon} + \norm{\Phi}_{\text{op}}^2.
-}
-Furthermore, this functional is strongly convex because $\norm{\cdot}_\epsilon$ is $\epsilon$-strongly convex, and the Hessian is lower bounded by
-\eq{
-	\mu = \epsilon + \si_{\min}( \Phi )^2
-}
-where $\si_{\min}( \Phi )$ is the smallest singular value of $\Phi$. For ill-posed problems, typically $\si_{\min}( \Phi )=0$ or is very small, so that both $L$ and $\mu$ degrades (tends respectively to $0$ and $+\infty$) as $\epsilon \rightarrow 0$, so that gradient descent becomes prohibitive for small $\epsilon$, and it is thus required to use dedicated non-smooth optimization methods detailed in the following chapters. 
-%
-On the good news side, note however that in many case, using a small but non-zero value for $\epsilon$ often leads to better a visually more pleasing results, since it introduce a small blurring which diminishes the artifacts (and in particular the so-called ``stair-casing'' effect) of TV regularization. 
-
-
+A fixed step $0<\tau<2/L$ gives convergence of gradient descent when a minimizer exists. As $\epsilon\downarrow0$, this bound forces small steps, motivating the nonsmooth methods developed in later chapters. A modest positive $\epsilon$ can also reduce the staircase artifacts of exact TV regularization.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Examples of Inverse Problems}
 
-We detail here some inverse problem in imaging that can be solved using quadratic regularization or non-linear TV.
+We now discuss several inverse problems in imaging that can be solved using quadratic regularization or nonlinear TV.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Deconvolution}
 \label{subsec-deconv}
 
-The blurring operator \eqref{eq-deblurring-operator} is diagonal over Fourier, so that quadratic regularization are easily solved using Fast Fourier Transforms when considering periodic boundary conditions. We refer to~\eqref{eq-convol-example} and the correspond explanations. TV regularization in contrast cannot be solved with fast Fourier technics, and is thus much slower.
+The blurring operator \eqref{eq-deblurring-operator} is diagonal in the Fourier domain, so quadratic regularization can be solved efficiently using fast Fourier transforms under periodic boundary conditions. We refer to~\eqref{eq-convol-example} and the corresponding explanations. TV regularization does not reduce to a single diagonal Fourier solve and requires an iterative optimization algorithm.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -839,7 +840,7 @@ For the inpainting problem, the operator defined in \eqref{eq-inp-operator} is d
 }
 and is an orthogonal projector $\Phi^* = \Phi$.
 
-In the noiseless case, to constrain the solution to lie in the affine space $\enscond{f \in \RR^N}{y=\Phi f}$, we use the orthogonal projector
+For noiseless data, we enforce the affine constraint $\enscond{f \in \RR^N}{y=\Phi f}$ using the orthogonal projector
 \eq{
 	\foralls x, \quad P_y(f)(x) = \choice{
 		f(x) \qifq x \in \Om,\\
@@ -848,12 +849,12 @@ In the noiseless case, to constrain the solution to lie in the affine space $\en
 }
 
 
-In the noiseless case, the recovery \eqref{eq-ip-regul-noiseless} is solved using a projected gradient descent.
+Projected gradient descent solves~\eqref{eq-ip-regul-noiseless} for a smooth prior.
 For the Sobolev energy, the algorithm iterates
 \eq{
 	\iit{f}= P_y( \it{f} + \tau \Delta \it{f} ).
 }
-which converges if $\tau < 2 / \norm{\Delta} = 1/4$. Figure \ref{fig-inp-sob-iter} shows some iteration of this algorithm, which progressively interpolate within the missing area. 
+The iteration converges if $0<\tau<1/4$, since $\norm{\Delta}\leq8$. Figure \ref{fig-inp-sob-iter} shows how it progressively fills the missing region.
 
 % Table \ref{inverse-inpainting-sob} details the implementation of the inpainting with the Sobolev prior.
 
@@ -885,7 +886,7 @@ $k=1$ & $k=10$ & $k=20$ & $k=100$
 %	Decay of the energy and convergence for Sobolev inpainting.%	
 %}{fig-sob-inp-decay}
 
-Figure \ref{fig-inpainting-parrot} shows an example of Sobolev inpainting to achieve a special effect.
+Figure \ref{fig-inpainting-parrot} illustrates the use of Sobolev inpainting to remove a cage from an image.
 
 \myfigure{
 \tabtrois{
@@ -895,7 +896,7 @@ Figure \ref{fig-inpainting-parrot} shows an example of Sobolev inpainting to ach
 Image $f_0$ & Observation $y=\Phi f_0$ & Sobolev $f^\star$ \\
 }
 }{%
-	Inpainting the parrot cage. %	
+    Removing a parrot cage by inpainting. %
 }{fig-inpainting-parrot}
 
 For the smoothed TV prior, the gradient descent reads
@@ -904,9 +905,9 @@ For the smoothed TV prior, the gradient descent reads
 			\it{f} + \tau \diverg\pa{ \frac{ \nabla \it{f}}{ \sqrt{\epsilon^2+\norm{\nabla \it{f}}^2} } }
 		}
 }
-which converges if $\tau < \epsilon/4$.
+which converges if $0<\tau<\epsilon/4$.
 
-Figure \ref{fig-inpainting-cameraman} compare the Sobolev inpainting and the TV inpainting for a small value of $\epsilon$. The SNR is not improved by the total variation, but the result looks visually slightly better.
+Figure \ref{fig-inpainting-cameraman} compares Sobolev inpainting with smoothed TV inpainting for small $\epsilon$. In this example, TV gives a modest visual improvement without increasing the SNR.
 
 % For special effects : $\Ldeux$ error and SNR are not good measures of quality, $f^\star$ is very different from $f_0$ ! Pereceptual metric, visual inspection.
 
@@ -917,8 +918,7 @@ Figure \ref{fig-inpainting-cameraman} compare the Sobolev inpainting and the TV 
 Image $f_0$ & Observation $y=\Phi f_0$ \\
 \image{invpbm}{.3}{inpainting-cameraman-sobolev}&
 \image{invpbm}{.3}{inpainting-cameraman-tv} \\
-Sobolev $f^\star$ & TV $f^\star$ \\
-SNR=?dB & SNR=?dB 
+Sobolev $f^\star$ & TV $f^\star$
 }
 }{%
 	Inpainting with Sobolev and TV regularization. %	
@@ -929,19 +929,19 @@ SNR=?dB & SNR=?dB
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Tomography Inversion}
 
-In medical imaging, a scanner device compute projection of the human body along rays $\De_{t,\th}$ defined
+In an idealized two-dimensional tomography model, each projection integrates the unknown image along a line $\De_{t,\th}$ defined by
 \eq{
 	x \cdot \tau_\theta = x_1 \cos\th + x_2\sin\th = t
 }
-where we restrict ourself to 2D projection to simplify the exposition.
+Here $\tau_\theta=(\cos\theta,\sin\theta)$ is the unit normal to the line.
 
-The scanning process computes a Radon transform, which compute the integral of the function to acquires along rays
+The resulting Radon transform is
 \eq{
 	\foralls \th \in [0,\pi), \foralls t \in \RR, \quad
 	p_{\th}(t) = \int_{\De_{t,\th}} f(x) \,d s
 	 = \iint f(x)\, \de( x \cdot \tau_\theta - t )\, d x 
 }
-see Figure \eqref{fig-tomo-principle}
+see Figure~\ref{fig-tomo-principle}.
 
 \myfigure{
 \image{invpbm}{.4}{tomo-principle}
@@ -949,16 +949,16 @@ see Figure \eqref{fig-tomo-principle}
 	Principle of tomography acquisition. %	
 }{fig-tomo-principle}
 
-The Fourier slice theorem relates the Fourier transform of the scanned data to the 1D Fourier transform of the data along rays
+With $\hat f(\omega)=\int f(x)e^{-\imath x\cdot\omega}\,\mathrm{d}x$, the Fourier slice theorem identifies the one-dimensional Fourier transform of each projection with a radial slice of the two-dimensional Fourier transform
 \eql{\label{eq-fourier-slice}
 	\foralls \th \in [0,\pi)~,~ 
 \foralls \xi \in \RR\quad
 		\hat p_\th(\xi) = \hat f( \xi \cos \th, \xi \sin \th ).
 }
-This shows that the pseudo inverse of the Radon transform is computed easily over the Fourier domain using inverse 2D Fourier transform
+Changing to polar coordinates in Fourier inversion gives the filtered-backprojection formula
 \eq{
 	f(x) = 
-\frac{1}{2\pi} \int_{0}^\pi p_\th \star h(x \cdot \tau_\theta)\, d \th
+\frac{1}{2\pi} \int_{0}^\pi (p_\th \star h)(x \cdot \tau_\theta)\, d \th
 }
 with $\hat h(\xi) = |\xi|$.
 
@@ -972,29 +972,29 @@ with $\hat h(\xi) = |\xi|$.
 Image $f$ & Radon sub-sampling & Fourier domain
 }
 }{%
-	Partial Fourier measures. %	
+	Partial Fourier measurements. %
 }{fig-tomo-radon-subsample}
 
 
-Imaging devices only capture a limited number of equispaced rays at orientations $\{ \th_k = \pi/k \}_{0 \leq k < K}$. This defines a tomography operator which corresponds to a partial Radon transform
+We model acquisition at finitely many equally spaced orientations $\{\th_k=\pi k/K\}_{0\leq k<K}$ by the partial Radon transform
 \eq{
 	R f = ( p_{\th_k} )_{0 \leq k < K}.
 }
-Relation \eqref{eq-fourier-slice} shows that knowing $R f$ is equivalent to knowing the Fourier transform of $f$ along rays, 
+By~\eqref{eq-fourier-slice}, knowing $R f$ is equivalent to knowing the Fourier transform of $f$ along the corresponding radial lines:
 \eq{
 	\{ \hat f(\xi \cos(\th_k), \xi \sin(\th_k)) \}_k.
 }
-We thus simply the acquisition process over the discrete domain and model it as computing directly samples of the Fourier transform 
+For a simplified discrete model, we therefore treat acquisition as direct sampling of the Fourier transform:
 \eq{
-	\Phi f = ( \hat f[\om] )_{\om \in \Om} \in \RR^P
+	\Phi f = ( \hat f[\om] )_{\om \in \Om} \in \CC^P
 }
-where $\Om$ is a discrete set of radial lines in the Fourier plane, see Figure \ref{fig-tomo-radon-subsample}, right.
+where $\Om$ consists of discrete radial sampling lines in the Fourier plane; see Figure \ref{fig-tomo-radon-subsample}, right.
 
-In this discrete setting, recovering from Tomography measures $y=R f_0$ is equivalent in this setup to inpaint missing Fourier frequencies, and we consider partial noisy Fourier measures
+In this idealized discrete model, recovery is an inpainting problem in the Fourier domain. We use the unitary discrete Fourier transform and consider measurements
 \eq{
 	\foralls \om \in \Om, \quad y[\om] = \hat f[\om] + w[\om]
 }
-where $w[\om]$ is some measurement noise, assumed here to be Gaussian white noise for simplicity.
+where $w[\om]$ denotes measurement noise, modeled here as Gaussian white noise.
 
 \myfigure{
 \tabtrois{
@@ -1004,32 +1004,32 @@ where $w[\om]$ is some measurement noise, assumed here to be Gaussian white nois
 Image $f_0$ & 13 projections & 32 projections.
 }
 }{%
-	Pseudo inverse reconstruction from partial Radon projections. %	
+	Pseudoinverse reconstruction from partial Radon projections. %
 }{fig-tomo-pinv}
 
-The peuso-inverse $f^+ = R^+ y$ defined in \eqref{eq-pseudo-inverse} of this partial Fourier measurements  reads 
+For these partial Fourier measurements, the pseudoinverse $f^+ = \Phi^+ y$ from \eqref{eq-pseudo-inverse} is given by
 \eq{
 	{\hat f}^+[\om] = \choice{
 		y[\om] \qifq \om \in \Om,\\
 		\; 0 \qifq \om \notin \Om.
 	}
 }
-Figure \ref{fig-tomo-pinv} shows examples of pseudo inverse reconstruction for increasing size of $\Om$. This reconstruction exhibit serious artifact because of bad handling of Fourier frequencies (zero padding of missing frequencies).
+Figure \ref{fig-tomo-pinv} shows examples of pseudoinverse reconstruction as the size of $\Om$ increases. This reconstruction exhibits pronounced artifacts because missing Fourier frequencies are set to zero.
 
-The total variation regularization \eqref{eq-tv-dn} reads
+The total variation regularization \eqref{eq-ip-regul} reads
 \eq{
 	f^\star \in \uargmin{f} \frac{1}{2}\sum_{\om \in \Om} |y[\om] - \hat f[\om]|^2 
 	+ \la \normTV{f}.
 }
-It is especially suitable for medical imaging where organ of the body are of relatively constant gray value, thus resembling to the cartoon image model introduced in Section \ref{subsec-cartoon-images}. Figure \ref{fig-tomo-tv} compares this total variation recovery to the pseudo-inverse for a synthetic cartoon image. This shows the hability of the total variation to recover sharp features when inpainting Fourier measures. This should be contrasted with the difficulties that faces TV regularization to inpaint over the spacial domain, as shown in Figure \ref{fig-inpainting-lena}.
+TV regularization suits images with approximately constant regions separated by sharp boundaries, as in the cartoon model of Section \ref{subsec-cartoon-images}. Figure \ref{fig-tomo-tv} compares TV reconstruction and the pseudoinverse on a synthetic image of this type. The example illustrates recovery of sharp features from incomplete Fourier data. Spatial inpainting can be more challenging for TV, as Figure~\ref{fig-inpainting-cameraman} illustrates.
 
 \myfigure{
 \tabtrois{
 \image{invpbm}{.3}{tomo-image}&
 \image{invpbm}{.3}{tomo-pinv-fourier}&
 \image{invpbm}{.3}{tomo-tv}\\
-Image $f_0$ & Pseudo-inverse & TV
+Image $f_0$ & Pseudoinverse & TV
 }
 }{%
-	Total variation tomography inversion. %	
+    Tomographic reconstruction with total variation regularization. %
 }{fig-tomo-tv}

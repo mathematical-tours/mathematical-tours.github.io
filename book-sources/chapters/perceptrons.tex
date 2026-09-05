@@ -3,76 +3,80 @@
 \chapter{Shallow Learning}
 \label{c-shallow-learning}
 
-In this chapter, we study the simplest example of non-linear parametric models, namely Multi-Layers Perceptron (MLP) with a single hidden layer (so they have in total 2 layers). Perceptron (with no hidden layer) corresponds to the linear models studied in the previous chapter. MLP with more layers are obtained by stacking together several such simple MLP, and are studied in Section~\ref{sec-autodiff-mlp}, since the computation of their derivatives is very suited to automatic-differentiation methods.  
+\chapteroverview{%
+Networks with one hidden layer provide a setting in which to ask which functions neural models can represent and how their size controls approximation error.
+These questions distinguish expressive power from the difficulty of fitting a model to data.
+We derive the training gradients, prove universal approximation, and develop quantitative bounds through Barron's theorem, a representation by measures, and the Frank--Wolfe algorithm.}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Multi-layer Perceptron}
+\section{Multilayer Perceptrons}
+
+A multilayer perceptron (MLP) with one hidden layer has two trainable layers: a hidden layer and an output layer. Models with no hidden layer recover the linear predictors studied earlier. Deeper MLPs compose several layers; their derivatives are efficiently computed by the automatic differentiation methods of the \hyperref[sec-autodiff-mlp]{multilayer-perceptron discussion}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Multi-layer}
+\subsection{Networks of Arbitrary Depth}
 
-Let us first consider the general case of an arbitrary number of layers to defined mapping $f_\theta : \RR^d \to \RR^{d'}$. 
+We first define a network of arbitrary depth representing a map $f_\theta : \RR^d \to \RR^{d'}$.
 %
-From $x_0 := x \in \RR^{d_s} = \RR^d$, they iterate along the depth indexes $s=0,\ldots,S-1$
+Starting from $x_0=x\in\RR^{d_0}=\RR^d$, the network computes, for $s=0,\ldots,S-1$
 $$
-	x_{s+1} + \sigma( W_s x_s + b_s )
+	x_{s+1}=\sigma( W_s x_s + b_s )
 $$
-where $W_s \in \RR^{d_{s+1} \times d_s}$ and the bias is $b_s \in \RR^{d_{s+1}}$. 
+where $W_s \in \RR^{d_{s+1} \times d_s}$ and $b_s \in \RR^{d_{s+1}}$. The output is $f_\theta(x)=x_S$, with $d_S=d'$ and parameters $\theta=((W_s,b_s))_{s=0}^{S-1}$. The final activation can be omitted to obtain a linear output layer.
 %
-Here $\sigma$ is a non-linear (and in fact non-polynomiial) function applied component wise, i.e. we denote $\sigma(z) = (\sigma(z_i))_i$. 
+The activation $\sigma$ is a nonlinear, nonpolynomial function applied componentwise: $\sigma(z) = (\sigma(z_i))_i$.
 
-The most popular non-linearities are sigmoid functions such as
+Common activations include the sigmoid functions
 \eq{
-	\rho(r) = \frac{e^r}{1+e^r}
+	\sigma(r) = \frac{e^r}{1+e^r}
 	\qandq
-	\rho(r) = \frac{1}{\pi} \text{atan}(r) + \frac{1}{2}
+	\sigma(r) = \frac{1}{\pi} \text{atan}(r) + \frac{1}{2}
 }
-and the rectified linear unit (ReLu) function $\rho(r)=\max(r,0)$. There is an important difference both in practice and in theory on these two class of activation (bounded vs. un-bounded). ReLu works better in practice because there is less saturaration effect, so that gradient are not zero if the values commputed by the networks are large. Also the ReLu is positively 1-homogeneous, which allows to rescale the weights and for some proof, consider that these weight are on a unit sphere. A difficulty however is that the ReLu is not differentiable at 0, which makes some rigorous proof difficult to do (but in practice, this non smoothness seems harmless).
+and the rectified linear unit (ReLU), $\sigma(r)=\max(r,0)$. Sigmoids are bounded, whereas ReLU is unbounded and does not saturate on the positive half-line: its derivative is one there and zero on the negative half-line. The positive 1-homogeneity of ReLU allows weights to be rescaled, which is useful in proofs that restrict their directions to a unit sphere. At zero, ReLU is not differentiable. Implementations choose a derivative convention, while mathematical arguments must account for the kink.
 
-In order to define function of arbitrary complexity when width (number of neuron per layer) increases, it is important that $\sigma$ is non-polynomial.
-Otherwise, $f_\theta$ would be a polynimial of degree proportional to $s$, so these functions would for instance not be dense in continuous functions. 
+For increasing width to yield universal approximation at fixed depth, the activation $\sigma$ must be nonpolynomial.
+Otherwise, $f_\theta$ has degree at most $m^S$ for an activation of degree $m$ and fixed depth $S$, so increasing the width cannot produce a dense class of continuous functions.
 %
-Note however that the linear case $\sigma=\mathrm{Id}$ is of independent to compute matrix factorization, but this does not corresponds to supervised learning problem (but rather dimensionality reduction using PCA or non-negative matrix factorization). 
+The choice $\sigma=\mathrm{Id}$ remains useful for matrix factorization and supervised learning, but its input-output map is affine (linear when the biases vanish).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{2-layers MLPs}
+\subsection{Two-layer MLPs}
 
-We consider two-layer neural networks of the form:
+We now specialize to networks with one hidden layer and a linear output layer:
 \begin{equation}
     f_\theta(x) := \sum_{k=1}^n u_k \sigma(\langle v_k, x \rangle + b_k), \quad \forall x \in \mathbb{R}^d, \label{eq:2layers-nn}
 \end{equation}
-where $\sigma$ is the activation function. The parameters of the network are denoted as $\theta_k = (u_k \in \mathbb{R}^{d'}, v_k \in \mathbb{R}^d, b_k \in \mathbb{R})$ for $k = 1, \dots, n$. In most of the following, for the sake of simplicity, we consider $d'=1$, i.e. real-valued output. 
+Here $\sigma$ is the activation, and the neuron parameters are $\theta_k = (u_k \in \mathbb{R}^{d'}, v_k \in \mathbb{R}^d, b_k \in \mathbb{R})$ for $k = 1, \dots, n$. We usually take $d'=1$ for simplicity, so the output is scalar.
 
-In practice, neural network are designed by doing gradient descent, i.e. we consider a loss (for the sake of simplicity here quadratic
+In practice, neural networks are trained by gradient methods. For example, consider a quadratic loss
 \begin{equation}\label{eq:loss-training}
-	\min_\theta E(\theta) := \int \|f_\theta(x)-y\| \mathrm{d}\rho(x,y)
+	\min_\theta E(\theta) := \frac12\int\|f_\theta(x)-y\|^2\mathrm{d}\rho(x,y)
 \end{equation}
-and use the gradient (it is of course possible to use SGD)
+where $\rho$ is the joint distribution of the inputs and outputs. Taking $\rho$ to be the empirical distribution gives the training loss. Gradient descent, or its stochastic counterpart, updates the parameters by
 $$
-	\theta_{t+1} = \theta_t -  \tau_t \nabla E(\theta). 
+	\theta_{t+1} = \theta_t -  \tau_t \nabla E(\theta_t).
 $$
 
 %%%%
 \paragraph{Gradient computation}
 
-Ignoring the bias $b_k$ for simplicity, we can write in matrix form $f_\theta(x) = U \sigma(V^\top x)$ where $U \in \mathbb{R}^{d' \times n}$, $V \in \mathbb{R}^{d \times n}$. 
-For the sake of simplicity, we assume there is a finite number $N$ of data points $X = (x_i)_{i=1}^N \in \RR^{d \times N}$
-and $Y = (y_i)_{i=1}^N \in \RR^{d' \times N}$
-Training with a $\ell^2$ loss thus reads
+Omitting the biases $b_k$, the network has the matrix form $f_\theta(x) = U \sigma(V^\top x)$, where $U \in \mathbb{R}^{d' \times n}$ and $V \in \mathbb{R}^{d \times n}$.
+For a training set with $N$ observations, collect the inputs as the columns of $X = (x_i)_{i=1}^N \in \RR^{d \times N}$
+and the outputs as the columns of $Y=(y_i)_{i=1}^N\in\RR^{d'\times N}$. Here $N$ counts observations and $n$ counts hidden neurons. All matrix norms and inner products in this computation are Frobenius norms and inner products. Omitting the constant factor $1/N$, training with squared loss gives
 $$
 	\min_{U,V} E(U,V) := \frac{1}{2}\| U \sigma(V^\top X) - Y \|^2.
 $$
-If we denote $Z := \sigma(V^\top X)$ (which can be thought as applying the feature map $x \to \sigma(V^\top x)$ to the data), then training $U$ is a classical least square $\frac{1}{2}\|U Z - Y\|^2$ and the gradient reads
+Set $Z := \sigma(V^\top X)$, the matrix obtained by applying the feature map $x \to \sigma(V^\top x)$ to the data. With these features fixed, training $U$ is the least-squares problem $\frac{1}{2}\|U Z - Y\|^2$, whose gradient is
 $$
 	\nabla_U E(U,V) = (UZ-Y)Z^\top.
 $$
-We perform a Taylor expansion to compute the gradient with respect to $V$, denoting $R := U \sigma(V^\top X) - Y$ and $S := \sigma'(V^\top X) $
+Assume $\sigma$ is differentiable at the entries of $V^\top X$. To differentiate with respect to $V$, expand the objective in a perturbation $D$ and set $R := U \sigma(V^\top X) - Y$ and $S := \sigma'(V^\top X)$:
 $$
-	E(U,V + \epsilon D) = \frac{1}{2} \|R + \epsilon U [ S \odot (D^\top X) ] \|^2 = E(U,V) + \dotp{R}{H} + O(\epsilon^2)
+	E(U,V + \epsilon D) =\frac12\|R+\epsilon U[S\odot(D^\top X)]+o(\epsilon)\|^2 = E(U,V) +\epsilon\dotp{R}{H}+o(\epsilon)
 $$
-where we denoted $A \odot B = (A_{i,j} B_{i,j})$ and where
+where $H=U[S\odot(D^\top X)]$, the product $A \odot B = (A_{i,j} B_{i,j})$ is coordinatewise, and
 $$
 	\dotp{R}{H} = \dotp{R}{ U [S \odot (D^\top X)] }	
 	= \dotp{D^\top X}{ (U^\top R) \odot S}
@@ -82,122 +86,87 @@ which leads to
 $$
 	\nabla_V E(U,V) = X [ (R^\top U) \odot S^\top ].
 $$
-This computation is quite painful, and the advice is not to use this derivation for deeper network, because not only they are overly complicated, but they are vastly sub-optimal. The correct way to compute this gradient is to use the back-propagation method, which corresponds to revserse mode automatic differentiation. 
+For deeper networks, writing a fully expanded derivative becomes cumbersome and can duplicate computations. Backpropagation organizes the same chain rule into an efficient reverse pass.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{$L^\infty$ non-quantitative universality}
+\section{\texorpdfstring{$L^\infty$}{Uniform} Nonquantitative Universal Approximation}
 
-If $\sigma$ is a sigmoid function, George Cybenko's theorem, later refined by Kurt Hornik, Maxwell Stinchcombe, and Halbert White, demonstrates that the functions $f_\theta$ can approximate any continuous function uniformly on a compact domain. So this means here we insist on doing an $L^\infty$ approximation, which is strictly stronger (and more difficult) that doing an $L^2$ error control as consider during training~\eqref{eq:loss-training}.
+If $\sigma$ is a sigmoid function, George Cybenko's theorem, later refined by Kurt Hornik, Maxwell Stinchcombe, and Halbert White, demonstrates that the functions $f_\theta$ can approximate any continuous function uniformly on a compact domain. Uniform approximation is stronger than the mean-square approximation used in the training loss~\eqref{eq:loss-training}.
 
 \begin{prop}
-If $\sigma$ is an increasing (not necessarily continuous) function satisfying:
+Let $K \subset \mathbb{R}^d$ be compact, and let $\sigma$ be nondecreasing, not necessarily continuous, with
 \[
 	\lim_{s \to -\infty} \sigma(s) = 0 \quad \text{and} \quad \lim_{s \to +\infty} \sigma(s) = 1,
 \]
-and $K \subset \mathbb{R}^d$ is compact, then for any continuous function $f$ on $K$ and any $\epsilon > 0$, there exist $n$ and parameters $(\theta_k)_{k=0}^n$ such that:
+Then, for any continuous function $f$ on $K$ and any $\epsilon > 0$, there exist $n$ and parameters $(\theta_k)_{k=1}^n$ such that
 \[
 	\sup_{x \in K} |f(x) - f_\theta(x)| \leq \epsilon.
 \]
 \end{prop}
 
-This theorem establishes the universal approximation property of two-layer neural networks. However, it does not provide bounds on the number of neurons $n$ required as a function of $\epsilon$. Furthermore, the proof does not constructively specify how to determine the parameters of the approximating network $f_\theta$. 
+The theorem establishes universal approximation by two-layer networks. It gives no quantitative bound on the number of neurons $n$ needed for accuracy $\epsilon$, nor an efficient procedure for finding the parameters of $f_\theta$.
 %
-The first proof was done by Cybenko~\cite{cybenko1989approximation} using a duality argument. We detail next the proof due to Hornik et al. which is a bit more constructive, and rely on Stone-Weierstrass theorem to perform a Fourier-type approximation. On contrary to a direct Fourier series expansion, this leads to a uniform approximation of a continuous function, whereas Fourier series do not lead to a uniform approximation.
+Cybenko~\cite{cybenko1989approximation} proved the result by duality. We present the more constructive argument of Hornik and collaborators, based on Stone--Weierstrass approximation by trigonometric functions. This density argument avoids relying on uniform convergence of Fourier partial sums, which need not hold for an arbitrary continuous function.
 
 %  A possible way to do the proof would be to include $K$ in a square, extend it to obtain a continuous function vanishing on the boundary of a larger square, and then perform Fourier series approximation on this square. This would result in frequencies $v_k$, which would be multiple of integers (on a grid). We show below a more natural proof.
 
 
 \begin{proof}
-It first considers the activation $\sigma=\cos$ (note that the initial density argument would also work with $\sigma=\exp$ which interestingly is a non-bounded activation). 
+First establish density for networks with cosine activation; we will then approximate each cosine using the prescribed sigmoid $\sigma$.
 %
 Consider the function space:
 \[
 	A := \left\{ \sum_{k=1}^n u_k \cos(\langle v_k, x \rangle + b_k) : n \in \mathbb{N}, (u_k, b_k, v_k)_k \right\}.
 \]
-This space is an algebra of continuous functions on the compact set $K$. It contains the constant functions and separates points; that is, for $x \neq x'$, there exists $w$ such that $\cos(\langle w, x \rangle) \neq \cos(\langle w, x' \rangle)$. By the Stone-Weierstrass theorem, $A$ is dense in the space of continuous functions on $K$.
+This space is an algebra: the product-to-sum identity expresses a product of cosines as a sum of two cosines. It contains constants and separates points. Indeed, for $x\neq x'$, choose $v$ so that $\dotp{v}{x'-x}=\pi$ and set $b=-\dotp{v}{x}$; the resulting cosine takes values $1$ and $-1$ at these points. The Stone--Weierstrass theorem therefore implies that $A$ is dense in $C(K)$.
 
-Let $r = \max_k (|v_k| \cdot \text{Radius}(K) + |b_k|)$. To approximate functions on $K$, it thus suffices by the previous density  to approximate $\cos(s)$ on the interval $[-r, r]$.
-%
-Splitting the interval into subintervals where $\cos(s)$ is monotonic, this can be replaced by just approximating the rectified cosine squashing function :
-\[
-\cos_+(s) =
-\begin{cases}
-0, & s \leq 0, \\
-1, & s \geq \pi/2, \\
-1-\cos(s), & s \in [0, \pi/2].
-\end{cases}
-\]
-The goal is to construct $\sigma$-based functions of the form:
-\[
-\left| \sum_k u_k \sigma(v_k s + b_k) - \cos_+(s) \right| \leq \epsilon,
-\]
-where $u_k, b_k, v_k \in \mathbb{R}$.
+It remains to approximate each univariate cosine on a bounded interval by finite linear combinations of $\sigma$. We give an argument that applies to any continuous function $q$ on $[a,b]$. Choose a fine partition $a=t_0<\cdots<t_Q=b$ and set $\Delta_j=q(t_j)-q(t_{j-1})$. Uniform continuity makes every $|\Delta_j|$ and the oscillation of $q$ on each interval small. The staircase
+\eq{q(t_0)+\sum_{j=1}^Q\Delta_j1_{[t_j,+\infty)}(s)}
+approximates $q$ uniformly, up to this oscillation. Replace the step functions by $\sigma(M(s-t_j))$. Choose disjoint small neighborhoods of the finitely many $t_j$. Outside these neighborhoods, convergence to the steps is uniform as $M\to\infty$; inside any one neighborhood, only one transition contributes a potentially large discrepancy, bounded by the small jump $|\Delta_j|$. Since $0\leq\sigma\leq1$, the resulting approximation is uniform. A constant is itself a neuron with zero inner weight and an appropriately scaled nonzero activation value.
 
-Divide $[0, \pi/2]$ into $Q$ subintervals $[s_k, s_{k+1}]$, where $s_k = \cos_+^{-1}(k/Q)$. Choose $M > 0$ large enough such that:
-\[
-\sigma(-M) < \frac{\epsilon}{2Q}, \quad \sigma(M) > 1 - \frac{\epsilon}{2Q}.
-\]
-Define $v_k$ and $b_k$ such that the affine map $v_k s + b_k$ sends $[s_k, s_{k+1}]$ to $[-M, M]$. Set the weights $u_k = 1/Q$.
-%
-For each subinterval, the construction ensures that:
-\[
-\left| \sigma(v_k s + b_k) - \cos_+(s) \right| \leq \frac{\epsilon}{Q}.
-\]
-Summing over all subintervals gives the desired approximation:
-\[
-\left| a_0 + \sum_k u_k \sigma(v_k s + b_k) - \cos_+(s) \right| \leq \epsilon,
-\]
-provided $Q > 2/\epsilon$.
-Combining the results, the network $f_\theta$ can approximate any continuous function $f$ on $K$ to within $\epsilon$, completing the proof.
+Apply this construction to each cosine in a finite approximation of $f$, choosing the individual errors small enough after weighting by the coefficients. Substitution of $s=\dotp{v_k}{x}+b_k$ gives a finite network with uniform error at most $\epsilon$.
 \end{proof}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%
-\section{$L^2$ Quantitative Approximation (Barron's theorem)}
+\section{\texorpdfstring{$L^2$}{Mean-square} Quantitative Approximation (Barron's Theorem)}
 
-In constrast to the uniform error control of the previous section, we consider here $L^2$ approximation as consider in the initial loss~\eqref{eq:loss-training}. We only focuss on approximation error, so that we consider that the data satisfy exactly $y=f(x)$ for some function $f$ to approximate and $x$ is distributed according to some $\rho(x)$. Another limitation of the theory we detail next is that we assume $\rho$ is compactly supported on a ball of radius $R$. 
+We now study $L^2$ approximation, as measured by the loss~\eqref{eq:loss-training}. To isolate approximation error, assume noiseless observations $y=f(x)$ for a target $f$, with inputs $x$ distributed according to $\rho(x)$. We also assume that $\rho$ is supported in a ball of radius $R$.
 %
-Without any hypothesis beside convexity, it is not possible to show any rate (i.e. approximation by a network can be arbitrary slow). The functional space to obtain fast rate (independent of the dimension) is called the Barron's space, and was introduced by Andrew Barron. 
+Without additional regularity, no uniform approximation rate follows: the error can decay arbitrarily slowly. Barron introduced a function class for which the approximation rate has an exponent independent of the ambient dimension.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%
-\subsection{Barron's space}
+\subsection{Barron Space}
 
-For an integrable function $f$, its Fourier transform is defined, for any $\xi \in \RR^d $ by
+For an integrable function $f$, this section uses the following normalization of the Fourier transform at $\xi \in \RR^d$:
 $$
-    \hat{f}(\xi) \triangleq \int_{\RR^d}f(\xi) e^{\imath \dotp{\xi}{x} } \d x.
+    \hat f(\xi)\triangleq(2\pi)^{-d}\int_{\RR^d}f(x)e^{-\imath\dotp{\xi}{x}}\d x.
 $$
-The Barron's space~\cite{barron1993universal} is the set of functions such as the semi-norm
+The Barron space~\cite{barron1993universal} is the class of functions for which the Fourier seminorm
 $$
 	\norm{f}_B \triangleq  \int_{\RR^d}\norm{\xi} | \hat{f}(\xi) | \d\xi 
 $$ 
-is finite. If we impose that $f(0)$ is fixed, we can show that this defines a norm and that the Barron space is a Banach space.
+is finite. Throughout this section, $f$ denotes its continuous Fourier-inversion representative, with the convention $f(x)=\int\hat f(\xi)e^{\imath\dotp{\xi}{x}}\d\xi$. For integrable $f$, finiteness of the displayed seminorm ensures that $\hat f$ is integrable: it is bounded near the origin, and its first moment controls the tail. This representative matters when the sampling measure has atoms. Constants can be handled separately; $|f(0)|+\norm f_B$ removes the ambiguity due to constants in the corresponding Fourier-measure space. This Fourier-defined class should be distinguished from activation-dependent Barron spaces.
 One has
 $$
 	\norm{f}_B = \int_{\RR^d} \norm{\widehat{\nabla f}(\xi)} \d\xi, 
 $$ 
-this shows that the functions of the Barron space are quite regular.
+which relates the Fourier seminorm to first-order regularity.
 %
-Here are some example of function classes with the corresponding Barron's norm.
+The following examples illustrate the seminorm and its dependence on the function class.
 \begin{itemize}
-    \item \emph{Gaussians}: for $f(x) = e^{- \norm{x}^2/2}$, one has $\norm{f}_B \leq 2 \sqrt{d}$
-    \item \emph{Ridge function}: let $ f(x) = \psi (\dotp{x}{b} + c) $ where $\psi: \RR \rightarrow \RR$ then one has
-    $$
-    	\norm{f}_B \leq \norm{b} \int_{\RR} |u \hat{\psi}(u) | \d u. 
-	$$ 
-    In particular,  if $\psi$ is $\Cc^{2 + \delta}$ for $\delta> 0 $ then $f$ is in the Barron space. If $\rho$ satisfies this hypothesis, the ``neurons'' functions are in Barron space.
-    \item \emph{Regular functions with $ s $ derivatives}: for all $ s>d/2 $, one has $\norm{f}_B \leq C(d,s) \: \norm{f}_{H^s}$ where 
-    the Sobolev norm is
-    $$
-    	\norm{f}^2_{H^s} \triangleq \int_{\RR^d}| \hat{f}(\xi) |^2 (1+ \norm{\xi}^{2s}) \d\xi 
-		\sim \norm{f}_{L^2(\d x)}^2 + \sum_{k=1}^d \norm{\partial_{x_k} f}_{L^2(\d x)}^2, 
-	$$ 
-	and $ C(d,s) <\infty$ is a constant. This shows that if $ f $ has at least $ d / 2 $ derivatives in $L^2$, it is in Barron space. Beware that the converse is false, the Barron space can contain less regular functions as seen in the previous examples.
-	%
-	This somehow shows that the Barron space is larger than RKHS space of fixed smoothness degree.
+    \item \emph{Gaussians}: for $f(x) = e^{- \norm{x}^2/2}$, one has $\norm f_B=\EE\norm Z\leq\sqrt d,\quad Z\sim\mathcal N(0,\Id_d)$
+    \item \emph{Ridge functions}: for $f(x)=\psi(\dotp{x}{b}+c)$, the Fourier transform may be a measure supported on a line rather than an integrable density. In the Fourier-measure extension of the seminorm,
+\eq{\norm f_B\leq\norm b\int_\RR|u|\,|\hat\psi(u)|\d u.}
+A sufficient condition is that $\psi$ is compactly supported and belongs to $C^{2,\delta}(\RR)$ for some $\delta>0$. Smoothness alone without decay is not enough for this Fourier integral.
+    \item \emph{Sobolev functions}: if $s>d/2+1$, the Cauchy--Schwarz inequality gives
+\eq{\norm f_B\leq C(d,s)\norm f_{H^s},\qquad
+\norm f_{H^s}^2\eqdef\int_{\RR^d}(1+\norm\xi^2)^s|\hat f(\xi)|^2\d\xi.}
+Indeed, $\int\norm\xi^2(1+\norm\xi^2)^{-s}\d\xi$ is finite precisely when $s>d/2+1$. For integer $s$, this squared Sobolev norm is equivalent, up to Fourier-normalization constants, to the sum of the squared $L^2$ norms of all weak derivatives of order at most $s$. This is a sufficient condition; the Fourier-measure class also contains ridge functions outside these ambient-space Sobolev classes.
 \end{itemize}
 
 
@@ -208,16 +177,12 @@ Here are some example of function classes with the corresponding Barron's norm.
 The main result is as follows.
 
 \begin{thm}[Barron~\cite{barron1993universal}]
-	We assume $\rho$ is supported on $B(0,R)$.
-	%
-    For all $n$, there exists $f_\theta$ with $n$ neurons such that
-    $$
-        \norm{f(0) + f_\theta - f}_{L^2(\rho)} \leq \frac{2R \norm{f}_B}{\sqrt{n}}.
-    $$
-    Furthermore, one can impose that $\sum_k | u_k | \leq 2 R \norm{f}_B$
+Assume $\rho$ is a probability measure supported on $B(0,R)$, $f$ is the continuous Fourier-inversion representative described above with $\norm f_B<\infty$, and $\sigma$ is a nondecreasing sigmoid with limits $0$ and $1$. Allow an output bias $c_0$, so the approximation is $c_0+f_\theta$. For every $n\geq1$,
+\eq{\inf_{c_0,\theta}\norm{c_0+f_\theta-f}_{L^2(\rho)}\leq\frac{2R\norm f_B}{\sqrt n}.}
+The infimum can be restricted to networks with $\sum_{k=1}^n|u_k|\leq2R\norm f_B$. In particular, for every $\epsilon>0$, a finite network attains the displayed bound plus $\epsilon$.
 \end{thm}
 
-This result shows that if $f$ is in Barron space, the decrease of the error does not depend on the dimension: this is often referred to as ``overcoming the curse of dimensionality''. Be careful however, the constant $\norm{f}_B$ can depend on the dimension, this is the case for Gaussian functions (where it is $ 2 \sqrt{d}$) but not for ridges functions.
+The exponent $1/2$ in the approximation rate does not depend on the dimension. The constant $\norm f_B$ can still depend on it: the Gaussian example gives growth of order $\sqrt d$, whereas the bound for a fixed ridge profile depends on the ridge direction and profile.
 
 
 
@@ -225,7 +190,7 @@ This result shows that if $f$ is in Barron space, the decrease of the error does
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Mean field representation.}
 
-The proof of Barron's theorem involves rescaling the coefficients $u_k$ by $1/n$ and rewriting the neural network in Equation \eqref{eq:2layers-nn} as:
+Absorb a factor $n$ into the outer coefficients $u_k$ to express the same network as an average:
 \[
 	f_\theta(x) := \frac{1}{n} \sum_{k=1}^n \phi(x, \omega_k),
 \]
@@ -237,155 +202,109 @@ this neural network can be expressed as an integral:
 \[
 	f_\theta(x) := \int_\Omega \phi(x, \omega) \, \mathrm{d}\hat{\mu}(\omega)
 \]
-where $\Omega \subset \RR^{d'} \times \RR^{d+1}$ is the set of considered parameter (we will see bellow that it is important to be able to restrict $u$ to belong to a compact domain).
+where $\Omega \subset \RR^{d'} \times \RR^{d+1}$ is the admissible parameter set. A uniform bound on $u$ will be essential for the approximation estimate.
 %
-An advantage of this integral representation is that it is linear in the measure $\mu$. This eliminates the need to restrict to discrete measures and allows for a general probabilistic interpretation of $\mu$.
+The representation is linear in the measure $\mu$. It therefore extends naturally from empirical measures to general probability measures $\mu$.
 
-For the sake of simplicity, we consider the 1-D ouput case, $d=1$. 
+We now restrict to scalar outputs, $d'=1$.
 %
-The core of Barron's theorem demonstrates that if the Barron norm of $f$, $\|f\|_B$, is finite, then $f$ can be represented by a measure. 
+The Fourier condition yields a bounded dictionary representation in a closure sense. This distinction matters: the assumptions do not automatically provide an exact probability measure on finite sigmoid parameters.
 
-\begin{prop}
-If $\norm{f}_B < +\infty$, there exists a probability measure $\mu$ such that:
-\[
-f(x) = \Phi(\mu)(x),
-\]
-where:
-\begin{equation}
-	\Phi(\mu)(x) := \int_\Omega \phi(x, \omega) \, \d\mu(\omega). \label{eq:existence-measure-radon}
-\end{equation}
-Furthermore, the measure $\mu$ can be restricted to a compact support on the outer weights, $\mathrm{supp}(\mu) \subset \Omega$ where
-\[
-	\Omega := [-M, M] \otimes \mathbb{R}^{d+1},
-\]
-where $M := R \|f\|_B$, and $R$ is the radius of the domain $K$ on which the approximation is performed. 
+\begin{prop}\label{prop-barron-closure}
+Let $M=2R\norm f_B$. On $K\subset B(0,R)$, the function $f-f(0)$ belongs to the closed convex hull, in $L^2(\rho)$, of the centered neurons
+\eq{\phi_\omega(x)=u\bigl(\sigma(\dotp{v}{x}+b)-\sigma(b)\bigr),\qquad
+\omega=(u,v,b),\quad |u|\leq M.}
+Every dictionary element has $L^2(\rho)$ norm at most $M$. For general measures $\mu$ on parameters, write
+\eql{\label{eq:existence-measure-radon}
+\Phi(\mu)(x)=\int\phi_\omega(x)\d\mu(\omega).
+}
+The proposition asserts membership in the closure of such averages, rather than existence of one exact average.
 \end{prop}
-
-\begin{proof}
-We only sketch the construction. Using the inverse Fourier transform and the fact that $f(x)$ is real, one has 
-\begin{align*}
-	f(x) - f(0) &= \Re \left (\int_{\RR^d}\hat{f}(\xi) (e^{\imath \dotp{\xi}{x}}- 1) \d\xi \right) 
-	= \Re \left (\int_{\RR^d}| \hat{f}( \xi) | e^{\imath \Theta (\xi)}(e^{\imath \dotp{\xi}{x}}- 1) \d\xi \right) \\
-	&= \int_{\RR^d}(\cos ( \dotp{\xi}{x} + \Theta (\xi)) - \cos (\Theta (\xi))) | \hat{f}(\xi) | \d\xi  \\
-	& = \int_{\RR^d}\frac{\norm{f}_B}{| \xi |}(\cos (\dotp{\xi}{x} + \Theta (\xi) ) - \cos (\Theta (\xi))) 
-	\frac{\norm{\xi} | \hat{f}(\xi) |}{\norm{f}_B}\d\xi = \int_{\RR^d}g_\xi(x) \d\Gamma (\xi) 
-\end{align*}
-\eq{
-	\qwhereq
-	g_\xi(x) \triangleq \frac{\norm{f}_B}{\norm{\xi} }(\cos (\dotp{\xi}{x} + \Theta (\xi)) - \cos (\Theta (\xi)))
-	\qandq
-	\d\mu(\xi) \triangleq
-	 \frac{\norm{\xi} | \hat{f}(\xi) |}{\norm{f}_B}\d\xi
-}
-%
-Note that 
-\eq{
-	|g_\xi(x)| \leq  \frac{\norm{f}_B}{\norm{\xi} } |\dotp{\xi}{x}| \leq \norm{f}_B R
-}
-so that $g_\xi$ are similar to bounded sigmoid functions.
-%
-This calculation shows that the previous decomposition \eqref{eq:mlp-int} is true but with sigmoid functions $g_\xi$  instead of functions $g_\omega$. One then proceeds by showing that the function $\cos$ can be written using translates and dilates of the function $\rho$ to obtain the thought after integral formula.
+\begin{proof}[Proof sketch]
+Fourier inversion gives
+\eq{f(x)-f(0)=\int\bigl(\cos(\dotp\xi x+\Theta(\xi))-\cos\Theta(\xi)\bigr)|\hat f(\xi)|\d\xi,}
+where $\Theta$ is the phase of $\hat f$. For $a=R\norm\xi$ and $|t|\leq a$,
+\eq{\cos(t+\Theta)-\cos\Theta
+=\int_{-a}^{a}-\sin(s+\Theta)
+\bigl(1_{t\geq s}-1_{0\geq s}\bigr)\d s.}
+The total variation of these coefficients is at most $2a$. After integration over $\xi$, it is therefore at most $2R\norm f_B=M$. Step functions are limits of dilated sigmoids; choosing thresholds away from atoms of the projected data distribution, dominated convergence gives the same closed convex hull in $L^2(\rho)$. A zero atom absorbs any unused coefficient mass. Centering the neurons accounts for an output bias when the sum is rewritten in the form~\eqref{eq:2layers-nn}.
 \end{proof}
 
+For the next argument, write $g=f-f(0)$. First suppose $g=\Phi(\mu)$ exactly for a probability measure over this bounded dictionary. The same bound extends to $g$ in its closed convex hull by approximating $g$ arbitrarily closely before sampling.
 
 %%%%
 \subsection{Probabilistic proof}
 
-A first proof used the so-called ``probabilistic method'', which relies on drawing a random neural network and showing that the probaiblity of reaching the desired $O(1/n)$ error is non zero, thus showing the existence of a network with this error bound. We thus consider $\hat \mu = \frac{1}{n}\sum_{i=1}^n \delta_{\omega_i}$, where the $(\omega_i)_i$ are now random vector, independent one from each other, and with law $\omega_i = \mu$, where $\mu$ is the measure so that $\Phi(\mu)=f$ constructed above.
-%
-Beward that now $\Phi(\hat \mu)$ is a random function, and note that 
-$$
-	\EE_{\hat \mu}(\Phi(\hat\mu))(x) = \frac{1}{n} \sum_i \mathbb{E}_{\omega_i}( \phi(x,\omega_i) )  = f(x)
-$$
-i.e. $\EE_{\hat \mu}(\Phi(\mu)) = f$. In the following, we denote $\phi_\omega(x) = \phi(x,\omega)$ for the ease of writing. We consider the average error according to the data distribution $\rho(x)$ on the $x$ variable. This corresponds to the classical error in a Monte-Carlo estimation of an integral (excepted here that the value of the integral is a function and not just a scalar as it is usually the case). In the following, we use the short-hand notation $\|\cdot\| = \|\|_{L^2(\rho)}$ and the inner product are also for $L^2(\rho)$
-$$
-	\EE_{\hat\mu} \|\Phi(\hat \mu) - f\|^2 = \EE_{\hat\mu} \|\Phi(\hat \mu)\|^2 - 2 \dotp{ \EE_{\hat\mu} \Phi(\hat \mu) }{ f } + \|f\|_{L^2}^2
-	 = \EE_{\hat\mu} \|\Phi(\hat \mu)\|^2 - \|f\|^2.
-$$
-We now compute the first expectation, using the fact that for $i \neq j$, $\omega_i$ and $\omega_j$ are indepentent 
-$$
-	\EE_{\hat\mu} \|\Phi(\hat \mu)\|^2 = \frac{1}{n^2}\sum_{i} \EE_{\omega_i} \|\phi_{\omega_i}\|^2 + \frac{1}{n^2}\sum_{i \neq j}
-		\dotp{ \EE_{\omega_i} \phi_{\omega_i} }{ \EE_{\omega_j} \phi_{\omega_j} }
-	= \frac{1}{n} \EE_{\omega} \|\phi_{\omega}\|^2  + (1-\frac{1}{n}) \|f\|^2.
-$$
-Putting all this together leads to the bound
-$$
-	\EE_{\hat\mu} \|\Phi(\hat \mu) - f\|^2 = \frac{ \EE_{\omega} \|\phi_{\omega}\|^2 - \|f\|^2}{n}
-	\leq \frac{ \EE_{\omega} \|\phi_{\omega}\|^2 }{n}
-$$
-One has $\EE_{\omega} \|\phi_{\omega}\|^2 \leq \|\phi\|_{K \times \Omega}^2 \leq C := R^2 \|f\|_B^2 \|\sigma\|_\infty^2$. 
-So this means that the probability of the event $\|\Phi(\hat \mu) - f\|^2 \leq C/n$ holds is non zero, hence the proof of the theorem. 
+Draw independent parameters $\omega_1,\ldots,\omega_n$ with law $\mu$ and set $g_n=n^{-1}\sum_i\phi_{\omega_i}$. In the Hilbert space $L^2(\rho)$, independence yields
+\eq{\EE g_n=g,\qquad
+\EE\norm{g_n-g}^2=\frac1n\left(\EE\norm{\phi_\omega}^2-\norm g^2\right)\leq\frac{M^2}{n}.}
+Consequently at least one realization has squared error at most $M^2/n$. For a target in the closed convex hull, choose an average $g_\epsilon$ with $\norm{g-g_\epsilon}\leq\epsilon$ and apply the same argument. The resulting network has error at most $M/\sqrt n+\epsilon$. Each outer coefficient has magnitude at most $M/n$, so their absolute sum is at most $M$. This proves the approximation theorem, including its coefficient bound.
 
 %%%%
 \subsection{Proof by optimization}
 
-A second proof is fully deterministic and relies on using $n$ step of an optimization algorithm (Frank-Wolfe method), for which an $O(1/n)$ convergence rate is known.
+A deterministic argument uses $n$ Frank--Wolfe steps and its $O(1/n)$ objective convergence rate.
 %
-To prove the existence of such a discrete measure achieving the desired error, we thus consider the following approximation problem over the space of probability measures $\mathcal{P}(\Omega)$:
+For the centered target $g=f-f(0)$, minimize over probability measures $\mathcal{P}(\Omega)$:
 \begin{equation}\label{eq:mlp-optim-convex}
-	\inf_{\mu \in \mathcal{P}(\Omega)} E(\mu) := \frac{1}{2} \int_K \left( \Phi(\mu)(x) - f(x) \right)^2 \, \mathrm{d}x,
+	\inf_{\mu \in \mathcal{P}(\Omega)} E(\mu) := \frac{1}{2} \int_K \left( \Phi(\mu)(x) - g(x) \right)^2 \, \mathrm{d}\rho(x),
 \end{equation}
-where $\mathrm{d}x$ is the integration measure with support on $K$. This optimization problem is infinite-dimensional. 
+where $\rho$ is the probability measure supported on $K$. This optimization problem is infinite-dimensional.
 
-The classical way to solve it is to restrict the previous optimization to discrete measure $\hat\mu = \sum_{i} \delta_{\omega_i}$ with $n$ neurons and perform gradient descent on the neuron's parameter $(\omega_i)_i$. Since the function is non-convex this might be trapped in a local minima. A recent breakthrough was recently obtained by Chizat and Bach. They made the remark that this flow is equialent to a Wasserstein gradient flow (a gradient flow for the optimal transport distance). This allows one to consider the mean field limit when $n \to +\infty$, and in this limit, provided that the initialization has a density, they showed that this flow can never be trapped in a local minimizer. This in turn ensure that, if the number of neurons $n$ is large enough, and if these are initialized at random according to some distribution with a density, then the usual gradient descent cannot be trapped in a local minimum (if it converges, it converges to the global minimizer, hence to a 0 loss). 
-%
-Note however that it is not possible to know how many neurons are needed for this conclusion to holds, so it is not known wehter it is possible to reach the $O(1/n)$ rate with a gradient descent algorithm.
+Ordinary network training instead restricts $\mu$ to an empirical measure and descends in the neuron parameters. This parameterization is nonconvex. Chizat and Bach relate suitable mean-field limits to Wasserstein gradient flows and prove global convergence under additional structural and initialization assumptions. Such results do not imply that every sufficiently wide finite network, initialized from an arbitrary density, avoids all nonglobal stationary points.
 
-To make the proof, one has to rely on another algorithm with known convergence guarantees, which relies on classical convex optimization. The advantage is that it leads to a constructive proof, but the issue is that this algorithm relies on the computatino of an oracle which is a priori not tractable (exact optimization of a single neurons). So this algorithm cannot be used in practice in high dimensions. 
-
-
-%  but it can be addressed using the Frank-Wolfe algorithm.
+The deterministic approximation argument below uses convex optimization over measures. Its linear minimization oracle is a global optimization problem over a single neuron's parameters and may itself be computationally difficult in high dimensions. Since the parameter domain need not be compact, exact oracle minimizers may fail to exist; approximate oracles or closure arguments then replace exact minimization.
 
 \paragraph{First order variations.}
 
-To derive this algorithm, we have to rely on linearization, which we detail in the general context of a Banach space (but it can in fact be done even more abstractly without a norm structure by only relying on directional derivative) and can be applied for our concern over the space of probabilty equipped with the total variation norm.
+We derive the algorithm by linearizing the objective on measures equipped with the total variation norm. The same construction applies to differentiable convex objectives on a Banach space.
 %
-In the following, to ease the description, we denote the integration as a pairing between functions and measure using an inner product notation
+We write integration as a pairing between a function and a measure:
 $$
 	\dotp{f}{\mu} := \int f(x) \mathrm{d} \mu(x).
 $$
-Let $\mu + \epsilon \rho$ be a small perturbation of $\mu$, where $\rho$ is another measure. 
+Let $\mu+\epsilon\eta$ be a small perturbation of $\mu$, where $\eta$ is a finite signed measure.
 %
-Then the first variation $\nabla E(\mu)$ is a function defined using the Frechet directional derivative rule 
+The first variation $\nabla E(\mu)$ represents the derivative through the expansion
 \[
-	E(\mu + \epsilon \rho) = E(\mu) + \epsilon \dotp{\nabla E(\mu)}{\rho} + o(\epsilon),
+	E(\mu+\epsilon\eta) = E(\mu) + \epsilon \dotp{\nabla E(\mu)}{\eta} + o(\epsilon),
 \]
-so that $\nabla E(\mu)$ is the Fréchet derivative of $E$, also called the first variation. In our case, we have:
+Thus $\nabla E(\mu)$ represents the Fréchet derivative of $E$. For the present quadratic objective,
 \[
-	E(\mu + \epsilon \rho) = \frac{1}{2} \int_K \left( \Phi(\mu)(x) - f(x) + \epsilon \phi(\rho)(x) \right)^2 \, \mathrm{d}x,
+	E(\mu+\epsilon\eta) = \frac{1}{2} \int_K \left( \Phi(\mu)(x) - g(x) + \epsilon \Phi(\eta)(x) \right)^2 \, \mathrm{d}\rho(x),
 \]
 which expands to:
 \[
-	E(\mu + \epsilon \rho) = E(\mu) + \epsilon \int_K \phi(\rho)(x) \left( \Phi(\mu)(x) - f(x) \right) \, \mathrm{d}x + O(\epsilon^2).
+	E(\mu+\epsilon\eta) = E(\mu) + \epsilon \int_K \Phi(\eta)(x) \left( \Phi(\mu)(x) - g(x) \right) \, \mathrm{d}\rho(x) + O(\epsilon^2).
 \]
 Rewriting this in terms of $\phi$, we find:
 \[
-	\nabla E(\mu)(\omega) = \int_K \phi(x, \omega) \left( \Phi(\mu)(x) - f(x) \right) \, \mathrm{d}x.
+	\nabla E(\mu)(\omega) = \int_K \phi(x, \omega) \left( \Phi(\mu)(x) - g(x) \right) \, \mathrm{d}\rho(x).
 \]
-which is a continuous function.
+It is a bounded function of $\omega$; continuity follows when the activation and parameterization are continuous.
 
 \paragraph{Frank-Wolfe algorithm.}
 
-The Frank-Wolfe algorithm seeks to minimize a function on a convex sub-set of a Banach space, 
+Frank--Wolfe minimizes a differentiable convex function over a convex subset of a Banach space:
 $$
 	\min_{\mu \in \mathcal{C}} E(\mu).
 $$
-It operates by successive linearization of the objective function $E(\mu)$. %
+Each step linearizes the objective $E(\mu)$. %
 %
-It initializes $\mu_0$ arbitrarily (e.g., as a Dirac measure). At each iteration $k$, for a step size $\tau_k$, the measure is updated as:
+Choose an initial measure $\mu_0$, for example a Dirac mass. At iteration $k$, update with step size $\tau_k$:
 \[
 	\mu_{k+1} = (1 - \tau_k) \mu_k + \tau_k \nu_k^*,
 \]
-where $\nu_k^*$ is a measure minimizing the linearized functional:
+where $\nu_k^*$ minimizes the linearized objective:
 \[
 	\nu_k^* \in \arg\min_{\nu \in \mathcal{P}(\Omega)} \dotp{\nabla E(\mu_k)}{\nu}
 \]
 
-We call this computation of $\nu_k$ an ``oracle'' since a priori it is not always simple to obtain. In finite dimension, if the measure are on a grid, this can be carried over, but as we will see, in the general setting, it requires the resolution of a non-convex optimization over the space $\Omega$ of (single) neurons.
+This linear minimization step is called an oracle. On a finite parameter grid it amounts to comparing finitely many values. Over a continuous neuron parameter space $\Omega$, it is generally a nonconvex optimization problem.
 %
-In our specific case, $\mathcal{C} = \mathcal{P}(\Omega)$ is endowed with the total variation norm $\|\mu\|_{\mathrm{TV}} = |\mu|(\Omega)$ (it is the extension to measure of the $L^1$ norm of functions). 
+Here $\mathcal{C} = \mathcal{P}(\Omega)$ carries the total variation norm $\|\mu\|_{\mathrm{TV}} = |\mu|(\Omega)$, the measure analogue of the $L^1$ norm.
 %
-In this special case, a key property of the algorithm is that the solution \(\nu_k^*\) can always be taken as a Dirac measure since, denoting $g_k := \nabla E(\mu_k)$, 
+In this special case, a key property of the algorithm is that the solution \(\nu_k^*\) can be taken as a Dirac measure when the minimum over $\Omega$ is attained since, denoting $g_k := \nabla E(\mu_k)$,
 \[
 \nu_k^* = \delta_{\omega_k^*}, \quad \text{where } \omega_k^* \in \arg\min_{\omega \in \Omega} g_k(\omega).
 \]
@@ -397,14 +316,14 @@ and equality is achieved when \(\nu = \delta_{\omega_k^*}\). Therefore, if \(\mu
 
 \paragraph{Convergence Rate}
 
-The following theorem establishes the convergence rate of the Frank-Wolfe algorithm.
+The next theorem gives the Frank--Wolfe convergence rate.
 %
-In our case, $\|\cdot\|=\|\cdot\|_{\mathrm{TV}}$ is the total variation norm of measure, and the dual norm $\|\cdot\|_*=\|\cdot\|_{\infty}$ is the $L^\infty$ norm on function.
+In our case, $\|\cdot\|=\|\cdot\|_{\mathrm{TV}}$ is the total variation norm of measures. Bounded functions paired with these measures carry the supremum norm $\|\cdot\|_{\infty}$. Throughout this argument, $L^\infty$ denotes the pointwise supremum norm, so values at atoms are retained.
 %
-We first recall that a function with a Lipschitz gradient has a quadratic upper bound. 
+We first establish the quadratic upper bound implied by a Lipschitz gradient.
 
 \begin{lem}\label{lem:quad-upper}
-Let $E: \mathcal{C} \to \mathbb{R}$ be a differentiable function with $L$-Lipschitz gradient with respect to the norm $\|\cdot\|$. That is, for all $\mu, \nu \in \mathcal{C}$:
+Let $\mathcal C$ be convex, and let $E: \mathcal{C} \to \mathbb{R}$ be differentiable with $L$-Lipschitz gradient with respect to the norm $\|\cdot\|$. That is, for all $\mu, \nu \in \mathcal{C}$,
 \[
 \|\nabla E(\mu) - \nabla E(\nu)\|_* \leq L \|\nu - \mu\|,
 \]
@@ -444,128 +363,57 @@ E(\nu) \leq E(\mu) + \langle \nabla E(\mu), \nu - \mu \rangle + \frac{L}{2} \|\n
 
 
 \begin{thm}
-Let \(E\) be convex and assume that \(\nabla E(\mu)\) is \(L\)-Lipschitz, i.e.,
-\[
-	\|\nabla E(\mu) - \nabla E(\mu')\|_* \leq L \|\mu - \mu'\|.
-\]
-For the step size \(\tau_k = \frac{2}{k+2}\), the F-W to optimize $F$ on a set of radius 
-$$
-	r := \sup_{\mu,\mu' \in \mathcal{C}^2} \|\mu-\mu'\|
-$$ 
-satisfies, denoting $E^* := \inf_{\mu \in \mathcal{C}} E(\mu)$, 
-\[
-	E(\mu_k) - E^*\leq \frac{2 L r^2}{k+1},
-\]
+Let $\Cc$ be a bounded convex set of diameter
+$D=\sup_{\mu,\nu\in\Cc}\norm{\mu-\nu}$, and let $E$ be convex with $L$-Lipschitz derivative in the corresponding dual norm. Assume the linear minimization oracle is attained. With steps $\tau_k=2/(k+2)$ for $k\geq0$, the Frank--Wolfe iterates satisfy, for $k\geq1$,
+\eq{E(\mu_k)-E^*\leq\frac{2LD^2}{k+2},\qquad E^*=\inf_{\mu\in\Cc}E(\mu).}
 \end{thm}
-
 \begin{proof}
-Using the $L$-Lipschitz gradient property with respect to a Banach norm $\|\cdot\|$, using Lemma~\ref{lem:quad-upper},  we have the following quadratic upper bound:
-\[
-E(\nu) \leq E(\mu) + \langle \nabla E(\mu), \nu - \mu \rangle + \frac{L}{2} \|\nu - \mu\|^2, \quad \forall \mu, \nu \in \mathcal{C}.
-\]
-
-\paragraph{One-Step Improvement}
-The Frank-Wolfe update is:
-\[
-\mu_{k+1} = \mu_k + \tau_k (\nu_k - \mu_k),
-\]
-where $\tau_k = \frac{2}{k+1}$ and $\nu_k = \arg\min_{\nu \in \mathcal{C}} \langle \nabla E(\mu_k), \nu \rangle$. By smoothness of $F$, we have:
-\[
-E(\mu_{k+1}) \leq E(\mu_k) + \tau_k \langle \nabla E(\mu_k), \nu_k - \mu_k \rangle + \frac{L}{2} \tau_k^2 \|\nu_k - \mu_k\|_{\mathrm{TV}}^2.
-\]
-Furthermore, the boundedness of $\mathcal{C}$ ensures $\|\nu_k - \mu_k\| \leq r$. Substituting, we get:
-\[
-	E(\mu_{k+1}) \leq E(\mu_k) + \tau_k g_k  + \frac{L}{2} \tau_k^2 r^2, 
-\]
-where $g_k := \langle \nabla E(\mu_k), \nu_k - \mu_k \rangle$
-Defining $h_k = E(\mu_k) - E^*$ as the suboptimality at iteration $k$, we have:
-\begin{equation}\label{eq:proof-fw-step1}
-	h_{k+1} \leq h_k - \tau_k g_k + \frac{L}{2} \tau_k^2 r^2.
-\end{equation}
-We now bound $g_k$, using the optimality of $\nu_k$
-$$
-	g_k := \langle \nabla E(\mu_k), \nu_k - \mu_k \rangle = \min_{\nu \in \mathcal{C}} \dotp{\nabla E(\mu_k)}{\nu - \mu_k}
-$$  
-and by convexity, 
-$$
-	E(\nu_k) \geq E(\mu_k) + \dotp{ \nabla E(\mu_k) }{\nu_k-\mu_k}
-$$
-so that $\dotp{\nabla E(\mu_k)}{\nu - \mu_k} \leq E(\nu) - E(\mu_k)$ so 
-$$
-	g_k \leq \min_{\nu \in \mathcal{C}} E(\nu) - E(\mu_k) = E^* - E(\mu_k) = -h_k.
-$$
-Plugging this into \eqref{eq:proof-fw-step1}, we obtained the fundamental descent property
-$$
-	h_{k+1} \leq h_k - \tau_k h_k + \frac{L}{2} \tau_k^2 r^2.
-$$
-
-Substituting $\tau_k = \frac{2}{k+1}$:
-\[
-h_{k+1} \leq h_k \left( 1 - \frac{2}{k+1} \right) + \frac{2 L r^2}{(k+1)^2}.
-\]
-
-\paragraph{Recursion Argument}
-Assume the inductive hypothesis:
-\[
-h_k \leq \frac{2 L r^2}{k+1}.
-\]
-We will prove that:
-\[
-h_{k+1} \leq \frac{2 L r^2}{k+2}.
-\]
-Using the inductive hypothesis in the recursive relation for $h_{k+1}$:
-\[
-h_{k+1} \leq \frac{2 L r^2}{k+1} \left( 1 - \frac{2}{k+1} \right) + \frac{2 L r^2}{(k+1)^2}.
-\]
-Simplify the coefficient:
-\[
-\frac{2 L r^2}{k+1} \left( 1 - \frac{2}{k+1} \right) = \frac{2 L r^2}{k+1} \cdot \frac{k-1}{k+1}.
-\]
-Substitute back:
-\[
-h_{k+1} \leq \frac{2 L r^2 (k-1)}{(k+1)^2} + \frac{2 L r^2}{(k+1)^2}.
-\]
-Combine terms:
-\[
-h_{k+1} \leq \frac{2 L r^2 \left( (k-1) + 1 \right)}{(k+1)^2} = \frac{2 L r^2}{k+2}.
-\]
+Write $h_k=E(\mu_k)-E^*$ and
+$g_k=\min_{\nu\in\Cc}\dotp{\nabla E(\mu_k)}{\nu-\mu_k}$. Convexity implies $g_k\leq-h_k$. Lemma~\ref{lem:quad-upper} therefore gives
+\eql{\label{eq:proof-fw-step1}
+h_{k+1}\leq h_k+\tau_kg_k+\frac L2\tau_k^2D^2
+\leq(1-\tau_k)h_k+\frac L2\tau_k^2D^2.
+}
+Since $\tau_0=1$, $h_1\leq LD^2/2\leq2LD^2/3$, establishing the base case. If $h_k\leq2LD^2/(k+2)$, then
+\eq{h_{k+1}\leq\frac{2LD^2(k+1)}{(k+2)^2}\leq\frac{2LD^2}{k+3},}
+because $(k+1)(k+3)\leq(k+2)^2$. This proves the claim by induction.
 \end{proof}
 
-In the case of MLP training, where $E$ is defined in~\eqref{eq:mlp-optim-convex}, the proposition bellow shows that $L \leq M^2 \|\sigma\|_\infty^2$, where $M = R \|f\|_B$, and we have $r=2$ (radius of the space of probability for TV). Recall that$\|f\|_B$ is the Barron norm of the target function $f$. 
+For the objective $E$ in~\eqref{eq:mlp-optim-convex}, the proposition below gives $L\leq M^2$ with $M=2R\|f\|_B$. The total variation diameter of probability measures is $D=2$, and $\|f\|_B$ denotes the Barron seminorm of the target $f$.
 %
-Furthermore, we know that $E(\mu^*) = 0$, as the existence of a valid representative measure was established in Equation \eqref{eq:existence-measure-radon}. 
+For the centered target $g=f-f(0)$, Proposition~\ref{prop-barron-closure} gives $\inf E=0$, even if the infimum is not attained by a measure on finite sigmoid parameters. The rate therefore concerns approximation of $g$.
 %
-By applying the Frank-Wolfe algorithm, we deduce the existence of a discrete measure $\mu_k$ consisting of at most $k+1$ Dirac masses. This discrete measure achieves an approximation error:
+When the linear oracle attains its minimum, Frank--Wolfe constructs a measure $\mu_k$ supported on at most $k+1$ points, with objective error
 \[
 E(\mu_k) = O\left(\frac{1}{k}\right).
 \]
-Thus, the Frank-Wolfe algorithm constructs a sparse representation of the target function with a provably decreasing error bound as the number of iterations $k$ increases.
+Thus each iteration adds at most one neuron and gives an $O(k^{-1/2})$ bound on the $L^2$ error. If the oracle is not attained, choosing an $O(1/k)$-accurate linear oracle adds an $O(1/k^2)$ term to the descent recurrence and preserves this order of approximation.
 
 \begin{prop}
-The first variation \(\nabla E(\mu)\) of the functional \(E(\mu)\) defined in \eqref{eq:mlp-optim-convex}, which is 
+The first variation of the objective in~\eqref{eq:mlp-optim-convex} is
 \[
-	\nabla E(\mu)(\omega) = \int_K \phi(x, \omega) \left( \Phi(\mu)(x) - f(x) \right) \, \mathrm{d}x,
+	\nabla E(\mu)(\omega) = \int_K \phi(x, \omega) \left( \Phi(\mu)(x) - g(x) \right) \, \mathrm{d}\rho(x),
 \]
-where \(\Phi(\mu)(x) = \int_\Omega \phi(x, \omega) \, \d\mu(\omega)\) and \(\phi(x, \omega) = a \sigma(\langle w, x \rangle + b)\), is \(L\)-Lipschitz with respect to the total variation norm. Specifically, for any \(\mu, \mu' \in \mathcal{P}(\Omega)\):
+where \(\Phi(\mu)(x) = \int_\Omega \phi(x, \omega) \, \d\mu(\omega)\) and \(\phi(x,\omega)=u\bigl(\sigma(\langle v,x\rangle+b)-\sigma(b)\bigr)\) with $|u|\leq M$. This first variation is $L$-Lipschitz from the total variation norm to the supremum norm: for any \(\mu, \mu' \in \mathcal{P}(\Omega)\),
 \[
 	\|\nabla E(\mu) - \nabla E(\mu')\|_\infty \leq L \|\mu - \mu'\|_{\text{TV}},
 \]
-where \(L = \|\sigma\|_\infty^2 M^2\).
+where \(L=M^2\).
 \end{prop}
 
 \begin{proof}
 The difference of \(\nabla E(\mu)\) and \(\nabla E(\mu')\) is:
 \[
-\nabla E(\mu)(\omega) - \nabla E(\mu')(\omega) = \int_K \phi(x, \omega) \left( \Phi(\mu)(x) - \phi(\mu')(x) \right) \, \mathrm{d}x.
+\nabla E(\mu)(\omega) - \nabla E(\mu')(\omega) = \int_K \phi(x, \omega) \left( \Phi(\mu)(x) - \Phi(\mu')(x) \right) \, \mathrm{d}\rho(x).
 \]
 \[
-\Phi(\mu)(x) - \phi(\mu')(x) = \int_\Omega \phi(x, \omega) \, \d(\mu - \mu')(\omega).
+\Phi(\mu)(x) - \Phi(\mu')(x) = \int_\Omega \phi(x, \omega) \, \d(\mu - \mu')(\omega).
 \]
 Substitute the above into the expression for \(\nabla E(\mu)\):
 \[
-\nabla E(\mu)(\omega) - \nabla E(\mu')(\omega) = \int_K \phi(x, \omega) \left( \int_\Omega \phi(x, \omega') \, \d(\mu - \mu')(\omega') \right) \, \mathrm{d}x.
+\nabla E(\mu)(\omega) - \nabla E(\mu')(\omega) = \int_K \phi(x, \omega) \left( \int_\Omega \phi(x, \omega') \, \d(\mu - \mu')(\omega') \right) \, \mathrm{d}\rho(x).
 \]
-Using Fubini's theorem, introducing $k(\omega,\omega') := \int_K \phi(x, \omega) \phi(x, \omega') \, \mathrm{d}x$, 
+Using Fubini's theorem, introducing $k(\omega,\omega') := \int_K \phi(x, \omega) \phi(x, \omega') \, \mathrm{d}\rho(x)$,
 \[
 \nabla E(\mu)(\omega) - \nabla E(\mu')(\omega) = \int_\Omega k(\omega,\omega') \d(\mu - \mu')(\omega').
 \]
@@ -575,11 +423,11 @@ Take the \(L^\infty\) norm with respect to \(\omega\):
 \]
 Using the triangle inequality:
 \[
-\|\nabla E(\mu) - \nabla E(\mu')\|_\infty \leq \|k\|_{L^\infty(K \times K)} \|\mu - \mu'\|_{\mathrm{TV}}.
+\|\nabla E(\mu) - \nabla E(\mu')\|_\infty \leq \|k\|_{L^\infty(\Omega\times\Omega)} \|\mu - \mu'\|_{\mathrm{TV}}.
 \]
 One has 
 $$
-	\|k\|_{L^\infty(K \times K)} = \sup_{(\omega,\omega') \in \Omega^2} |\int_K \phi(x, \omega) \phi(x, \omega')  \mathrm{d}x|
-	\leq \|\phi\|^2_{L^\infty(K \times \Omega)} \leq M^2 \|\sigma\|_\infty^2. 
+	\|k\|_{L^\infty(\Omega\times\Omega)} = \sup_{(\omega,\omega') \in \Omega^2} |\int_K \phi(x, \omega) \phi(x, \omega')  \mathrm{d}\rho(x)|
+	\leq \|\phi\|^2_{L^\infty(K \times \Omega)} \leq M^2.
 $$
 \end{proof}

@@ -1,16 +1,21 @@
 % !TEX root = ../FundationsDataScience.tex
 
-\chapter{Non-smooth Convex Optimization}
+\chapter{Nonsmooth Convex Optimization}
 \label{chap-conv-duality}
 
-The main references for this chapter are~\cite{chambolle2010introduction,chambolle2016introduction,boyd2004convex}, see also~\cite{parikh2014proximal,boyd2011distributed,beck2014introduction}. 
+\chapteroverview{%
+Many recovery and learning problems combine smooth losses with constraints or penalties that are not differentiable.
+Solving them efficiently requires understanding both the cost of an iteration and the conditions for convergence.
+We begin with subgradient, projection, and barrier methods, then develop proximal maps and splitting algorithms, including ADMM and primal--dual schemes.}
+
+The main references for this chapter are~\cite{chambolle2010introduction,chambolle2016introduction,boyd2004convex}. Further background is provided in~\cite{parikh2014proximal,boyd2011distributed,beck2014introduction}.
 
 We consider a general convex optimization problem
-\eql{\label{eq-general-pbm} 
+\eql{\label{eq-nonsmooth-general-pbm}
 	\umin{x \in \Hh} f(x)
 }
-where $\Hh=\RR^p$ is a finite dimensional Hilbertian (i.e. Euclidean) space, 
-and try to devise ``cheap'' algorithms with a low computational cost per iterations. The class of algorithms considered are first order, i.e. they make use of gradient information. 
+where $\Hh=\RR^p$ is a finite-dimensional Euclidean space,
+and seek algorithms with a low cost per iteration. The first-order methods below use gradients, subgradients, or proximal maps. Unless stated otherwise, functions are proper, lower semicontinuous, and convex, and a minimizer is assumed to exist.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -19,71 +24,74 @@ and try to devise ``cheap'' algorithms with a low computational cost per iterati
 \section{Descent Methods}
 \label{sec-grad-descent}
 
-The gradient descent method is covered in detailed in Section~\ref{sec-grad-desc-basic}. We explain here how to extend it to non-smooth and constrained problems.  
+We extend the gradient method of Section~\ref{sec-grad-desc-basic} to nonsmooth objectives and constraints.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Gradient Descent}
 
-The optimization program~\eqref{eq-ip-tv-eps} is an example of unconstrained convex optimization of the form~\eqref{eq-general-pbm} where $f : \Hh \rightarrow \RR$ is a $\Cc^1$ function with Lipschitz gradient (so-called ``smooth'' function). Recall that the gradient $\nabla f : \Hh \mapsto \Hh$ of this functional (not to be confound with the discretized gradient $\nabla x \in \Hh$ of $f$) is defined by the following first order relation
+The optimization problem~\eqref{eq-ip-tv-eps} is an unconstrained problem of the form~\eqref{eq-nonsmooth-general-pbm} with a smooth objective: $f : \Hh \rightarrow \RR$ is continuously differentiable with Lipschitz gradient. Here $\nabla f(x)\in\Hh$ is the gradient of the objective with respect to its variable $x$. It is distinct from the spatial gradient $\nabla x$ of a signal or image, which is a vector field. The functional gradient satisfies the first-order expansion
 \eq{
-	f(x+r) = f(x) + \dotp{f}{r}_{\Hh} + O(\norm{r}_{\Hh}^2)
+	f(x+r) = f(x) + \dotp{\nabla f(x)}{r}_{\Hh} + O(\norm{r}_{\Hh}^2)
 }
-where we used $O(\norm{r}_{\Hh}^2)$ in place of $o(\norm{r}_{\Hh})$ (for differentiable function) because we assume here $f$ is of class $\Cc^1$ (i.e. the gradient is continuous). Section~\ref{eq-example-grad} shows typical examples of gradient computation.
+The Lipschitz-gradient assumption gives the quadratic remainder $O(\norm{r}_{\Hh}^2)$; differentiability alone gives $o(\norm{r}_{\Hh})$. Examples of gradient computations appear in Section~\ref{eq-example-grad}.
 
 For such a function, the gradient descent algorithm is defined as
-\eql{\label{eq-grad-desc}
-	\iit{x} \eqdef \it{x} - \tau_\ell \nabla f( \it{x} ), 
+\eql{\label{eq-nonsmooth-grad-desc}
+	\iit{x} \eqdef \it{x} - \tau_\ell \nabla f( \it{x} ).
 }
-where the step size $\tau_\ell>0$ should be small enough to guarantee convergence, but large enough for this algorithm to be fast.
+The step size $\tau_\ell>0$ balances stability against progress per iteration.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Sub-gradient Descent}
+\subsection{Subgradient Method}
 
-The gradient descent~\eqref{eq-grad-desc} cannot be applied on a non-smooth function $f$. One can use in place of a gradient a sub-gradient, which defines the sub-gradient descent
+For a nonsmooth objective $f$, replace the gradient in~\eqref{eq-nonsmooth-grad-desc} by a subgradient:
 \eql{\label{eq-subgrad-desc}
 	\iit{x} \eqdef \it{x} - \tau_\ell \it{g}
 	\qwhereq
 	\it{g} \in \partial f( \it{x} ).
 }
-The main issue with this scheme is that to ensure convergence, the iterate should go to zero. One can easily convince oneself why by looking at the iterates on a function $f(x)=|x|$. This means that in practice this method is very slow, and should be avoided if the functions has some structure that can be used (as it will be explained in the remaining part of the chapter).
+A subgradient step need not decrease the objective. Convergence generally requires diminishing step sizes, as the example $f(x)=|x|$ illustrates. This can make the method slow. When the objective admits a useful decomposition, the proximal methods developed below can exploit it more effectively.
 
 \begin{thm}
-	If $\sum_{\ell} \tau_\ell=+\infty$ and $\sum_{\ell} \tau_\ell^2 < +\infty$, then $\it{x}$ converges to a minimizer of $f$. For $\tau_\ell=1/\ell$, one has $f(\it{x})-\min f = O(1/\sqrt{\ell})$.
+Assume $f$ is convex, a minimizer $x^\star$ exists, and the chosen subgradients satisfy $\norm{g^\ell}\leq G$. If $\sum_\ell\tau_\ell=+\infty$ and $\sum_\ell\tau_\ell^2<+\infty$, then the iterates converge to a minimizer. More generally,
+\eq{\min_{0\leq\ell<N}\{f(x^\ell)-f(x^\star)\}
+\leq\frac{\norm{x^0-x^\star}^2+G^2\sum_{\ell<N}\tau_\ell^2}{2\sum_{\ell<N}\tau_\ell}.}
+For a prescribed horizon $N$ and positive bounds $D,G$, the constant step $\tau_\ell=D/(G\sqrt N)$ gives a bound $DG/\sqrt N$ when $\norm{x^0-x^\star}\leq D$. A step $1/(\ell+1)$ satisfies the convergence conditions but does not, by itself, give an $O(N^{-1/2})$ bound.
 \end{thm}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Projected Gradient Descent}
 \label{sec-proj-grad}
 
-We consider a generic constraint optimization problem as
+We consider a constrained optimization problem
 \eql{\label{eq-constr}
 	\umin{x \in \Cc} f(x) 
 } 
-where $\Cc \subset \RR^S$ is a closed convex set and $f : \RR^S \rightarrow \RR$ is a smooth convex function (at least of class $\Cc^1$). 
+where $\Cc \subset \RR^S$ is a nonempty closed convex set and $f : \RR^S \rightarrow \RR$ is convex and continuously differentiable. The convergence theorem below additionally assumes a Lipschitz gradient.
 
-The gradient descent algorithm~\eqref{eq-grad-desc} is generalized to solve a constrained problem using the projected gradient descent 
+To impose the constraint, follow the gradient step~\eqref{eq-nonsmooth-grad-desc} by projection:
 \eql{\label{eq-proj-grad-desc}
-	\iit{x} \eqdef \Proj_\Cc \pa{ \it{x} - \tau_\ell \nabla f( \it{x} ) }, 
+	\iit{x} \eqdef \Proj_\Cc \pa{ \it{x} - \tau_\ell \nabla f( \it{x} ) }.
 }
-where $\Proj_\Cc$ is the orthogonal projector on $\Cc$
+Here $\Proj_\Cc$ is the orthogonal projection onto $\Cc$, defined by
 \eq{
 	\Proj_\Cc(x) = \uargmin{x' \in \Cc} \norm{x-x'}
 }
-which is always uniquely defined because $\Cc$ is closed and convex.
+The projection is unique because $\Cc$ is nonempty, closed, and convex.
 %
-The following proposition shows that all the convergence properties of the classical gradient descent caries over to this projected algorithm.
+Projected gradient retains analogous convergence guarantees under the following assumptions.
 
 \begin{thm}\label{thm-proj-grad}
-	Theorems~\ref{thm-gradsec-strong-conv} and~\ref{thm-gradsec-non-strong-conv} still holds when replacing iterations~\eqref{eq-grad-desc} by~\eqref{eq-proj-grad-desc}.
+Assume $f$ is convex with $L$-Lipschitz gradient, $\Cc$ is nonempty, closed, and convex, and a constrained minimizer exists. For a fixed $0<\tau<2/L$, projected gradient descent converges to a constrained minimizer. If $0<\tau\leq1/L$, then for $\ell\geq1$,
+\eq{f(x^\ell)-f(x^\star)\leq\frac{\norm{x^0-x^\star}^2}{2\tau\ell}.}
+If $f$ is $\mu$-strongly convex, the iterates converge linearly.
 \end{thm}
-
 \begin{proof}
-	The proof of Theorem~\ref{thm-gradsec-strong-conv} extends because the projector is contractant, 
-	$\norm{\Proj_\Cc(x)-\Proj_\Cc(x')} \leq \norm{x-x'}$ so that the strict contraction properties of the gradient descent is maintained by this projection.   
+This is the special case $g=\iota_\Cc$ of Theorem~\ref{thm-fb-conv}. In the strongly convex case, the gradient step is a contraction for the admissible fixed step sizes, and composition with the nonexpansive projector preserves that property.
 \end{proof}
 
-The main bottleneck that often prevents to use~\eqref{eq-proj-grad-desc} is that the projector is often complicated to compute. We are however lucky since for $\ell^1$ mininization, one can apply in a straightforward manner this method. 
+The main practical difficulty in~\eqref{eq-proj-grad-desc} is evaluating the projection. For several sets arising in $\ell^1$ minimization, it can be computed efficiently.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -91,7 +99,7 @@ The main bottleneck that often prevents to use~\eqref{eq-proj-grad-desc} is that
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Interior Point Methods}
 
-We give here an informal description of a class of schemes which converge extremely fast in term of number of iterations, but where each iteration can be very costly. These methods are extensions of the Newton method for unconstrained minimization, but can deal with a specific class of non-smoothness which can be encoded using some specific type of constraints (such as for instance positivity of vector or matrices).
+We briefly describe interior-point methods, which often require relatively few but expensive iterations. They extend Newton-type methods to problems whose constraints have a suitable barrier representation, such as nonnegativity of vectors or positive definiteness of matrices.
 
 
 To illustrate the main idea, we consider the following problem
@@ -100,98 +108,91 @@ To illustrate the main idea, we consider the following problem
 }
 for $A \in \RR^{m \times d}$.
 %
-This can be generalized for instance by replacing $A x$ by a matrix and $\leq$ by PSD matrix inequalities. 
+Related formulations replace the vector $A x$ by a matrix and the componentwise inequality $\leq$ by a positive-semidefinite constraint.
 
 \begin{exmp}[Lasso]
 	The Lasso problem (applied to the regression problem $Bw \approx b$ for $B \in \RR^{n \times p}$)
 	\eql{\label{eq-lasso-primal}
 		\umin{w \in \RR^p} \frac{1}{2}\norm{Bw-b}^2 + \la \norm{w}_1
 	} 
-	can be re-casted as~\eqref{eq-ip-type} by introducing the positive/negative decomposition 
+	with $\la>0$ can be recast as~\eqref{eq-ip-type} by introducing nonnegative variables
 	$x=(x_-,x_+) \in \RR^{2p}$ (so that $d=2p$)  and $w = x_+ - x_-$ with $(x_+,x_-) \geq 0$, so that 
-	$f(x) = \frac{1}{2}\norm{B(x_+-x_-)-b}^2 + \la \dotp{x}{\ones}$ and $A=-\Id_{2p}$ (so that $m=2p$).
+	$f(x) = \frac{1}{2}\norm{B(x_+-x_-)-b}^2 + \la \dotp{x}{\ones}$, $A=-\Id_{2p}$, and $y=0$ (so that $m=2p$).
 \end{exmp}
 
 \begin{exmp}[Dual of the Lasso]
-	One can also solve the dual problem to~\eqref{eq-lasso-primal}
+	Alternatively, solve the dual of~\eqref{eq-lasso-primal}:
 	\eql{
-		\umin{\norm{B^\top q}_\infty \leq 1} f(q) = \frac{\la}{2}\norm{q}^2 - \dotp{q}{y}
+		\umin{\norm{B^\top q}_\infty \leq 1} f(q)=\frac{\la}{2}\norm{q}^2-\dotp{q}{b}
 	} 
-	so that one can use $A=\begin{pmatrix} B^\top \\-B^\top \end{pmatrix}$ and $b = \ones_{2p}$ (so that $d=n$ and $m=2p$).
+	so that one can use $A=\begin{pmatrix} B^\top \\-B^\top \end{pmatrix}$ and the constraint right-hand side is $\ones_{2p}$ (so that $d=n$ and $m=2p$).
 \end{exmp}
 
-The main idea of interior point methods is to approximate~\eqref{eq-ip-type} using a logarithmic barrier function
+Interior-point methods approximate~\eqref{eq-ip-type} by introducing a logarithmic barrier:
 \eql{\label{eq-ip-relaxed}
-	\umin{x\in \RR^p, } f_t(x) \eqdef f(x) - \frac{1}{t} \text{Log}( y-A x  )
+	\umin{x\in\RR^d,\ Ax<y} f_t(x) \eqdef f(x) - \frac{1}{t} \text{Log}( y-A x  )
 }
 where 
 \eq{
 	\text{Log}(u) \eqdef \sum_i \log(u_i)
 }
-so that -Log is a strictly concave function which acts as a barrier for positivity. 
+The function $-\mathrm{Log}$ is strictly convex and diverges at the boundary of the positive orthant.
 %
-On recovers the initial problem in the limit, i.e. in some sense $f + \iota_{A \cdot \leq y} = f_\infty$. 
+Assuming strict feasibility and existence of central-path minimizers $x(t)$, the objective values $f(x(t))$ approach the original optimal value as $t\to+\infty$.
 
-For a fixed $t$, one can solve~\eqref{eq-ip-relaxed} using a Newton method with some line search procedure (the simplest being Armijo backtracking~\eqref{eq-armijo-rule}) to select the step size $0<\tau_\ell\leq 1$
+For a fixed $t$, assume $f_t$ is twice continuously differentiable with positive definite Hessian along the iterates. Apply Newton's method to~\eqref{eq-ip-relaxed}, using a line search such as Armijo backtracking~\eqref{eq-armijo-rule} to choose $0<\tau_\ell\leq1$ while maintaining $A\it{x}<y$:
 \eql{\label{eq-ip-newton}
 	\iit{x} \eqdef \it{x} - \tau_\ell [ \partial^2 f_t(\it{x})]^{-1} \nabla f_t(\it{x})
 }
-where here
+The gradient and Hessian are
 \eq{
 	\nabla f_t(x) = \nabla f(x) + \frac{1}{t} A^\top \frac{1}{y-Ax}
 	\qandq
 	\partial^2 f_t(x) = \partial^2 f(x) + \frac{1}{t} A^\top \diag\pa{\frac{1}{(y-Ax)^2}} A.
 }
-The natural stopping criterion for this descent step is 
+A natural stopping criterion for the inner Newton iterations is
 \eq{
-	\dotp{[ \partial^2 f_t(x)]^{-1} \nabla f_t(\it{x})}{\nabla f_t(\it{x})} < \frac{\epsilon}{2}.
+	\dotp{[ \partial^2 f_t(\it{x})]^{-1} \nabla f_t(\it{x})}{\nabla f_t(\it{x})} < \frac{\epsilon}{2}.
 }
 % which ensures that.
 
 
-The interior point barrier method proceed by $f_t$ using~\eqref{eq-ip-newton} (defining an approximated ``central'' path $t \mapsto x(t)$) for a series of increasing step sizes $t=t_k=\mu^k t_0$ for some $\mu > 1$.
+The barrier method approximately minimizes $f_t$ through~\eqref{eq-ip-newton}, tracing the central path $t \mapsto x(t)$ for increasing parameters $t=t_k=\mu^k t_0$ with $\mu > 1$.
 %
-The crucial point here is to use a ``warm restart'' strategy: in order to solve for $x(t_{k})$, one should initialize the Newton steps~\eqref{eq-ip-newton} using $x(t_{k-1})$. This is what makes interior point methods efficient.   
+A warm start makes this continuation strategy efficient: initialize the Newton iterations~\eqref{eq-ip-newton} for $x(t_k)$ at the preceding solution $x(t_{k-1})$.
 %
-Thanks to the use of a logarithmic barrier, one can show the upper bound $f(x(t_k))-f(x^\star) \leq m/t_k$ ($m$ being the number of scalar constraints), so that in order to a final error of $\epsilon$, one needs to use $k=0, \ldots, K$ such that 
+Along the central path, the logarithmic barrier gives $f(x(t_k))-f(x^\star) \leq m/t_k$, where $m$ is the number of scalar constraints. To reach error $\epsilon$, take $k=0, \ldots, K$ with
 \eq{
 	\frac{m}{t_{K}} = \frac{m}{t_0 \mu^{K}} \leq \epsilon.
 }
-This shows that only $O(|\log(\epsilon)|)$ steps are necessary to reach $\epsilon$ precision. The important question to bound the complexity of the method is thus to bound the number of Newton steps~\eqref{eq-ip-newton}. This requires additional hypotheses on $f$.
+Thus $O(|\log(\epsilon)|)$ barrier-parameter updates suffice for accuracy $\epsilon$. The total cost also depends on the number of inner Newton iterations~\eqref{eq-ip-newton}, whose control requires further assumptions on $f$.
 
 
-If the function $f$ has a so-called self-concordance property, namely that for any $(x,y)$, $\phi(s) \eqdef f(s x + (1-s)y)$ satisfies
-\eq{
-	|\phi'''(s)| \leq 2 \phi''(s)^{3/2}, 
-}
-one can then that only a constant number of Newton steps are required per iterations (note that $-\log$ being self-concordant, $f_t$ is also self-concordant) when using the warm-restart initialization to computes the succession of $x(t_k)$. 
-%
-This result might looks surprising, but is possible because of the combination of the warm restart strategy with the self-concordance property of $f_t$: although problems become more and more difficult ($f_t$ is becoming less regular) as $t$ increases, the number of iterations of Newton stays constant.
-%
-This fundamental result supports the claim that interior point methods solve linear programs (and more general types of problems including SDP problems) in polynomial times (where polynomial refers to polynomial in $\log(\epsilon)$).
-
+The relevant complexity theory uses self-concordant barriers. A convex function $\phi$ on a line is self-concordant when
+\eq{|\phi^{(3)}(s)|\leq2\phi''(s)^{3/2}.}
+The logarithmic barrier has this property. For a linear objective, the appropriately scaled objective $t f-\mathrm{Log}(y-Ax)$ is self-concordant; arbitrary positive rescaling does not preserve the same self-concordance constant. With a suitable path-following neighborhood and barrier-parameter schedule, the number of Newton steps can be bounded polynomially in the problem parameters and logarithmically in $1/\epsilon$. The bound depends on the barrier parameter (equal to $m$ for this logarithmic barrier), not only on the requested accuracy. A fixed number of Newton steps per outer iteration cannot be asserted for an arbitrary update factor $\mu>1$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Proximal Algorithm}
 
-For non-smooth functions $f$, it is not possible to perform an ``explicit'' gradient descent step because the gradient is not even defined. One thus needs to replace this ``explicit''  step by an ``implicit'' one, which is possible even if $f$ is non-smooth.
+For a nonsmooth objective $f$, an explicit gradient step may be undefined. An implicit step remains available even when $f$ is nonsmooth.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Proximal Map }
+\subsection{Proximal Map}
 
-The implicit stepping of amplitude $\tau>0$ is defined as 
+For a step size $\tau>0$, define the proximal map by
 \eql{\label{eq-defn-proximal}
 	\foralls x, \quad
-	\Prox_{\tau f}(x) \eqdef \uargmin{x'} \frac{1}{2}\norm{x-x'}^2 + f(x').
+	\Prox_{\tau f}(x) \eqdef \uargmin{x'} \frac{1}{2}\norm{x-x'}^2+\tau f(x').
 }
-It amounts to minimize function $f$ locally around $x$, in a ball of radius controlled by $\tau$.
+It balances a decrease in $f$ against a quadratic penalty for moving away from $x$.
 %
-This the involved function $\frac{1}{2}\norm{x-\cdot}^2 + f$ is strongly convex, this operator $\Prox_{\tau f}$ is well defined and single-valued. 
+Since $f\in\Ga_0(\Hh)$, the objective $\frac12\norm{x-\cdot}^2+\tau f$ is strongly convex and coercive, so $\Prox_{\tau f}$ is well defined and single-valued.
 
-When $f=\iota_\Cc$ is an indicator, the proximal map boils down to a projection $\Prox_{\iota_\Cc}=\Proj_{\Cc}$, it is thus in some sense a generalization of the projection to arbitrary function. And can also be interpreted as a projector on a level set of $f$.  An interesting feature of the proximal map is that it is a contraction, thus generalizing the well-known property of projectors.
+For an indicator $f=\iota_\Cc$, the proximal map is the projection $\Prox_{\iota_\Cc}=\Proj_{\Cc}$. It therefore generalizes projection to convex functions. For each fixed input, the proximal point is also the projection onto a suitable sublevel set of $f$. Like an orthogonal projection, the proximal map is nonexpansive.
 
 \begin{prop}
 	One has $\norm{ \prox_{f}(x)-\prox_{f}(y) } \leq \norm{x-y}$.
@@ -212,19 +213,19 @@ Proximal map and projection map.}
 %%%
 \paragraph{Examples}
 
-The following proposition states a few simples examples.
+Several common proximal maps have closed forms.
 
 \begin{prop}
 One has
 \eql{\label{eq-prox-l2-l1}
 	\Prox_{\frac{\tau}{2} \norm{\cdot}^2}(x) =  \frac{x}{1+\tau}, 
 	\qandq
-	\Prox_{\tau \norm{\cdot}_1} = \Ss_\tau^1(x), 
+	\Prox_{\tau\norm{\cdot}_1}(x)=\Ss_\tau^1(x),
 }
 where the soft-thresholding is defined as
 \eq{
 	\Ss_\tau^1(x) \eqdef ( S_\tau(x_i) )_{i=1}^p \qwhereq
-	S_\tau(r) \eqdef \sign(r) (|r|-\la)_+,
+	S_\tau(r)\eqdef\sign(r)(|r|-\tau)_+,
 }
 (see also~\eqref{eq-soft-thresh}). For $A \in \RR^{P \times N}$, one has
 \eql{\label{eq-prox-quad}
@@ -233,13 +234,13 @@ where the soft-thresholding is defined as
 }
 \end{prop}
 \begin{proof}
-	The proximal map of $\norm{\cdot}_1$ was derived in an informal wqy in Proposition~\ref{prop-equiv-sparse-thresh}.
+	The proximal map of $\norm{\cdot}_1$ was derived informally in Proposition~\ref{prop-equiv-sparse-thresh}.
 	%
-	One can make a rigorous proof using sub-differential calculus. Since the function is separable, one can restrict its attention to the 1-D case. Optimality of $x$ is thus equivalent to  $0 \in x-y + \tau \partial |\cdot|(x)$.
-	For $x=0$ being solution, this is equivalent to $0 \in -y + [-\tau,\tau]$ i.e. $y \in [-\tau,\tau]$.
+	For a rigorous proof, use separability to reduce to a scalar input $r$. The optimality condition for its proximal point $z$ is $0 \in z-r + \tau \partial |\cdot|(z)$.
+	The candidate $z=0$ is optimal precisely when $0 \in -r + [-\tau,\tau]$, or equivalently $r \in [-\tau,\tau]$.
 	%
-	For $x \neq 0$ being solution, one needs to have $x = y - \tau \sign(x)$, and indeed, for $y \notin [-\tau,\tau]$, 
-	the ansatz $x = y - \tau \sign(y)$ satisfies $x \neq 0$ and $\sign(y)=\sign(x)$, and it is thus the solution (which is unique by strict convexity). 
+	For $z \neq 0$, optimality requires $z = r - \tau \sign(z)$. When $r \notin [-\tau,\tau]$,
+	the candidate $z = r - \tau \sign(r)$ has the same sign as $r$, so it is the unique minimizer.
 	%
 	For the quadratic case
 	\eq{
@@ -252,49 +253,35 @@ where the soft-thresholding is defined as
 \end{proof}
 
 
-Note that in some case, the proximal map of a non-convex function is well defined, for instance
-$\Prox_{\tau \norm{\cdot}_0}$ is the hard thresholding associated to the threshold $\sqrt{2\tau}$, see Proposition~\ref{prop-equiv-sparse-thresh}.
+For some nonconvex functions, the proximal minimization also has solutions, but they may be nonunique. For example,
+$\Prox_{\tau \norm{\cdot}_0}$ is hard thresholding at $\sqrt{2\tau}$; see Proposition~\ref{prop-equiv-sparse-thresh}. At $|x_i|=\sqrt{2\tau}$, both $0$ and $x_i$ are minimizers.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Basic Properties}
 
-We recap some useful proximal-calculus.
+The following identities simplify proximal computations.
 
 \begin{prop}
 One has
 \eq{
-	\Prox_{f+\dotp{y}{\cdot}} = y + \Prox_{f}, \quad
+	\Prox_{f+\dotp{y}{\cdot}}=\Prox_f(\cdot-y), \quad
 	\Prox_{f(\cdot-y)} = y + \Prox_{f}(\cdot-y).
 }
-If $f(x)=\sum_{k=1}^K f(x_k)$ for $x=(x_1,\ldots,x_K)$ is separable, then
+If $f(x)=\sum_{k=1}^K f_k(x_k)$ for $x=(x_1,\ldots,x_K)$ is separable, then
 \eql{\label{eq-prox-separable}
 	\Prox_{\tau f}(x) = ( \Prox_{\tau f_k}(x_k) )_{k=1}^K.
 }
 \end{prop}
 \begin{proof}
-	One has
-	\eq{
-		z = \Prox_{f+\dotp{y}{\cdot}}(x) 
-		\quad\Leftrightarrow\quad 0 \in x-z + (\partial f(x)+y) 
-		\quad\Leftrightarrow\quad 0 \in x-(z-y) + \partial f(x) 
-	}
-	which is the optimality condition for $z-y = \Prox_{f}(x)$.
-	
-	
-	One has
-	\eq{
-		z = \Prox_{f(\cdot-y)}(x)
-		\quad\Leftrightarrow\quad 0 \in x-z + \la \partial f(x-y)
-		\quad\Leftrightarrow\quad 0 \in x'-(z-y) + \partial f(x') 
-	}
-	where we defined $x' \eqdef x-y$, and this is the optimality condition for $z-y = \Prox_{f}(x')$
+The optimality condition for $z=\Prox_{f+\dotp{y}{\cdot}}(x)$ is $0\in z-x+\partial f(z)+y$, or $x-y\in z+\partial f(z)$. Thus $z=\Prox_f(x-y)$. For the translated function, substitute $w=z-y$ in
+$\min_z\{\frac12\norm{z-x}^2+f(z-y)\}$ to obtain $z=y+\Prox_f(x-y)$. Separability follows by minimizing each coordinate block independently.
 \end{proof}
 
-The following proposition is very useful.
+Composition with a linear map having orthonormal rows admits an explicit formula.
 
 \begin{prop}\label{prop-prox-tightframe}
-	If $A \in \RR^{P \times N}$ is a tight frame, i.e. $AA^*=\Id_P$, then 
+	If $A \in \RR^{P \times N}$ satisfies $AA^*=\Id_P$, then
 	\eq{
 		\Prox_{f \circ A} = A^* \circ \Prox_{f} \circ A + \Id_N - A^* A.
 	}
@@ -306,7 +293,7 @@ The following proposition is very useful.
 \subsection{Related Concepts}
 
 %%%
-\paragraph{Link with sub-differential.}
+\paragraph{Link with the subdifferential.}
 
 For a set-valued map $U : \Hh \hookrightarrow \Gg$, we define the inverse set-valued map $U^{-1} : \Gg \hookrightarrow \Hh$ by 
 \eql{\label{eq-inv-setvalued}
@@ -314,15 +301,15 @@ For a set-valued map $U : \Hh \hookrightarrow \Gg$, we define the inverse set-va
 	\quad\Longleftrightarrow\quad
 	g \in U(h) 
 } 
-\todo{ add picture }
-The following proposition shows that the proximal map is related to a regularized inverse of the sub-differential.
+
+The proximal map is the resolvent of the subdifferential.
 
 
 \begin{prop}
 	One has $\Prox_{\tau f} = (\Id+\tau\partial f)^{-1}$.
 \end{prop}
 \begin{proof}
-One has the following equivalence
+The optimality condition gives the equivalences
 \eq{
 	z = \Prox_{\tau f}(x) 
 	\Leftrightarrow
@@ -332,15 +319,15 @@ One has the following equivalence
 	\Leftrightarrow
 	z = (\Id+\tau\partial f)^{-1}(x)
 }	
-where for the last equivalence, we have replace ``$\in$'' by ``$=$'' because the proximal map is single valued.
+The final relation is an equality because the inverse is single-valued here.
 \end{proof}
 
-The proximal operator is hence often referred to the ``resolvent'' $\Prox_{\tau f} = (\Id+\tau\partial f)^{-1}$ of the maximal monotone operator $\partial f$. 
+This resolvent interpretation connects proximal algorithms with the theory of maximally monotone operators.
 
 %%%%
 \paragraph{Link with duality.}
 
-One has the following fundamental relation between the proximal operator of a function and of its Legendre-Fenchel transform
+Moreau decomposition relates the proximal maps of a function and its conjugate.
 
 \begin{thm}[Moreau decomposition]
 	One has
@@ -349,36 +336,37 @@ One has the following fundamental relation between the proximal operator of a fu
 	}
 \end{thm}
 
-This theorem shows that the proximal operator of $f$ is simple to compute if and only the proximal operator of $f^*$ is also simple. 
+Thus a tractable proximal map for $f$ gives one for $f^*$, and conversely.
 %
-As a particular instantiation, since according to , one can re-write the soft thresholding as follow
+For example, Proposition~\ref{prop-dual-lp} gives the following expression for soft thresholding
 \eq{
 	\Prox_{\tau \norm{\cdot}_1}(x) =  x - \tau \Proj_{\norm{\cdot}_\infty \leq 1}( x/\tau )
 	 =  x -  \Proj_{\norm{\cdot}_\infty \leq \tau}( x )
 	 \qwhereq
 	 \Proj_{\norm{\cdot}_\infty \leq \tau}( x ) = \min(\max(x,-\tau),\tau).
 }
+The minimum and maximum in this clipping formula act componentwise.
 
-In the special case where $f=\iota_{\Cc}$ where $\Cc$ is a closed convex cone, then
+For an indicator $f=\iota_{\Cc}$ of a closed convex cone $\Cc$,
 \eql{\label{eq-polar-cone}
 	(\iota_{\Cc})^* = \iota_{\Cc^\circ} 
 	\qwhereq
 	\Cc^\circ \eqdef \enscond{y}{ \foralls x \in \Cc, \dotp{x}{y} \leq 0 } 
 }	
-and $\Cc^\circ$ is the so-called polar cone. Cones are fundament object in convex optimization because they are invariant by duality, in the sense of~\eqref{eq-polar-cone} (if $\Cc$ is not a cone, its Legendre transform would not be an indicator).
+where $\Cc^\circ$ is the polar cone. This conjugacy relation~\eqref{eq-polar-cone} is specific to cones: for a general convex set $\Cc$, the conjugate of its indicator need not be an indicator.
 %
-Using~\eqref{eq-polar-cone}, one obtains the celebrated Moreau polar decomposition
+Equation~\eqref{eq-polar-cone} yields Moreau polar decomposition:
 \eq{
 	x = \Proj_{\Cc}(x) +^\bot \Proj_{\Cc^\circ}(x)
 } 
-where ``$+^\bot$'' denotes an orthogonal sum (the terms in the sum are mutually orthogonal). \todo{add drawing}
+The notation $+^\bot$ indicates that the two summands are orthogonal.
 %
-In the case where $\Cc=V$ is a linear space, this corresponds to the usual decomposition $\RR^p = V \oplus^\bot V^\bot$. 
+For a linear subspace $\Cc=V$, this reduces to the orthogonal decomposition $\RR^p = V \oplus^\bot V^\bot$.
 
 %%%%
-\paragraph{Link with Moreau-Yosida regularization.}
+\paragraph{Link with Moreau--Yosida regularization.}
 
-The following proposition shows that the proximal operator can be interpreted as performing a gradient descent step on the Moreau-Yosida smoothed version $f_\mu$ of $f$, defined in~\eqref{eq-moreau-yosida}.
+A proximal step is also a gradient step on the Moreau--Yosida envelope $f_\mu$ of $f$ from~\eqref{eq-moreau-yosida}.
 
 \begin{prop}
 	One has
@@ -393,11 +381,11 @@ The following proposition shows that the proximal operator can be interpreted as
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Proximal Gradient Algorithms}
 
-We now describe some important algorithm which assumes some structure (a so-called ``splitting'') of the minimized functional to be able to apply proximal maps on sub-functions.
+Splitting algorithms exploit a decomposition of the objective into terms whose proximal maps can be computed separately.
 %
-Note that there is obviously many ways to split or structure a given initial problem, so there are many non-equivalent ways to apply a given proximal-based method to solve the problem. Finding the ``best'' way to split a problem is a bit like black magic, and there is no definite answer.
+Different decompositions of the same objective produce different splitting algorithms. A useful decomposition balances the cost of the proximal maps against the convergence of the resulting iteration.
 %
-Also all there algorithm comes with step size and related parameters, and there is no obvious way to tune these parameters automatically (although some insight might be gained by studying convergence rate).
+Step sizes and other parameters also need to be chosen; theoretical convergence bounds and line-search strategies can guide their selection.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Proximal Point Algorithm}
@@ -414,36 +402,36 @@ One has the following equivalence
 \end{align}
 This shows that being a minimizer of $f$ is equivalent to being a fixed point of $\Prox_{\tau f}$.
 %
-This suggest the following fixed point iterations, which are called the proximal point algorithm 
+This fixed-point characterization suggests the proximal point iterations
 \eql{\label{eq-proximal-point}
 	\iit{x} \eqdef \Prox_{\tau_\ell f}(\it{x}).
 }
-On contrast to the gradient descent fixed point scheme, the proximal point method is converging for any sequence of steps.
+The proximal point method does not require an upper stability bound on the step size. Steps must nevertheless be large enough in aggregate; the following sufficient condition is convenient.
 
 \begin{thm}
-	If $0<\tau_{\min} \leq \tau_\ell \leq \ga_{\max} < +\infty$, then $\it{x} \rightarrow x^\star$ a minimizer of $f$.
+	If $0<\tau_{\min} \leq \tau_\ell \leq \tau_{\max} < +\infty$, then $\it{x} \rightarrow x^\star$ for a minimizer of $f$.
 \end{thm}
 
-This implicit step~\eqref{eq-proximal-point} should be compared with a gradient descent step~\eqref{eq-grad-desc}
+This implicit step~\eqref{eq-proximal-point} should be compared with a gradient descent step~\eqref{eq-nonsmooth-grad-desc}
 \eq{
-	\iit{x} \eqdef (\Id+\tau_\ell \nabla f)(\it{x}).
+	\iit{x} \eqdef (\Id-\tau_\ell\nabla f)(\it{x}).
 }
-One sees that the implicit resolvent $(\Id-\tau_\ell \partial f)^{-1}$ replaces the explicit step $\Id+\tau_\ell \nabla f$. For small $\tau_\ell$ and smooth $f$, they are equivalent at first order. But the implicit step is well defined even for non-smooth function, and the scheme (the proximal point) is always convergent (whereas the explicit step size should be small enough for the gradient descent to converge). This is inline with the general idea the implicit stepping (e.g. implicit Euler for integrating ODE, which is very similar to the proximal point method) is more stable. Of course, the drawback is that explicit step are very easy to implement whereas in general proximal map are hard to solve (most of the time as hard as solving the initial problem).
+The implicit resolvent $(\Id+\tau_\ell\partial f)^{-1}$ replaces the explicit map $\Id-\tau_\ell\nabla f$. For small $\tau_\ell$ and smooth $f$, the two agree to first order. The implicit step also remains well defined for nonsmooth objectives and converges under the assumptions above, without the upper step-size restriction of explicit gradient descent. This resembles the greater stability of implicit Euler integration. The computational tradeoff is that a general proximal map may be as difficult to evaluate as the original minimization problem.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Forward-Backward}
+\subsection{Forward--Backward Splitting}
 \label{sec-fb}
 
-It is in general impossible to compute $\Prox_{\ga f}$ so that the proximal point algorithm is not implementable.
+For a general objective, evaluating $\Prox_{\ga f}$ may be as difficult as solving the original problem.
 %
-In oder to derive more practical algorithms, it is important to restrict the class of considered function, by imposing some structure on the function to be minimized. We consider functions of the form
+A tractable alternative exploits a decomposition into a smooth term and a term with an accessible proximal map:
 \eql{\label{eq-fb-split}
 	\umin{x} \Ee(x) \eqdef f(x) + g(x)
 }
-where $g \in \Ga_0(\Hh)$ can be an arbitrary, but $f$ needs to be smooth.
+where $g \in \Ga_0(\Hh)$ can be nonsmooth, whereas $f$ is convex and has a Lipschitz gradient.
 
-One can modify the fixe point derivation~\eqref{eq-proxpoint-fix} to account for this special structure
+For this structure, the fixed-point argument~\eqref{eq-proxpoint-fix} becomes
 \begin{align*}
  	x^\star \in \argmin f + g
 	& \quad\Leftrightarrow\quad
@@ -453,7 +441,7 @@ One can modify the fixe point derivation~\eqref{eq-proxpoint-fix} to account for
 	& \quad\Leftrightarrow\quad
 	x^\star = ( \Id + \tau \partial g )^{-1} \circ ( \Id - \tau \nabla f ) (x^\star).
 \end{align*}
-This fixed point suggests the following algorithm, with the celebrated Forward-Backward
+This fixed point suggests the following algorithm, known as forward--backward splitting
 \eql{\label{eq-fb}
 		\iit{x} \eqdef \Prox_{\tau_\ell g}\pa{ \it{x} - \tau_\ell \nabla f(\it{x}) }.
 }
@@ -462,16 +450,16 @@ This fixed point suggests the following algorithm, with the celebrated Forward-B
 %%%
 \paragraph{Derivation using surrogate functionals.}
 
-An intuitive way to derive this algorithm, and also a way to prove its convergence, it using the concept of surrogate functional.
+A quadratic surrogate gives another derivation of the algorithm and helps explain its convergence.
 
 %
 % The difficulty is the presence of the operator $A$ in the $\ldeux$ norm, which makes this problem significantly more difficult than the simple denoising by regularization\eqref{eq-regul-denoising}.
 
-To derive an iterative algorithm, we modify the energy $\Ee(x)$ to obtain a surrogate functional $\Ee(x,\it{x})$ whose minimization corresponds to a simpler optimization problem, and define the iterations as
+Replace the objective $\Ee(x)$ at the current iterate by a surrogate $\Ee(x,\it{x})$ that is easier to minimize, and define
 \eql{\label{eq-surrogate-iter}
 	\iit{x} \eqdef \uargmin{x} \Ee(x,\it{x}).
 }
-In order to ensure convergence, this function should satisfy the following property
+Require the surrogate to majorize the objective and agree with it at the current point:
 \eql{\label{eq-surrogate-pty}
 	\Ee(x) \leq \Ee(x,x')
 	\qandq
@@ -479,25 +467,25 @@ In order to ensure convergence, this function should satisfy the following prope
 }
 and $\Ee(x)-\Ee(x,x')$ should be a smooth function.
 %
-Property \eqref{eq-surrogate-pty} guarantees that $f$ is decaying by the iterations
+Property~\eqref{eq-surrogate-pty} ensures that $\Ee$ does not increase along the iterations:
 \eq{
 	\Ee(\iit{x}) \leq \Ee(\it{x})
 }
-and it simple to check that actually all accumulation points of $(\it{x})_\ell$ are stationary points of $f$. 
+For proximal-gradient surrogates with a fixed $0<\tau<1/L$, sufficient decrease and the optimality conditions imply that every accumulation point is a minimizer. The majorization and touching conditions alone do not establish this conclusion for arbitrary surrogate schemes.
 
-In order to derive a valid surrogate $\Ee(x,x')$ for our functional~\eqref{eq-fb-split}, since we assume $f$ is $L$-smooth (i.e. satisfies~\eqref{eq-lipsch-grad}), let us recall the quadratic majorant~\eqref{eq-above-below-quad}
+To construct a surrogate for~\eqref{eq-fb-split}, use the quadratic upper bound~\eqref{eq-above-below-quad} supplied by the $L$-Lipschitz gradient of $f$:
 \eq{
 	f(x) 
 	\leq 
-	f(x') + \dotp{\nabla f(x')}{x'-x} + \frac{L}{2}\norm{x-x'}^2, 
+	f(x') + \dotp{\nabla f(x')}{x-x'} + \frac{L}{2}\norm{x-x'}^2,
 }
 so that for $0 < \tau < \frac{1}{L}$, the function 
 \eql{\label{eq-surrogate-ip}
-	\Ee(x,x') \eqdef f(x') + \dotp{\nabla f(x')}{x'-x} + \frac{1}{2\tau}\norm{x-x'}^2 + g(x)
+	\Ee(x,x') \eqdef f(x') + \dotp{\nabla f(x')}{x-x'} + \frac{1}{2\tau}\norm{x-x'}^2 + g(x)
 }
 satisfies the surrogate conditions~\eqref{eq-surrogate-pty}.
 %
-The following proposition shows that minimizing the surrogate functional corresponds to the computation of a so-called proximal operator. 
+Minimizing this surrogate is exactly a proximal-gradient step.
 
 \begin{prop}
 	The update~\eqref{eq-surrogate-iter} for the surrogate~\eqref{eq-surrogate-ip} is exactly~\eqref{eq-fb}.
@@ -505,7 +493,7 @@ The following proposition shows that minimizing the surrogate functional corresp
 \begin{proof}
 	This follows from the fact that
 	\eq{
-		\dotp{\nabla f(x')}{x'-x} + \frac{1}{2\tau}\norm{x-x'}^2 
+		\dotp{\nabla f(x')}{x-x'} + \frac{1}{2\tau}\norm{x-x'}^2
 		= \frac{1}{2\tau} \norm{ x - (x'-\tau \nabla f(x'))  }^2 + \text{cst}.
 	}
 \end{proof}
@@ -513,15 +501,18 @@ The following proposition shows that minimizing the surrogate functional corresp
 %%%
 \paragraph{Convergence of FB. }
 
-Although we impose $\tau<1/L$ to ensure majorization property, one can actually show convergence under the same hypothesis as for the gradient descent, i.e. $0 < \tau < 2/L$, with the same convergence rates.  This means that Theorem~\ref{thm-proj-grad} for the projected gradient descent extend to FB. 
+The majorization argument uses $\tau\leq1/L$, whereas convergence of the iterates holds on the larger interval $0<\tau<2/L$.
 
 \begin{thm}\label{thm-fb-conv}
-	Theorems~\ref{thm-gradsec-strong-conv} and~\ref{thm-gradsec-non-strong-conv} still holds when replacing iterations~\eqref{eq-grad-desc} by~\eqref{eq-fb}.
+Let $f$ be convex with $L$-Lipschitz gradient and $g\in\Ga_0(\Hh)$, and assume $\argmin(f+g)\neq\emptyset$. For a fixed step $0<\tau<2/L$, the forward--backward iterates converge to a minimizer. If $0<\tau\leq1/L$, then
+\eq{(f+g)(x^\ell)-\min(f+g)\leq\frac{\norm{x^0-x^\star}^2}{2\tau\ell},\qquad\ell\geq1.}
+If $f$ is $\mu$-strongly convex, the iterates converge linearly. In particular, for $0<\tau\leq1/L$,
+$\norm{x^{\ell+1}-x^\star}\leq(1-\tau\mu)\norm{x^\ell-x^\star}$.
 \end{thm}
 
-Note furthermore that the projected gradient descent algorithm~\eqref{eq-proj-grad-desc} is recovered as a special case of~\eqref{eq-fb} when setting $J=\iota_{\Cc}$ the indicator of the constraint set, since $\Prox_{\rho J} = \Proj_{\Cc}$ in this case.
+Taking $g=\iota_{\Cc}$ in~\eqref{eq-fb} recovers projected gradient descent~\eqref{eq-proj-grad-desc}, because the proximal map of an indicator is the projection onto the constraint set.
 
-Of course the difficult point is to be able to compute in closed form $\Prox_{\tau g}$ in~\eqref{eq-fb}, and this is usually possible only for very simple function. We have already seen such an example in Section~\ref{sec-ista} for the resolution of $\ell^1$-regularized inverse problems (the Lasso).
+Applying~\eqref{eq-fb} efficiently requires a tractable proximal map $\Prox_{\tau g}$. A closed form is available for several useful penalties, including the $\ell^1$ penalty used by ISTA in Section~\ref{sec-ista}.
 
 
 
@@ -530,24 +521,24 @@ Of course the difficult point is to be able to compute in closed form $\Prox_{\t
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Primal-Dual Algorithms}
 
-Convex duality, detailed in Section~\ref{sec-cvx-duality} (either from the Lagrange or the Fenchel-Rockafellar point of view -- which are essentially equivalent), is very fruitful to derive new optimization algorithm or to apply existing algorithm on a dual reformulation.
+Convex duality, developed in Section~\ref{sec-cvx-duality}, suggests new algorithms and allows existing methods to be applied to dual formulations.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Forward-backward on the Dual}
+\subsection{Forward--Backward Splitting on the Dual}
 \label{sec-fb-dual}
 
-Let us illustrate first the idea of applying a known algorithm to the dual problem. We consider here the structured minimization problem associated to Fenchel-Rockafellar duality~\eqref{eq-fench-rock-basicpb}
+As a first example, apply a familiar method to the Fenchel--Rockafellar problem~\eqref{eq-fench-rock-basicpb}:
 \eql{\label{eq-splitting-primal-dual}
 	p^\star = \uinf{x} f(x) + g(A x), 
 }
-but furthermore assume that $f$ is $\mu$-strongly convex, and we assume for simplicity that both $(f,g)$ are continuous. If $f$ were also smooth (but it needs to be!), one could think about using the Forward-Backward algorithm~\eqref{eq-fb}. But the main issue is that in general $\Prox_{\tau g \circ A}$ cannot be computed easily even if one can compute $\Prox_{\tau g \circ A}$. An exception to this is when $A$ is a tight frame, as exposed in Proposition~\ref{prop-prox-tightframe}, but in practice it is rarely the case. 
+Assume additionally that $f$ is $\mu$-strongly convex, and, for simplicity, that $f$ and $g$ are finite and continuous everywhere. Even if $f$ is smooth, applying forward--backward splitting directly to the primal problem requires $\Prox_{\tau(g\circ A)}$. This map can be difficult to evaluate despite having a simple $\Prox_{\tau g}$. Proposition~\ref{prop-prox-tightframe} gives an explicit formula in the special case $AA^*=\Id$.
 
 \begin{exmp}[TV denoising]
-A typical example, which was the one used by Antonin Chambolle~\cite{chambolle-algo-tv} to develop this class of method, is the total variation denoising
+Chambolle~\cite{chambolle-algo-tv} developed this approach for total variation denoising:
 \eql{\label{eq-tv-denoising}
 	\umin{x} \frac{1}{2}\norm{y-x}^2 + \la \norm{\nabla x}_{1,2}
 }
-where $\nabla x \in \RR^{N \times d}$ is the gradient (a vector field) of a signal ($d=1) $or image ($d=2$) $x$, and $\norm{\cdot}_{1,2}$ is the vectorial-$\ell^1$ norm (also called $\ell^1-\ell^2$ norm), such that for a $d$-dimensional vector field $(v_i)_{i=1}^p$ 
+where $\nabla x \in \RR^{N \times d}$ is the discrete gradient of a signal ($d=1$) or image ($d=2$) with $N$ spatial samples. The mixed $\ell^1$--$\ell^2$ norm sums the Euclidean norms of the vectors $v_i\in\RR^d$:
 \eq{
 	\norm{v}_{1,2} \eqdef \sum_i \norm{v_i}.
 }	
@@ -557,35 +548,35 @@ Here
 	\qandq
 	g=\la\norm{\cdot}_{1,2}
 }
-so that $f$ is $\mu=1$ strongly convex, and one sets $A=\nabla$ the linear operator.
+Thus $f$ is strongly convex with constant $\mu=1$, and $A=\nabla$ is the discrete gradient operator.
 \end{exmp}
 
 \begin{exmp}[Support Vector Machine]
-	We consider a supervised classification problems with data $(a_i \in \RR^p, y_i \in \{-1,+1\})_{i=1}^n$. 
+	We consider a supervised classification problem with data $(a_i \in \RR^p, y_i \in \{-1,+1\})_{i=1}^n$.
 	%
-	The support vector machine classification method, with a ridge penalty $\norm{x}^2$ reads
+	With regularization parameter $\lambda>0$, the support vector machine objective is
 	\eql{\label{eq-svm}
-		\umin{x \in \RR^p} \ell( -y_i\dotp{x}{a_i} ) + \frac{\lambda}{2}\norm{x}^2
+		\umin{x\in\RR^p}\sum_i\ell(-y_i\dotp{x}{a_i}) + \frac{\lambda}{2}\norm{x}^2
 		= \frac{\lambda}{2}\norm{x}^2 + g(A x)
 	} 
-	where $\ell(s) = \max(0,s+1)$ is the hinge loss function, where
-	we denoted $A_{i,j}=-y_i a_i[j]$ and $L(u)=\sum_i \ell(u_i)$. 
+	where $\ell(s) = \max(0,s+1)$ is the hinge loss and
+	the notation is $A_{i,j}=-y_i a_i[j]$ and $g(u)=\sum_i\ell(u_i)$.
 	%
 	It corresponds to the split~\eqref{eq-splitting-primal-dual} using $f(x) = \frac{\lambda}{2}\norm{x}^2$. 
 \end{exmp}
 
 
-Applying Fenchel-Rockafellar Theorem~\ref{thm-fenchel-Rockafellar} (since strong duality holds, all involved functions being continuous), one has that 
+Continuity supplies the qualification for Fenchel--Rockafellar duality, Theorem~\ref{thm-fenchel-Rockafellar}, giving
 \eql{\label{eq-dual-split-fAg}
 	p^\star = \usup{u}  - g^*(u) - f^*(-A^*u).
 }
-But more importantly, since $f$ is $\mu$-strongly convex, one has that $f^*$ is smooth with a $1/\mu$-Lipschitz gradient. One can thus use the Forward-Backward algorithm~\eqref{eq-fb} on (minus the energy of) this problem, which reads
+Strong convexity of $f$ with constant $\mu$ makes the conjugate $f^*$ differentiable with $1/\mu$-Lipschitz gradient. Apply forward--backward splitting~\eqref{eq-fb} to the negative dual objective:
 \eq{
-	\iit{u} = \Prox_{\tau_k g^*}\pa{ \it{u} + \tau_k A \nabla f^*( A^* \it{u} ) }.
+	\iit{u} = \Prox_{\tau g^*}\pa{ \it{u} + \tau A \nabla f^*(-A^*\it{u}) }.
 }
-To guarantee convergence, the step size $\tau_k$ should be smaller than $2/L$ where $L$ is the Lipschitz constant of $A \circ \nabla f^* \circ A^*$, which is smaller than $\norm{A}^2/\mu$. 
+Choose a fixed step $0<\tau<2/L$, where $L>0$ bounds the Lipschitz constant of the smooth dual gradient; $L=\norm{A}^2/\mu$ is valid when $A\neq0$. The fixed-step assumption ensures that Theorem~\ref{thm-fb-conv} applies.
 
-Last but not least, one some (not necessarily unique) dual minimizer $u^\star$ is computed, the primal-dual relationships~\eqref{eq-primal-dual} ensures that one retrieves the unique primal minimizer $x^\star$ as
+Once a dual maximizer $u^\star$ is computed, equivalently a minimizer of the negative dual objective, the primal-dual relations~\eqref{eq-primal-dual} recover the unique primal minimizer:
 \eq{
 	-A^* u^\star \in \partial f(x^\star)  
 	\quad\Leftrightarrow\quad
@@ -593,7 +584,7 @@ Last but not least, one some (not necessarily unique) dual minimizer $u^\star$ i
 	\quad\Leftrightarrow\quad
 	 x^\star = \nabla f^*( -A^* u^\star )
 }
-where we used here the crucial fact that $f^*$ is smooth.
+using differentiability of $f^*$.
 
 
 \begin{exmp}[TV denoising]
@@ -601,23 +592,22 @@ In the particular case of the TV denoising problem~\eqref{eq-tv-denoising}, one 
 \eq{
 	g^* = \iota_{\norm{\cdot}_{\infty,2} \leq \la}
 	\qwhereq
-	\norm{v}_{\infty,2} \eqdef \umax{i} \norm{v_i}
-	\qarrq
+	\norm{v}_{\infty,2} \eqdef \umax{i}\norm{v_i}
 }
 \eq{
 	f^\star(h) = \frac{1}{2}\norm{h}^2+\dotp{h}{y}, 
 }
-so that the dual problem (re-written as a min) reads
+The dual, expressed as a minimization, is therefore
 \eq{
 	\umin{ \norm{v}_{\infty,2}\leq \la}\frac{1}{2}\norm{ -\nabla^* v + y }^2. 
 }
-This can be minimized by projected gradient descent (special case of FB) using
+Projected gradient descent, a special case of forward--backward splitting, gives
 \eq{
-		\Prox_{\tau g^*}(u) = \pa{ \min( \norm{v_i},\la ) \frac{v_i}{\norm{v_i}} }_i
+		\Prox_{\tau g^*}(u)=\left(\frac{u_i}{\max\{1,\norm{u_i}/\la\}}\right)_i
 	\qandq
 	\nabla f^\star(h) = h + y.
 }	
-Furthermore, one has $\mu=1$ and $A^*A=\Delta$ is the usual finite difference approximation of the Laplacian, so that $\norm{A}^2=\norm{\Delta}=4d$ where $d$ is the dimension.
+Furthermore, one has $\mu=1$ and $A^*A=-\Delta$ for the usual negative-semidefinite discrete Laplacian. With unit grid spacing, standard forward differences satisfy $\norm{A}^2\leq4d$; equality depends on the boundary conditions and grid size.
 \end{exmp}
 
 
@@ -629,10 +619,10 @@ Furthermore, one has $\mu=1$ and $A^*A=\Delta$ is the usual finite difference ap
 	where 
 	\eq{
 		 \ell^\star(t) = \usup{s} t s - \max(0,s+1)
-		 = -t + \usup{u} t s - \max(0,s)
+		 = -t + \usup{s}ts-\max(0,s)
 		 = -t + \iota_{[0,1]}(t)
 	}
-	where we used the fact that the Legendre transform of $\max(0,s)$ is the indicator of the sub-differential at 0, which is $[0,1]$ \todo{drawing}.
+	because the conjugate of $\max(0,s)$ is the indicator of its subdifferential at zero, namely $[0,1]$.
 	%
 	Also, one has $f(x) = \frac{\lambda}{2}\norm{x}^2$
 	so that 
@@ -645,78 +635,77 @@ Furthermore, one has $\mu=1$ and $A^*A=\Delta$ is the usual finite difference ap
 	\eq{
 		\umin{ 0 \leq v \leq 1 } - \dotp{\ones}{v} + \frac{\norm{A^\top v}^2}{2\la}
 	}
-	which can be solved using forward backward, in this case being equivalent to gradient descent. 
+	which can be solved by forward--backward splitting, here equivalent to projected gradient descent.
 	%
 	One thus has 
 	\eq{
-		\Prox_{\tau g^*}(u) = \umin{ v \in [0,1]^n } \frac{1}{2}\norm{u-v}^2 - \dotp{\ones}{v}
-		= \Proj_{ [0,1]^n }( u-\ones )
-		= \min(\max(u-\ones,0),\ones).
-	}
-	%
+		\Prox_{\tau g^*}(u)=\uargmin{v\in[0,1]^n}\left\{\frac12\norm{u-v}^2-\tau\dotp{\ones}{v}\right\}
+=\Proj_{[0,1]^n}(u+\tau\ones)
+=\min\{\max\{u+\tau\ones,0\},\ones\}.
+ }
 \end{exmp}
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Douglas-Rachford}
+\subsection{Douglas--Rachford Splitting}
 \label{sec-dr}
 
 We consider here the structured minimization problem
 \eql{\label{eq-struct-dr}
 	\umin{x \in \RR^p} f(x) + g(x), 
 }
-but on contrary to the Forward-Backward setting studied in Section~\ref{sec-fb}, no smoothness is imposed on $f$. We here suppose that we can compute easily the proximal map of $f$ and $g$.
+Unlike the setting of Section~\ref{sec-fb}, $f$ need not be smooth. We assume that the proximal maps of both $f$ and $g$ are tractable.
 
 \begin{exmp}[Constrained Lasso]
-An example of a problem of the form~\eqref{eq-struct-dr} where one can apply Douglas-Rachford is the noiseless constrained Lasso problem~\eqref{eq-lasso-constr-ip}
+Douglas--Rachford splitting applies, for example, to the noiseless constrained Lasso problem~\eqref{eq-lasso-constr-ip}:
 \eq{
 	\umin{Ax=y} \norm{x}_1
 }
-where one can use $f=\iota_{\Cc_y}$ where $\Cc_y \eqdef \enscond{x}{Ax=y}$ and $g=\norm{\cdot}_1$.
+Take $f=\iota_{\Cc_y}$ with $\Cc_y \eqdef \enscond{x}{Ax=y}$, and $g=\norm{\cdot}_1$.
 %
 As noted in Section~\ref{eq-linearprog-lasso}, this problem is equivalent to a linear program.
 %
-The proximal operator of $g$ is the soft thresholding as stated in~\eqref{eq-prox-l2-l1}, while the proximal operator of $g$ is the orthogonal projector on the affine space $\Cc_y$, which can be computed by solving a linear system as stated in~\eqref{eq-proj-aff} (this is especially convenient for inpainting problems or deconvolution problem where this is achieved efficiently).
+The proximal map of $g$ is soft thresholding~\eqref{eq-prox-l2-l1}. The proximal map of $f$ is projection onto the affine space $\Cc_y$, obtained by solving the linear system in~\eqref{eq-proj-aff}. This projection is particularly efficient for inpainting and for deconvolution operators diagonalized by the Fourier transform.
 \end{exmp}
 
-The Douglas-Rachford iterations read
+The Douglas--Rachford iterations read
 \eql{\label{eq-dr-iter} 
 	 \iit{\tilde x} \eqdef \pa{1-\frac{\mu}{2}} \it{\tilde x} + 
 	\frac{\mu}{2} \rProx_{\tau g}( \rProx_{\tau f}( \it{\tilde x} )  ) 
 	\qandq \iit{x} \eqdef \Prox_{\tau f}( \iit{\tilde x}), 
 }
-where we have used the following shortcuts
+where the reflected proximal map is
 \eq{   	
 	\rProx_{\tau f}(x) = 2\Prox_{\tau f}(x)-x .
 }
-One can show that for any value of $\tau>0$, any $0 < \mu < 2$,  and any $\tilde x_0$, $\it{x} \rightarrow x^\star$ which is a minimizer of $f+g$.
+Assume $0\in\partial f(x^\star)+\partial g(x^\star)$ for some $x^\star$ (for example, a minimizer exists and the relative interiors of the domains intersect). Then, for any $\tau>0$, any $0 < \mu < 2$, and any $\tilde x_0$, the shadow iterates $\it{x}$ converge to a minimizer of $f+g$, which may depend on the initialization.
 
-Note that it is of course possible to inter-change the roles of $f$ and $g$, which defines another set of iterations.
+Interchanging $f$ and $g$ gives another valid iteration.
 
 %%%
 \paragraph{More than two functions.}
 
-Another sets of iterations can be obtained by ``symetrizing'' the algorithm. More generally, if we have $K$ functions $(f_k)_k$, we re-write 
+A product-space formulation treats $K$ functions $(f_k)_k$ symmetrically:
 \eq{
-	\umin{x} \sum_k f_k(x) = \umin{X=(x_1,\ldots,x_k)} f(X)+g(X)
+	\umin{x} \sum_k f_k(x) = \umin{X=(x_1,\ldots,x_K)} f(X)+g(X)
 	\qwhereq
 	f(X) = \sum_k f_k(x_k)
 	\qandq
 	g(X)=\iota_{\Delta}(X)
 }
-where $\Delta=\enscond{X}{x_1=\ldots=x_k}$ is the diagonal. The proximal operator of $f$ is 
+where $\Delta=\enscond{X}{x_1=\ldots=x_K}$ is the diagonal. The proximal operator of $g$ is
 \eq{
-	\Prox_{\tau f}(X)=\Proj_\De(X)=(\bar x,\ldots,\bar x) 
+	\Prox_{\tau g}(X)=\Proj_\Delta(X)=(\bar x,\ldots,\bar x)
 	\qwhereq
 	\bar x = \frac{1}{K}\sum_k x_k
 }
-while the proximal operator of $f$ is easily computed from those of the $(f_k)_k$ using~\eqref{eq-prox-separable}. One can thus apply DR iterations~\eqref{eq-dr-iter}.
+The proximal map of $f$ separates into the maps of $(f_k)_k$ by~\eqref{eq-prox-separable}. Douglas--Rachford then applies through~\eqref{eq-dr-iter}.
 
 %%%
 \paragraph{Handling a linear operator.}
 
-One can handle a minimization of the form~\eqref{eq-splitting-primal-dual} by introducing extra variables
+For an objective of the form~\eqref{eq-splitting-primal-dual}, introduce an auxiliary variable:
 \eq{
 	\uinf{x} f_1(x) + f_2(Ax) = \uinf{z=(x,y)} f(z)+g(z)
 	\qwhereq
@@ -725,11 +714,11 @@ One can handle a minimization of the form~\eqref{eq-splitting-primal-dual} by in
 		g(z)=\iota_\Cc(x,y),
 	}
 }
-where $\Cc=\enscond{(x,y)}{Ax=y}$. This problem can be handled using DR iterations~\eqref{eq-dr-iter}, since the proximal operator of $f$ is obtained from those of $(f_1,f_2)$ using~\eqref{eq-prox-separable}, while the proximal operator of $g$ is the projector on $\Cc$, which can be computed in two alternative ways as the following proposition shows.
+where $\Cc=\enscond{(x,y)}{Ax=y}$. Douglas--Rachford splitting applies because the proximal map of $f$ separates into those of $f_1$ and $f_2$ by~\eqref{eq-prox-separable}. The proximal map of $g$ is projection onto $\Cc$. The following proposition gives two equivalent formulas, allowing a choice between systems in the input and output spaces of $A$.
 
 \begin{prop}One has
 \eql{\label{eq-proj-axy}
-	\Proj_{\Cc}(x,y) = (x+A^*\tilde y,y-\tilde y) = (\tilde x,A\tilde x)
+	\Proj_{\Cc}(x,y) = (x-A^*\tilde y,y+\tilde y) = (\tilde x,A\tilde x)
 	\qwhereq
 	\choice{
 		\tilde y \eqdef (\Id_P+AA^*)^{-1}(Ax-y) \\
@@ -737,37 +726,40 @@ where $\Cc=\enscond{(x,y)}{Ax=y}$. This problem can be handled using DR iteratio
 	}
 }
 \end{prop}
-\begin{proof}\todo{todo}
+\begin{proof}
+Minimizing $\frac12\norm{z-x}^2+\frac12\norm{Az-y}^2$ gives $(\Id_N+A^*A)z=x+A^*y$, hence $z=\tilde x$. Alternatively, the Lagrange multiplier for $Az=w$ satisfies $(\Id_P+AA^*)\tilde y=Ax-y$, with $z=x-A^*\tilde y$ and $w=y+\tilde y$.
 \end{proof}
 
-\begin{rem}[Inversion of linear operator]\label{rem-inv-lin}
-	At many places (typically to compute some sort of projector) one has to invert matrices of the form 
+\begin{rem}[Inverting structured linear operators]\label{rem-inv-lin}
+	Projection computations often require the inverse of a matrix of the form
 	$AA^*$, $A^*A$, $\Id_P+AA^*$ or $\Id_N+A^*A$ (see for instance~\eqref{eq-proj-axy}).
-	There are some case where this can be done efficiently.
-	Typical examples where this is simple are inpainting inverse problem where $AA^*$ is diagonal, and deconvolution or partial Fourier measurement (e.g. fMRI) for which $A^*A$ is diagonalized using the FFT.
+	The structure of the operator can make this inexpensive.
+	For inpainting, $AA^*$ is diagonal. For deconvolution or partial Fourier measurements such as MRI, $A^*A$ is diagonalized by the Fourier transform.
 	%
-	If this inversion is too costly, one needs to use more advanced methods, based on duality, which allows to avoid trading the inverse $A$ by the application of $A^*$. They are however typically converging more slowly.
+	When inversion is expensive, primal-dual methods can replace it by applications of $A$ and $A^*$, trading cheaper iterations for a potentially larger iteration count.
 \end{rem}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Alternating Direction Method of Multipliers}
 
-In order to minimize the general splitting~\eqref{eq-splitting-primal-dual}, of the form $f + g \circ A$,  in the absence of strong convexity property of $f$, one can use Douglas-Rachford splitting presented in Section~\ref{sec-dr}. This requires to be able to compute $\Prox_{\tau f}$ and $\Prox_{\tau g \circ A}$.
+Douglas--Rachford splitting, introduced in Section~\ref{sec-dr}, can minimize $f+g\circ A$ without strong convexity of $f$. Its direct application requires the proximal maps $\Prox_{\tau f}$ and $\Prox_{\tau g\circ A}$.
 %
-The Alternating Direction Method of Multipliers (ADMM) algorithm takes a different route, and rather assume one is able to compute, in addition to $\Prox_{\tau g^*}$ (thus being equivalent to the computation of $\Prox_{\tau g}$) and $\Prox_{\tau f^\star\circ A^*}$. In fact, it can be shown that ADMM is equivalent to applying DR on the dual problem~\eqref{eq-dual-split-fAg}, which is the reason why it requires the use of the proximal map of the dual functions. 
+The alternating direction method of multipliers (ADMM) is related to Douglas--Rachford splitting on the dual problem~\eqref{eq-dual-split-fAg}. This formulation uses $\Prox_{\tau g^*}$, computable from $\Prox_{\tau g}$ by Moreau decomposition, and $\Prox_{\tau(f^*\circ A^*)}$. The primal updates derived below express these operations as alternating minimizations.
 
-For $A \in \RR^{n \times p}$, we consider the problem derived in~\eqref{eq-primal-dual-fench} using Lagrange duality and an extra scaling by $\ga>0$ 
+For $A \in \RR^{n \times p}$, introduce $y=Ax$ as in~\eqref{eq-primal-dual-fench} and scale the multiplier by $\ga>0$. Define
+\eq{\Ll((x,y),z)\eqdef f(x)+g(y)+\ga\dotp{z}{Ax-y}.}
+The primal problem becomes
 \eql{\label{eq-admm-primal-dual}
 	\uinf{x \in \RR^p} f(x) + g(Ax) = \uinf{y = Ax} f(x)+g(y) = \uinf{x \in \RR^p,y \in \RR^n} \usup{z \in \RR^n}
-		\Ll((x,y),z) \eqdef f(x) + g(y) + \ga \dotp{z}{Ax-y}.  
+		\Ll((x,y),z).
 }
-The augmented Lagrangian corresponds to solving the problem
+Add a quadratic penalty for violating $Ax=y$ to obtain the augmented Lagrangian
 \eq{
-	\uinf{x \in \RR^p,y \in \RR^n} \usup{z \in \RR^n} \Ll_\ga((x,y),z) \eqdef \Ll((x,y),z) + \frac{\ga}{2}\norm{Ax-y}^2
+	\Ll_\ga((x,y),z) \eqdef \Ll((x,y),z) + \frac{\ga}{2}\norm{Ax-y}^2
 	= f(x) + g(y) + \ga \dotp{z}{Ax-y} + \frac{\ga}{2}\norm{Ax-y}^2.
 }
-which is equivalent to~\eqref{eq-admm-primal-dual} in the sense that they have the same solutions because the additional term $\norm{Ax-y}^2$ is zero at the solutions.
+Replacing $\Ll$ by $\Ll_\ga$ in~\eqref{eq-admm-primal-dual} preserves the constrained problem: the supremum over $z$ enforces $Ax=y$, where the added penalty vanishes.
 
 The ADMM method then updates
 \begin{align}
@@ -775,17 +767,17 @@ The ADMM method then updates
 	\label{eq-admm-2}\iit{x} &\eqdef \uargmin{x} \Ll_\ga( (x,\iit{y}),\it{z}  ), \\
 	\label{eq-admm-3}\iit{z} &\eqdef \it{z} + A \iit{x}-\iit{y}. 
 \end{align}
-This is very similar to the dual ascent method, which perform a gradient descent on the dual (which a well chosen step size), which can be shown to be the iterations
+For comparison, the method of multipliers jointly minimizes the augmented Lagrangian in $x$ and $y$, then updates the multiplier:
 \begin{align*}
 	(\iit{x},\iit{y}) &\eqdef \uargmin{x,y} \Ll_\ga( (x,y),\it{z}  ), \\
 	\iit{z} &\eqdef \it{z} + A \iit{x}-\iit{y}, 
 \end{align*}
-excepted that for ADMM the $x$ and $y$ variable are updated alternatively (hence the naming), which in many situation gives tractable steps. 
+ADMM instead updates $x$ and $y$ alternately, which often makes the individual subproblems tractable.
 
-Step~\eqref{eq-admm-3} can be understood as a gradient ascent on $\Ll_\ga$ on the $z$ variable, using a specific step size of $1/\ga$, so that the primal-dual relation $\nabla f(x^\star) + \ga A^\top z^\star=0$ (which are the optimality condition with respect to $x$, assuming $A x^\star=y^\star$, here we assume $f$ is smooth for simplicity) is imposed at the end of the $z$ update. Indeed, the optimality condition for~\eqref{eq-admm-2} reads
+Step~\eqref{eq-admm-3} is gradient ascent in the multiplier $z$ with step $1/\ga$. Assume for this calculation that $f$ is differentiable. Combining the $x$ and $z$ updates enforces $\nabla f(\iit{x})+\ga A^\top\iit{z}=0$, the stationarity relation in $x$. Indeed, the optimality condition for~\eqref{eq-admm-2} reads
 \eq{
 	0 = \nabla_x \Ll_\ga( (\iit{x},\iit{y}),\it{z}  ) = 
-	\nabla f(\iit{x}) + \ga A^\top \it{z} + A^\top ( A \iit{x} - \iit{y} )
+	\nabla f(\iit{x}) + \ga A^\top\it{z}+\ga A^\top(A\iit{x}-\iit{y})
 	= \nabla f(\iit{x}) + \ga A^\top \iit{z}. 
 }
 
@@ -797,20 +789,14 @@ Step~\eqref{eq-admm-1} is a proximal step, since
 	&=\uargmin{y} \frac{1}{2}\norm{y - A\it{x} - \it{z}}^2 + \frac{1}{\ga} g(y)
 	= \Prox_{g/\ga}( A\it{x} + \it{z} ).
 \end{align*}
-Step~\eqref{eq-admm-2} is more involved, since it is a proximal step for a metric twisted by $A$
-\begin{align*}
-	\iit{x} &= \uargmin{x} 
-	f(x) + \ga \dotp{\it{z}}{Ax-\iit{y}} + \frac{\ga}{2}\norm{Ax-\iit{y}}^2
-	\\
-	&= \uargmin{x} 
-	\frac{1}{2}\norm{Ax-\iit{y} + \it{z}}^2
-	\frac{1}{\ga}f(x)
-	\eqdef \Prox^A_{f/\ga}( \it{z} - \iit{y} ).
-\end{align*}
-The following formula, which can be shown after some tedious computation, shows that actually computing this twisted proximal map is equivalent to the computation of the proximal operator of $f^* \circ A^*$
-\eq{
-	\Prox^A_{f/\ga}(u) = A^+ \pa{ u - \frac{1}{\ga} \Prox_{\ga f^* \circ A^*}(\ga u) }.
-}
+Step~\eqref{eq-admm-2} uses a quadratic penalty composed with $A$:
+\eq{\iit{x}\in\uargmin{x}\left\{\frac12\norm{Ax-\iit{y}+\it{z}}^2+\frac1\ga f(x)\right\}
+\eqdef\Prox^A_{f/\ga}(\iit{y}-\it{z}).}
+Here $\Prox^A_{f/\ga}(u)$ denotes the minimizer set of $\frac12\norm{Ax-u}^2+f(x)/\ga$; it can be set-valued when $A$ is not injective. Under the usual qualification for this subproblem, if
+\eq{p=\Prox_{\ga(f^*\circ A^*)}(\ga u),}
+then every minimizing $x$ satisfies $Ax=u-p/\ga$ and $A^*p\in\partial f(x)$. If $A$ has full column rank, this gives
+\eq{\Prox^A_{f/\ga}(u)=A^+\left(u-\frac1\ga\Prox_{\ga(f^*\circ A^*)}(\ga u)\right).}
+For noninjective $A$, applying $A^+$ alone need not recover a minimizer; the component in $\ker(A)$ must also minimize $f$.
 
 \begin{exmp}[Constrained TV recovery]
 	We consider the problem of minimizing a TV norm under affine constraints
@@ -819,12 +805,12 @@ The following formula, which can be shown after some tedious computation, shows 
 	}
 	which is of the form $f + g \circ A$ when defining $A=\nabla$, $g=\norm{\cdot}_1$ and $f=\iota_{B \cdot = y}$. 
 	%
-	The proximal map of $g$ is the soft thresholding, while the ``twisted'' proximal operator is
+	The proximal map of $g$ is block soft thresholding for isotropic TV (componentwise soft thresholding for anisotropic TV), while the ``twisted'' proximal operator is
 	\eq{
 		\Prox^A_{f/\ga}(u) = \uargmin{Bx=y} \frac{1}{2}\norm{Ax-u}^2
-		=  \uargmin{Bx=y} \umin{w} \frac{1}{2}\norm{\nabla x-u}^2 + \dotp{w}{Bx-y}
+		=\uargmin{x}\usup{w}\left\{\frac12\norm{\nabla x-u}^2+\dotp{w}{Bx-y}\right\}
 	}
-	where we added Lagrange multipliers $w$ for the constraint $Bx=y$. From the first order conditions, an optimal pair $(x^\star,w^\star)$ is obtained by solving a linear system
+	Introducing the multiplier $w$ for $Bx=y$ gives first-order conditions for $(x^\star,w^\star)$ in the form of a linear system:
 	\eq{
 		\begin{pmatrix}
 			\nabla^\top \nabla & B^\top \\
@@ -838,35 +824,35 @@ The following formula, which can be shown after some tedious computation, shows 
 			\nabla^\top  u \\ y 
 		\end{pmatrix}
 	}
-	and note that $\Delta=-\nabla^\top \nabla$ is usually called the (discrete) Laplacian. 
+	Here $\Delta=-\nabla^\top \nabla$ is the discrete Laplacian.
 \end{exmp}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Primal-Dual Splitting}
 
-In the case where one cannot compute neither $\Prox_{\tau g \circ A}$ or $\Prox_{\tau f^\star\circ A^*}$, then one needs to use more general proximal methods, which directly operate over the primal-dual saddle point. They are more general, but in general less efficient than purely primal or dual methods. 
+If neither $\Prox_{\tau g \circ A}$ nor $\Prox_{\tau f^\star\circ A^*}$ is tractable, a primal-dual method can work directly with the saddle problem. Its efficiency depends on the available operator evaluations, proximal maps, and conditioning.
 %
-We thus consider the general structure problem of the form~\eqref{eq-splitting-primal-dual}, which we intend to solve in the primal-dual, using the fact that $g = (g^*)^*$ (otherwise one can re-use the approach using Lagrange duality performed in~\eqref{eq-primal-dual-fench}) form as
+For the structured problem~\eqref{eq-splitting-primal-dual}, biconjugacy $g=(g^*)^*$ gives the saddle formulation
 \begin{align}\label{eq-splitting-primal-dual-bis}
 	\uinf{x} f(x) + g(Ax) = \uinf{x} f(x) + \usup{u} \dotp{Ax}{u} - g^*(u)
 	= \usup{u} \uinf{x} f(x) + \dotp{Ax}{u}  - g^*(u).
 \end{align}
-We make no assumption such as strong convexity of $f$. 
+We assume a primal-dual saddle point exists, so strong duality holds; strong convexity of $f$ is not required.
 
-\begin{exmp}[Total Variation regularization of inverse problems]
-A typical instance of such a problem is for the TV regularization of the inverse problem $\Kk x=y$, which corresponds to solving
+\begin{exmp}[Total variation regularization of inverse problems]
+For example, TV regularization for the inverse problem $\Kk x=y$ leads to
 \eq{
-	\umin{x} \frac{1}{2}\norm{y-\Kk x}^2 + \la \norm{\nabla x}_{1,2}.
+	\umin{x} \frac{1}{2}\norm{y-\Kk x}^2 + \la \norm{\nabla x}_{1,2},
 }
-where $A=\nabla$, $f(x)=\frac{1}{2}\norm{y-\Kk \cdot}^2$ and $g=\la \norm{\cdot}_{1,2}$.
+where $A=\nabla$, $f(x)=\frac{1}{2}\norm{y-\Kk x}^2$, and $g=\la \norm{\cdot}_{1,2}$.
 %
-If one would be using directly $f \circ A$ (for instance in combination with DR splitting), computing its proximal operator of $f$, which, following~\eqref{eq-prox-quad}, requires inverting either $\Id_P+AA^*$ or $\Id_N+A^*A$, see Remark~\ref{rem-inv-lin}. The goal is to avoid this here. 
+For this split, the proximal map of $f$ requires solving a system involving $\Id+\tau\Kk^*\Kk$, while the proximal map of $g^*$ is a pointwise projection. If that linear solve is costly, use instead $A x=(\Kk x,\nabla x)$, $f=0$, and $g(z,v)=\frac12\norm{y-z}^2+\la\norm{v}_{1,2}$. The two blocks of $g^*$ then have simple proximal maps, so each iteration uses only $\Kk,\Kk^*,\nabla$, and $\nabla^*$.
 \end{exmp}
 
-A standard primal-dual algorithm, which is detailed in~\cite{}, reads
+A standard primal-dual algorithm, described in~\cite{chambolle2016introduction}, initializes $\tilde x^0=x^0$ and updates
 \begin{align*}
-	\iit{z} &\eqdef \Prox_{\sigma g^*}( \it{z} + \sigma A( \it{\tilde x}) \\
-	\iit{x} &\eqdef \Prox_{\tau f}(  \it{x}-\tau A^*(\iit{z}) ) \\
-	 \it{\tilde x} &\eqdef \iit{x} + \theta (\iit{x} - \it{x}) 
+ \iit{z}&=\Prox_{\sigma g^*}\bigl(\it{z}+\sigma A\it{\tilde x}\bigr),\\
+ \iit{x}&=\Prox_{\tau f}\bigl(\it{x}-\tau A^*\iit{z}\bigr),\\
+ \iit{\tilde x}&=\iit{x}+\theta(\iit{x}-\it{x}).
 \end{align*}
-if $0 \leq \th \leq 1$ and $\sigma \tau \norm{K}^2<1$, then $\it{x}$ converges to a minimizer of~\eqref{eq-splitting-primal-dual-bis} .
+For $\theta=1$, $\sigma,\tau>0$, and $\sigma\tau\norm{A}^2<1$, the primal and dual iterates converge to a saddle point, provided one exists. The value $\theta=0$ is not covered by this general convergence guarantee.

@@ -1,0 +1,28 @@
+% Editable reconstruction; interpretation recorded in root.json.
+\input{figures/tikz/tikz-preamble.tex}
+\begin{document}
+
+\begin{tikzpicture}[x=1cm,y=1cm]
+\pgfmathsetmacro{\conditionalmean}{.28+.35*sin(59.5)}
+\begin{scope}[x=1.1cm,y=1.2cm]
+\draw[axis] (-2.15,-1.7)--(2.4,-1.7) node[right] {$x$};
+\draw[axis] (-2.15,-1.7)--(-2.15,1.9) node[above] {$y$};
+\foreach \shift in {-.6,-.3,.3,.6}{\draw[accent!28,domain=-1.9:1.9,samples=100] plot (\x,{.4*\x+.35*sin(85*\x)+\shift});}
+\draw[curve,domain=-1.9:1.9,samples=100] plot (\x,{.4*\x+.35*sin(85*\x)});
+\draw[signalred] (.7,-1.7)--(.7,1.7);
+\fill[ink] (.7,\conditionalmean) circle(2pt);
+\node[below] at (.7,-1.7) {$x_0$};
+\node[above left,font=\scriptsize] at (-.2,.4) {$m(x)=\mathbb E[Y\mid X=x]$};
+\node[font=\scriptsize] at (0,-2.22) {A vertical slice at the fixed input $x_0$.};
+\end{scope}
+\begin{scope}[shift={(7.8,-.7)},x=1.15cm,y=1.65cm]
+\draw[axis] (-1.8,0)--(2.05,0) node[right] {$y$};
+\draw[axis] (-1.8,0)--(-1.8,1.55);
+\draw[curve,domain=-1.65:1.85,samples=160] plot (\x,{exp(-((\x-\conditionalmean)/.45)^2/2)/(.45*sqrt(2*pi))});
+\draw[guide] (\conditionalmean,0)--(\conditionalmean,1.03);
+\node[below] at (\conditionalmean,0) {$m(x_0)$};
+\node[align=center] at (.1,1.68) {$\displaystyle p(y\mid x_0)=\frac{\pi(x_0,y)}{p_X(x_0)}$};
+\node[font=\scriptsize,align=center] at (.1,-.8) {$\displaystyle m(x_0)=\int y\,p(y\mid x_0)\,\mathrm dy$};
+\end{scope}
+\end{tikzpicture}
+\end{document}

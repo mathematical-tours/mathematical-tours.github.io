@@ -2,10 +2,8 @@
 
 \newcommand{\noise}{w}
 
-\chapter{Denoising}
-
-
-Together with compression, denoising is the most important processing application, that is pervasive in almost any signal or image processing pipeline. Indeed, data acquisition always comes with some kind of noise, so modeling this noise and removing it efficiently is crucial.
+\chapter{Denoising}\label{chap-denoising}
+\chapteroverview{Denoising estimates a clean signal from measurements corrupted by noise. Its central difficulty is to suppress random fluctuations without erasing edges, textures, or other features of the underlying signal. We model common acquisition noise, compare linear filters with nonlinear thresholding, analyze how regularity and sparsity govern reconstruction error, and adapt the methods to Poisson and multiplicative noise.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -15,7 +13,7 @@ Together with compression, denoising is the most important processing applicatio
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Noise in Images}
 
-Image acquisition devices always produce some noise. Figure \ref{fig-noise-examples} shows images produced by different hardware, where the regularity of the underlying signal and the statistics of the noise is very different.
+Figure \ref{fig-noise-examples} illustrates the variety of imaging noise. Different acquisition devices produce different noise statistics, while the images themselves vary in smoothness and geometry.
 
 \myfigure{
 \tabtrois{
@@ -25,36 +23,35 @@ Image acquisition devices always produce some noise. Figure \ref{fig-noise-examp
 Digital camera & Confocal imaging & SAR imaging
 }
 }{%
-	Example of noise in different imaging device. %	
+	Noise in images from different acquisition devices. %
 }{fig-noise-examples}
 
-One should thus model both the acquisition process and the statistics of the noise to fit the imaging process. Then one should also model the regularity and geometry of the clean signal to choose a basis adapted to its representation. 
-This chapter describes how thresholding methods can be used to perform denoising in some specific situations where the noise statistics are close to being Gaussian and the mixing operator is a sum or can be approximated by a sum. 
+The model should reflect both the acquisition process and the noise statistics. The regularity and geometry of the clean signal then guide the choice of a basis for its representation.
 
-Since noise perturbs discrete measurements acquired by some hardware, in the following, we consider only finite dimensional signal $f \in \CC^N$.  
+Since noise perturbs discrete measurements from acquisition devices, we consider only finite-dimensional real signals $f\in\RR^N$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Image Formation}
 \label{subsec-image-formation}
 
-Figure \ref{fig-additive-noise-model} shows an idealized view of the image formation process, that mixes a clean image $f_0$ with a noise $w$ to obtain noisy observations $Y := f_0 \oplus w$, where $\oplus$ might for instance be a sum or a multiplication. Note that $Y$ is thus here modeled as a random vector. 
+Figure \ref{fig-additive-noise-model} summarizes the model: a clean image $f_0$ combines with noise $w$ to produce the observation $Y := f_0 \oplus w$. The operation $\oplus$ may be addition or multiplication. The observed image $Y$ is modeled as a random vector.
 
 \myfigure{
 \image{denoising}{.8}{additive-noise-model}
 }{%
-	Image formation with noise modeling and denoising pipepline. %	
+	Image acquisition, noise, and reconstruction by denoising. %
 }{fig-additive-noise-model}
 
-Statistical modeling considers $w$ as a random vector with known distribution, while numerical computations are usually done on a single realization of this random vector, still denoted as $w$.
+In the statistical model, $w$ is a random vector with a specified distribution. A numerical experiment uses one realization, also written $w$.
 
 %%
 \paragraph{Additive Noise.}
 
-The simplest model for such image formation consists of assuming that it is an additive perturbation of a clean signal $f_0$
+The simplest image formation model adds noise to a clean signal $f_0$
 \eq{
 	Y := f_0 + w
 }
-where $w$ is the noise residual. Statistical noise modeling assumes that $w$ is a random vector, and in practice one only observes a realization of this vector. This modeling thus implies that the image $f$ to be processed is also a random vector. Figure \ref{fig-noise-example-1d} and \ref{fig-noise-example-2d} show examples of noise addition to a clean signal and a clean image.
+where $w$ is the noise residual. Both $w$ and $Y$ are random; an acquired image is one realization of $Y$, denoted by $y$ or $f$ below. Figures \ref{fig-noise-example-1d} and \ref{fig-noise-example-2d} illustrate additive noise on a signal and an image.
 
 \myfigure{
 \tabdeux{
@@ -77,29 +74,28 @@ $f_0$ & $y \sim Y = f_0+w$
 	2-D additive noise example.%	
 }{fig-noise-example-2d}
 
-The simplest noise model assumes that each entry $w_n$ of the noise is a Gaussian random variable of variance $\si^2$, and that the $w_n$ are independent, i.e. $w \sim \Nn(0,\Id_N)$. This is the white noise model.
+The simplest model assumes independent centered Gaussian entries $w_n$ with variance $\si^2$: $w\sim\Nn(0,\sigma^2\Id_N)$. This is Gaussian white noise.
 
-Depending on the image acquisition device, one should consider different noise distributions, such as for instance uniform noise $w_n \in [-a,a]$ or Impulse noise
+Depending on the image acquisition device, other noise distributions may be appropriate, including uniform noise $w_n \in [-a,a]$ or heavy-tailed generalized Gaussian noise with density
 \eq{
-	\PP(w_n=u) \propto e^{-|u/\si|^\al}
-	\qwhereq \al<2
+	p_w(u)\propto e^{-|u/s|^\alpha},\qquad s>0,\quad0<\alpha<2.
 }
 
-In many situations, the noise perturbation is not additive, and for instance its intensity might depend on the intensity of the signal. This is the case with Poisson and multiplicative noises considered in Section \ref{sect-data-dept-noises}.
+In many situations, the noise is not additive; its intensity may, for instance, depend on the signal intensity. This is the case with the Poisson and multiplicative noise models considered in Section \ref{sect-data-dept-noises}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Denoiser}
 
-A denoiser (also called estimator) is an estimation $\tilde f = \Dd(Y)$ (we use both notations in the following) of $f_0$ computed from the observation $Y$ alone so that $\Dd$ is a deterministic function. It is thus also a random vector that depends on the noise $w$. Since $Y$ is a random vector of mean $f_0$, the numerical denoising process corresponds to the estimation of the mean of a random vector from a single realization. Figure \ref{fig-denoising-clean} shows an example of denoising.
+A denoiser produces an estimate $\tilde f = \Dd(Y)$ of $f_0$ from the observation $Y$ alone. The map $\Dd$ is deterministic, but its output is random because it depends on the noise $w$. With centered additive noise, $Y$ has mean $f_0$, so denoising estimates that mean from a single realization. Figure \ref{fig-denoising-clean} illustrates the result.
 
-The quality of a denoiser is measured using the average mean square risk $\Dd_w(\norm{f_0-\tilde f}^2)$.
-where $\Dd_w$ is the expectation (averaging) with respect to the noise $w$. Since $f_0$ is unknown, this corresponds to a theoretical measure of performance, that is bounded using a mathematical analysis. In the numerical experiments, one observes a single realization $y \sim Y = f_0 + w$, and the performance is estimated from this single denoising using the SNR $\text{SNR}(\Dd(y),f_0)$,  where
+The quality of a denoiser is measured using the mean squared risk $\mathbb E_w\norm{f_0-\tilde f}^2$,
+where $\mathbb E_w$ averages over the noise $w$. This risk is a theoretical quantity because $f_0$ is unknown in practice. In experiments with known clean data, we instead evaluate one realization $y \sim Y = f_0 + w$ using the signal-to-noise ratio $\text{SNR}(\Dd(y),f_0)$, defined by
 \eq{
 	\text{SNR}(f,g) := -20\log_{10}( \norm{f-g}/\norm{g} ).
 }
 %
-The SNR is expressed in ``decibels'', denoted dB. This measure of performance requires the knowledge of the clean signal $f_0$, and should thus only be considered as an experimentation tool, that might not be available in a real-life denoising scenario where clean data are not available. Furthermore, the use of an $\ell^2$ measure of performance is questionable, and one should also observe the result to judge of the visual quality of the denoising.
+The SNR is measured in decibels (dB). Computing it requires the clean signal $f_0$, so it serves as a benchmark in controlled experiments. Because an $\ell^2$ error does not fully describe perceptual quality, visual inspection should accompany the numerical comparison.
 
 
 \myfigure{
@@ -117,48 +113,48 @@ $f_0$ & $y$ & $\Dd(y)$
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Linear Denoising using Filtering}
+\section{Linear Denoising by Filtering}
 \label{sec-linear-denoising}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Translation Invariant Estimators}
 
-A linear estimator $\Dd(Y) = \tilde f$ of $f_0$ depends linearly on $Y$, so that $\Dd(f+g) = \Dd(f)+\Dd(g)$.
-A translation invariant estimator commutes with translation, so that $\Dd(f_\tau) = \Dd(f)_\tau$, where $f_\tau(t) = f(t-\tau)$ (we assume periodic boundary conditions, say in 1-D or 2-D).
+A linear estimator $\Dd(Y) = \tilde f$ of $f_0$ preserves addition, $\Dd(f+g) = \Dd(f)+\Dd(g)$, and scalar multiplication.
+A translation-invariant estimator commutes with translations: $\Dd(f_\tau) = \Dd(f)_\tau$, where $f_\tau(t) = f(t-\tau)$. We assume periodic boundary conditions, in either one or two dimensions.
 %
-Such a denoiser can always be written as a filtering
+An estimator with both properties is a convolution filter:
 \eq{
 	\Dd(f) = f \star h
 }
-where $h \in \RR^N$ is a (low pass) filter. In practice, since the noise has zero mean, it satisfies 
+where $h\in\RR^N$ is a filter. Denoising filters are usually low-pass. To preserve constant signals, one imposes
 \eq{
 	\sum_n h_n = \hat h_0 = 1
 }
 where $\hat h$ is the discrete Fourier transform. 
 
-Figure \ref{fig-filtering-denoised} shows an example of denoising using a low pass filter.
+Figure \ref{fig-filtering-denoised} illustrates denoising with a low-pass filter.
 
 \myfigure{
 \tabdeux{
 \image{denoising}{.45}{filtering-noisy}&
 \image{denoising}{.45}{filtering-noisy-fourier}\\
-$f$ & $\log(\hat f)$ \\
+$f$ & $\log|\hat f|$ \\
 \image{denoising}{.45}{filtering-filter}&
 \image{denoising}{.45}{filtering-filter-fourier}\\
-$f$ & $\log(\hat h)$ \\
+$h$ & $\log|\hat h|$ \\
 \image{denoising}{.45}{filtering-denoised}&
 \image{denoising}{.45}{filtering-denoised-fourier}\\
-$f \star h$ & $\log(\hat f \cdot \hat h) = \log(\hat h) + \log(\hat h)$ 
+$f \star h$ & $\log|\hat f\hat h|=\log|\hat f|+\log|\hat h|$
 }
 }{%
-	Denoising by filtering over the spacial (left) and Fourier (right) domains.%	
+	Filtering in the spatial domain (left) and the Fourier domain (right).%
 }{fig-filtering-denoised}
 
-The filtering strength is usually controlled the width $s$ of $h$. A typical example is the (discretized) Gaussian filter
+The filtering strength is usually controlled by the width $s$ of $h$. A typical example is the (discretized) Gaussian filter
 \eql{\label{eq-gaussian-filters}
 	\foralls -N/2 < i \leq N/2, \quad h_{s,i} = \frac{1}{Z_s} \exp\pa{ -\frac{ i^2 }{ 2s^2} }
 }
-where $Z_s$ ensures that $\sum_i h_{s,i}=1$ (low pass). Figure \ref{fig-filtering-denoised} shows the effect of Gaussian filtering over the spacial and Fourier domains.
+where $Z_s$ normalizes the filter so that $\sum_i h_{s,i}=1$, preserving constant signals. Figure \ref{fig-filtering-denoised} shows the effect of Gaussian filtering in the spatial and Fourier domains.
 
 \if 0
 \myfigure{
@@ -175,7 +171,7 @@ where $Z_s$ ensures that $\sum_i h_{s,i}=1$ (low pass). Figure \ref{fig-filterin
 }{fig-blurring-2d}
 \fi 
 
-Figure \ref{fig-filtering-progression} shows the effect of low pass filtering on a signal and an image with an increasing filter width $s$.  Linear filtering introduces a blur and are thus only efficient to denoise smooth signals and image. For signals and images with discontinuities, this blur deteriorates the signal. Removing a large amount of noise necessitates to also smooth significantly edges and singularities.
+Figure \ref{fig-filtering-progression} shows the effect of increasing the filter width $s$. Linear filtering works well on smooth signals, but removing more noise also blurs edges and other singularities.
 
 \myfigure{
 \image{denoising}{.7}{filtering-progression-1d}
@@ -188,64 +184,64 @@ Figure \ref{fig-filtering-progression} shows the effect of low pass filtering on
 \subsection{Optimal Filter Selection and Bias-Variance Tradeoff}
 \label{subsec-optimal-selection-filter}
 
-The selection of an optimal filter is a difficult task. Its choice depends both on the regularity of the (unknown) data $f_0$ and the noise level $\si$. A simpler option is to optimize the filter width $s$ among a parametric family of filters, such as for instance the Gaussian filters defined in \eqref{eq-gaussian-filters}.
+The best filter depends on both the unknown signal $f_0$ and the noise level $\si$. Rather than optimize over all filters, we can tune a width parameter $s$ within a family such as the Gaussian filters in~\eqref{eq-gaussian-filters}.
 
-The denoising error can be decomposed as
+The triangle inequality separates the smoothing error from the remaining noise:
 \eq{
 	\norm{\tilde f - f_0} \leq \norm{ h_s \star f_0 - f_0 } + \norm{ h_s \star w }
 }
-The filter width $s$ should be optimized to perform a tradeoff between removing enough noise ($\norm{h_s \star w}$ decreases with $s$) and not smoothing too much the singularities ($(\norm{h_s \star f_0 - f_0}$ increases with $s$).
+The filter width $s$ balances noise removal against excessive smoothing of singularities. A wider filter typically reduces $\norm{h_s \star w}$ while increasing $\norm{h_s\star f_0-f_0}$.
 
-Figure \eqref{fig-iltering-optimal-curve} shows the oracle SNR performance, defined in \eqref{eq-defn-snf}.
+Figure~\ref{fig-iltering-optimal-curve} shows the SNR as a function of filter width, evaluated using the known clean signal.
 
 \myfigure{
 \image{denoising}{.48}{filtering-optimal-1d-curve}
 \image{denoising}{.46}{filtering-optimal-2d-curve}
 }{%
-	Curves of SNR as a function of the filtering width in 1-D (left) and 2-D (right).%	
+	SNR as a function of filter width for a signal (left) and an image (right).%
 }{fig-iltering-optimal-curve}
 
-Figure \ref{fig-filtering-optimal-1d} and \ref{fig-filtering-optimal-2d} show the results of denoising using the optimal filter width $s^\star$ that minimizes the SNR for a given noisy observation. 
+Figures \ref{fig-filtering-optimal-1d} and \ref{fig-filtering-optimal-2d} use the width $s^\star$ that maximizes SNR for the displayed observation. This choice uses the known clean signal to assess the best achievable result within the filter family.
 
 \myfigure{
 \image{denoising}{.48}{filtering-optimal-1d-noisy}
 \image{denoising}{.48}{filtering-optimal-1d-denoised}
 }{%
-	Noisy image (left) and denoising (right) using the optimal filter width.%	
+	Noisy signal (left) and filtered signal (right), using the SNR-optimal width.%
 }{fig-filtering-optimal-1d}
 
 \myfigure{
 \image{denoising}{.3}{filtering-optimal-2d-noisy}
 \image{denoising}{.3}{filtering-optimal-2d-denoised}
 }{%
-	Noisy image (left) and denoising (right) using the optimal filter width.%	
+	Noisy image (left) and filtered image (right), using the SNR-optimal width.%
 }{fig-filtering-optimal-2d}
 
-These optimal filtering appear quite noisy, and the optimal SNR choice is usually quite conservative. Increasing the filter width introduces a strong blurring that deteriorates the SNR, although it might look visually more pleasant.
+Some noise remains at the SNR-optimal width. Increasing the filter width introduces strong blur and reduces the SNR, although the result may look more pleasant.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Oracle denoiser}
+\subsection{Oracle Denoiser}
 
-In order to select $h$, we will here ``cheat'' by assuming we have access to the ground trust $f_0$.
+To study the best possible choice of $h$, first suppose that an oracle knows the clean signal $f_0$.
 %
-Recall we consider the noise model $Y = f_0 + \noise$, where $\noise$ is a Gaussian white noise, i.e., $\noise_k \sim \mathcal{N}(0, \sigma^2)$ and the $\noise_k$ are i.i.d. Here $f_0$ is the (a priori unknown) ground trust. We consider an orthogonal basis $(\psi_k)_k$, which is typically the Fourier basis. We consider a linear denoiser which is diagonal in this basis,
+Recall the model $Y = f_0 + \noise$, where $\noise$ is Gaussian white noise: $\noise_k \sim \mathcal{N}(0, \sigma^2)$ and the $\noise_k$ are independent and identically distributed. The clean signal $f_0$ is fixed. Choose an orthonormal basis $(\psi_k)_k$, typically the Fourier basis, and restrict attention to linear estimators that are diagonal in it:
 \begin{equation}\label{eq:linear-denoiser}
 	\tilde{f} \coloneqq \sum_k \lambda_k \dotp{Y}{\psi_k} \, \psi_k.
 \end{equation}
-For the Fourier basis, this means $\tilde{f} = Y \star h$ where $\tilde{h} = \lambda$. Note that $\tilde{f}$ is a random vector.
+For the Fourier basis, this means $\tilde{f} = Y \star h$ where $\hat h=\lambda$. Note that $\tilde{f}$ is a random vector.
 %
-Here we will ``cheat'' and assume access to $f_0$ to select $\lambda$, but we we still impose that $\tilde{f}$ is a linear function of $Y$ of the above form, so the problem is non-trivial and still quite informative (we cannot just use $\tilde f=f_0$). 
+The oracle may use $f_0$ to select the gains $\lambda$, but the estimator must still be linear in $Y$ and have the displayed diagonal form. It cannot simply return $f_0$.
 
-Denoting $c_k \coloneqq \dotp{f_0}{\psi_k}$ (for the Fourier basis, $c=\hat f_0$), the expected risk of this denoiser is
+Denoting $c_k \coloneqq \dotp{f_0}{\psi_k}$ (for the normalized discrete Fourier basis, $c=\hat f_0/\sqrt N$), the expected risk of this denoiser is
 $$
 	\mathbb{E}_w \|\tilde{f} - f_0\|^2 = \sum_k \mathbb{E}_w \left| \dotp{\tilde{f} - f_0}{\psi_k} \right|^2  = \sum_k \mathbb{E}_w  \left| \lambda_k \left( c_k + \dotp{\noise}{\psi_k} \right) - c_k \right|^2 .
 $$
-One then uses the fact that since $(\psi_k)_k$ is an orthonormal basis, $\dotp{\noise}{\psi_k}$ is also a Gaussian white noise of variance $\sigma^2$. By expanding the square and using $\mathbb{E}(\dotp{\noise}{\psi_k}) = 0$, we obtain
+For a real orthonormal basis, the transformed noise is again independent Gaussian noise with variance $\sigma^2$. For a complex unitary Fourier basis applied to real noise, each coefficient still has second moment $\sigma^2$, which suffices here, although conjugate-frequency coefficients are dependent. By expanding the square and using $\mathbb{E}(\dotp{\noise}{\psi_k}) = 0$, we obtain
 $$
-\mathbb{E}_w  \|\tilde{f} - f_0\|^2  = \sum_k  |c_k|^2 |\lambda_k - 1|^2 + |\lambda_k|^2 \sigma^2 .
+\mathbb{E}_w  \|\tilde{f} - f_0\|^2  = \sum_k\left(|c_k|^2|\lambda_k-1|^2+|\lambda_k|^2\sigma^2\right) .
 $$
-In practice, we do not know $c_k$. But if we assume we know it (in practice, one can make some rough assumptions about it), then the best possible denoising minimizes $\mathbb{E}_w \left( \|\tilde{f} - f_0\|^2 \right)$ with respect to $\lambda$, so that it solves for each $k$
+Knowing $c_k$, the oracle minimizes $\mathbb{E}_w \left( \|\tilde{f} - f_0\|^2 \right)$ over $\lambda$. The minimization separates over the indices $k$:
 $$
 	\min_{\lambda_k} \left( |c_k|^2 |\lambda_k - 1|^2 + |\lambda_k|^2 \sigma^2 \right).
 $$
@@ -255,18 +251,18 @@ $$
 $$
 i.e.,
 $$
-	\lambda_k = \frac{|c_k|^2}{|c_k|^2 + \sigma^2} = \frac{1}{1 + \sigma^2 / |c_k|^2}.
+	\lambda_k = \frac{|c_k|^2}{|c_k|^2+\sigma^2}.
 $$
-If $\sigma = 0$, one has $\lambda = 1$ (identity mapping). Assuming $|c_k|$ is decaying, as $\sigma$ increases, the coefficients are more and more concentrated near 0.
+If $\sigma = 0$, choosing $\lambda = 1$ gives the identity map. When $|c_k|$ decays, increasing $\sigma$ suppresses the weaker coefficients more strongly, concentrating the gains on the dominant signal components.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Wiener Filter}
 
-Here we will ``cheat'' a bit less and assume also a random model for the signal $f_0$ which we assume to know. 
+We now replace access to the clean signal by a known probability model for it.
 %
-If one has a random model both for the noise $w \sim W$ and for the signal $f_0 \sim F$, one can derives an optimal filters in average over both the noise and the signal realizations. One further assumes that $W$ and $F$ are independent.
+Suppose both the noise $w \sim W$ and the clean signal $f_0 \sim F$ have known distributions. We seek a filter minimizing the error averaged over both sources of randomness, assuming $W$ and $F$ are independent.
 %
 We assume $\Dd$ has the form \eqref{eq:linear-denoiser}. 
 
@@ -275,115 +271,91 @@ The optimal $h$ thus minimizes
 \eq{
 	\mathbb{E}_{w,F}  \|\Dd(F+w) - F\|^2 
 }
-Since $W$ and $F$ are independent, the same computation as above caries over so that  
+Independence of $W$ and $F$ allows the same risk calculation:
 \eq{
-	\mathbb{E}_{w,F}  \|\Dd(F+w) - F\|^2   \sum_k  \alpha_k |\lambda_k - 1|^2 + |\lambda_k|^2 \sigma^2 
+	\mathbb{E}_{w,F}  \|\Dd(F+w)-F\|^2=\sum_k\left(\alpha_k|\lambda_k-1|^2+|\lambda_k|^2\sigma^2\right)
 	\quad\text{where}\quad
 	\alpha_k := \EE_{F} |\dotp{F}{\psi_k}|^2
 }
 The optimal filter thus has coefficients
 \begin{equation}\label{eq:wiener}
-	\lambda_k = \frac{1}{1 + \sigma^2 / \alpha_k}.
+	\lambda_k=\frac{\alpha_k}{\alpha_k+\sigma^2}.
 \end{equation}
-With respect to the oracle filter of the previous section, the coefficient $|c_k|^2$ is replaced by the so-called power spectrum of the distribution $\alpha_k>0$. 
+Relative to the oracle filter, the individual energy $|c_k|^2$ is replaced by the expected coefficient energy $\alpha_k\geq0$, the signal power spectrum in the Fourier basis.
 %
-This Filter is known as the Wiener filter. 
+This filter is known as the Wiener filter.
 
-When $(\psi_k)_k$ is the discrete Fourier basis, then this reads
-$$
-	\alpha_k = \EE_F |\hat F_k|^2 = \EE_F \Ff( F \star F(-\cdot) )_k = \Ff( \EE( F \star F(-\cdot) ) ) = \hat \eta( F )
-$$
-where $\Ff(g)=\hat g$ is the Fourier transform where $F(-\cdot) = ( F_{-k} )$ is the reversed signal, which has Fourier transform $\hat F^*$ (complex conjugate). 
-%
-Here $\eta(F) \in \RR^N$ is the auto-correlation of the random vector $F$, 
-$$
-	\eta(F)_i := \EE( F \star F(-\cdot) )_i = \EE( \sum_k F_i F_{i+j} ).
-$$
-It measures the average correlation between pairs of coordinates separated by $j$. 
+For the normalized discrete Fourier basis, $\alpha_k=N^{-1}\mathbb E|\hat F_k|^2$. Define the averaged autocorrelation
+\eq{
+ \eta_j=\frac1N\mathbb E\sum_{n=0}^{N-1}F_n\overline{F_{n-j}},
+ \qquad\alpha_k=\hat\eta_k.
+}
+Here indices are periodic and $\hat\eta$ uses the unnormalized DFT of Chapter~\ref{sec-fourier}. This normalization is needed because the Fourier atoms used in the risk calculation have unit norm.
 
-We have assumed here that $\Dd$ is diagonal in $\psi_m$, having form \eqref{eq:linear-denoiser}. Alternatively, one can prove that if $F$ is stationary, i.e. its laws is translation invariance, i.e. the law of $F(\cdot-\tau)$ is equal to the law of $F$, then the Wiener filter~\eqref{eq:wiener} for the Fourier basis is optimal among all possible linear denoiser. 
+So far, $\Dd$ has been restricted to the basis $\psi_m$ through the diagonal form~\eqref{eq:linear-denoiser}. If $F$ is stationary, its law is unchanged by shifts: $F(\cdot-\tau)$ has the same law as $F$. In that case, the Fourier Wiener filter~\eqref{eq:wiener} is optimal among all linear denoisers, even without imposing a diagonal form in advance.
 
-In practice, one can try to approximate $\alpha_k$ by $|\hat y_k|^2$ where $y$ is a single realization, but unfortunately, one can be shown that this estimation is very bad, especially for large frequencies $k$, which typically needs to be truncated. This is called ``empirical Wiener''. 
-
+An empirical estimate based on one noisy realization is $N^{-1}|\hat y_k|^2$. Its expectation is $\alpha_k+\sigma^2$, and its variance can be large. Empirical Wiener methods therefore need noise subtraction, nonnegativity constraints, and usually additional smoothing or a signal model.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Denoising and Linear Approximation}
 
-In order to study linear (and also non-linear, see the section below) denoising without assuming a random signal model, one should use approximation theory as studied in Chapter~\ref{chap-approx}. 
+Approximation theory, developed in Chapter~\ref{chap-approx}, provides a different route to denoising bounds. It requires a class of clean signals rather than a probability distribution on that class.
 %
-We thus consider an ortho-basis $\Bb = (\psi_m)_m$ of $\RR^N$, and consider a simple denoising obtained by keeping only the $M$ first term elements of the approximation of the noisy observation in $\Bb$
+Fix an orthonormal basis $\Bb = (\psi_m)_m$ of $\RR^N$. A simple estimator retains only the first $M$ coefficients of the noisy observation in $\Bb$:
 \eql{\label{eq-ideal-linear-denoise}
 	\Dd(f) = \tilde f \eqdef \sum_{m=1}^M \dotp{f}{\psi_m} \psi_m.
 }
-This is a linear projection on the space spanned by $(\psi_m)_{m=1}^M$.
+This is a linear projection onto the space spanned by $(\psi_m)_{m=1}^M$.
 %
-This denoising scheme is thus parameterized by some integer $M>0$, increasing $M$ increases the denoising strength. 
+This denoising scheme is parameterized by the number $1\leq M\leq N$ of retained coefficients. Increasing $M$ retains more signal detail but also more noise.
 %
-For instance, when $\Bb$ is the discrete Fourier basis, this corresponds to an ideal low-pass filter against a (discretized) Dirichlet kernel.
+For the discrete Fourier basis ordered by increasing frequency, this is ideal low-pass filtering by convolution with a discrete Dirichlet kernel.
 %
-This corresponds to a special case of the linear denoiser considered in \eqref{eq:linear-denoiser} where the coefficients $\lambda_m$ are binary $\lambda_m \in \{0,1\}$. This simplification is still quite expressive (in particular, it can be shown that in the setup considered in~\eqref{thm-linear-denoising}, this type of filter is still almost optimal) while not necessitating a strong knowledge on the ground trust $f_0$ (in particular, we do not assume it is drawn from a random distribution $F$). 
+This is the special case of~\eqref{eq:linear-denoiser} in which the gains $\lambda_m$ are binary, $\lambda_m \in \{0,1\}$. Although restrictive, this choice yields useful rates under the approximation assumptions of Theorem~\ref{thm-linear-denoising}. It requires a regularity model for $f_0$, but does not assume a random signal distribution $F$.
 
-Note also that we do here all the proof in finite dimension $N$, but all this construction and proof does not depend on $N$, so it works in infinite dimension (see below for more comments on this). 
+The proof is finite-dimensional, but its bound has no explicit dependence on $N$. Extending it to a continuum model requires interpreting white noise as a generalized random process.
 
 
 \begin{thm}\label{thm-linear-denoising}
-	We assume that $f_0 \in \RR^N$ has a linear approximation error decay that satisfies 
-	\eq{
-		\foralls M, \quad 
-		\norm{f_0 - f_{0,M}^{\text{lin}} }^2 \leq C M^{-2\be}
-		\qwhereq
-		f_{0,M}^{\text{lin}} \eqdef \sum_{m=1}^M \dotp{f_0}{\psi_m} \psi_m
-	} 
-	for some constant $C$. Then the linear denoising error using~\eqref{eq-ideal-linear-denoise} satisfies
-	\eq{
-		\Dd(\norm{f_0 - \tilde f}^2) \leq 2 C^{\frac{1}{2\be+1}} \si^{2-\frac{1}{\be+1/2}}, 
-	}
-	when choosing 
-	\eql{\label{eq-lineardenoising-scale}
-		M = C^{\frac{1}{2\be+1}} \si^{-\frac{2}{2\be+1}}. 
-	}
+Assume $\sigma>0$, $\beta>0$, and
+\eq{
+ \norm{f_0-f_{0,M}^{\mathrm{lin}}}^2\leq CM^{-2\beta},\qquad
+ f_{0,M}^{\mathrm{lin}}=\sum_{m=1}^M\dotp{f_0}{\psi_m}\psi_m,
+ \quad1\leq M\leq N.
+}
+The projection denoiser~\eqref{eq-ideal-linear-denoise} has risk
+\eq{\mathbb E\norm{f_0-\tilde f}^2=M\sigma^2+\norm{f_0-f_{0,M}^{\mathrm{lin}}}^2.}
+If $0<\sigma^2\leq C$, choose
+\eql{\label{eq-lineardenoising-scale}
+ t=(C/\sigma^2)^{1/(2\beta+1)},\qquad M=\min\{N,\lceil t\rceil\}.
+}
+Then
+\eq{\mathbb E\norm{f_0-\tilde f}^2\leq3C^{1/(2\beta+1)}\sigma^{4\beta/(2\beta+1)}.}
 \end{thm}
-
 \begin{proof}
-	One has, thanks to the ortho-normality of $(\psi_m)_m$
-	\begin{align*}
-		\Dd(\norm{f_0 - \tilde f}^2) &= 
-		\Dd( \sum_m \dotp{f_0 - \tilde f}{\psi_m}^2 )
-		= 
-		\Dd( \sum_{m=1}^M \dotp{f_0 - f}{\psi_m}^2 + \sum_{m>M} \dotp{f_0 }{\psi_m}^2 ) \\
-		&=
-		\Dd\pa{\sum_{m=1}^M \dotp{w}{\psi_m}^2} + \sum_{m>M} \dotp{f_0}{\psi_m}^2
-		= M \si^2 + \norm{f_0 - f_{0,M}^{\text{lin}}}^2 \\
-		&\leq M \si^2 + C M^{-2\be}.
-	\end{align*}
-	Here we use the fundamental fact that $(\dotp{w}{\psi_m})_m$ is also $\Nn(0,\si^2\Id_N)$.
-	% 
-	Choosing $M$ such that $M \si^2 = C M^{-2\be}$, i.e. $M = C^{\frac{1}{2\be+1}} \si^{-\frac{2}{2\be+1}}$ leads 
-	to 
-	\eq{
-		\Dd(\norm{f_0 - \tilde f}^2)  = 2 C M^{-2\be} = 2 C C^{-\frac{2\be}{2\be+1}} \si^{\frac{4\be}{2\be+1}}
-		= 2 C^{\frac{1}{2\be+1}} \si^{2 - \frac{1}{\be+1/2}}.
-	}
+Orthogonality separates retained noise coefficients from discarded signal coefficients. Each retained noise coefficient has variance $\sigma^2$, which proves the risk identity. If $t\leq N$, then $t\leq M\leq2t$ and
+\eq{M\sigma^2+CM^{-2\beta}\leq2t\sigma^2+Ct^{-2\beta}=3C^{1/(2\beta+1)}\sigma^{4\beta/(2\beta+1)}.}
+If $t>N$, the estimator retains all coefficients and its risk is $N\sigma^2\leq t\sigma^2$, which obeys the same bound.
 \end{proof}
 
-There are several important remark regarding this simple but important result:
+Several observations help interpret this result:
 \begin{rs}
-	\item Thanks to the decay of the linear approximation error, the denoising error $\Dd(\norm{f_0 - \tilde f}^2)$ is bounded \textit{independently} of the sampling size $N$, although the input noise level $\Dd(\norm{w}^2)=N\si^2$ growth with $N$.
-	\item If the signal is well approximated linearly, i.e. if $\be$ is large, then the denoising error decays fast when the noise level $\si$ drops to zero. The upper bound approaches the optimal rate $\si^2$ by taking $\be$ large enough. 
-	\item This theory is finite dimensional, i.e. this computation makes only sense when introducing some discretization step $N$. This is natural because random noise vectors of finite energy are necessarily finite dimensional. For the choice~\eqref{eq-lineardenoising-scale} to be realizable, one should however have $M \leq N$, i.e. $N \geq C^{\frac{1}{2\be+1}} \si^{-\frac{2}{2\be+1}}$. Thus $N$ should increase when the noise diminish for the denoising effect to kick-in. 
-	\item Section~\ref{sec-linear-approx-error} bounds the linear approximation error for infinite dimensional signal and image model. This theory can be applied provided that the discretization error is smaller than the denoising error, i.e. once again, one should use $N$ large enough. 
+	\item The approximation assumption bounds the denoising error $\mathbb E(\norm{f_0 - \tilde f}^2)$ independently of the sample count $N$, even though the total input noise energy $\mathbb E(\norm{w}^2)=N\si^2$ grows with $N$.
+	\item A larger approximation exponent $\be$ gives faster decay of the error as $\si$ tends to zero. The exponent approaches that of the parametric rate $\si^2$ as $\be$ increases.
+	\item The proof uses a finite sample count $N$. White noise with constant positive variance in every coordinate has infinite energy in an infinite-dimensional Hilbert space, although other random vectors may have finite energy. The balancing choice applies when $N\geq t$; otherwise the estimator is the identity. A continuum interpretation as $\sigma\to0$ also requires increasing the sampling resolution.
+	\item Section~\ref{sec-linear-approx-error} bounds approximation errors for continuous signal and image models. To transfer these bounds to sampled data, choose $N$ large enough that discretization error is smaller than denoising error.
 \end{rs}
 
-A typical setup where this denoising theorem can be applied is for the Sobolev signal and image model detailed in Section~\ref{subsec-smooth-class}.  In the discrete setting, where the sampling size $N$ is intended to grow (specially if $\si$ diminishes), one can similarly consider a ``Sobolev-like'' model, and similarely as for Proposition~\ref{prop-sobol-fourier-lin}, this model implies a decay of the linear approximation error.
+The Sobolev model in Section~\ref{subsec-smooth-class} provides a useful example. For discrete signals with an increasing sample count $N$, especially as $\si$ decreases, a compatible weighted coefficient bound gives the same approximation argument as Proposition~\ref{prop-sobol-fourier-lin}.
 
 \begin{prop}
-	Assuming that 
+	Let $\alpha>0$. If
 	\eql{\label{eq-discr-sobol}
 		\sum_{m=1}^N m^{2\al} |\dotp{f_0}{\psi_m}|^{2} \leq C
 	}
-	then 
+	then
 	\eq{
-		\foralls M, \quad 
+		\foralls M\in\{1,\ldots,N\}, \quad
 		\norm{f_0 - f_{0,M}^{\text{lin}}}^2 \leq C M^{-2\al}
 	} 
 \end{prop}
@@ -396,26 +368,25 @@ A typical setup where this denoising theorem can be applied is for the Sobolev s
 	}
 \end{proof}
 
-If $\psi_m$ is the discrete Fourier basis defined in~\eqref{eq-dft}, then this discrete Sobolev model~\eqref{eq-discr-sobol} is equivalent to the continuous Sobolev model of Section~\ref{subsec-smooth-class}, up to a discretization error which tends to $0$ as $N$ increase. Choosing $N$ large enough shows that smooth signals and image are thus efficiently denoised by a simple linear projection on the first $M$ element of the Fourier basis. 
+For normalized Fourier atoms ordered by increasing physical frequency, an appropriately scaled discrete weighted-energy bound approximates the periodic Sobolev model. The sample normalization, frequency weights, and boundary convention must match those of the continuous signal. Under this compatibility, low-frequency projection efficiently denoises smooth signals and images.
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Non-linear Denoising using Thresholding}
+\section{Nonlinear Denoising by Thresholding}
 \label{sec-nl-denoising-thresh}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Hard Thresholding}
 \label{subsec-denoise-hard}
 
-We consider an orthogonal basis $\{\psi_{m}\}_m$ of $\CC^N$, for instance a discrete wavelet basis.
+We consider a real orthonormal basis $\{\psi_m\}_m$ of $\RR^N$, for instance a discrete wavelet basis.
 %
 The noisy coefficients satisfy
 \eql{\label{eq-noisy-transformed}
 	\dotp{f}{\psi_m} = \dotp{f_0}{\psi_m} + \dotp{w}{\psi_m}.
 }
-Since a Gaussian white noise is invariant under an orthogonal transformation, $\dotp{w}{\psi_m}$ is also a Gaussian white noise of variance $\si^2$. If the basis $\{\psi_m\}_m$ is efficient to represent $f_0$, then most of the coefficients $ \dotp{f_0}{\psi_m}$ are close to zero, and one observes a large set of small noisy coefficients, as shown on Figure \ref{fig-wavthresh}. This idea of using thresholding estimator for denoising was first systematically explored by Donoho and Jonhstone \cite{donoho-shrinkage}.
+Orthogonal transforms preserve Gaussian white noise, so the coefficients $\dotp{w}{\psi_m}$ remain independent centered Gaussians with variance $\si^2$. If the basis $\{\psi_m\}_m$ represents $f_0$ sparsely, most clean coefficients $ \dotp{f_0}{\psi_m}$ are small, leaving many noisy coefficients dominated by noise; see Figure \ref{fig-wavthresh}. Donoho and Johnstone systematically developed thresholding estimators based on this observation~\cite{donoho-shrinkage}.
 
 \myfigure{
 \tabquatre{
@@ -429,12 +400,12 @@ $f$ & $\dotp{f}{\psi_{j,n}^\om}$ & $S_T(\dotp{f}{\psi_{j,n}^\om})$ & $\tilde f$
 	Denoising using thresholding of wavelet coefficients. %	
 }{fig-wavthresh}
 
-A thresholding estimator removes these small amplitude coefficients using a non-linear hard thresholding
+Hard thresholding retains only coefficients whose magnitude exceeds the threshold $T$:
 \eq{
 		\tilde f = \sum_{ |\dotp{f}{\psi_m}|>T } \dotp{f}{\psi_m} \psi_m
 		 = \sum_{ m } S_T(\dotp{f}{\psi_m}) \psi_m.
 }
-where $S_T$ is defined in \eqref{eq-hard-thresh}. This corresponds to the computation of the best $M$-term approximation $\tilde f = f_M$ of the noisy function $f$. Figure \ref{fig-wavthresh} shows that if $T$ is well chose, this non-linear estimator is able to remove most of the noise while maintaining sharp features, which was not the case with linear filtering estimatiors.
+where $S_T$ is defined in~\eqref{eq-hard-thresh-approx}. Retaining the $M$ largest noisy coefficients gives the approximation $\tilde f = f_M$ of $f$. Figure \ref{fig-wavthresh} illustrates how a suitable $T$ removes much of the noise while preserving sharp features.
 
 % Code \ref{denoising-wavthresh} shows how to implement this thresholding for a 1-D or 2-D wavelet transform.
 
@@ -448,11 +419,11 @@ We recall that the hard thresholding operator is defined as
 \eql{\label{eq-hard-thresh-denoise}
 	S_T(x) = S_T^0(x) = \choice{ x \qifq |x|>T, \\ 0 \qifq |x|\leq T. }
 }
-This thresholding performs a binary decision that might introduces artifacts. A less aggressive nonlinearity is the soft thresholding
+Hard thresholding makes a discontinuous keep-or-discard decision, which can create artifacts. Soft thresholding is a continuous alternative:
 \eql{\label{eq-soft-thresh-denoise}
 	 S_T^1( x ) = \max( 1-T/|x|, 0 ) x.
 }
-Figure \ref{fig-thresholding-hard-vs-soft} shows the 1-D curves of these 1-D non-linear mapping.
+Set $S_T^1(0)=0$ by continuity. Figure~\ref{fig-thresholding-hard-vs-soft} compares the two nonlinear maps.
 
 \myfigure{
 \image{denoising}{.4}{thresholding-hard-vs-soft}
@@ -460,7 +431,7 @@ Figure \ref{fig-thresholding-hard-vs-soft} shows the 1-D curves of these 1-D non
 	Hard and soft thresholding functions. %	
 }{fig-thresholding-hard-vs-soft}
 
-For $q=0$ and $q=1$, these thresholding defines two different estimators
+For $q=0$ and $q=1$, these thresholding rules define two different estimators
 \eql{\label{eq-hard-soft-thresh}
 	\tilde f^q = \sum_m S_T^q( \dotp{f}{\psi_m} ) \psi_m
 }
@@ -468,18 +439,18 @@ For $q=0$ and $q=1$, these thresholding defines two different estimators
 \myfigure{
 \image{denoising}{.6}{wavthresh-2d-hard-vs-soft}
 }{%
-	Curves of SNR with respect to $T/\si$ for hard and soft thresholding.%	
+	SNR as a function of $T/\si$ for hard and soft thresholding.%
 }{fig-wavthresh-2d-hard-vs-soft}
 
 
 %%
-\paragraph{Coarse scale management.}
+\paragraph{Preserving coarse-scale coefficients.}
 
-The soft thresholded $S_T^1$ introduces a bias since it diminishes the value of large coefficients. 
-For wavelet transforms, it tends to introduces unwanted low-frequencies artifacts by modifying coarse scale coefficients. If the coarse scale is $2^{j_0}$, one thus prefers not to threshold the coarse approximation coefficients and use, for instance in 1-D,
+Soft thresholding $S_T^1$ biases retained coefficients by reducing their magnitudes.
+Shrinking coarse wavelet coefficients can introduce unwanted low-frequency artifacts. At a coarsest scale $2^{j_0}$, it is therefore common to retain the approximation coefficients unchanged. In one dimension, this gives
 \eq{
 	\tilde f^1 = \sum_{0 \leq n < 2^{-j_0}} \dotp{f}{\phi_{j_0,n}} \phi_{j_0,n}
-	+ \sum_{j=j_0}^0 \sum_{0 \leq n < 2^{-j}} S_T^1(\dotp{f}{\psi_{j_0,n}}) \psi_{j_0,n}.
+	+ \sum_{j=J+1}^{j_0}\sum_{0\leq n<2^{-j}}S_T^1(\dotp{f}{\psi_{j,n}})\psi_{j,n}.
 }
 % Code \ref{denoising-softthresh} implements this soft thresholding with coarse scale management.
 
@@ -490,7 +461,7 @@ For wavelet transforms, it tends to introduces unwanted low-frequencies artifact
 %%
 \paragraph{Empirical choice of the threshold.}
 
-Figure \ref{fig-wavthresh-2d-hard-vs-soft} shows the evolution of the SNR with respect to the threshold $T$ for these two estimators, for a natural image $f_0$. For the hard thresholding, the best result is obtained around $T \approx 3\si$, while for the soft thresholding, the optimal choice is around $T\approx 3\si/2$. These results also shows that numerically, for thresholding in orthogonal bases, soft thresholding is slightly superior than hard thresholding on natural signals and images. 
+Figure \ref{fig-wavthresh-2d-hard-vs-soft} plots SNR against the threshold $T$ for a fixed natural image $f_0$. In this experiment, hard thresholding performs best near $T \approx 3\si$, and soft thresholding near $T\approx 3\si/2$. The best soft-thresholded estimate has a slightly higher SNR.
 
 \myfigure{
 \tabdeux{
@@ -502,7 +473,7 @@ Figure \ref{fig-wavthresh-2d-hard-vs-soft} shows the evolution of the SNR with r
 	Comparison of hard (left) and soft (right) thresholding.%	
 }{fig-wavthresh-2d}
 
-Although these are experimental conclusions, these results are robust across various natural signals and images, and should be considered as good default parameters. 
+These values describe the displayed experiments; the best threshold depends on the image, basis, noise level, and loss function.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -510,13 +481,13 @@ Although these are experimental conclusions, these results are robust across var
 \label{subsec-minimax-denoise}
 
 %%
-\paragraph{Sparse coefficients estimation.}
+\paragraph{Estimating sparse coefficients.}
 
-To analyze the performance of the estimator, and gives an estimate for the value of $T$, we first assumes that the coefficients
+To analyze the estimator and guide the choice of $T$, we first assume that the coefficients
 \eq{
-	a_{0,m} = \dotp{f_0}{\psi_m} \in \RR^N
+	a_{0,m}=\dotp{f_0}{\psi_m}\in\RR,\qquad a_0\in\RR^N
 }
-are sparse, meaning that most of the $a_{0,m}$ are zero, so that its $\lzero$ norm
+are sparse: most entries $a_{0,m}$ vanish, so the $\lzero$ count
 \eq{
 	\norm{a_0}_0 = \#\enscond{m}{a_{0,m} \neq 0}
 }
@@ -525,13 +496,13 @@ As shown in \eqref{eq-noisy-transformed}, noisy coefficients
 \eq{
 	\dotp{f}{\psi_m} = a_m = a_{0,m} + z_m
 }
-are perturbed with an additive Gaussian white noise of variance $\si^2$. Figure \ref{fig-sparse-signal} shows an example of such a noisy sparse signal. 
+are perturbed by additive Gaussian white noise of variance $\si^2$. Figure \ref{fig-sparse-signal} shows an example of such a noisy sparse signal.
 
 \myfigure{
 \image{denoising}{.45}{sparse-signal}
 \image{denoising}{.45}{sparse-signal-noisy}
 }{%
-	Left: sparse signal $a$, right: noisy signal.%	
+	Left: clean sparse coefficients $a_0$; right: noisy coefficients $a$.%
 }{fig-sparse-signal}
 
 
@@ -544,49 +515,41 @@ are perturbed with an additive Gaussian white noise of variance $\si^2$. Figure 
 %%
 \paragraph{Universal threshold value.}
 
-If 
-\eq{
-	\umin{ m : a_{0,m} \neq 0 } |a_{0,m}|
-}
-is large enough, then $\norm{f_0-\tilde f}=\norm{a_0-S_T(a)}$ is minimum for 
-\eq{
-	T \approx \tau_N = \umax{0 \leq m< N} |z_m|.
-}
-$\tau_N$ is a random variable that depends on $N$. One can show that its mean is $\si \sqrt{2 \log(N)}$, and that as $N$ increases, its variance tends to zero and $\tau_N$ is highly concentrated close to its mean. Figure \ref{fig-max-gaussian-mean} shows that this is indeed the case numerically.
+When all nonzero clean coefficients are well separated from the noise level, choosing a threshold comparable to the largest pure-noise coefficient suppresses false detections:
+\eq{T\approx\tau_N,\qquad\tau_N=\max_{0\leq m<N}|z_m|.}
+This motivates a deterministic threshold based on the typical size of $\tau_N$; it is not an exact minimization formula for the realized denoising error.
+The random maximum $\tau_N$ depends on $N$. For fixed $\sigma$, its mean is asymptotic to $\sigma\sqrt{2\log N}$ as $N\to\infty$. Its variance tends to zero with $N$, so $\tau_N$ concentrates increasingly near its mean. Figure \ref{fig-max-gaussian-mean} illustrates these trends numerically.
 
 \myfigure{
 \image{denoising}{.6}{max-gaussian-mean}
-\image{denoising}{.63}{max-gaussian-std}
+\image{denoising}{.63}{max-gaussian-std-corrected}
 }{%
-	Empirical estimation of the mean of $Z_n$ (top) and standard deviation of $Z_n$ (bottom)%	
+	Empirical mean (top) and standard deviation (bottom) of the largest absolute Gaussian noise coefficient.%
 }{fig-max-gaussian-mean}
 
 
 %%
 \paragraph{Asymptotic optimality.}
 
-Donoho and Jonhstone \cite{donoho-shrinkage} have shown that the universal threshold $T = \si \sqrt{2 \log(N)}$ is a good theoretical choice for the denoising of signals that are well approximated non-linearly in $\{\psi_m\}_m$.  The obtain denoising error decay rate with $\si$ can also be shown to be in some sense optimal. 
+Donoho and Johnstone~\cite{donoho-shrinkage} showed that the universal threshold $T = \si \sqrt{2 \log(N)}$ gives a risk bound for signals that admit accurate nonlinear approximations in $\{\psi_m\}_m$. The risk is within a logarithmic factor of an ideal coefficient-selection risk.
 
 
 \begin{thm}\label{thm-nonlinear-denoising}
-	We assume that $f_0 \in \RR^N$ has a non-linear approximation error decay that satisfies 
-	\eq{
-		\foralls M, \quad 
-		\norm{f_0 - f_{0,M}^{\text{nlin}} }^2 \leq C M^{-2\be}
-		\qwhereq
-		f_{0,M}^{\text{nlin}} \eqdef \sum_{r=1}^M \dotp{f_0}{\psi_{m_r}} \psi_{m_r}
-	} 
-	for some constant $C$, where here $( \dotp{f_0}{\psi_{m_r}} )_r$ are the coefficient sorted by decaying magnitude. 
-	%
-	Then the non-linear denoising error using~\eqref{eq-ideal-linear-denoise} satisfies
-	\eq{
-		\Dd(\norm{f_0 - \tilde f^q}^2) \leq C' \ln(N) \si^{2-\frac{1}{\be+1/2}}, 
-	}
-	for some constant $C'$, when choosing $T=\sqrt{2\ln(N)}$, where $\tilde f^q$ is defined in~\eqref{eq-hard-soft-thresh} for $q \in \{0,1\}$.
+Let $N\geq2$ and $Y=f_0+w$, with $w\sim\mathcal N(0,\sigma^2I_N)$, in a real orthonormal basis. Hard or soft thresholding~\eqref{eq-hard-soft-thresh} with
+\eq{T=\sigma\sqrt{2\ln N}}
+satisfies an oracle inequality of the form
+\eq{
+ \mathbb E\norm{f_0-\tilde f^q}^2
+ \leq C_0(1+\ln N)\left[\sigma^2+\min_{0\leq M\leq N}\left(\norm{f_0-f_{0,M}^{\mathrm{nlin}}}^2+M\sigma^2\right)\right],
+}
+where $C_0$ is an absolute constant and $f_{0,M}^{\mathrm{nlin}}$ retains the $M$ largest clean coefficients. In particular, if $\norm{f_0-f_{0,M}^{\mathrm{nlin}}}^2\leq CM^{-2\beta}$ for $1\leq M\leq N$, with $\beta>0$, then for $0<\sigma\leq1$,
+\eq{\mathbb E\norm{f_0-\tilde f^q}^2\leq C'(1+\ln N)\sigma^{4\beta/(2\beta+1)},}
+where $C'$ depends on $C$ and $\beta$.
 \end{thm}
 
-This universal threshold choice $T=\sqrt{2\ln(N)}$ is however very conservative since it is guaranteed to remove almost all the noise. In practice, as shown in Figure \ref{fig-wavthresh-2d}, better results are obtained on natural signals and images by using $T \approx 3\si$ and $T \approx 3\si/2$ for hard and soft thresholdings.
+The oracle inequality is a standard Gaussian thresholding bound; see~\cite{donoho-shrinkage}. The rate follows by balancing $CM^{-2\beta}$ and $M\sigma^2$, with integer rounding and truncation at $N$ as in Theorem~\ref{thm-linear-denoising}. The added $\sigma^2$ term accounts for residual noise even at the zero signal.
 
+The universal threshold $T=\sigma\sqrt{2\ln N}$ is conservative: it suppresses nearly all pure-noise coefficients. The smaller thresholds illustrated in Figure~\ref{fig-wavthresh-2d} often give better SNR in these experiments.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Translation Invariant Thresholding Estimators}
@@ -594,57 +557,57 @@ This universal threshold choice $T=\sqrt{2\ln(N)}$ is however very conservative 
 %%
 \paragraph{Translation invariance.}
 
-Let $f \mapsto \tilde f = \Dd(f)$ by a denoising method, and $f_\tau(x) = f(x-\tau)$ be a translated signal or image for $\tau \in \RR^d$, ($d=1$ or $d=2$).
-The denoising is said to be translation invariant at precision $\De$ if
+Let $f\mapsto\tilde f=\Dd(f)$ be a denoising method, and $f_\tau(x) = f(x-\tau)$ be a translated signal or image for $\tau \in \RR^d$ ($d=1$ or $d=2$).
+The denoiser is translation invariant on the shift lattice $\De$ if
 \eq{ 
 	\foralls \tau \in \De, \quad \Dd(f) = \Dd(f_\tau)_{-\tau}
 }
-where $\De$ is a lattice of $\RR^d$. The denser $\De$ is, the more translation invariant the method is.
-This corresponds to the fact that $\Dd$ computes with the translation operator.
+where $\De$ is a lattice of $\RR^d$. A denser shift lattice imposes equivariance at finer spatial resolution.
+This corresponds to the fact that $\Dd$ commutes with the translation operator.
 \begin{center}
 	\image{denoising}{.3}{cycle-spin-principle}
 \end{center}
-Imposing translation invariance for a fine enough set $\De$ is a natural constraint, since intuitively the denoising results should not depend on the location of features in the signal or image. Otherwise, some locations might be favored by the denoising process, which might result in visually unpleasant denoising artifacts.
+Translation invariance on a sufficiently fine set $\De$ prevents the denoiser from favoring particular feature locations. Without it, the same feature may be reconstructed differently depending on where it appears, producing visible artifacts.
 
 For denoising by thresholding 
 \eq{
 	\Dd(f) = \sum_m S_T( \dotp{f}{\psi_m} ) \psi_m.
 }
-then translation invariance is equivalent to asking that the basis $\{\psi_m\}_m$ is translation invariant at precision $\De$, 
+a sufficient condition is invariance of the basis $\{\psi_m\}_m$ under shifts in $\De$, up to unit-modulus factors:
 \eq{
-	\foralls m, \: \foralls \tau \in \De, \: \exists m, \: \exists \la \in \CC,  \quad \quad (\psi_{m'})_\tau = \la \psi_m
+	\foralls m',\ \foralls\tau\in\De,\ \exists m, \: \exists \la \in \CC,  \quad \quad (\psi_{m'})_\tau = \la \psi_m
 }
 where $|\la|=1$.
 
-The Fourier basis is fully translation invariant for $\De=\RR^d$ over $[0,1]^d$ with periodic boundary conditions and the discrete Fourier basis is translation invariant for all interger translations $\De=\{0,\ldots,N_0-1\}^d$ where $N=N_0$ is the number of points in 1-D, and $N=N_0 \times N_0$ is the number of pixels in 2-D.
+On the periodic domain, the Fourier basis is invariant under every shift $\De=\RR^d$ of $[0,1]^d$. The discrete Fourier basis is invariant under all integer shifts $\De=\{0,\ldots,N_0-1\}^d$, where $N=N_0$ counts samples in one dimension and $N=N_0 \times N_0$ counts pixels in two dimensions.
 
 Unfortunately, an orthogonal wavelet basis 
 \eq{
 	\{\psi_m = \psi_{j,n} \}_{j,n}
 }
-is not translation invariant both in the continuous setting or in the discrete setting. For instance, in 1-D, 
+is generally not invariant under arbitrary shifts in either the continuous or discrete setting. For instance, in 1-D,
 \eq{
-	(\psi_{j',n'})_{\tau} \notin \{ \psi_{j,n} \} \qforq \tau = 2^{j}/2.
+	(\psi_{j',n'})_{\tau} \notin \{ \psi_{j,n} \} \qforq \tau=2^{j\prime}/2.
 }
 
 %%
 \paragraph{Cycle spinning.}
 
-A simple way to turn a denoiser $\De$ into a translation invariant denoiser is to average the result of translated images
+For a finite group $\De$ of periodic shifts, average the shifted, denoised, and realigned outputs of $\Dd$ to obtain a translation-invariant estimator:
 \eql{\label{eq-cycle-spinning}
 	\Dd_{\text{inv}}(f) = \frac{1}{|\De|} \sum_{\tau \in \De} \Dd( f_{\tau} )_{-\tau}.
 }
-One easily check that 
+One checks that
 \eq{ 
 	\foralls \tau \in \De, \quad \Dd_{\text{inv}}(f) = \Dd_{\text{inv}}(f_\tau)_{-\tau}
 }
-To obtain a translation invariance up to the pixel precision for a data of $N$ samples, one should use a set of $|\De|=N$ translation vectors. To obtain a pixel precision invariance for wavelets, this will result in $O(N^2)$ operations.
+To obtain translation invariance at pixel precision for data with $N$ samples, one should use a set of $|\De|=N$ translation vectors. For wavelets, this requires $O(N^2)$ operations.
 
-Figure \ref{fig-wavthresh-2d-soft-ti} shows the result of applying cycle spinning to an orthogonal hard thresholding denoising using wavelets, where we have used the following translation of the continuous wavelet basis
-$\De = \{ 0, 1/N, 2/N, 3/N \}^2$, which corresponds to discrete translation by $\{ 0, 1, 2, 3 \}^2$  on the discretized image.
-The complexity of the denoising scheme is thus $16$ wavelet transforms. The translation invariance brings a very large SNR improvement, and significantly reduces the oscillating artifacts of orthogonal thresholding. This is because this artifacts pop-out at random locations when $\tau$ changes, so that the averaging process reduces significantly these artifacts.
+Figure \ref{fig-wavthresh-2d-soft-ti} applies cycle spinning to hard thresholding in an orthogonal wavelet basis, using the following shifts:
+$\De = \{ 0, 1/N_0, 2/N_0, 3/N_0 \}^2$ on an $N_0\times N_0$ image, corresponding to shifts by $\{ 0, 1, 2, 3 \}^2$ pixels.
+This requires 16 forward and inverse wavelet-transform pairs. Averaging this subset of shifts does not in general guarantee exact pixel-shift equivariance. In this example, partial averaging reduces sensitivity to shifts, substantially improves the SNR, and suppresses oscillatory artifacts. These artifacts move as $\tau$ changes, so averaging reduces them.
 
-Figure \ref{fig-wavthresh-ti} shows that translation invariant hard thresholding does a slightly better job than translation invariant soft thresholding. The situation is thus reversed with respect to thresholding in an orthogonal wavelet basis. % Code \ref{denoising-cyclespin} implement this cycle spinning for a 2-D wavelet thresholding.
+In Figure \ref{fig-wavthresh-ti}, translation-invariant hard thresholding slightly outperforms translation-invariant soft thresholding, reversing their ranking in the orthogonal-basis experiment. % Code \ref{denoising-cyclespin} implement this cycle spinning for a 2-D wavelet thresholding.
 
 \myfigure{
 \tabdeux{
@@ -653,14 +616,14 @@ Figure \ref{fig-wavthresh-ti} shows that translation invariant hard thresholding
 21.8dB & 23.4dB
 }
 }{%
-	Comparison of wavelet orthogonal soft thresholding (left) and translation invariant wavelet hard thresholding (right). %	
+	Soft thresholding in an orthogonal wavelet basis (left) and translation-invariant hard thresholding (right). %
 }{fig-wavthresh-2d-soft-ti}
 
 
 \myfigure{
 \image{denoising}{.5}{wavthresh-ti-curves}
 }{%
-	Curve of SNR with respect to $T/\si$ for translation invariant thresholding. %	
+	SNR as a function of $T/\si$ for translation-invariant thresholding. %
 }{fig-wavthresh-ti}
 
 
@@ -670,26 +633,26 @@ Figure \ref{fig-wavthresh-ti} shows that translation invariant hard thresholding
 %%
 \paragraph{Translation invariant wavelet frame.}
 
-An equivalent way to define a translation invariant denoiser is to replace the orthogonal basis $\Bb = \{\psi_m\}$ by a redundant family of translated vectors
+Cycle spinning also has a frame interpretation: replace the orthogonal basis $\Bb = \{\psi_m\}$ by its translated copies,
 \eql{\label{eq-ti-wavframe}
 	\Bb_{\text{inv}} = \{ (\psi_m)_\tau \}_{m, \tau \in \De}.
 }
-One should be careful about the fact that $\Bb_{\text{inv}}$ is not any more an orthogonal basis, but it still enjoy a conservation of energy formula
+Although $\Bb_{\text{inv}}$ is no longer an orthogonal basis, orthonormality of each translated copy gives the energy and reconstruction identities
 \eq{
 	\norm{f}^2 = \frac{1}{|\De|} \sum_{m, \tau \in \De} |\dotp{f}{(\psi_m)_\tau}|^2
 	\qandq
 	f = \frac{1}{|\De|} \sum_{m, \tau \in \De} \dotp{f}{(\psi_m)_\tau} (\psi_m)_\tau.
 }
-This kind of redundant family are called tight frames. 
+Such redundant families are called tight frames.
 
-One can then define a translation invariant thresholding denoising
+One can then define a translation invariant thresholding denoiser
 \eql{\label{eq-ti-thresh}
 	\Dd_{\text{inv}}(f) = \frac{1}{|\De|} \sum_{m, \tau \in \De} S_T(\dotp{f}{(\psi_m)_\tau}) (\psi_m)_\tau.
 }
-This denoising is the same as the cycle spinning denoising defined in \eqref{eq-cycle-spinning}.
+This estimator equals the cycle spinning estimator defined in \eqref{eq-cycle-spinning}.
 
-The frame $\Bb_{\text{inv}}$ might contain up to $|\De| |\Bb|$ basis element. 
-For a discrete basis of signal with $N$ samples, and a translation lattice of $|\De|=N$ vectors, it corresponds to up to $N^2$ elements in $\Bb_{\text{inv}}$. Hopefully, for a hierarchical basis such as a discrete orthogonal wavelet basis, one might have 
+Counted with multiplicity, the translated frame has $|\De| |\Bb|$ elements.
+For a basis of signals with $N$ samples and a lattice of $|\De|=N$ shifts, this gives up to $N^2$ vectors in $\Bb_{\text{inv}}$. In a hierarchical construction such as a wavelet basis, however, different shifts can produce the same atom:
 \eq{
 	(\psi_m)_\tau = (\psi_{m'})_{\tau'}
 	\qforq
@@ -697,21 +660,19 @@ For a discrete basis of signal with $N$ samples, and a translation lattice of $|
 	\qandq
 	\tau\neq \tau',
 }
-so that the number of elements in $\Bb_{\text{inv}}$ might be much smaller than $N^2$. 
+The number of distinct vectors in $\Bb_{\text{inv}}$ can therefore be much smaller than $N^2$.
 For instance, for an orthogonal wavelet basis, one has
 \eq{
 	(\psi_{j,n})_{k 2^j} = \psi_{j,n+k},
 }
-so that the number of basis elements is $|\Bb_{\text{inv}}| = N \log_2(N)$ for a 2-D basis, and $3 N \log_2(N)$ for a 2-D basis. The fast translation invariant wavelet transform, also called ``a trou'' wavelet transform, computes all the inner products $\dotp{f}{(\psi_m)_\tau}$ in $O(N \log_2(N))$ operations. Implementing formula \eqref{eq-ti-thresh} is thus much faster than applying the cycle spinning \eqref{eq-cycle-spinning} equivalent formulation.
+so many translated atoms coincide. For a signal of length $N$, an undecimated transform has $\log_2N$ detail arrays of length $N$, plus a coarse array. For an $N_0\times N_0$ image ($N=N_0^2$), it has $3\log_2N_0$ detail arrays of $N$ entries, plus a coarse array. Appropriate multiplicity weights must be retained when replacing the full translated family by distinct atoms.
 
-Translation invariant wavelet coefficients are usually grouped by scales in $\log_2(N)$ (for $d=1$) or by scales and orientations $3 \log_2(N)$ (for $d=2$) sets of coefficients. For instance, for a 2-D translation invariant transform, one consider
+The fast undecimated wavelet transform, often called the ``\`a trous'' transform, computes these coefficients in $O(N\log N)$ operations. Each detail array is indexed directly by every pixel location:
 \eq{
-	\foralls n \in \{0, \ldots, 2^j N_0-1 \}^2, \; 
-	\foralls k \in \{0, \ldots, 2^{-j} \}^2, \quad
-	d_j^\om[2^{-j} n+k] = \dotp{f}{ (\psi_{j,n})_{k 2^j} }
+ d_j^\omega[n]=\dotp{f}{(\psi_{j,0}^\omega)_n},\qquad
+ n\in\{0,\ldots,N_0-1\}^2,\quad\omega\in\{V,H,D\},
 }
-where $\om \in \{V,H,D\}$ is the orientation. Each set $d_j^\om$ has $N$ coefficients and is a band-pass filtered version of the original image $f$, as shown on Figure \ref{fig-tiwav}.
-
+where the wavelets and shifts are discrete and appropriately normalized. Each array is a band-pass filtered image, as illustrated in Figure~\ref{fig-tiwav}.
 
 \myfigure{
 \tabquatre{
@@ -730,26 +691,26 @@ $f$ & $j=-8, \om=H$ & $j=-8, \om=V$ & $j=-8, \om=D$ \\
 	Translation invariant wavelet coefficients. %	
 }{fig-tiwav}
 
-Figure \ref{fig-tiwav-coefs-thresh} shows how these set of coefficients are hard thresholded by the translation invariant estimator. 
+Figure \ref{fig-tiwav-coefs-thresh} illustrates hard thresholding of these translated coefficients.
 
 \myfigure{
 \image{denoising}{.3}{tiwav-coefs}
 \image{denoising}{.3}{tiwav-coefs-thresh}
 }{%
-	Left: translation invariant wavelet coefficients, for $j=-8, \om=H$, right: tresholded coefficients. %	
+	Left: translation invariant wavelet coefficients, for $j=-8, \om=H$, right: thresholded coefficients. %
 }{fig-tiwav-coefs-thresh}
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Exotic Thresholdings}
+\subsection{Other Shrinkage Rules}
 
-It is possible to devise many thresholding nonlinearities that interpolate between the hard and soft thresholder. We present here two examples, but many more exist in the literature. Depending on the statistical distribution of the wavelet coefficients of the coefficients of $f$ in the basis, these thresholders might produce slightly better results.
+Other shrinkage rules offer different compromises between retaining large coefficients and suppressing noise. We describe two examples whose performance depends on the coefficient distribution of $f$ in the chosen basis.
 
 %%
 \paragraph{Semi-soft thresholding.}
 
-One can define a family of intermediate thresholder that depends on a parameter $\mu>1$
+Semi-soft thresholding interpolates between hard and soft thresholding through a parameter $\mu>1$:
 \eq{
 	S_T^\th(x) = g_{\frac{1}{1-\th}}(x)
 	\qwhereq
@@ -757,11 +718,11 @@ One can define a family of intermediate thresholder that depends on a parameter 
 	\choice{
 		0 \qifq |x|<T\\
 		x \qifq |x|>\mu T\\
-		\sign(x) \frac{|x|-T}{\mu-1} \text{ otherwise.}
+		\sign(x)\frac{\mu(|x|-T)}{\mu-1} \text{ otherwise.}
 	}
 }
-One thus recovers the hard thresholding as $S_T^0$ and the soft thresholding as $S_T^1$.
-Figure \ref{fig-semisoft} display an example of such a non-linearity.
+For $0<\theta<1$, set $\mu=1/(1-\theta)$. The limits $\theta\downarrow0$ and $\theta\uparrow1$ give hard and soft thresholding, respectively, away from the threshold boundary.
+Figure~\ref{fig-semisoft} shows an example of this nonlinearity.
 
 \myfigure{
 \image{denoising}{.45}{semisoft-thresholders}
@@ -770,46 +731,46 @@ Figure \ref{fig-semisoft} display an example of such a non-linearity.
 	Left: semi-soft thresholder, right: Stein thresholder. %	
 }{fig-semisoft}
 
-Figure \ref{fig-semisoft-optimal} shows that a well chosen value of $\mu$ might actually improves over both hard and soft thresholders. The improvement is however hardly noticeable visually.  
+Figure \ref{fig-semisoft-optimal} shows an SNR improvement for a suitable choice of $\mu$, although the visual difference from hard and soft thresholding is small.
 
 \myfigure{
 \image{denoising}{.45}{semisoft-optimal-image}
 \image{denoising}{.4}{semisoft-optimal-curve}
 }{%
-	 Left: image of SNR with respect to the parameters $\mu$ and $T/\si$, right: curve of SNR with respect to $\mu$ using the best $T/\si$ for each $\mu$. %	
+	 Left: SNR as a function of $\mu$ and $T/\si$. Right: SNR versus $\mu$, with $T/\si$ optimized separately for each $\mu$. %
 }{fig-semisoft-optimal}
 
 %%
 \paragraph{Stein thresholding.}
 
-The Stein thresholding is defined using a quadratic attenuation of large coefficients
+Stein thresholding is defined using a quadratic attenuation of large coefficients
 \eq{
  	S_T^{\text{Stein}}(x) = \max\pa{1-\frac{T^2}{|x|^2},0}x.
 }
-This should be compared with the linear attenuation of the soft thresholding
+The value at $x=0$ is defined to be zero. This should be compared with the linear attenuation of soft thresholding
 \eq{
  	S_T^1(x) = \max\pa{1-\frac{T}{|x|},0}x.
 }
-The advantage of the Stein thresholder with respect to the soft thresholding is that
+For large coefficients, Stein thresholding has the following shrinkage behavior:
 \eq{
 	|S_T^{\text{Stein}}(x)-x| \rightarrow 0
 	\quad\text{ whereas }\quad
 	|S_T^1(x)-x| \rightarrow T,
 }
-where $x \rightarrow \pm \infty$. This means that Stein thresholding does not suffer from the bias of soft thresholding.
+as $x \rightarrow \pm \infty$. Its deterministic shrinkage tends to zero, whereas soft thresholding retains a fixed shrinkage. This limiting property does not imply unbiased estimation at finite amplitudes.
 
 \myfigure{
 \image{denoising}{.45}{stein-optimal-curve}
 }{%
-	 SNR curves with respect to $T/\si$ for Stein threhsolding. %	
+	 SNR as a function of $T/\si$ for Stein thresholding. %
 }{fig-stein-optimal-curve}
 
-For translation invariant thresholding, Stein and hard thresholding perform similarly on natural images.
+Stein and hard thresholding give similar results in the translation-invariant natural-image experiments shown here.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Block Thresholding}
 
-The non-linear thresholding method presented in the previous section are diagonal estimators, since they operate a coefficient-by-coefficient attenuation
+The nonlinear thresholding methods above are diagonal estimators, since they attenuate each coefficient separately
 \eq{
 	\tilde f = \sum_m A_T^q(\dotp{f}{\psi_m}) \dotp{f}{\psi_m} \psi_m
 } 
@@ -817,34 +778,34 @@ where
 \eq{
 	A_T^q(x) = 
 	\choice{
-		\max(1-x^2/T^2,0) \qforq q=\text{Stein}\\
-		\max(1-|x|/T,0) \qforq q=1\text{ (soft)}\\
+		\max(1-T^2/|x|^2,0) \qforq q=\text{Stein}\\
+		\max(1-T/|x|,0) \qforq q=1\text{ (soft)}\\
 		1_{|x|>T} \qforq q=0\text{ (hard)}
 	}
 }
-Block thresholding takes advantage of the statistical dependancy of wavelet coefficients, by computing the attenuation factor on block of coefficients. This is especially efficient for natural images, where edges and geometric features create clusters of high magnitude coefficients. Block decisions also help to remove artifacts due to isolated noisy large coefficients in regular areas.
+Define every attenuation factor to be zero at $x=0$ when $T>0$. Block thresholding shares an attenuation factor across a group of coefficients, exploiting their statistical dependence. This is useful for natural images, where edges create clusters of large wavelet coefficients. Grouping also helps suppress isolated noise coefficients in otherwise smooth regions.
 
-The set of coefficients is divided into disjoint blocks, and for instance for 2-D wavelet coefficients
+Partition the coefficients into disjoint blocks; for example, in a 2-D wavelet transform,
 \eq{
 	\{ (j,n,\om) \}_{j,n,\om} = \bigcup_k B_k,
 }
-where each $B_k$ is a square of $s \times s$ coefficients, where the block size $s$ is a parameter of the method. 
+where each $B_k$ contains $s\times s$ neighboring coefficients at a fixed scale and orientation. The block size $s$ is a parameter of the method.
 Figure \ref{fig-block-wavcoefs} shows an example of such a block.
 
-The block energy is defined as
+The mean squared coefficient magnitude in a block is
 \eq{
-	B_k = \frac{1}{s^2} \sum_{ m \in B_k } |\dotp{f}{\psi_m}|^2, 
+	E_k=\frac{1}{|B_k|} \sum_{ m \in B_k } |\dotp{f}{\psi_m}|^2.
 }
-and the block thresholding 
+The block estimator
 \eq{
 	\tilde f = \sum_m S_T^{\text{block},q}(\dotp{f}{\psi_m}) \psi_m
 }
-makes use of the same attenuation for all coefficients within a block
+applies the same attenuation to every coefficient in a block,
 \eq{
-	\foralls m \in B_k, \quad S_T^{\text{block},q} (\dotp{f}{\psi_m}) = A_T^q(E_k) \dotp{f}{\psi_m}.
+	\foralls m \in B_k, \quad S_T^{\text{block},q} (\dotp{f}{\psi_m}) = A_T^q(\sqrt{E_k}) \dotp{f}{\psi_m},
 }
 for $q \in \{0,1,\text{stein}\}$.
-Figure \ref{fig-block-wavcoefs} shows the effect of this block attenuation, and the corresponding denoising result.
+Figure \ref{fig-block-wavcoefs} shows the attenuated blocks and the reconstructed image.
 
 \myfigure{
 \image{denoising}{.32}{block-wavcoefs}
@@ -854,20 +815,20 @@ Figure \ref{fig-block-wavcoefs} shows the effect of this block attenuation, and 
 	 Left: wavelet coefficients, center: block thresholded coefficients, right: denoised image. %	
 }{fig-block-wavcoefs}
 
-Figure \ref{fig-block-optimal-curves}, left, compares the three block thresholding obtained for $q \in \{0,1,\text{stein}\}$. Numerically, on natural images, Stein block thresholding gives the best results.
-Figure \ref{fig-block-optimal-curves}, right, compares the block size for the Stein block thresholder. Numerically, for a broad range of images, a value of $s=4$ works well.
+Figure \ref{fig-block-optimal-curves}, left, compares the rules for $q \in \{0,1,\text{stein}\}$. Stein block thresholding gives the highest SNR in this comparison.
+Figure \ref{fig-block-optimal-curves}, right, compares block sizes for Stein thresholding. The choice $s=4$ performs well in the displayed experiment.
 
 \myfigure{
 \image{denoising}{.45}{block-optimal-curves}
 \image{denoising}{.45}{block-sizeblock}
 }{%
-	 Curve of SNR with respect to $T/\si$ (left) and comparison of SNR for different block size (right). %	
+	 SNR as a function of $T/\si$ (left) and comparison of different block sizes (right). %
 }{fig-block-optimal-curves}
 
-Figure \ref{fig-comp-thresh} shows a visual comparison of the denoising results. Block stein thresholding of orthogonal wavelet coefficients gives a result nearly as good as a translation invariant wavelet hard thresholding, with a faster algorithm. 
-The block thresholding strategy can also be applied to wavelet coefficients in translation invariant tight frame, which produces the best results among all denoisers detailed in this book. 
+Figure \ref{fig-comp-thresh} compares the reconstructions. Stein block thresholding in an orthogonal wavelet basis approaches the quality of translation-invariant hard thresholding here, at lower computational cost.
+The block thresholding strategy can also be applied to wavelet coefficients in a translation invariant tight frame, which gives the best result among the methods compared in this experiment.
 
-Code \ref{denoising-block} implement this block thresholding.
+The same block attenuation can be implemented directly after the wavelet transform.
 
 \myfigure{
 \tabtrois{
@@ -881,7 +842,7 @@ SNR=23.4dB & 22.8dB & 23.8dB
 	 right: block translation invariant Stein thresholding. %	
 }{fig-comp-thresh}
 
-One should be aware that more advanced denoisers use complicated statistical models that improves over the methods proposed in this book, see for instance \cite{portilla-denoise}.
+More advanced denoisers use richer statistical models to improve on the methods presented here; see, for instance, \cite{portilla-denoise}.
 
 
 % \matlab{matlab/denoising-block.m
@@ -891,29 +852,29 @@ One should be aware that more advanced denoisers use complicated statistical mod
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Data-dependant Noises}
+\section{Signal-Dependent Noise}
 \label{sect-data-dept-noises}
 
-For many imaging devices, the variance of the noise that perturbs $f_{0,n}$ depends on the value of $f_{0,n}$. This is a major departure from the additive noise formation model considered so far. We present here two popular examples of such non-additive models.
+In many imaging systems, the variance of the noise affecting $f_{0,n}$ depends on the intensity $f_{0,n}$ itself. We now study Poisson counts and multiplicative noise. Both can be expressed as additive residuals, but their residual distributions depend on the signal.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Poisson Noise}
 
-Many imaging devices sample an image through a photons counting operation. This is for instance the case in digital camera, confocal microscopy, TEP and SPECT tomography.
+Many imaging devices measure intensity by counting photons. Examples include digital cameras, confocal microscopy, PET and SPECT tomography.
 
 %%
 \paragraph{Poisson model.}
 
-The uncertainty of the measurements for a quantized unknown image $f_{0,n} \in \NN$ is then modeled using a Poisson noise distribution 
+For an unknown mean intensity $f_{0,n}\geq0$, a Poisson model describes the observed photon count:
 \eq{
 	f_n \sim \Pp(\la)
-	\qwhereq \la=f_{0,n} \in \NN,
+	\qwhereq \lambda=f_{0,n}\in[0,\infty),
 }
-and where the Poisson distribution $\Pp(\la)$ is defined as
+The Poisson distribution $\Pp(\la)$ has probability mass function
 \eq{
 	\PP(f_n=k)=\frac{\la^k e^{-\la}}{k!}
 }
-and thus varies from pixel to pixel. Figure \ref{fig-poisson-distrib} shows examples of Poisson distributions.
+and its parameter varies across pixels with the underlying intensity. Figure \ref{fig-poisson-distrib} shows several Poisson distributions.
 
 \myfigure{
 \image{denoising}{.5}{poisson-distrib}
@@ -923,13 +884,13 @@ and thus varies from pixel to pixel. Figure \ref{fig-poisson-distrib} shows exam
 
 One has 
 \eq{
-	\Dd(f_n)=\la=f_{0,n}
+	\mathbb E(f_n)=\la=f_{0,n}
 	\qandq
 	\text{Var}(f_n)=\la=f_{0,n}
 }
-so that the denoising corresponds to estimating the mean of a random vector from a single observation, but the variance now depends on the pixel intensity. This shows that the noise level increase with the intensity of the pixel (more photons are coming to the sensor) but the relative variation $(f_n-f_{0,n})/f_{0,n}$ tends to zero in expectation when $f_{0,n}$ increases.
+Thus denoising again estimates a mean from one observation, but the variance now varies with intensity. The absolute noise level increases as more photons reach the sensor. For positive intensity, the relative standard deviation $f_{0,n}^{-1/2}$ instead decreases.
 
-Figure \ref{fig-poisson-denoising} shows examples of a clean image $f_0$ quantized using different values of $\la_{\max}$ and perturbed with the Poisson noise model.
+Figure \ref{fig-poisson-denoising} shows Poisson-corrupted versions of a clean image $f_0$ at different maximum mean intensities $\la_{\max}$.
 
 \myfigure{
 \tabquatre{
@@ -937,49 +898,49 @@ Figure \ref{fig-poisson-denoising} shows examples of a clean image $f_0$ quantiz
 \image{denoising}{.23}{poisson-denoising-2}&
 \image{denoising}{.23}{poisson-denoising-3}&
 \image{denoising}{.23}{poisson-denoising-4}\\
-$\la_{\max}=5$ & $\la_{\max}=50$ & $\la_{\max}=50$ & $\la_{\max}=100$
+Example 1 & Example 2 & Example 3 & Example 4
 }
 }{%
-	 Noisy image with Poisson noise model, for various $\la_{\max}= \max_n f_{0,n}$. %	
+	 Examples of Poisson-corrupted images at different count levels. Numerical acquisition parameters are not available for these legacy illustrations. %
 }{fig-poisson-denoising}
 
 %%
 \paragraph{Variance stabilization.}
 
-Applying thresholding estimator 
+Applying a thresholding estimator
 \eq{
 	\Dd(f) = \sum_m S_T^q(\dotp{f}{\psi_m}) \psi_m
 }
-to $f$ might give poor results since the noise level fluctuates from point to point, and thus a single threshold $T$ might not be able to capture these variations. A simple way to improve the thresholding results is to first apply a variance stabilization non-linearity $\phi : \RR \rightarrow \RR$ to the image, so that $\phi(f)$ is as close as possible to an additive Gaussian white noise model
+directly to $f$ can perform poorly because a single threshold $T$ cannot adapt to spatially varying noise. A variance-stabilizing transform $\phi : [0,+\infty) \rightarrow \RR$, applied pixelwise, maps the counts to $\phi(f)$. An additive Gaussian white-noise model can then be a useful approximation:
 \eql{\label{eq-var-stab}
 	\phi(f) \approx \phi(f_0) + w
 }
-where $w_n \sim \Nn(0,\si)$ is a Gaussian white noise of fixed variance $\si^2$.
+where $w_n\sim\Nn(0,\sigma^2)$ are independent centered Gaussians with constant variance $\si^2$.
 
-Perfect stabilization is impossible, so that \eqref{eq-var-stab} only approximately holds for a limited intensity range of $f_{0,n}$.
-Two popular variation stabilization functions for Poisson noise are the Anscombe mapping
+The model~\eqref{eq-var-stab} is approximate, and its accuracy depends on the intensity range of $f_{0,n}$.
+Two common variance-stabilizing transforms for Poisson noise are the Anscombe transform
 \eq{
 	\phi(x) = 2\sqrt{x+3/8}
 }
-and the mapping of Freeman and Tukey 
+and the Freeman--Tukey transform
 \eq{
 	\phi(x) = \sqrt{x+1}+\sqrt{x}.
 }
-Figure \ref{fig-variance-stabilization} shows the effect of these variance stabilizations on the variance of $\phi(f)$.
+Figure \ref{fig-variance-stabilization} compares the variance of $\phi(f)$ after these transformations.
 
 \myfigure{
-\image{denoising}{.5}{variance-stabilization}
+\image{denoising}{.5}{variance-stabilization-corrected}
 }{%
-	 Comparison of variariance stabilization: display of $\text{Var}(\phi(f_n))$ as a function of $f_{0,n}$. %	
+	 Exact Poisson variances of the Anscombe, Freeman--Tukey, and $2\sqrt{x}$ transforms as functions of the mean intensity. %
 }{fig-variance-stabilization}
 
-A variance stabilized denoiser is defined as
+A variance-stabilized denoiser is defined as
 \eq{
-	\De^{\text{stab},q}(f) =  \phi^{-1}( \sum_m S_T^q(\dotp{\phi(f)}{\psi_m}) \psi_m )
+	\Dd^{\text{stab},q}(f) =  \phi^{-1}( \sum_m S_T^q(\dotp{\phi(f)}{\psi_m}) \psi_m )
 }
-where $\phi^{-1}$ is the inverse mapping of $\phi$.
+where $\phi^{-1}$ is applied after projecting the denoised values onto its domain. The direct inverse generally introduces bias, especially at low counts; bias-corrected inverse transforms can improve the result.
 
-Figure \ref{fig-poisson-wav} shows that for moderate intensity range, variance stabilization improves over non-stabilized denoising.
+At the moderate count levels in Figure \ref{fig-poisson-wav}, variance stabilization improves the denoising result.
 
 \myfigure{
 \tabtrois{
@@ -1001,34 +962,32 @@ A multiplicative noise model assumes that
 \eq{
 	f_n = f_{0,n} w_n
 }
-where $w$ is a realization of a random vector with  $\Dd(w)=1$.
+where $w$ is a random multiplier, observed through one realization, with $\mathbb E(w_n)=1$.
 Once again, the noise level depends on the pixel value
 \eq{
-	\Dd(f_n) = f_{0,n}
+	\mathbb E(f_n) = f_{0,n}
 	\qandq
 	\text{Var}(f_n) = f_{0,n}^2 \si^2 
 	\qwhereq 
-	\si^2 = \text{Var}(w).	
+	\sigma^2=\operatorname{Var}(w_n).
 }
-Such a mutiplicative noise is a good model for SAR satellite imaging, where $f$ is obtained by averaging $S$ images
+In SAR imaging, a common model forms $f$ by averaging $K$ independent observations, called looks:
 \eq{
-	\foralls 0 \leq s < K, \quad f^{(s)}_n = f_{0,n} w^{(s)}_n + r^{(s)}_n
+	\foralls 1\leq s\leq K, \quad f^{(s)}_n = f_{0,n} w^{(s)}_n + r^{(s)}_n
 }
-where $r^{(s)}$ is a Gaussian white noise, and $w^{(s)}_n$ is distributed according to a one-sided exponential distribution
+where $r^{(s)}$ is additive Gaussian white noise and the multiplier $w^{(s)}_n$ has an exponential distribution:
 \eq{
-	\Pp(w^{(s)}_n=x) \propto e^{-x} \: \mathbb{I}_{x>0}.
+	p_{w^{(s)}_n}(x)=e^{-x}\mathbf1_{x>0}.
 }
-For $K$ large enough, averaging the images cancels the additive noise and one obtains
+Averaging $K$ independent looks divides the additive-noise variance by $K$. When the remaining additive component is negligible, the average is approximately
 \eq{
 	f_n = \frac{1}{K} \sum_{s=1}^K f^{(s)}_n \approx f_{0,n} w_n
 }
-where $w$ is distributed according to a Gamma distribution 
+where the multiplicative factor is distributed according to a Gamma distribution
 \eq{
-	w \sim \Gamma(\si=K^{-\frac{1}{2}}, \mu=1)
-	\qwhereq
-	\PP(w=x) \propto x^{K-1} e^{-K x},
+	w_n\sim\operatorname{Gamma}(\text{shape}=K,\text{rate}=K),\qquad p_{w_n}(x)=\frac{K^K}{\Gamma(K)}x^{K-1}e^{-Kx}\mathbf1_{x>0}.
 }
-One should note that increasing the value of $K$ reduces the overall noise level.
+Its mean is one and its variance is $1/K$, so increasing $K$ reduces the relative noise level.
 
 \myfigure{
 \tabquatre{
@@ -1038,10 +997,10 @@ One should note that increasing the value of $K$ reduces the overall noise level
 \image{denoising}{.23}{multnoise-4}
 }
 }{%
-	 Noisy images with multiplicative noise, with varying $\si$. %	
+	 Images with multiplicative noise at different values of $\si$. %
 }{fig-multnoise}
 
-Figure \ref{multnoise} shows an example of such image formation for a varying number $K=1/\si^2$ of averaged images.
+Figure \ref{fig-multnoise} illustrates how the noise changes with the number $K=1/\si^2$ of averaged looks.
 
 A simple variance stabilization transform is
 \eq{
@@ -1053,12 +1012,11 @@ where
 	\qwhereq
 	\psi(x) = \Ga'(x)/\Ga(x)
 }
-and where $\Ga$ is the Gamma function that generalizes the factorial function to non-integer.
-One thus has
+Here $\Ga$ is the Gamma function and $\psi$ is its logarithmic derivative, the digamma function. The transformed observation satisfies
 \eq{
-	\phi(f)_n = \phi(f_0)_n + z_n,
+	\phi(f)_n=\log f_{0,n}+z_n,
 }
-where $z_n=\log(w)-c$ is a zero-mean additive noise. 
+for strictly positive intensities, where $z_n=\log(w_n)-c$ is centered additive noise with variance $\psi^{(1)}(K)$; $\psi^{(1)}$ is the derivative of the digamma function. Thus the transformed target is $\log f_0$, not $\phi(f_0)$. Exponentiating an estimate of $\log f_0$ introduces a further statistical bias and may require correction.
 
 \myfigure{
 \image{denoising}{.45}{multnoise-hist-unstab}
@@ -1067,9 +1025,9 @@ where $z_n=\log(w)-c$ is a zero-mean additive noise.
 	 Histogram of multiplicative noise before (left) and after (right) stabilization. %	
 }{fig-multnoise-hist-unstab}
 
-Figure \ref{fig-multnoise-hist-unstab} shows the effect of this variance stabilization on the repartition of $w$ and $z$.
+Figure \ref{fig-multnoise-hist-unstab} shows the effect of this variance stabilization on the distributions of $w$ and $z$.
 
-Figure \ref{fig-multnoise-wav} shows that for moderate noise level $\si$, variance stabilization improves over non-stabilized denoising.
+Figure \ref{fig-multnoise-wav} compares the two approaches at moderate noise levels $\si$, where variance stabilization improves the displayed result.
 
 \myfigure{
 \tabtrois{
@@ -1078,9 +1036,7 @@ Figure \ref{fig-multnoise-wav} shows that for moderate noise level $\si$, varian
 \image{denoising}{.32}{multnoise-wav-unstab}
 }
 }{%
-	Left: noisy image, center: denoising without variance stabilization, right: denoising after variance stabilization. %		
+	Left: noisy image, center: denoising after variance stabilization, right: denoising without variance stabilization. %
 }{fig-multnoise-wav}
-
-
 
 

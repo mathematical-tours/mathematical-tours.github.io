@@ -1,17 +1,19 @@
 % !TEX root = ../FundationsDataScience.tex
 
 \chapter{Shannon Sampling Theory}
-\label{sec-shannon}
+\label{sec-shannon-sampling}
+
+\chapteroverview{Digital measurements retain only samples of a continuous signal, so reconstruction depends on what information sampling preserves. Understanding these limits guides the choice of sampling rate and the filtering applied before acquisition. Starting from continuous and discrete signal models, we use Fourier analysis to prove a sampling theorem, explain aliasing, and distinguish exact interpolation from the additional error introduced by quantization.}
 
 %
-Shannon's theory of information, published in 1948/1949, is made of three parts:
+Shannon's foundational work of 1948--1949 addresses three closely related topics:
 \begin{enumerate}
-	\item Sampling: it studies conditions under which sampling a continuous function to obtain a discrete vector is invertible. The discrete real values representing the signal are then typically quantized to a finite precision to obtain a set of symbols in a finite alphabet.  
-	\item Source coding: it studies optimal ways to represent (code) such a set of symbols as a binary sequence. It leverages the statistical distributions to obtain the most possible compact code.  
-	\item Channel coding (not studied here): it studies adding some redundancy to the coded sequence to gain robustness to errors or attacks during transmission (flip of certain bits with some probability). It is often named ``error correcting codes theory''. 
+	\item Sampling determines when a continuous signal can be recovered from discrete measurements. Quantization then replaces the measured values by symbols from a finite alphabet.
+	\item Source coding uses symbol probabilities to represent a sequence of symbols compactly as a binary string.
+	\item Channel coding adds redundancy to protect the coded sequence against transmission errors, such as flipped bits. It is also known as error-correcting coding.
 \end{enumerate}
 %
-This chapter is focussed on the sampling theory and Chapter~\ref{sec-shannon-source} is dedicated to the source coding theory. We do not cover channel coding. 
+Chapter~\ref{sec-shannon} develops source coding theory. We do not cover channel coding.
 %
 The main reference for this chapter is~\cite{mallat2008wavelet}.
 
@@ -19,21 +21,19 @@ The main reference for this chapter is~\cite{mallat2008wavelet}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Analog vs. Discrete Signals}
+\section{Continuous and Discrete Signals}
 
-To develop numerical tools and analyze their performances, the mathematical modeling is usually done over a continuous setting (so-called ``analog signals''). 
+To analyze signal-processing methods, we often begin with a continuous model of the physical input to a sensor.
 %
-Such a continuous setting also aims at representing the signal in the physical world, which are inputs to sensor hardware such as microphones, digital cameras, or medical imaging devices. 
+Examples include microphones, digital cameras, and medical imaging devices.
 %
-An analog signal is a 1-D function $f_0 \in \Ldeux([0,1])$ where $[0,1]$ denotes the domain of acquisition, which might for instance be time. An analog image is a 2D function $f_0 \in \Ldeux([0,1]^2)$ where the unit square $[0,1]^2$ is the image domain.
+For example, a one-dimensional signal can be modeled by $f_0\in\Ldeux([0,1])$, where $[0,1]$ is the acquisition interval, often representing time. A grayscale image can be modeled by $f_0\in\Ldeux([0,1]^2)$ on the unit square.
 
-Although these notes are focused on the processing of sounds and natural images, most of the methods extend to multi-dimensional datasets, which are higher-dimensional mappings
+Although sound and natural images provide many of our examples, most of the methods extend to multidimensional data. After normalizing the signal values, these data can be represented by mappings
 \eq{
 	f_0 : [0,1]^d \rightarrow [0,1]^s
 }
-where $d$ is the dimensionality of the input space ($d=1$ for sound and $d=2$ for images) whereas $s$ is the dimensionality of the feature space. For instance, grayscale images correspond to $(d=2,s=1)$, 
-videos to $(d=3, s=1)$, color images to $(d=2, s=3)$ where one has three channels $(R,G,B)$.
-One can even consider multi-spectral images where $(d=2, s \gg 3)$ is made of many channels for different light wavelengths. Figures \ref{fig-examples-1} and \ref{fig-examples-2} show examples of such data.
+Here $d$ is the dimension of the acquisition domain and $s$ is the number of channels. Grayscale images have $(d,s)=(2,1)$, grayscale videos have $(d,s)=(3,1)$, and RGB color images have $(d,s)=(2,3)$. Multispectral images have $d=2$ and many channels, each recording a different wavelength range. Figures~\ref{fig-examples-1} and~\ref{fig-examples-2} illustrate these types of data.
 
 
 \myfigure{
@@ -41,22 +41,21 @@ One can even consider multi-spectral images where $(d=2, s \gg 3)$ is made of ma
 	\image{orthobases}{.28}{example-image}
 	\image{orthobases}{.3}{example-video}
 }{%
-	Examples of sounds ($d=1$), image ($d=2$) and videos ($d=3$). %	
+	Examples of sound ($d=1$), an image ($d=2$), and a video ($d=3$). %
 }{fig-examples-1}
 
 \myfigure{
 	\image{orthobases}{.4}{example-color}
 	\image{orthobases}{.5}{example-multispectral}
 }{%
-	Example of color image $s=3$ and multispectral image ($s=32$). %	
+	A color image ($s=3$) and a multispectral image ($s=32$). %
 }{fig-examples-2}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Acquisition and Sampling}
 
-Signal acquisition is a low-dimensional projection of the continuous signal performed by some hardware device. This is for instance the case for a microphone that acquires 1D samples or a digital camera that acquires 2D pixel samples.
-The sampling operation thus corresponds to mapping from the set of continuous functions to a discrete finite dimensional vector with $N$ entries.
+Signal acquisition maps a continuous signal to a finite-dimensional vector of measurements. A microphone records samples along a time axis, whereas a digital camera records samples on a two-dimensional pixel grid. Abstractly, an acquisition operator maps
 \eq{
 	f_0 \in \Ldeux([0,1]^d) \mapsto f \in \CC^N
 }
@@ -71,15 +70,15 @@ The sampling operation thus corresponds to mapping from the set of continuous fu
 Figure \ref{fig-discretization} shows examples of discretized signals.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Linear Translation Invariant Sampler}
+\subsection{Linear Translation-Invariant Sampling}
 
-A translation-invariant sampler performs the acquisition as an inner product between the continuous signal and a constant impulse response $h$ translated at the sample location
+To model translation-invariant sampling, extend the signal outside its acquisition domain according to the chosen boundary convention, convolve it with a fixed impulse response $h$, and sample the result:
 \eql{\label{eq-linear-sampling}
-	f_n = \int_{-S/2}^{S/2} f_0(x) h(n/N - x) \d x= f_0 \star h(n/N).
+	f_n = \int_{\RR} f_0(x) h(n/N-x)\,\d x = (f_0\star h)(n/N).
 }
-The precise shape of $h(x)$ depends on the sampling device and is usually a smooth low-pass function that is maximal around $x=0$. The size $S$ of the sampler determines the precision of the sampling device and is usually of the order of $1/N$ to avoid blurring (if $S$ is too large) or aliasing (if $S$ is too small).
+The impulse response $h(x)$ depends on the device. It is typically a smooth low-pass kernel concentrated near $x=0$. Its effective width $S$ controls spatial resolution: a wide kernel blurs the signal, whereas a narrow kernel may fail to suppress frequencies that cause aliasing. A width of order $1/N$ balances these effects at the sampling scale.
 
-Section \ref{sec-sampling} details how to reverse the sampling operation in the case where the function is smooth.
+Section~\ref{subsec-sampling} explains when a bandlimited signal can be reconstructed from its samples. Smoothness alone does not guarantee exact recovery.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -89,90 +88,90 @@ Section \ref{sec-sampling} details how to reverse the sampling operation in the 
 \label{subsec-sampling}
 
 %%%
-\paragraph{Reminders about Fourier transform.}
+\paragraph{The Fourier transform.}
 
 For $f \in L^1(\RR)$, its Fourier transform is defined as
 \eql{\label{eq-fourier-transform}
 	\foralls \om \in \RR, \quad
 	\hat f(\om) \eqdef \int_\RR f(x) e^{-\imath x \om} \d x.
 }
-One has $\norm{\hat f}^2 = (2\pi)^{-1} \norm{f}^2$, so that $f \mapsto \hat f$ can be extended by continuity to $L^2(\RR)$, which corresponds to computing $\hat f$ as a limit when $T \rightarrow +\infty$ of $\int_{-T}^T f(x) e^{-\imath x \om} \d x$.
+For $f\in L^1(\RR)\cap L^2(\RR)$, Plancherel's identity gives $\norm{\hat f}_2^2 = 2\pi\norm{f}_2^2$. The map $f \mapsto \hat f$ therefore extends continuously to $L^2(\RR)$. This extension is the $L^2$ limit, as $T \rightarrow +\infty$, of the truncated integrals $\int_{-T}^T f(x) e^{-\imath x \om} \d x$.
 %
-When $\hat f \in L^1(\RR)$, one can invert the Fourier transform so that
+When $\hat f \in L^1(\RR)$, Fourier inversion gives
 \eql{\label{eq-i-ft}
 	f(x) = \frac{1}{2\pi} \int_\RR \hat f(\om) e^{\imath x \om} \d \om, 
 }
-which shows in particular that $f$ is continuous with vanishing limits at $\pm\infty$. 
+where the equality holds almost everywhere. The right-hand side defines the continuous representative of $f$, which vanishes at $\pm\infty$. We use this representative whenever pointwise values are needed.
 
-The Fourier transform $\Ff : f \mapsto \hat f$ exchanges regularity and decay. For instance, if $f \in C^p(\RR)$ with an integrable Fourier transform, then $\Ff(f^{(p)})(\om) = (\imath \om)^{p} \hat f(\om)$ so that $|\hat f(\om)|=O(1/|\om|^p)$. 
+The Fourier transform $\Ff : f \mapsto \hat f$ exchanges regularity and decay. For an integer $p\geq0$, if $f\in W^{p,1}(\RR)$, then $\Ff(f^{(p)})(\om) = (\imath \om)^{p} \hat f(\om)$ so that $|\hat f(\om)|=O(1/|\om|^p)$.
 %
 Conversely, 
 \eql{\label{eq-fourier-regul}
 	\int_\RR (1+|\om|)^{p} |\hat f(\om)| \d \om<+\infty
 	\qarrq f \in C^p(\RR).
 }
-For instance, if $\hat f(\om)=O(1/|\om|^{p+1+\epsilon})$ for $\epsilon>0$, one obtains that $f \in C^p(\RR)$. 
+For example, the decay estimate $\hat f(\om)=O(1/|\om|^{p+1+\epsilon})$ for $\epsilon>0$ implies $f \in C^p(\RR)$.
 
-A related, but different way to impose smoothness is by using the Sobolev $H^1$ norm $\int_\RR (1+|\om|^2) |\hat f(\om)|^2 \d \om$, which, when $f$ is smooth, is equal to $\|f\|_2^2 + \|f'\|_2^2$. It is a fundamental space to define weak solutions (non smooth) to PDE's, and also to control compression errors in image process. We will not pursue this here.
+A related measure of smoothness is the squared Sobolev norm $\|f\|_{H^1}^2=(2\pi)^{-1}\int_\RR (1+|\om|^2)|\hat f(\om)|^2\,\d\om=\|f\|_2^2+\|f'\|_2^2$, where $f'$ is the weak derivative. Sobolev spaces provide a natural setting for weak solutions of PDEs. Later chapters use Sobolev regularity to control approximation and denoising errors.
 
 %%%
-\paragraph{Reminders about Fourier series.}
+\paragraph{Fourier series.}
 
-We denote $\TT=\RR/2\pi\ZZ$ the torus.
+Let $\TT=\RR/(2\pi\ZZ)$ denote the circle of length $2\pi$.
 %
-A function $f \in L^2(\TT)$ is $2\pi$-periodic, and can be viewed as a function $f \in L^2([0,2\pi])$ (beware that this means that the boundary points are glued together), and its Fourier coefficients are
+A function $f\in L^2(\TT)$ is identified with a $2\pi$-periodic function on $\RR$. Its Fourier coefficients are
 \eq{
 	\foralls k \in \ZZ, \quad 
 	\hat f_k \eqdef \frac{1}{2\pi}\int_0^{2\pi} f(x) e^{-\imath x k} \d x.
 }
-This formula is equivalent to the computation of an inner-product $\hat f_k = \dotp{f}{e_k}$ for the inner-product $\dotp{f}{g} \eqdef \frac{1}{2\pi} \int_\TT f(x) \bar g(x) \d x$ and for $e_k(x) \eqdef e^{\imath x k}$. 
+Equivalently, $\hat f_k = \dotp{f}{e_k}$, where $\dotp{f}{g} \eqdef \frac{1}{2\pi} \int_\TT f(x) \bar g(x) \d x$ and $e_k(x) \eqdef e^{\imath x k}$.
 %
-For this inner product, $(e_k)_k$ is orthonormal and is a Hilbert basis, meaning that one reconstructs with the following converging series 
+The functions $(e_k)_{k\in\ZZ}$ form an orthonormal basis for this inner product, giving the expansion
 \eql{\label{eq-fourier-series}
-	f = \sum_{n \in \ZZ} \dotp{f}{e_k} e_k
+	f = \sum_{k \in \ZZ} \dotp{f}{e_k} e_k
 }
 which means $\norm{f-\sum_{k=-N}^N \dotp{f}{e_k} e_k}_{L^2(\TT)} \rightarrow 0$ for $N \rightarrow +\infty$.
 %
-The pointwise convergence of~\eqref{eq-fourier-series} at some $x \in \TT$ is ensured if, for instance, $f$ is differentiable. The series is normally convergent (and hence uniform) if for instance $f$ if of class $C^2$ on $\TT$ since in this case, $\hat f_k = O(1/n^2)$. 
+For a differentiable function, the series~\eqref{eq-fourier-series} converges pointwise at every $x \in \TT$. If $f$ is of class $C^2$ on $\TT$, then $\hat f_k = O(1/k^2)$, which gives normal convergence and hence uniform convergence.
 %
-If there is a step discontinuity, then there are Gibbs oscillations preventing uniform convergence, but the series still converges to half of the left and right limits.
+For a piecewise $C^1$ function, the Fourier series converges at a jump to the average of the one-sided limits. Gibbs oscillations prevent uniform convergence across the jump.
 
 
 %%%
 \paragraph{Poisson formula.}
 
-The Poisson formula connects the Fourier transform and the Fourier series to sampling and periodization operators.
+The Poisson formula relates sampling in the signal domain to periodization in the Fourier domain.
 %
-For some function $h(\om)$ defined on $\RR$ (typically the goal is to apply this to $h=\hat f$), its periodization reads
+For a function $h(\om)$ on $\RR$, define its periodization by
 \eql{\label{eq-periodizing}
 	h_P(\om) \eqdef \sum_n h(\om-2\pi n).
 } 
-This formula makes sense if $h \in L^1(\RR)$, and in this case $\norm{h_P}_{L^1(\TT)} \leq \norm{h}_{L^1(\RR)}$ (and there is equality for positive functions). Indeed, one has
+If $h \in L^1(\RR)$, the series converges absolutely almost everywhere and $\norm{h_P}_{L^1(\TT)} \leq \norm{h}_{L^1(\RR)}$, with equality for nonnegative functions. Here the norm on $\TT$ uses unnormalized Lebesgue measure over one period. Indeed,
 $$
 	|h_P(x)| \leq (|h|_P)(x), \quad\Longrightarrow\quad
 	\norm{h_P}_{L^1} \leq  \norm{|h|_P}_{L^1} = \norm{h}_{L^1}. 
 $$
 %
-The Poisson formula, stated in Proposition~\ref{prop-poisson} below, corresponds to proving that the following diagram
+For $h=\hat f$, Proposition~\ref{prop-poisson} states that the following diagram
 \eq{
 	\begin{array}{rcccl}
 						& f(x)  &  \overset{\Ff}{\longrightarrow} &  \hat f(\om) &\\
 		\text{sampling}& \downarrow & & \downarrow &\text{periodization} \\
-						& (f(n))_n  &  \overset{\text{Fourier serie}}{\longrightarrow} &  \sum_n f(n) e^{-\imath \om n} &\\
+						& (f(n))_n  &  \overset{\text{Fourier series}}{\longrightarrow} &  \sum_n f(n) e^{-\imath \om n} &\\
 	\end{array}
 }
-is commutative. Beware that $\sum_n f(n) e^{-\imath \om n}$ is actually a reverse Fourier series (there is a + sign in the reconstruction formula for Fourier series). 
+is commutative. The minus sign in $\sum_n f(n)e^{-\imath\om n}$ is opposite to the sign in Fourier series synthesis; this accounts for the index reversal in the proof below.
 
 \begin{prop}[Poisson formula]\label{prop-poisson}
-Assume that $\hat f$ has compact support and that $|f(x)| \leq C(1+|x|)^{-3}$ for some $C$. Then one has 
+Assume that $f\in C(\RR)$, that $\hat f$ has compact support, and that $|f(x)| \leq C(1+|x|)^{-3}$ for some $C$. Then
 \eql{\label{eq-poisson-formula}
 	\foralls \om \in \RR, \quad
 	\sum_n f(n) e^{-\imath \om n} = \hat f_P(\om).
 }
 \end{prop}
 \begin{proof}
-	Since $\hat f$ is compactly supported, $\hat f_P$ is well defined (it involves only a finite sum) and since $f$ has fast decay, using~\eqref{eq-fourier-regul}, $(\hat f)_P$ is $C^1$. It is thus the sum of its Fourier series
-	\eql{\label{eq-poisson-formula}
+	The decay of $f$ makes $\hat f$ continuously differentiable. Its compact support makes the periodization locally a finite sum, so $(\hat f)_P$ is also $C^1$. It therefore equals its Fourier series:
+	\eql{\label{eq-poisson-series}
 		(\hat f)_P(\om) = \sum_k c_k e^{\imath k \om},
 	} 
 	where
@@ -180,34 +179,34 @@ Assume that $\hat f$ has compact support and that $|f(x)| \leq C(1+|x|)^{-3}$ fo
 		c_k = \frac{1}{2\pi} \int_0^{2\pi} (\hat f)_P(\om) e^{-\imath k \om} \d \om = 
 		\frac{1}{2\pi} \int_0^{2\pi} \sum_n \hat f(\om-2\pi n) e^{-\imath k \om}  \d \om .
 	\end{align*}
-	One has 
+	Absolute integrability follows from
 	\eq{
 		\int_0^{2\pi} \sum_n |\hat f(\om-2\pi n) e^{-\imath k \om}|  \d \om = \int_\RR |\hat f| 
 	}
-	which is bounded because $\hat f \in L^1(\RR)$ (it has a compact support and is $C^1$), so one can exchange the sum and integral
+	which is finite because $\hat f$ is continuous and compactly supported. We may therefore exchange the sum and integral:
 	\eq{
 		c_k = \sum_n \frac{1}{2\pi} \int_0^{2\pi} \hat f(\om-2\pi  n) e^{-\imath k \om}  \d \om
 		= \frac{1}{2\pi} \int_{\RR} \hat f(\om) e^{-\imath k \om}  \d \om
 		= f(-k)
 	}
-	where we used the inverse Fourier transform formula~\eqref{eq-i-ft}, which is legit because $\hat f \in L^1(\RR)$.
+	where we used the inverse Fourier transform formula~\eqref{eq-i-ft}, which is valid because $\hat f \in L^1(\RR)$.
 \end{proof}
 
 %%%
-\paragraph{Shannon theorem.}
+\paragraph{Shannon's sampling theorem.}
 
-Shannon's sampling theorem states a sufficient condition ensuring that the sampling operator $f \mapsto (f(ns))_n$ is invertible for some sampling step size $s>0$. 
+Shannon's sampling theorem gives a sufficient condition for reconstructing a signal from the samples $f \mapsto (f(ns))_n$ at spacing $s>0$.
 %
-It require that $\supp(\hat f) \subset [-\pi/s,\pi/s]$, which, thanks to formula~\eqref{eq-i-ft}, implies that $\hat f$ is $C^\infty$ (in fact it is even analytic). 
+The bandlimiting condition is $\supp(\hat f) \subset [-\pi/s,\pi/s]$. By Fourier inversion~\eqref{eq-i-ft}, such a signal is $C^\infty$ and has an entire extension to the complex plane.
 %
-This theorem was first proved by Whittaker in 1915. It was re-proved and put in perspective in electrical engineering by Nyquist in 1928. It became famous after the paper of Shannon in 1949, which put forward its importance in numerical communications.
+Shannon's 1949 paper placed the sampling theorem at the heart of communication theory, while acknowledging earlier interpolation results and Nyquist's work on transmission rates.
 %
-Figure~\ref{fig-sampling-aliasing} gives some insight on how the proof works (left) and more importantly, on what happens when the compact support hypothesis fails (in which case aliasing occurs, see also Figure~\ref{fig-aliasing}). 
+Figure~\ref{fig-sampling-aliasing} illustrates the reconstruction argument and the aliasing that occurs when spectral replicas overlap; see also Figure~\ref{fig-aliasing}.
 
 \myfigure{
 	\image{1-shannon}{.8}{sampling-aliasing}
 }{%
-	Schematic view for the proof of Theorem~\ref{thm-shannon-sampling}. %	
+	Spectral view of sampling, reconstruction, and aliasing in Theorem~\ref{thm-shannon-sampling}. %
 }{fig-sampling-aliasing}
 
 
@@ -215,45 +214,47 @@ Figure~\ref{fig-sampling-aliasing} gives some insight on how the proof works (le
 
 
 \begin{thm} \label{thm-shannon-sampling}
-	If $|f(x)| \leq C(1+|x|)^{-3}$ for some $C$ and $\supp(\hat f) \subset [-\pi/s,\pi/s]$, then one has
+	If $f\in C(\RR)$, $|f(x)| \leq C(1+|x|)^{-3}$ for some $C$ and $\supp(\hat f) \subset [-\pi/s,\pi/s]$, then one has
 	\eql{\label{eq-shannong-interp}
 		\foralls x \in \RR, \quad 
 		f(x) = \sum_n f(n s) \sinc(x/s-n) \qwhereq
-		\sinc(u) = \frac{\sin(\pi u)}{\pi u}
+		\sinc(u) = \frac{\sin(\pi u)}{\pi u},\quad \sinc(0)=1
 	}
 	with uniform convergence.
 \end{thm}
 
 \begin{proof} 
-	The change of variable $g \eqdef f(s \cdot)$ results in $\hat g=1/s \hat f(\cdot/s)$, indeed, denoting $z=s x$
+	Set $g \eqdef f(s \cdot)$. Then $\hat g=1/s \hat f(\cdot/s)$, as follows from the substitution $z=s x$:
 	\eq{
 		\hat g(\om) = \int f(s x) e^{-\imath \om x} \d x = \frac{1}{s} \int f(z) e^{-\imath (\om/s) z} \d z = \hat f(\om/s)/s, 
 	} 
-	so that we can restrict our attention to $s=1$. With this change of variable, we thus need to prove that
+	It is therefore enough to prove the result for unit sample spacing:
 	$$
 		g(x) = \sum_n g(n) \sinc(x-n), 
 	$$
-	(and in the following, we keep using the notation $f=g$).
+	For the rest of the proof, write $f$ in place of $g$.
 	%
 	The compact support hypothesis implies $\hat f(\om) = 1_{[-\pi,\pi]}(\om) \hat f_P(\om)$.  
-	Combining the inversion formula~\eqref{eq-i-ft} with Poisson formula~\eqref{eq-poisson-formula}
+	Combining the inversion formula~\eqref{eq-i-ft} with the Poisson formula~\eqref{eq-poisson-formula} gives
 	\eq{
 		f(x) = \frac{1}{2\pi} \int_{-\pi}^\pi \hat f_P(\om) e^{\imath \om x} \d \om
 		= \frac{1}{2\pi} \int_{-\pi}^\pi \sum_n f(n) e^{\imath \om (x-n)} \d \om.
 	} 
-	Since $f$ has fast decay, $\int_{-\pi}^\pi \sum_n |f(n) e^{\imath \om (x-n)}| \d \om = \sum_n |f(n)| < +\infty$, so that one can exchange summation and integration and obtain
+	The decay of $f$ gives $\int_{-\pi}^\pi \sum_n |f(n) e^{\imath \om (x-n)}| \d \om = 2\pi\sum_n |f(n)| < +\infty$. We may therefore exchange summation and integration:
 	\eq{
 		f(x) = \sum_n f(n)  \frac{1}{2\pi} \int_{-\pi}^\pi e^{\imath \om (x-n)} \d \om = \sum_n f(n) \sinc(x-n).
 	}
+The series converges uniformly by the Weierstrass test, since $|\sinc(x-n)|\leq 1$ and $\sum_n|f(n)|<\infty$.
 \end{proof}
 
-\wrapf{1-shannon/sinc}{sinc kernel}
-One issue with this reconstruction formula is that it uses slowly decaying and very oscillating $\sinc$ kernels. In practice, one rarely uses such a kernel for interpolation, and one prefers a smoother and more localized kernel. If $\supp(\hat f) \subset [-\pi/s',\pi/s']$ with $s'>s$ (i.e. have a more compact spectrum), one can re-do the proof of the theorem, and one gains some degree of freedom to design the reconstruction kernel, which now can be chosen smoother in Fourier and hence have exponential decay in time. 
+\wrapf{1-shannon/sinc}{The sinc interpolation kernel.}
+The sinc kernel decays slowly and oscillates, making it inconvenient for local interpolation. Oversampling gives more flexibility: if $\supp(\hat f)\subset[-\pi/s',\pi/s']$ with $s'>s$, the spectrum occupies a strict subinterval of the Nyquist interval. One can then choose a reconstruction kernel with a smooth, compactly supported Fourier transform. The resulting kernel decays faster than every inverse power of time. Smooth compact spectral support does not, in general, imply exponential decay.
 
 %
-Spline interpolation are defined by considering $\phi_0=1_{[-1/2,1/2]}$ and $\phi_k = \phi_{k-1} \star \phi_0$ which is a piecewise polynomial of degree $k$ and has bounded derivative of order $k$ (and is of class $C^{k-1}$) with compact support on $[-(k+1)/2,(k+1)/2]$. The reconstruction formula reads $f \approx \tilde f \eqdef \sum_n a_n \phi(\cdot-n)$ where $(a_n)_n$ is computed from the $(f(n))_n$ by solving a linear system (associated to the interpolation property $\tilde f(n)=f(n)$). It is only in the cases $k \in \{0,1\}$ (piecewise constant and affine interpolations) that one has $a_n=f(n)$.
+For local interpolation, cardinal B-splines offer another useful family of kernels. Define $\phi_0=1_{[-1/2,1/2]}$ and $\phi_k = \phi_{k-1} \star \phi_0$. The function $\phi_k$ is piecewise polynomial of degree $k$, with support $[-(k+1)/2,(k+1)/2]$. For $k\geq1$, it belongs to $C^{k-1}$ and has a bounded weak derivative of order $k$.
+The reconstruction takes the form $f \approx \tilde f \eqdef \sum_n a_n \phi(\cdot-n)$, with $\phi=\phi_k$. The interpolation conditions $\tilde f(n)=f(n)$ define a linear system for the coefficients $(a_n)_n$ in terms of the samples $(f(n))_n$. For general sample data, the identity $a_n=f(n)$ holds only for $k \in \{0,1\}$, corresponding to piecewise constant and piecewise affine interpolation.
 %
-In practice, one typically use the cubic spline interpolation, which corresponds to $k=3$.
+A common choice is cubic spline interpolation, which corresponds to $k=3$.
 
 \texttt{Associated code: test\_sampling.m}
 
@@ -261,37 +262,37 @@ In practice, one typically use the cubic spline interpolation, which corresponds
 	\image{1-shannon}{.6}{spline}
 }{%
 	Cardinal splines as basis functions for interpolation. %	
-}{fig-aliasing}
+}{fig-sampling-splines}
 
 
 
-This theorem also explains what happens if $\hat f$ is not supported in $[-\pi/s,\pi/s]$. This leads to aliasing, and high frequency outside this interval leads to low frequency artifacts often referred to as ``aliasing''. If the input signal is not bandlimited, it is thus very important to pre-filter it (smooth it) before sampling to avoid these phenomena (of course this kills the high frequencies, which are lost), see Figure~\ref{fig-aliasing}. 
+When the spectral replicas overlap, sampling creates aliasing: high-frequency components become indistinguishable from lower-frequency components. A low-pass filter applied before sampling attenuates frequencies beyond the Nyquist interval $[-\pi/s,\pi/s]$. This reduces aliasing at the cost of losing high-frequency information; see Figure~\ref{fig-aliasing}.
 
 \myfigure{
 	\image{1-shannon}{.6}{aliasing}
 }{%
-	Aliasing in the simple case of a sine wave (beware however that this function does not have compact support). %	
+	Aliasing of a sine wave. This periodic example is interpreted through its discrete spectral lines rather than as an $L^2(\RR)$ signal. %
 }{fig-aliasing}
 
 %%%
 \paragraph{Quantization.}
 
-Once the signal have been sampled to obtain a discrete vector, in order to store it and transmit it, it is necessary to quantize the value to some finite precision. 
+To store or transmit a sampled signal digitally, one quantizes its values to finite precision.
 % 
-Section~\ref{sec-transform-coding} presents transform coding, which is an efficient family of compression schemes which operates the quantization over some transformed domain (which corresponds to applying a linear transform, usually orthogonal, to the sampled values). This is useful to enhance the performance of the source coding scheme. It is however common to operate directly the quantization over the sampled value. 
+Section~\ref{sec-transform-coding} develops transform coding, in which an invertible linear transform, usually orthogonal, is applied before quantization. Transforming the data can make the coefficients easier to compress. Directly quantizing the sampled values is a simpler alternative.
 
-Considering for instance a step size $s=1/N$, one samples $(u_n \eqdef f(n/N))_{n=1}^{N} \in \RR^N$ to obtain a finite dimensional data vector of length $N$. Note that dealing with finite data corresponds to restricting the function $f$ to some compact domain (here $[0,1]$) and is contradictory with the Shannon sampling theorem since a function $f$ cannot have compact support in both space and frequency (so perfect reconstruction never holds when using finite storage).
+For example, a step size $s=1/N$ gives the finite vector $(u_n \eqdef f(n/N))_{n=1}^{N} \in \RR^N$. This records only finitely many samples, which do not determine a general bandlimited signal. Exact recovery from these data requires additional assumptions, such as a specified finite-dimensional signal model.
 
-\wrapf{1-shannon/quantizer}{}
+\wrapf{1-shannon/quantizer}{A uniform scalar quantizer.}
 
-Choosing a quantization step $T$, quantization $v_n = Q_T(u_n) \in \ZZ$ rounds to the nearest multiple of $T$, i.e. 
+For a quantization step $T>0$, the quantizer $v_n = Q_T(u_n) \in \ZZ$ records the index of the nearest multiple of $T$, i.e.
 \eq{
 	v = Q_T(u) \quad\Leftrightarrow\quad
 	v-\frac{1}{2} \leq u/T < v+\frac{1}{2},
 }
-see Fig.~\ref{fig-quantizer}. De-quantization is needed to restore a signal, and the best reconstruction (in average or in worse case) is defined by setting $D_T(v) \eqdef T v$. Quantizing and then de-quantizing introduce an error bounded by $T/2$, since $|D_T(Q_T(u))-u| \leq T/2$. 
+as illustrated by the quantizer diagram. Dequantization replaces each index by the cell midpoint $D_T(v) \eqdef T v$, which minimizes the worst-case error within that cell. The resulting error is bounded by $T/2$: $|D_T(Q_T(u))-u| \leq T/2$.
 %
-Up to machine precision, quantization is the only source of error (often called ``lossy compression'') in Shannon's standard pipeline.
+Quantization introduces the loss relative to the sampled vector. Source coding and decoding then preserve the quantized symbols exactly.
 
 
 \myfigure{
@@ -306,9 +307,6 @@ Up to machine precision, quantization is the only source of error (often called 
 %$4$ graylevels &
 %$16$ graylevels 
 %}
-}{Quantizing an image using a decaying $T=1/K$ where $K \in \{2,3,4,16\}$ is the number of graylevels and the original image is normalized so that $0 \leq f_0 < 1$. 
+}{Quantizing an image with $K\in\{2,3,4,16\}$ gray levels. The normalized intensities lie in $[0,1)$; finite-level quantizers also specify clipping or endpoint conventions.
 }{fig-section3-quantize}
-
-
-
 

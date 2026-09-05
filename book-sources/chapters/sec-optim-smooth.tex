@@ -6,27 +6,27 @@
 \section{Motivation in Machine Learning}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Unconstraint optimization}
+\subsection{Unconstrained Optimization}
 
-In most part of this Chapter, we consider unconstrained convex optimization problems of the form 
+Throughout most of this chapter, we consider unconstrained convex optimization problems of the form
 \eql{\label{eq-general-pbm} 
 	\uinf{x \in \RR^p} f(x),
 }
-and try to devise ``cheap'' algorithms with a low computational cost per iteration to approximate a minimizer when it exists. 
+and seek algorithms that approximate a minimizer, when one exists, with a low cost per iteration.
 %
-The class of algorithms considered are first order, i.e. they make use of gradient information. In the following, we denote 
+The first-order methods studied here use gradient information. We write
 \eq{
 	\uargmin{x} f(x) \eqdef \enscond{x \in \RR^p}{ f(x) = \inf{f}}, 
 } 
-to indicate the set of points (it is not necessarily a singleton since the minimizer might be non-unique) that achieve the minimum of the function $f$. One might have $\argmin f = \emptyset$ (this situation is discussed below), but in case a minimizer exists, we denote the optimization problem as
+for the set of minimizers of $f$, which may contain several points or be empty: $\argmin f = \emptyset$. When a minimizer exists, we write the optimization problem as
 \eql{\label{eq-general-pbm-min} 
 	\umin{x \in \RR^p} f(x).
 }
 
 
-In typical learning scenario, $f(x)$ is the empirical risk for regression or classification, and $p$ is the number of parameter. For instance, in the simplest case of linear models, we denote $(a_i,y_i)_{i=1}^n$ where $a_i \in \RR^p$ are the features. 
+In learning, $f(x)$ is typically an empirical risk for regression or classification, and $p$ is the number of model parameters. For a linear model, the training sample is $(a_i,y_i)_{i=1}^n$ with feature vectors $a_i \in \RR^p$.
 %
-In the following, we denote $A \in \RR^{n \times p}$ the matrix whose rows are the $a_i$.
+Let $A \in \RR^{n \times p}$ be the matrix with feature vectors $a_i$ as its rows.
 
 
 \begin{figure}
@@ -35,7 +35,7 @@ In the following, we denote $A \in \RR^{n \times p}$ the matrix whose rows are t
 \includegraphics[width=.2\linewidth]{optim-smooth/ml-exemp-2} \quad
 \includegraphics[width=.3\linewidth]{optim-smooth/classif-loss}
 \caption{\label{fig-ml-ex}
-Left: linear regression, middle: linear classifier, right: loss function for classification.
+Left: linear regression. Middle: linear classifier. Right: classification loss.
 }
 \end{figure}
 
@@ -43,11 +43,11 @@ Left: linear regression, middle: linear classifier, right: loss function for cla
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Regression}
 
-For regression, $y_i \in \RR$, in which case
+For real-valued responses $y_i\in\RR$, the least-squares objective is
 \eql{\label{eq-least-square}
 	f(x) =  \frac{1}{2}\sum_{i=1}^n (y_i-\dotp{x}{a_i})^2 = \frac{1}{2}\norm{Ax-y}^2, 
 } 
-is the least square quadratic risk function (see Fig.~\ref{fig-ml-ex}).
+as illustrated in Figure~\ref{fig-ml-ex}.
 %
 Here $\dotp{u}{v}=\sum_{i=1}^p u_i v_i$ is the canonical inner product in $\RR^p$ and $\norm{\cdot}^2=\dotp{\cdot}{\cdot}$. 
 
@@ -61,7 +61,7 @@ For classification, $y_i \in \{-1,1\}$, in which case
 }
 where $\ell$ is a smooth approximation of the 0-1 loss $1_{\RR^+}$.
 %
-For instance $\ell(u)=\log(1+\exp(u))$, and $\diag(y) \in \RR^{n \times n}$ is the diagonal matrix with $y_i$ along the diagonal (see Fig.~\ref{fig-ml-ex}, right). Here the separable loss function $L = \RR^n \rightarrow \RR$ is, for $z \in \RR^n$, $L(z)=\sum_i \ell(z_i)$. 
+For instance $\ell(u)=\log(1+\exp(u))$, and $\diag(y) \in \RR^{n \times n}$ is the diagonal matrix with $y_i$ along the diagonal (see Fig.~\ref{fig-ml-ex}, right). Here the separable loss function $L:\RR^n\rightarrow\RR$ is, for $z \in \RR^n$, $L(z)=\sum_i \ell(z_i)$.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -72,21 +72,21 @@ For instance $\ell(u)=\log(1+\exp(u))$, and $\diag(y) \in \RR^{n \times n}$ is t
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Existence of Solutions}
 
-In general, there might be no solution to the optimization~\eqref{eq-general-pbm}. This is of course the case if $f$ is unbounded by below, for instance $f(x)=-x^2$ in which case the value of the minimum is $-\infty$. But this might also happen if $f$ does not grow at infinity, for instance $f(x)=e^{-x}$, for which $\min f = 0$ but there is no minimizer.
+Problem~\eqref{eq-general-pbm} need not have a minimizer. An objective $f$ may be unbounded below: for $f(x)=-x^2$, the infimum is $-\infty$. The objective $f$ can also have a finite unattained infimum: for $f(x)=e^{-x}$, it is $\inf f=0$.
 
 \begin{figure}
 \centering
 \includegraphics[width=.9\linewidth]{optim-smooth/uniqueness}
 \caption{\label{fig-minimizer-exists}
-Left: non-existence of minimizer, middle: multiple minimizers, right: uniqueness.
+Left: no minimizer. Middle: multiple minimizers. Right: a unique minimizer.
 }
 \end{figure}
 
-In order to show existence of a minimizer, and that the set of minimizer is bounded (otherwise one can have problems with optimization algorithm that could escape to infinity), one needs to show that one can replace the whole space $\RR^p$ by a compact sub-set $\Om \subset \RR^p$ (i.e. $\Om$ is bounded and close) and that $f$ is continuous on $\Om$ (one can replace this by a weaker condition, that $f$ is lower-semi-continuous, but we ignore this here).  A way to show that one can consider only a bounded set is to show that $f(x) \rightarrow +\infty$ when $x \rightarrow +\infty$. Such a function is called coercive. In this case, one can choose any $x_0 \in \RR^p$ and consider its associated lower-level set
+A continuous function attains its minimum on a nonempty compact set $\Om\subset\RR^p$. In finite dimensions, compactness means that $\Om$ is closed and bounded. Lower semicontinuity suffices for attainment, but we use continuity here. For unconstrained minimization, coercivity provides a compact set to which the search can be restricted: $f(x) \rightarrow +\infty$ as $\norm x\rightarrow+\infty$. For any $x_0 \in \RR^p$, consider the sublevel set
 \eq{
 	\Om = \enscond{x \in \RR^p}{f(x) \leq f(x_0)}
 }
-which is bounded because of coercivity, and closed because $f$ is continuous. One can actually show that for convex function, having a bounded set of minimizer is equivalent to the function being coercive (this is not the case for non-convex function, for instance $f(x)=\min(1,x^2)$ has a single minimum but is not coercive). 
+Coercivity makes this set bounded, and continuity of $f$ makes it closed. For a continuous convex function, coercivity is in fact equivalent to a nonempty bounded minimizer set. Convexity matters: $f(x)=\min(1,x^2)$ has a unique minimizer but is not coercive.
 
 \begin{figure}
 \centering
@@ -98,31 +98,31 @@ Coercivity condition for least squares.
 \end{figure}
 
 \begin{exmp}[Least squares]
-For instance, for the quadratic loss function $f(x)=\frac{1}{2}\norm{Ax-y}^2$, coercivity holds if and only if $\ker(A)=\{0\}$ (this corresponds to the overdetermined setting). Indeed, if $\ker(A) \neq \{0\}$ if $x^\star$ is a solution, then $x^\star+u$ is also solution for any $u \in \ker(A)$, so that the set of minimizer is unbounded.
+The least-squares objective $f(x)=\frac{1}{2}\norm{Ax-y}^2$ is coercive exactly when $\ker(A)=\{0\}$, meaning the design has full column rank. If $\ker(A) \neq \{0\}$ and $x^\star$ is a minimizer, then $x^\star+u$ is also a minimizer for every $u \in \ker(A)$, so the minimizer set is unbounded.
 %
-On contrary, if $\ker(A) = \{0\}$, we will show later that the set of minimizer is unique, see Fig.~\ref{fig-least-square}. 
+Conversely, if $\ker(A) = \{0\}$, we will show later that the minimizer is unique, see Fig.~\ref{fig-least-square}.
 %
-If $\ell$ is strictly convex, the same conclusion holds in the case of classification.
+For classification, strict convexity of $\ell$ and injectivity of $A$ imply strict convexity of the objective, but do not ensure coercivity or existence. Separable logistic regression is a counterexample.
 \end{exmp}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Convexity}
 
-Convex functions define the main class of functions which are somehow ``simple'' to optimize, in the sense that all minimizers are global minimizers, and that there are often efficient methods to find these minimizers (at least for smooth convex functions). A convex function is such that for any pair of point $(x,y) \in (\RR^p)^2$, 
+Convexity is central to optimization because every local minimizer is global, and many convex problems admit efficient algorithms. A function is convex if, for every pair $(x,y) \in (\RR^p)^2$,
 \eql{\label{eq-convexity-def}
 	\foralls t \in [0,1], \quad
 		f((1-t)x + t y) \leq (1-t)f(x) + t f(y)
 }
-which means that the function is below its secant (and actually also above its tangent when this is well defined), see Fig.~\ref{fig-cvx-vs-noncvx}. 
+The graph lies below each secant, and above each tangent when differentiable; see Figure~\ref{fig-cvx-vs-noncvx}.
 %
 If $x^\star$ is a local minimizer of a convex $f$, then $x^\star$ is a global minimizer, i.e. $x^\star \in \argmin f$.  
 
 
-Convex function are very convenient because they are stable under lots of transformation. In particular, if $f$, $g$ are convex and $a, b$ are positive, $a f + b g$ is convex (the set of convex function is itself an infinite dimensional convex cone!) and so is $\max(f,g)$. If $g : \RR^q \rightarrow \RR$ is convex and $B \in \RR^{q \times p}, b \in \RR^q$ then $f(x) = g(B x+b)$ is convex. 
+Convexity is preserved by several useful operations. If $f$ and $g$ are convex and $a, b$ are positive, then $a f + b g$ and $\max(f,g)$ are convex. If $g : \RR^q \rightarrow \RR$ is convex and $B \in \RR^{q \times p}, b \in \RR^q$, then the affine composition $f(x) = g(B x+b)$ is convex.
 %
-This shows immediately that the square loss appearing in~\eqref{eq-least-square} is convex, since $\norm{\cdot}^2/2$ is convex (as a sum of squares). 
+Thus the squared loss~\eqref{eq-least-square} is convex, since $\norm{\cdot}^2/2$ is a sum of convex squares.
 %
-Also, similarly, if $\ell$ and hence $L$ is convex, then the classification loss function~\eqref{eq-classif} is itself convex. 
+Similarly, convexity of $\ell$ implies convexity of $L$ and of the classification objective~\eqref{eq-classif}.
 
 \begin{figure}
 \centering
@@ -133,7 +133,7 @@ Also, similarly, if $\ell$ and hence $L$ is convex, then the classification loss
 \includegraphics[width=.15\linewidth]{optim-smooth/strictly-cvx-1} 
 \end{tabular}
 \caption{\label{fig-cvx-vs-noncvx}
-Convex vs. non-convex functions ; Strictly convex vs. non strictly convex functions.
+Convex and nonconvex functions; strictly convex and convex but not strictly convex functions.
 }
 \end{figure}
 
@@ -150,29 +150,29 @@ Comparison of convex functions $f : \RR^p \rightarrow \RR$ (for $p=1$) and conve
 %%%
 \paragraph{Strict convexity.}
 
-When $f$ is convex, one can strengthen the condition~\eqref{eq-convexity-def} and impose that the inequality is strict for $t \in ]0,1[$ (see Fig.~\ref{fig-cvx-vs-noncvx}, right), i.e.
+When $f$ is convex, one can strengthen the condition~\eqref{eq-convexity-def} and impose that the inequality is strict for distinct $x,y$ and $t\in]0,1[$ (see Fig.~\ref{fig-cvx-vs-noncvx}, right), i.e.
 \eql{\label{eq-strict-convexity-def}
 	\foralls t \in ]0,1[, \quad
 		f((1-t)x + t y) < (1-t)f(x) + t f(y).
 }
-In this case, if a minimum $x^\star$ exists, then it is unique.  Indeed, if $x_1^\star \neq x_2^\star$ were two different minimizer, one would have by strict convexity $f(\frac{x_1^\star+x_2^\star}{2}) < f(x_1^\star)$ which is impossible.
+A minimizer $x^\star$ is then unique if it exists. Otherwise, two minimizers $x_1^\star \neq x_2^\star$ would satisfy $f(\frac{x_1^\star+x_2^\star}{2}) < f(x_1^\star)$ by strict convexity, contradicting optimality.
 
 \begin{exmp}[Least squares]
 	For the quadratic loss function $f(x)=\frac{1}{2}\norm{Ax-y}^2$, strict convexity is equivalent to $\ker(A)=\{0\}$.
-	Indeed, we see later that its second derivative is $\partial^2 f(x)=A^\top A$ and that strict convexity is implied by the eigenvalues of $A^\top A$ being strictly positive. The eigenvalues of $A^\top A$ being positive, it is equivalent to $\ker(A^\top A)=\{0\}$ (no vanishing eigenvalue), and $A^\top A z = 0$ implies $\dotp{A^\top A z}{z}=\norm{Az}^2=0$ i.e. $z \in \ker(A)$.
+	Its Hessian is $\partial^2 f(x)=A^\top A$, which is positive definite exactly when $A$ is injective, since $\dotp{A^\top A z}{z}=\norm{Az}^2$. Positive definiteness implies strict convexity. Conversely, a nonzero vector in $\ker(A)$ gives a line along which $f$ is constant, ruling out strict convexity.
 \end{exmp}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Convex Sets}
 
-A set $\Om \subset \RR^p$ is said to be convex if for any $(x,y) \in \Om^2$, $(1-t)x + t y \in \Om$ for $t \in [0,1]$.
+A set $\Om \subset \RR^p$ is convex if every pair $(x,y) \in \Om^2$ satisfies $(1-t)x + t y \in \Om$ for all $t \in [0,1]$.
 %
-The connexion between convex function and convex sets is that a function $f$ is convex if and only if its epigraph $\text{epi}(f) \eqdef \enscond{(x,t) \in \RR^{p+1}}{t \geq f(x)}$ is a convex set. 
+A function $f$ is convex exactly when its epigraph $\text{epi}(f) \eqdef \enscond{(x,t) \in \RR^{p+1}}{t \geq f(x)}$ is a convex set.
 
-\begin{rem}[Convexity of the set of minimizers]
-In general, minimizers $x^\star$ might be non-unique, as shown on Figure~\ref{fig-least-square}. 
+\begin{rem}[Convexity of the minimizer set]
+A minimizer $x^\star$ need not be unique; see Figure~\ref{fig-least-square}.
 %
-When $f$ is convex, the set $\argmin(f)$ of minimizers is itself a convex set. 
+For convex $f$, the set $\argmin(f)$ is itself convex.
 %
 Indeed, if $x_1^\star$ and $x_2^\star$ are minimizers, so that in particular $f(x_1^\star)=f(x_2^\star)=\min(f)$, then $f( (1-t)x_1^\star + t x_2^\star ) \leq (1-t) f(x_1^\star) + t f(x_2^\star) = f(x_1^\star) = \min(f)$, so that $(1-t)x_1^\star + t x_2^\star$ is itself a minimizer. Figure~\ref{fig-cvx-set} shows convex and non-convex sets. 
 \end{rem}
@@ -189,32 +189,32 @@ Indeed, if $x_1^\star$ and $x_2^\star$ are minimizers, so that in particular $f(
 
 
 \wrapfSimple{optim-smooth/gradient-vector-field}
-If $f$ is differentiable along each axis, we denote 
+When all coordinate derivatives of $f$ exist, define
 \eq{
 	\nabla f(x) \eqdef \pa{\pd{f(x)}{x_1}, \ldots,\pd{f(x)}{x_p}}^\top \in \RR^p
 }
-the gradient vector, so that $\nabla f : \RR^p \rightarrow \RR^p$ is a vector field. Here the partial derivative (when they exits) are defined as
+as the gradient vector. The map $\nabla f : \RR^p \rightarrow \RR^p$ is a vector field, and its coordinate derivatives are defined by
 \eq{
 	\pd{f(x)}{x_k} \eqdef \lim_{\eta \rightarrow 0} \frac{f(x+\eta \de_k)-f(x)}{\eta} 
 }
-where $\de_k=(0,\ldots,0,1,0,\ldots,0)^\top \in \RR^p$ is the $k^{\text{th}}$ canonical basis vector.  
+where $\de_k=(0,\ldots,0,1,0,\ldots,0)^\top \in \RR^p$ is the $k$th canonical basis vector.
 
-Beware that $\nabla f(x)$ can exist without $f$ being differentiable. Differentiability of $f$ at each reads
+Existence of the coordinate derivatives, hence of $\nabla f(x)$, does not imply differentiability of $f$. Differentiability of $f$ at $x$ requires
 \eql{\label{eq-grad-dfn}
 	f(x+\epsilon) = f(x) + \dotp{\epsilon}{\nabla f(x)} + o(\norm{\epsilon}).
 } 
 %
-Here $R(\epsilon) = o(\norm{\epsilon})$ denotes a quantity which decays faster than $\epsilon$ toward $0$, i.e. $\frac{R(\epsilon)}{\norm{\epsilon}} \rightarrow 0$ as $\epsilon \rightarrow 0$. Existence of partial derivative corresponds to $f$ being differentiable along the axes, while differentiability should hold for any converging sequence of $\epsilon\rightarrow 0$ (i.e. not along along a fixed direction). 
+The remainder notation $R(\epsilon) = o(\norm{\epsilon})$ means decay faster than the perturbation $\epsilon$ as it tends to $0$: $\frac{R(\epsilon)}{\norm{\epsilon}} \rightarrow 0$ as $\epsilon \rightarrow 0$. Coordinate derivatives concern the behavior of $f$ along the axes, whereas differentiability requires the expansion for every sequence $\epsilon\rightarrow 0$.
 %
-A counter example in 2-D is $f(x)=\frac{2 x_1 x_2 (x_1+x_2)}{x_1^2+x_2^2}$ with $f(0)=0$, which is affine with different slope along each radial lines.
+For example, $f(x)=\frac{2 x_1 x_2 (x_1+x_2)}{x_1^2+x_2^2}$ with $f(0)=0$ has both coordinate derivatives equal to zero at the origin. Yet $f(t,t)=2t$, so the linear expansion with zero gradient fails.
 
-Also, $\nabla f(x)$ is the only vector such that the relation~\eqref{eq-grad-dfn}. This means that a possible strategy to both prove that $f$ is differentiable and to obtain a formula for $\nabla f(x)$ is to show a relation of the form 
+The vector $\nabla f(x)$ is uniquely determined by~\eqref{eq-grad-dfn}. To prove differentiability of $f$ and compute $\nabla f(x)$, it therefore suffices to establish an expansion
 \eq{
 	f(x+\epsilon) = f(x) + \dotp{\epsilon}{g} + o(\norm{\epsilon}), 
 }
-in which case one necessarily has $\nabla f(x)=g$. 
+which identifies $\nabla f(x)=g$.
 
-The following proposition shows that convexity is equivalent to the graph of the function being above its tangents.
+For differentiable functions, convexity is equivalent to the graph lying above every tangent affine function.
 
 \begin{prop}\label{prop-above-tgt}
 	If $f$ is differentiable, then
@@ -235,13 +235,12 @@ The following proposition shows that convexity is equivalent to the graph of the
 	\eq{
 		\dotp{\nabla f(x)}{x'-x} \leq f(x')-f(x).
 	}
-	For the other implication, we apply the right condition replacing $(x,x')$ by $(x, x_t \eqdef (1-t)x+t x')$
-	and $(x', (1-t)x+t x')$
+	Conversely, set $x_t\eqdef(1-t)x+tx'$. Apply the supporting-affine-function inequality at $x_t$ to $x$ and $x'$:
 	\begin{align*}
-		f(x)  & \geq f(x_t) + \dotp{\nabla f(x_t)}{x-x_t} = f(x_t) - t \dotp{\nabla f(x_t)}{x-x'} \\
-		f(x') & \geq f(x_t) + \dotp{\nabla f(x_t)}{x'-x_t} = f(x_t) + (1-t) \dotp{\nabla f(x_t)}{x-x'}, 
+		f(x)  & \geq f(x_t) + \dotp{\nabla f(x_t)}{x-x_t} =f(x_t)+t\dotp{\nabla f(x_t)}{x-x'} \\
+		f(x') & \geq f(x_t) + \dotp{\nabla f(x_t)}{x'-x_t} =f(x_t)-(1-t)\dotp{\nabla f(x_t)}{x-x'},
 	\end{align*}
-	multiplying these inequality by respectively $1-t$ and $t$, and summing them, gives
+	Multiplying the first inequality by $1-t$ and the second by $t$, then adding, gives
 	\eq{
 		(1-t)f(x)+t f(x') \geq f(x_t).
 	}
@@ -251,16 +250,16 @@ The following proposition shows that convexity is equivalent to the graph of the
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{First Order Conditions}
 
-The main theoretical interest (we will see later that it also have algorithmic interest) of the gradient vector is that it is a necessarily condition for optimality, as stated below. 
+A vanishing gradient is necessary for local optimality, and will also guide the algorithms developed below.
 
 \begin{prop}\label{prop-cs-min} 
-If $x^\star$ is a local minimum of the function $f$ (i.e. that $f(x^\star) \leq f(x)$ for all $x$ in some ball around $x^\star$) then 
+If $f$ is differentiable and $x^\star$ is a local minimizer, meaning that $f(x^\star)\leq f(x)$ throughout some neighborhood of $x^\star$, then
 \eq{
 	\nabla f(x^\star) = 0. 
 } 
 \end{prop}
 \begin{proof}
-One has for $\epsilon$ small enough and $u$ fixed 
+Fix a direction $u$ and let $\epsilon\downarrow0$. Local optimality and differentiability give
 \eq{
 	f(x^\star) \leq f(x^\star+\epsilon u) = f(x^\star) + \epsilon \dotp{\nabla f(x^\star)}{u} + o(\epsilon) 
 	\qarrq
@@ -271,11 +270,11 @@ One has for $\epsilon$ small enough and $u$ fixed
 So applying this for $u$ and $-u$ in the previous equation shows that $\dotp{\nabla f(x^\star)}{u}=0$ for all $u$, and hence $\nabla f(x^\star)=0$.
 \end{proof}
 
-Note that the converse is not true in general, since one might have $\nabla f(x)=0$ but $x$ is not a local mininimum. For instance $x=0$ for $f(x)=-x^2$ (here $x$ is a maximizer) or $f(x)=x^3$ (here $x$ is neither a maximizer or a minimizer, it is a saddle point), see Fig.~\ref{fig-first-order}. 
+Note that the converse is not true in general, since one might have $\nabla f(x)=0$ but $x$ is not a local minimum. For instance $x=0$ for $f(x)=-x^2$ (here $x$ is a maximizer) or $f(x)=x^3$ (here $x$ is neither a maximizer nor a minimizer; it is a stationary inflection point), see Fig.~\ref{fig-first-order}.
 %
-Note however that in practice, if $\nabla f(x^\star) = 0$ but $x$ is not a local minimum, then $x^\star$ tends to be an unstable equilibrium. Thus most often a gradient-based algorithm will converge to points with $\nabla f(x^\star) = 0$ that are local minimizers.
+Stationarity alone therefore neither certifies a local minimum nor guarantees convergence of a numerical method to that point. Both depend on the local geometry.
 %
-The following proposition shows that a much strong result holds if $f$ is convex.
+Convexity of $f$ makes stationarity sufficient as well as necessary.
 
 \begin{figure}
 \centering
@@ -283,13 +282,13 @@ The following proposition shows that a much strong result holds if $f$ is convex
 \includegraphics[width=.15\linewidth]{optim-smooth/first-order-2} \quad
 \includegraphics[width=.2\linewidth]{optim-smooth/first-order-3} 
 \caption{\label{fig-first-order}
-Function with local maxima/minima (left),  saddle point (middle) and global minimum (right). 
+Local extrema (left), a stationary inflection point (middle), and a global minimizer (right).
 }
 \end{figure}
 
 
 \begin{prop} 
-If $f$ is convex and $x^\star$ a local minimum, then $x^\star$ is also a global minimum.
+If $f$ is convex and $x^\star$ is a local minimizer, then $x^\star$ is a global minimizer.
 If $f$ is differentiable and convex, 
 \eq{
 	x^\star \in \uargmin{x} f(x) 
@@ -298,66 +297,65 @@ If $f$ is differentiable and convex,
 }
 \end{prop}
 \begin{proof}
-For any $x$, there exist $0<t<1$ small enough such that $tx + (1-t)x^\star$ is close enough to $x^\star$, and so since it is a local minimizer
+Fix $x$ and choose $0<t<1$ so that $tx+(1-t)x^\star$ lies in the neighborhood where $x^\star$ is minimal. Local optimality and convexity then give
 \eq{
 	f(x^\star) \leq f(tx + (1-t)x^\star) \leq t f(x) + (1-t) f(x^\star)
 	\qarrq
 	f(x^\star) \leq f(x)
 }
-and thus $x^\star$ is a global minimum.
+proving that $x^\star$ is a global minimizer.
 
-For the second part, we already saw in~\eqref{prop-cs-min} the $\Leftarrow$ part. We assume that $\nabla f(x^\star)=0$. Since the graph of $x$ is above its tangent by convexity (as stated in Proposition~\ref{prop-above-tgt}), 
+For the second part, we already saw in Proposition~\ref{prop-cs-min} the $\Rightarrow$ implication. We assume that $\nabla f(x^\star)=0$. Since the graph of $f$ is above its tangent by convexity (as stated in Proposition~\ref{prop-above-tgt}),
 \eq{
 	f(x) \geq f(x^\star) + \dotp{\nabla f(x^\star)}{x-x^\star} = f(x^\star).
 }
 \end{proof}
 
-Thus in this case, optimizing a function is the same a solving an equation $\nabla f(x)=0$ (actually $p$ equations in $p$ unknown).
+For a differentiable convex objective, minimization is therefore equivalent to solving $\nabla f(x)=0$, a system of $p$ equations in $p$ unknowns.
 %
-In most case it is impossible to solve this equation, but it often provides interesting information about solutions $x^\star$.
+An explicit solution is often unavailable, but the equation still characterizes the minimizers $x^\star$.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Least Squares}
 
-The most important gradient formula is the one of the square loss~\eqref{eq-least-square}, which can be obtained by expanding the norm
+The gradient of the least-squares objective~\eqref{eq-least-square} follows by expanding the squared norm:
 \begin{align*}
-	f(x+\epsilon) &= \frac{1}{2}\norm{Ax-y+A\epsilon}^2 = \frac{1}{2}\norm{Ax-y} + \dotp{Ax-y}{A\epsilon} + \frac{1}{2}\norm{A\epsilon}^2 \\
+	f(x+\epsilon) &= \frac{1}{2}\norm{Ax-y+A\epsilon}^2 = \frac12\norm{Ax-y}^2+\dotp{Ax-y}{A\epsilon} + \frac{1}{2}\norm{A\epsilon}^2 \\
 		&=f(x) + \dotp{\epsilon}{A^\top(Ax-y)} + o(\norm{\epsilon}).
 \end{align*} 
-Here, we have used the fact that $\norm{A\epsilon}^2 = o(\norm{\epsilon})$ and use the transpose matrix $A^\top$. 
+We used $\norm{A\epsilon}^2 = o(\norm{\epsilon})$ and the transpose $A^\top$.
 %
-This matrix is obtained by exchanging the rows and the columns, i.e. $A^\top = (A_{j,i})_{i=1,\ldots,n}^{j=1,\ldots,p}$, but the way it should be remember and used is that it obeys the following swapping rule of the inner product, 
+The transpose exchanges rows and columns, $A^\top = (A_{j,i})_{i=1,\ldots,n}^{j=1,\ldots,p}$. Its essential role in gradient calculations is the adjoint identity
 \eq{
 	\foralls (u,v) \in \RR^{p} \times \RR^n, \quad
 	\dotp{A u}{v}_{\RR^n} = \dotp{u}{A^\top v}_{\RR^p}. 
 }
-Computing gradient for function involving linear operator will necessarily requires such a transposition step.
+Computing gradients of functions involving linear operators requires such a transposition step.
 %
 This computation shows that
 \eql{\label{eq-grad-ls}
 	\nabla f(x) = A^\top (A x - y). 
 }
-This implies that solutions $x^\star$ minimizing $f(x)$ satisfies the linear system $(A^\top A) x^\star = A^\top y$. 
+Hence every minimizer $x^\star$ of $f(x)$ satisfies the normal equations $(A^\top A) x^\star = A^\top y$.
 %
 If $A^\star A \in \RR^{p \times p}$ is invertible, then $f$ has a single minimizer, namely  
 \eql{\label{eq-sol-leastsquare}
 	x^\star = (A^\top A)^{-1} A^\top y.
 }
-This shows that in this case, $x^\star$ depends linearly on the data $y$, and the corresponding linear operator $(A^\top A)^{-1} A^\star$ is often called the Moore-Penrose pseudo-inverse of $A$ (which is not invertible in general, since typically $p \neq n$). 
+Thus $x^\star$ depends linearly on $y$. The operator $(A^\top A)^{-1} A^\star$ is the Moore--Penrose pseudoinverse of $A$; an ordinary inverse is unavailable when $p \neq n$.
 %
 The condition that $A^\top A$ is invertible is equivalent to $\ker(A)=\{0\}$, since 
 \eq{
 	A^\top A x = 0 \qarrq \norm{Ax}^2 = \dotp{A^\top A x}{x} = 0 \qarrq A x= 0.
 }
-In particular, if $n<p$ (under-determined regime, there is too much parameter or too few data) this can never holds. If $n \geq p$ and the features $x_i$ are ``random'' then $\ker(A)=\{0\}$ with probability one. In this overdetermined situation $n \geq p$,  $\ker(A)=\{0\}$ only holds if the features $\{a_i\}_{i=1}^n$ spans a linear space $\Im(A^\top)$ of dimension strictly smaller than the ambient dimension $p$.
+When $n<p$, the system is underdetermined and injectivity is impossible. If $n\geq p$ and the entries of $A$ have a joint density, then $\ker(A)=\{0\}$ almost surely. In general, injectivity is equivalent to the feature vectors $a_i$ spanning $\RR^p$.
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Link with PCA}
 
-Let us assume the $(a_i)_{i=1}^n$ are centered, i.e. $\sum_i a_i=0$. If this is not the case, one needs to replace
- $a_i$ by $a_i - m$ where $m \eqdef \frac{1}{n}\sum_{i=1}^n a_i \in \RR^p$ is the empirical mean. In this case, $\frac{C}{n} = A^\top A/n \in \RR^{p \times p}$ is the empirical covariance of the point cloud $(a_i)_i$, it encodes the covariances between the coordinates of the points. Denoting $a_i = (a_{i,1},\ldots,a_{i,p})^\top \in \RR^p$ (so that $A=(a_{i,j})_{i,j}$) the coordinates, one has
+Assume the feature vectors are centered, $\sum_i a_i=0$. Otherwise, replace each $a_i$ by $a_i-m$, where $m\eqdef n^{-1}\sum_i a_i$ is the empirical mean. Write $C\eqdef A^\top A$. Then $C/n$ is the empirical covariance matrix of the point cloud. With $a_i=(a_{i,1},\ldots,a_{i,p})^\top$ and $A=(a_{i,j})_{i,j}$, its entries are
  \eq{
  	\foralls (k,\ell) \in \{1,\ldots,p\}^2, \quad
  	\frac{C_{k,\ell}}{n} = \frac{1}{n} \sum_{i=1}^n a_{i,k} a_{i,\ell}. 
@@ -374,38 +372,38 @@ For instance, in dimension $p=2$,
 	\end{pmatrix}.
 }
 
-Since $C$ is a symmetric, it diagonalizes in an ortho-basis $U=(u_1,\ldots,u_p) \in \RR^{p \times p}$. Here, the vectors $u_k \in \RR^p$ are stored in the columns of the matrix $U$. The diagonalization means that there exist scalars (the eigenvalues) $(\la_1,\ldots,\la_p)$ so that $(\frac{1}{n} C) u_k = \la_k u_k$. Since the matrix is orthogononal, $UU^\top = U^\top U = \Id_p$, and equivalently $U^{-1}=U^\top$. The diagonalization property can be conveniently written as $\frac{1}{n} C=U \diag(\la_k) U^\top$. One can thus re-write the covariance quadratic form in the basis $U$ as being a separable sum of $p$ squares
+Since $C$ is symmetric, choose an orthogonal matrix $U=(u_1,\ldots,u_p)$ whose columns are eigenvectors of $C/n$. If $(C/n)u_k=\la_k u_k$, then $C/n=U\diag(\la_k)U^\top$ and $U^{-1}=U^\top$. In these coordinates, the quadratic form is a weighted sum of squares:
 \eql{\label{eq-pca-decomp}
 	\frac{1}{n}  \dotp{Cx}{x} = \dotp{U \diag(\la_k) U^\top x}{x}
 	= \dotp{\diag(\la_k) (U^\top x)}{(U^\top x)}
 	= \sum_{k=1}^p \la_k \dotp{x}{u_k}^2.
 } 
-Here $( U^\top x )_k = \dotp{x}{u_k}$ is the coordinate $k$ of $x$ in the basis $U$. Since $\dotp{Cx}{x}=\norm{Ax}^2$, this shows that all the eigenvalues $\la_k \geq 0$ are positive. 
+Here $( U^\top x )_k = \dotp{x}{u_k}$ is the coordinate $k$ of $x$ in the basis $U$. Since $\dotp{Cx}{x}=\norm{Ax}^2$, this shows that all eigenvalues are nonnegative.
 
 \begin{figure}
 \centering
 \includegraphics[width=.5\linewidth]{optim-smooth/link-pca}
 \caption{\label{fig-link-pca}
-Left: point clouds $(a_i)_i$ with associated PCA directions, right: quadratic part of $f(x)$.
+Left: point clouds $(a_i)_i$ and their principal directions. Right: the quadratic part of $f(x)$.
 }
 \end{figure}
 
-If one assumes that the eigenvalues are ordered $\la_1 \geq \la_2 \geq \ldots \geq \la_p$, then projecting the points $a_i$ on the first $m$ eigenvectors can be shown to be in some sense the best linear dimensionality reduction possible (see next paragraph), and it is called Principal Component Analysis (PCA). It is useful to perform compression or dimensionality reduction, but in practice, it is mostly used for data visualization in 2-D ($m=2$) and 3-D ($m=3$).
+Order the eigenvalues as $\la_1 \geq \la_2 \geq \ldots \geq \la_p$. Projection of $a_i$ onto the leading $m$ eigenvectors gives principal component analysis (PCA), the optimal linear reconstruction in squared error. It is used for compression, dimensionality reduction, and visualization in two dimensions ($m=2$) or three dimensions ($m=3$).
 
-The matrix $C/n$ encodes the covariance, so one can approximate the point cloud by an ellipsoid whose main axes are the $(u_k)_k$ and the width along each axis is $\propto \sqrt{\la_k}$ (the standard deviations). 
+When $C$ is positive definite, its covariance ellipsoid has principal axes $(u_k)_k$ and semiaxes proportional to the standard deviations $\sqrt{\la_k}$.
 %
-If the data are approximately drawn from a Gaussian distribution, whose density is proportional to $\exp(\frac{-1}{2}\dotp{C^{-1}a}{a})$, then the fit is good.
+This ellipsoid closely describes a Gaussian cloud with density proportional to $\exp(-\frac n2\dotp{C^{-1}a}{a})$.
 %
-This should be contrasted with the shape of quadratic part $\frac{1}{2}\dotp{Cx}{x}$ of $f(x)$, since the ellipsoid $\enscond{x}{\frac{1}{n}\dotp{Cx}{x} \leq 1}$ has the same main axes, but the widths are the inverse $1/\sqrt{\la_k}$. 
+For the quadratic objective $\frac{1}{2}\dotp{Cx}{x}$ in $f(x)$, the level ellipsoid $\enscond{x}{\frac{1}{n}\dotp{Cx}{x} \leq 1}$ has the same principal axes but reciprocal widths $1/\sqrt{\la_k}$.
 %
-Figure~\ref{fig-link-pca} shows this in dimension $p=2$.
+Figure~\ref{fig-link-pca} shows the reciprocal axis widths in dimension $p=2$. If $C$ is singular, the covariance ellipsoid is degenerate and the quadratic sublevel sets are unbounded along $\ker(C)$.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Classification}
 
-We can do a similar computation for the gradient of the classification loss~\eqref{eq-classif}. Assuming that $L$ is differentiable, and using the Taylor expansion~\eqref{eq-grad-dfn} at point $-\diag(y) Ax$, one has 
+For the classification objective~\eqref{eq-classif}, assume $L$ is differentiable and apply~\eqref{eq-grad-dfn} at $-\diag(y) Ax$:
 \begin{align*}
 	f(x+\epsilon) &= L( -\diag(y) Ax -\diag(y)  A\epsilon) \\
 	&= L(-\diag(y) Ax) + \dotp{\nabla L( -\diag(y) Ax)}{ -\diag(y)  A\epsilon } + o(\norm{\diag(y)  A\epsilon}).
@@ -415,17 +413,17 @@ Using the fact that $o(\norm{\diag(y)  A\epsilon}) = o(\norm{\epsilon})$, one ob
 	f(x+\epsilon) &= f(x) + \dotp{\nabla L( -\diag(y) Ax)}{-\diag(y)  A\epsilon} + o(\norm{\epsilon}) \\
 		 &=  f(x) + \dotp{-A^\top \diag(y) \nabla L( -\diag(y) Ax)}{\epsilon} + o(\norm{\epsilon}), 
 \end{align*} 	
-where we have used the fact that $(AB)^\top = B^\top A^\top$ and that $\diag(y)^\top=\diag(y)$. This shows that
+Using $(AB)^\top = B^\top A^\top$ and $\diag(y)^\top=\diag(y)$ gives
 \eq{
 	\nabla f(x) = -A^\top \diag(y) \nabla L( -\diag(y) Ax). 
 }
-Since $L(z) = \sum_i \ell(z_i)$, one has $\nabla L(z) = (\ell'(z_i))_{i=1}^n$. For instance, for the logistic classification method, $\ell(u) = \log(1+\exp(u))$ so that $\ell'(u) = \frac{e^u}{1+e^u} \in [0,1]$ (which can be interpreted as a probability of predicting $+1$).
+Since $L(z)=\sum_i\ell(z_i)$, its gradient is $\nabla L(z)=(\ell'(z_i))_{i=1}^n$. For logistic loss, $\ell'(u)=e^u/(1+e^u)$. Evaluated at the negative margin $u=-y_i\dotp{x}{a_i}$, this sigmoid is large for incorrectly classified observations and weights their contribution to the gradient.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Chain Rule}
 
-One can formalize the previous computation, if $f(x) = g(Bx)$ with $B \in \RR^{q \times p}$ and $g : \RR^q \rightarrow \RR$, then
+More generally, for $f(x) = g(Bx)$ with $B \in \RR^{q \times p}$ and $g : \RR^q \rightarrow \RR$,
 \eq{
 	f(x+\epsilon) = g(Bx + B\epsilon) = g(Bx) + \dotp{\nabla g(Bx)}{B \epsilon} + o(\norm{B \epsilon})
 	= f(x) + \dotp{\epsilon}{B^\top \nabla g(Bx)} + o(\norm{\epsilon}), 
@@ -436,32 +434,32 @@ which shows that
 }
 where ``$\circ$'' denotes the composition of functions.
 
-To generalize this to composition of possibly non-linear functions, one needs to use the notion of differential. For a function $F : \RR^p \rightarrow \RR^q$, its differentiable at $x$ is a linear operator $\partial F(x) : \RR^{p} \rightarrow \RR^q$, i.e. it can be represented as a matrix (still denoted $\partial F(x)$) $\partial F(x) \in \RR^{q \times p}$.
+Nonlinear compositions require the differential. For $F : \RR^p \rightarrow \RR^q$, its differential at $x$ is the linear map $\partial F(x) : \RR^{p} \rightarrow \RR^q$. We represent it by its Jacobian matrix, also denoted $\partial F(x)$, with dimensions $\partial F(x) \in \RR^{q \times p}$.
 %
-The entries of this matrix are the partial differential, denoting $F(x)=(F_1(x), \ldots, F_q(x))$, 
+Writing $F(x)=(F_1(x), \ldots, F_q(x))$, the Jacobian entries are
 \eq{
 	\foralls (i,j) \in \{1,\ldots,q\} \times \{1,\ldots,p\}, \quad
 	[ \partial F(x) ]_{i,j} \eqdef \frac{\partial F_i(x)}{\partial x_j}.
 }
-The function $F$ is then said to be differentiable at $x$ if and only if one has the following Taylor expansion 
+The map $F$ is differentiable at $x$ when it admits the expansion
 \eql{\label{eq-differential-defn}
 	F(x+\epsilon) = F(x) + [\partial F(x)](\epsilon) + o(\norm{\epsilon}).
 }
-where $[\partial F(x)](\epsilon)$ is the matrix-vector multiplication. As for the definition of the gradient, this matrix is the only one that satisfies this expansion, so it can be used as a way to compute this differential in practice.
+Here $[\partial F(x)](\epsilon)$ denotes matrix-vector multiplication. The matrix in this expansion is unique, so the expansion can also be used to compute the differential.
 
 For the special case $q=1$, i.e. if $f : \RR^p \rightarrow \RR$, then the differential $\partial f(x) \in \RR^{1 \times p}$ and the gradient $\nabla f(x) \in \RR^{p \times 1}$ are linked by equating the Taylor expansions~\eqref{eq-differential-defn} and~\eqref{eq-grad-dfn}
 \eq{
 	\foralls \epsilon \in \RR^p, \quad
 	[\partial f(x)](\epsilon) = \dotp{\nabla f(x)}{\epsilon}	
 	\quad\Leftrightarrow\quad
-	[\partial f(x)](\epsilon) = \nabla f(x)^\top. 
+	\partial f(x)=\nabla f(x)^\top.
 }
 
 The differential satisfies the following chain rule 
 \eq{
 	\partial( G \circ H)(x) = [\partial G(H(x))] \times [\partial H(x)] 
 }
-where ``$\times$'' is the matrix product. For instance, if $H : \RR^p \rightarrow \RR^q$ and $G = g : \RR^q \mapsto \RR$, then $f = g \circ H : \RR^p \rightarrow \RR$ and one can compute its gradient as follow
+where ``$\times$'' is the matrix product. For instance, if $H : \RR^p \rightarrow \RR^q$ and $G = g : \RR^q \mapsto \RR$, then $f = g \circ H : \RR^p \rightarrow \RR$ and one can compute its gradient as follows
 \eq{
 	\nabla f(x) = (\partial f(x))^\top = \pa{ [\partial g(H(x))] \times [\partial H(x)] }^\top
 	= [\partial H(x)]^\top \times [\partial g(H(x))]^\top
@@ -480,13 +478,13 @@ When $H(x)=Bx$ is linear, one recovers formula~\eqref{eq-grad-composition-linear
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Steepest Descent Direction}
 
-The Taylor expansion~\eqref{eq-grad-dfn} computes an affine approximation of the function $f$ near $x$, since it can be written as
+The Taylor expansion~\eqref{eq-grad-dfn} approximates $f$ near $x$ by an affine function:
 \eq{
 	f(z) = T_x(z) + o(\norm{x-z})
 	\qwhereq
 	T_x(z) \eqdef f(x) + \dotp{\nabla f(x)}{z-x}, 
 }
-see Fig.~\ref{fig-expansion-taylor}. First order methods operate by locally replacing $f$ by $T_x$.
+Figure~\ref{fig-expansion-taylor} illustrates the approximation. First-order methods use $f$ through its local model $T_x$.
 
 
 \begin{figure}
@@ -496,12 +494,12 @@ see Fig.~\ref{fig-expansion-taylor}. First order methods operate by locally repl
 \includegraphics[width=.18\linewidth]{optim-smooth/level-sets-1} \quad
 \includegraphics[width=.25\linewidth]{optim-smooth/level-sets-2} 
 \caption{\label{fig-expansion-taylor}
-	Left: First order Taylor expansion in 1-D and 2-D.
-	Right: orthogonality of gradient and level sets and schematic of the proof.
+	Left: first-order Taylor approximations in one and two dimensions.
+	Right: the gradient is orthogonal to the level set; the diagram illustrates the proof.
 }
 \end{figure}
 
-The gradient $\nabla f(x)$ should be understood as a direction along which the function increases. This means that to improve the value of the function, one should move in the direction $-\nabla f(x)$. Given some fixed $x$, let us look as the function $f$ along the 1-D half line 
+A nonzero gradient $\nabla f(x)$ points uphill locally, so $-\nabla f(x)$ is a descent direction. At a fixed point $x$, examine $f$ along the ray
 \eq{ 
 	\tau \in \RR^+ = [0,+\infty[ \longmapsto f(x-\tau \nabla f(x)) \in \RR.
 }
@@ -510,47 +508,49 @@ If $f$ is differentiable at $x$, one has
 	f(x-\tau \nabla f(x)) = f(x) - \tau \dotp{\nabla f(x)}{\nabla f(x)} + o(\tau)
 		= f(x) - \tau \norm{\nabla f(x)}^2 + o(\tau).
 }
-So there are two possibility: either $\nabla f(x)=0$, in which case we are already at a minimum (possibly a local minimizer if the function is non-convex) or if $\tau$ is chosen small enough, 
+If $\nabla f(x)=0$, then $x$ is stationary and is a global minimizer when $f$ is convex. Otherwise, for sufficiently small $\tau$,
 \eq{
 	f(x-\tau \nabla f(x)) < f(x)
 } 
-which means that moving from $x$ to $x-\tau \nabla f(x)$ has improved the objective function. 
+so the step from $x$ to $x-\tau \nabla f(x)$ decreases the objective.
 
 \begin{rem}[Orthogonality to level sets]
-	The level sets of $f$ are the sets of point sharing the same value of $f$, i.e. for any $s \in \RR$
+	A level set of $f$ contains points with the same value of $f$. For $s \in \RR$, define
 	\eq{
 		\Ll_s \eqdef \enscond{x}{f(x)=s}.		
 	}
-	At some $x \in \RR^p$, denoting $s=f(x)$, then $x \in \Ll_s$ ($x$ belong to its level set). The gradient vector $\nabla f(x)$ is orthogonal to the level set (as shown on Fig.~\ref{fig-expansion-taylor} right), and points toward level set of higher value (which is consistent with the previous computation showing that it is a valid ascent direction). 
+	Assume $f$ is continuously differentiable near $x$ and $\nabla f(x)\neq0$. Then $x$ is a regular point of the level set $\Ll_{f(x)}$. The gradient is normal to its tangent space and points toward increasing values of $f$; see Figure~\ref{fig-expansion-taylor}, right.
 	%
-	Indeed, lets consider around $x$ inside $\Ll_s$ a smooth curve of the form $t \in \RR \mapsto c(t)$ where $c(0)=x$. 
+	Take a smooth curve through $x$ in $\Ll_s$, parameterized by $t \in \RR \mapsto c(t)$ with $c(0)=x$.
 	%	
-	Then the function $h(t) \eqdef f(c(t))$ is constant $h(t)=s$  since $c(t)$ belong to the level set. So $h'(t)=0$. But at the same time, we can compute its derivate at $t=0$ as follow
+	The function $h(t) \eqdef f(c(t))$ has constant value $h(t)=s$ because $c(t)$ lies in the level set. Thus $h'(t)=0$. Expanding at $t=0$ also gives
 	\eq{
-		h(t) = f(c(0) + t c'(0) + o(t)) = h(0) + \de \dotp{c'(0)}{\nabla f(c(0))} + o(t)
+		h(t) = f(c(0) + t c'(0) + o(t)) = h(0)+t\dotp{c'(0)}{\nabla f(c(0))} + o(t)
 	}	
 	i.e. $h'(0) = \dotp{c'(0)}{\nabla f(x)}=0$, so that $\nabla f(x)$ is orthogonal to the tangent $c'(0)$ of the curve $c$, which lies in the tangent plane of $\Ll_s$  (as shown on Fig.~\ref{fig-expansion-taylor}, right).  Since the curve $c$ is arbitrary, the whole tangent plane is thus orthogonal to $\nabla f(x)$. 
 \end{rem}
 
 \begin{rem}[Local optimal descent direction]
-	One can prove something even stronger, that among all possible direction $u$ with $\norm{u}=r$, $r \frac{\nabla f(x)}{\norm{\nabla f(x)}}$ becomes the optimal one as $r \rightarrow 0$ (so for very small step this is locally the best choice), more precisely, 
+	Assume $f$ is continuously differentiable near $x$ and $\nabla f(x)\neq0$. Among displacements of length $r$, every minimizing direction approaches the normalized negative gradient as $r\downarrow0$:
 \eq{
 	\frac{1}{r} \uargmin{\norm{u}=r} f(x + u) \overset{r \rightarrow 0}{\longrightarrow} -\frac{\nabla f(x)}{\norm{\nabla f(x)}}.
 }
-Indeed, introducing a Lagrange multiplier $\la \in \RR$ for this constraint optimization problem, one obtains that the optimal $u$ satisfies $\nabla f(x+u) = \la u$ and $\norm{u}=r$. Thus $\frac{u}{r} =\pm \frac{\nabla f(x+u)}{\norm{\nabla f(x+u)}}$, and assuming that $\nabla f$ is continuous, when $\norm{u}=r \rightarrow 0$, this converges to $\frac{u}{\norm{u}} = \pm\frac{\nabla f(x)}{\norm{\nabla f(x)}}$. The sign $\pm$ should be $+1$ to obtain a maximizer and $-1$ for the minimizer.
+To verify the sign, let $u_r$ minimize $f(x+u)$ on the radius-$r$ sphere. Compare it with $-r\nabla f(x)/\norm{\nabla f(x)}$. The uniform first-order remainder gives
+\eq{\dotp{\nabla f(x)}{u_r/r}\leq-\norm{\nabla f(x)}+o(1).}
+Since $\norm{u_r/r}=1$, equality in the limiting Cauchy--Schwarz bound forces the stated direction.
 \end{rem}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Gradient Descent}
 
-The gradient descent algorithm reads, starting with some $x_0 \in \RR^p$
+Starting from $x_0 \in \RR^p$, gradient descent iterates
 \eql{\label{eq-grad-desc}
 	x_{k+1} \eqdef x_k - \tau_k \nabla f(x_k)
 }
-where $\tau_k>0$ is the step size (also called learning rate). For a small enough $\tau_k$, the previous discussion shows that the function $f$ is decaying through the iteration. So intuitively, to ensure convergence, $\tau_k$ should be chosen small enough, but not too small so that the algorithm is as fast as possible.
+The parameter $\tau_k>0$ is the step size, or learning rate. A sufficiently small $\tau_k$ decreases $f$ at a nonstationary iterate. Choosing $\tau_k$ balances stable descent against progress per step.
 %
-In general, one use a fix step size $\tau_k=\tau$, or try to adapt $\tau_k$ at each iteration (see Fig.~\ref{fig-gradesc}). 
+One may fix $\tau_k=\tau$ or adapt $\tau_k$ at each iteration; see Figure~\ref{fig-gradesc}.
 
 
 \begin{figure}
@@ -558,41 +558,41 @@ In general, one use a fix step size $\tau_k=\tau$, or try to adapt $\tau_k$ at e
 \includegraphics[width=.3\linewidth]{optim-smooth/grad-desc-1} \quad
 \includegraphics[width=.3\linewidth]{optim-smooth/grad-desc-2} 
 \caption{\label{fig-gradesc}
-Influence of $\tau$ on the gradient descent (left) and optimal step size choice (right).
+Effect of the step size $\tau$ on gradient descent (left) and exact line search (right).
 }
 \end{figure}
 
 
 \begin{rem}[Greedy choice]
-Although this is in general too costly to perform exactly, one can use a ``greedy'' choice, where the step size is optimal at each iteration, i.e. 
+Exact line search chooses the best step along the current direction, although computing it can be expensive:
 \eq{
-	\tau_k \eqdef \uargmin{\tau} h(\tau) \eqdef f(x_k-\tau \nabla f(x_k)).
+	\tau_k\in\uargmin{\tau\geq0} h(\tau) \eqdef f(x_k-\tau \nabla f(x_k)).
 }
-Here $h(\tau)$ is a function of a single variable. One can compute the derivative of $h$ as
+The line-search objective $h(\tau)$ is scalar. Its derivative follows from a Taylor expansion of $h$:
 \eq{
-	h(\tau+\de) = f(x_k-\tau \nabla f(x_k) - \de \nabla f(x_k)) = f(x_k-\tau \nabla f(x_k))- \dotp{\nabla f(x_k-\tau \nabla f(x_k))}{ \nabla f(x_k)} + o(\de).
+	h(\tau+\de) = f(x_k-\tau \nabla f(x_k) - \de \nabla f(x_k)) = f(x_k-\tau\nabla f(x_k))-\de\dotp{\nabla f(x_k-\tau \nabla f(x_k))}{ \nabla f(x_k)} + o(\de).
 }
-One note that at $\tau=\tau_k$, $\nabla f(x_k-\tau \nabla f(x_k))=\nabla f(x_{k+1})$ by definition of $x_{k+1}$ in~\eqref{eq-grad-desc}. 
+Note that at $\tau=\tau_k$, $\nabla f(x_k-\tau \nabla f(x_k))=\nabla f(x_{k+1})$ by definition of $x_{k+1}$ in~\eqref{eq-grad-desc}.
 %
-Such an optimal $\tau=\tau_k$ is thus characterized by
+If the current gradient is nonzero and the minimum is attained, an optimal step satisfies $\tau_k>0$, since small positive steps decrease $f$. The first-order condition is therefore
 \eq{
 	h'(\tau_k) = - \dotp{\nabla f(x_k)}{\nabla f(x_{k+1})} = 0.
 }
-This means that for this greedy algorithm, two successive descent direction $\nabla f(x_k)$ and $\nabla f(x_{k+1})$ are orthogonal (see Fig.~\ref{fig-gradesc}).
+Thus successive gradients, and hence successive descent directions, are orthogonal; see Figure~\ref{fig-gradesc}.
 \end{rem}
 
 \begin{rem}[Armijo rule]
-	Instead of looking for the optimal $\tau$, one can looks for an admissible $\tau$ which guarantees a large enough decay of the functional, in order to ensure convergence of the descent. 
+	Instead of finding the optimal $\tau$, Armijo backtracking seeks an admissible $\tau$ that produces sufficient decrease.
 	%
-	Given some parameter $0<\al<1$ (which should be actually smaller than $1/2$ in order to ensure a sufficient decay), one consider a $\tau$ to be valid for a descent direction $d_k$ (for instance $d_k=-\nabla f(x_k)$) if it satisfies
+	Given $0<\al<1$ (values below $1/2$ are customary, especially for Newton-type methods), one considers a $\tau$ to be valid for a descent direction $d_k$ (for instance $d_k=-\nabla f(x_k)$) if it satisfies
 	\eql{\label{eq-armijo-rule}
 		f(x_k+\tau d_k) \leq f(x_k) + \al \tau \dotp{d_k}{\nabla f(x_k)}
 	} 
-	For small $\tau$, one has $f(x_k+\tau d_k) = f(x_k) + \tau \dotp{d_k}{\nabla f(x_k)}$, so that, assuming $d_k$ is a valid descent direction (i.e $\dotp{d_k}{\nabla f(x_k)}<0$),  condition~\eqref{eq-armijo-rule} will always be satisfied for $\tau$ small enough (if $f$ is convex, the set of allowable $\tau$ is of the form $[0,\tau_{\max}]$). 
+	For small $\tau$, one has $f(x_k+\tau d_k) = f(x_k)+\tau\dotp{d_k}{\nabla f(x_k)}+o(\tau)$, so that, assuming $d_k$ is a valid descent direction (i.e $\dotp{d_k}{\nabla f(x_k)}<0$),  condition~\eqref{eq-armijo-rule} will always be satisfied for $\tau$ small enough (if $f$ is convex, the set of allowable $\tau$ is of the form $[0,\tau_{\max}]$).
 	%
-	In practice, one perform gradient descent by initializing $\tau$ very large, and decaying it $\tau \leftarrow \be \tau$ (for $\be < 1$) until~\eqref{eq-armijo-rule} is satisfied. 
+	Start from a positive trial step and repeatedly reduce it by $\tau\leftarrow\be\tau$, with $0<\be<1$, until~\eqref{eq-armijo-rule} holds.
 	%
-	This approach is often called ``backtracking'' line search. 
+	This procedure is called backtracking line search.
 \end{rem}
 
 
@@ -609,7 +609,7 @@ This means that for this greedy algorithm, two successive descent direction $\na
 %%%
 \paragraph{Convergence analysis for the quadratic case.}
 
-We first analyze this algorithm in the case of the quadratic loss, which can be written as
+We first analyze gradient descent for the quadratic objective
 \eq{
 	f(x) = \frac{1}{2}\norm{Ax-y}^2 = \frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b} + \text{cst}
 	\qwhereq
@@ -618,20 +618,20 @@ We first analyze this algorithm in the case of the quadratic loss, which can be 
 		b \eqdef A^\top y \in \RR^p. 
 	}	
 } 
-We already saw that in~\eqref{eq-sol-leastsquare} if $\ker(A)=\{0\}$, which is equivalent to $C$ being invertible, then there exists a single global minimizer $x^\star = (A^\top A)^{-1} A^\top y = C^{-1} u$. 
+We already saw that in~\eqref{eq-sol-leastsquare} if $\ker(A)=\{0\}$, which is equivalent to $C$ being invertible, then there exists a single global minimizer $x^\star = (A^\top A)^{-1} A^\top y =C^{-1}b$.
 
-Note that a function of the form $\frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b}$ is convex if and only if the symmetric matrix $C$ is positive semi-definite, i.e. that all its eigenvalues are non-negative (as already seen in~\eqref{eq-pca-decomp}).
+The quadratic $\frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b}$ is convex exactly when the symmetric matrix $C$ is positive semidefinite, as follows from the spectral decomposition~\eqref{eq-pca-decomp}.
 
 \begin{prop}\label{prop-graddesc-quad}
-	For $f(x)=\dotp{Cx}{x}-\dotp{b}{x}$ ($C$ being symmetric semi-definite positive) with the eigen-values of $C$ upper-bounded by $L$ and lower-bounded by $\mu>0$, assuming there exists $(\tau_{\min},\tau_{\max})$ such that
+	Let $f(x)=\frac12\dotp{Cx}{x}-\dotp{b}{x}$, where $C$ is symmetric and its eigenvalues lie in $[\mu,L]$ with $0<\mu\leq L$. If the step sizes satisfy
 	\eq{
-		0 < \tau_{\min} \leq \tau_\ell \leq \tilde\tau_{\max} < \frac{2}{L}
+		0 < \tau_{\min} \leq \tau_\ell \leq \tau_{\max} < \frac{2}{L}
 	}
 	then there exists $0 \leq \tilde\rho<1$ such that 
 	\eql{\label{eq-global-linrate-grad}
-		\norm{ x_k-x^\star } \leq \tilde\rho^\ell \norm{x_0-x^\star}.
+		\norm{ x_k-x^\star } \leq \tilde\rho^k \norm{x_0-x^\star}.
 	} 
-	The best rate $\tilde\rho$ is obtained for 
+	The smallest uniform one-step contraction bound based only on $\mu$ and $L$ is obtained with the constant step
 	\eql{\label{eq-best-rate-local}
 		\tau_\ell = \frac{2}{L+\mu}
 		\qarrq
@@ -643,11 +643,11 @@ Note that a function of the form $\frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b}$ is con
 \begin{proof}
 	One iterate of gradient descent reads 
 	\eq{
-		x_{k+1}=x_k-\tau_\ell (C x_k-b).
+		x_{k+1}=x_k-\tau_k (C x_k-b).
 	}	
-	Since the solution $x^\star$ (which by the way is unique by strict convexity) satisfy the first order condition $C x^\star=b$, it gives
+	The minimizer $x^\star$ satisfies $Cx^\star=b$, so
 	\eq{
-		x_{k+1}-x^\star =x_k-x^\star-\tau_\ell C(x_k-x^\star) = (\Id_p-\tau_\ell C)(x_k-x^\star).
+		x_{k+1}-x^\star =x_k-x^\star-\tau_k C(x_k-x^\star) = (\Id_p-\tau_k C)(x_k-x^\star).
 	}	
 	%	
 	If $S \in \RR^{p \times p}$ is a symmetric matrix, one has 
@@ -661,23 +661,22 @@ Note that a function of the form $\frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b}$ is con
 	Indeed, $S$ can be diagonalized in an orthogonal basis $U$, so that $S=U \diag(\la_k(S)) U^\top$,
 	and $S^\top S = S^2 = U \diag(\la_k(S)^2) U^\top$ so that 
 	\begin{align*}
-		\norm{Sz}^2 &= \dotp{S^\top S z}{z} = \dotp{U \diag(\la_k) U^\top z}{z}		 
+		\norm{Sz}^2 &= \dotp{S^\top S z}{z} = \dotp{U\diag(\la_k^2)U^\top z}{z}
 		=\dotp{\diag(\la_k^2) U^\top z}{U^\top z} \\
-		&= \sum_i \la_k^2 (U^\top z)_k^2 \leq \max_k(\la_k^2) \norm{U^\top z}^2
+		&= \sum_k\la_k^2 (U^\top z)_k^2 \leq \max_k(\la_k^2) \norm{U^\top z}^2
 		= \max_k(\la_k^2) \norm{z}^2.
 	\end{align*}
 	
-	Applying this to $S = \Id_p-\tau_\ell C$, one has
+	Applying this to $S = \Id_p-\tau C$ gives the contraction factor as a function of the step $\tau$:
 	\eq{
-		h(\tau) \eqdef \norm{\Id_p-\tau_\ell C}_{\text{op}} = \max_k |\la_k(\Id_p-\tau_\ell C)|
-		= \max_k |1-\tau_\ell \la_k(C)|
-		= \max( |1-\tau_\ell \si_{\max}(C)|,|1-\tau \si_{\min}(C)| )
+		h(\tau) \eqdef \norm{\Id_p-\tau C}_{\text{op}} = \max_j |1-\tau\la_j(C)|
+		\leq H(\tau)\eqdef\max\bigl(|1-\tau L|,|1-\tau\mu|\bigr).
 	}
-	For a quadratic function, one has $\si_{\min}(C) = \mu, \si_{\max}(C)=L$. Figure~\ref{fig-grad-desc-contract}, right, shows a display of $h(\tau)$. One has that for $0<\tau<2/L$, $h(\tau)<1$.
+	If $\mu$ and $L$ are the extreme eigenvalues, equality holds and Figure~\ref{fig-grad-desc-contract} plots $h=H$. In general, $H(\tau)<1$ for $0<\tau<2/L$. Continuity on $[\tau_{\min},\tau_{\max}]$ gives a common bound $\tilde\rho<1$, proving~\eqref{eq-global-linrate-grad}.
 	%
-	The optimal value is reached at $\tau^\star = \frac{2}{L+\mu}$ and then 
+	The bound $H$ is minimized at $\tau^\star = \frac{2}{L+\mu}$, giving
 	\eq{
-		h(\tau^\star) = \left|1 - \frac{2L}{L+\mu} \right| = \frac{L-\mu}{L+\mu}.
+		H(\tau^\star) = \left|1 - \frac{2L}{L+\mu} \right| = \frac{L-\mu}{L+\mu}.
 	}
 \end{proof}
 
@@ -687,26 +686,26 @@ Note that a function of the form $\frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b}$ is con
 \centering
 \includegraphics[width=.35\linewidth]{optim-smooth/proof-quadr}
 \caption{\label{fig-grad-desc-contract}
-Contraction constant $h(\tau)$ for a quadratic function (right). 
+Contraction constant $h(\tau)$ for a quadratic function.
 }
 \end{figure}
 
-Note that when the condition number $\xi \eqdef \mu/L \ll 1$
+Note that when the inverse condition number $\xi\eqdef\mu/L\ll1$
 is small (which is the typical setup for ill-posed problems), then the contraction constant appearing in~\eqref{eq-best-rate-local} scales like 
 \eql{\label{eq-rate-strong-quad}
 	\tilde\rho \sim 1-2\xi.
 }
 %
-The quantity $\epsilon$ in some sense reflects the inverse-conditioning of the problem. For quadratic function, it indeed corresponds exactly to the inverse of the condition number (which is the ratio of the largest to smallest singular value). The condition number is minimum and equal to $1$ for orthogonal matrices.
+We also use $\epsilon$ below for this inverse condition number. The condition number is the ratio of the largest to the smallest singular value, and its minimum value is $1$, attained by orthogonal matrices.
 
-The error decay rate~\eqref{eq-global-linrate-grad}, although it is geometrical $O(\rho^k)$ is called a ``linear rate'' in the optimization literature. It is a ``global'' rate because it hold for all $k$ (and not only for large enough $k$).
+The geometric decay $O(\rho^k)$ in~\eqref{eq-global-linrate-grad} is called linear convergence in optimization. The bound is global because it holds for every $k$, rather than only sufficiently large $k$.
 
-If $\ker(A) \neq \{0\}$, then $C$ is not definite positive (some of its eigenvalues vanish), and the set of solution is infinite. 
+If $\ker(A) \neq \{0\}$, then $C$ has zero eigenvalues and the minimizer set is infinite.
 %
-One can however still show a linear rate, by showing that actually the iterations $x_k$ are orthogonal to $\ker(A)$ and redo the above proof replacing $\mu$ by the smaller non-zero eigenvalue of $C$. This analysis however leads to a very poor rate $\rho$ (very close to 1) because $\mu$ can be arbitrary close to 0. Furthermore, such a proof does not extends to non-quadratic functions. It is thus necessary to do a different theoretical analysis, which only shows a sublinear rate on the objective function $f$ itself rather than on the iterates $x_k$.  
+A linear rate still follows because the increments $x_{k+1}-x_k$ are orthogonal to $\ker(A)$, while the kernel component remains equal to that of $x_0$. The preceding proof applies on the orthogonal complement, with $\mu$ replaced by the smallest positive eigenvalue of $C$. This eigenvalue may be very small, giving a contraction factor close to one. The spectral argument also relies on the quadratic structure. We therefore give a different analysis that provides a sublinear bound on the objective value.
 
 \begin{prop}\label{prop-graddesc-quad-sublin}
-	For $f(x)=\dotp{Cx}{x}-\dotp{b}{x}$, assuming the eigenvalue of $C$ are bounded by $L$, then if $0<\tau_k=\tau < 1/L$ is constant, then
+	Let $f(x)=\frac12\dotp{Cx}{x}-\dotp{b}{x}$ with $C\succeq0$, $b\in\Im(C)$, and eigenvalues at most $L>0$. For a constant step $0<\tau_k=\tau<1/L$ and $k\geq1$,
 	\eq{
 		f(x_k)-f(x^\star) \leq \frac{\text{\upshape dist}(x_0,\argmin f)^2}{\tau 8 k}.
 	}
@@ -731,18 +730,18 @@ One can however still show a linear rate, by showing that actually the iteration
 	and we have $\dotp{Cx_k}{x^\star} = \dotp{x_k}{Cx^\star} = \dotp{x_k}{b}$
 	and also $\dotp{Cx^\star}{x^\star} = \dotp{x^\star}{b}$ so that
 	\eq{
-		\frac{1}{2}\dotp{C(x_k-x^\star}{x_k-x^\star} = 
+		\frac{1}{2}\dotp{C(x_k-x^\star)}{x_k-x^\star} =
 		\frac{1}{2}\dotp{Cx_k}{x_k} - \dotp{x_k}{b}
 		+ \frac{1}{2} \dotp{x^\star}{b}
 		= f(x_k)+ \frac{1}{2} \dotp{x^\star}{b}. % -f(x^\star)
 	}
 	Note also that 
 	\eq{
-		f(x^\star) = \frac{1}{2}\frac{Cx^\star}{x^\star} - \dotp{x^\star}{b} = \frac{1}{2}\dotp{x^\star}{b} -\dotp{x^\star}{b}  = -\frac{1}{2}\dotp{x^\star}{b}.
+		f(x^\star) = \frac{1}{2}\dotp{Cx^\star}{x^\star} - \dotp{x^\star}{b} = \frac{1}{2}\dotp{x^\star}{b} -\dotp{x^\star}{b}  = -\frac{1}{2}\dotp{x^\star}{b}.
 	}
 	This shows that 
 	\eq{
-		\frac{1}{2}\dotp{C(x_k-x^\star}{x_k-x^\star} =f(x_k)-f(x^\star).
+		\frac{1}{2}\dotp{C(x_k-x^\star)}{x_k-x^\star} =f(x_k)-f(x^\star).
 	}
 	This thus implies 
 	\eq{
@@ -754,14 +753,14 @@ One can however still show a linear rate, by showing that actually the iteration
 	\eq{
 		M_k \eqdef (\Id_p-\tau C)^k C (\Id_p-\tau C)^k.
 	}
-	Since $x^\star$ can be chosen arbitrary, one can replace $\norm{x_0-x^\star}$ by $\text{\upshape dist}(x_0,\argmin f)$.
+	Since $x^\star$ can be chosen arbitrarily, one can replace $\norm{x_0-x^\star}$ by $\text{\upshape dist}(x_0,\argmin f)$.
 	%
 	One has, for any $\ell$, the following bound 
 	\eq{
-		\si_\ell(M_k) = \si_\ell(C) (1-\tau \si_\ell(C))^{2k}
+		\si_\ell(M_k) \leq \max_{0\leq s\leq L} s(1-\tau s)^{2k}
 			\leq \frac{1}{\tau 4 k}
 	}
-	since one can show that (setting $t = \tau \si_\ell(C) \leq 1$ because of the hypotheses)
+	because the eigenvalues of $M_k$ have the form $s(1-\tau s)^{2k}$ for eigenvalues $s$ of $C$. Setting $t=\tau s\in[0,1]$, use
 	\eq{
 		\foralls t \in [0,1], \quad
 			(1-t)^{2k} t \leq \frac{1}{4k}.
@@ -781,44 +780,44 @@ One can however still show a linear rate, by showing that actually the iteration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{General Case}
 
-We detail the theoretical analysis of convergence for general smooth convex functions. 
+We now extend the convergence analysis to general smooth convex functions.
 %
-The general idea is to replace the linear operator $C$ involved in the quadratic case by the second order derivative (the hessian matrix).  
+The Hessian replaces the constant matrix $C$ of a quadratic objective.
 
 %%%
 \paragraph{Hessian.}
 
-If the function is twice differentiable along the axes, the hessian matrix is 
+For a twice continuously differentiable function, the Hessian matrix is
 \eq{
 	(\partial^2 f)(x) = \pa{ \frac{\partial^2 f(x)}{\partial x_i \partial x_j} }_{1 \leq i,j \leq p} \in \RR^{p \times p}.
 }	
-Where recall that $\frac{\partial^2 f(x)}{\partial x_i \partial x_j}$ is the differential along direction $x_j$ of the function $x \mapsto \pd{f(x)}{x_i}$. We also recall that $\frac{\partial^2 f(x)}{\partial x_i \partial x_j} = \frac{\partial^2 f(x)}{\partial x_j \partial x_i}$ so that $\partial^2 f(x)$ is a symmetric matrix.
+Each entry differentiates the $i$th component of the gradient with respect to the $j$th coordinate. Equality of mixed partial derivatives makes $\partial^2 f(x)$ symmetric.
 
-A differentiable function $f$ is said to be twice differentiable at $x$ if
+Twice differentiability of $f$ at $x$ implies the Taylor expansion
 \eql{\label{eq-taylor-hess}
 	f(x+\epsilon) = f(x) + \dotp{\nabla f(x)}{\epsilon} + \frac{1}{2} \dotp{\partial^2 f(x) \epsilon}{\epsilon}
 	+ o(\norm{\epsilon}^2).
 }
-This means that one can approximate $f$ near $x$ by a quadratic function. 
+Thus $f$ has a local quadratic approximation near $x$.
 %
-The hessian matrix is uniquely determined by this relation, so that if one is able to write down an expansion with some matrix $H$
+The Hessian is the unique symmetric matrix in this expansion. If an expansion has the form below with a symmetric matrix $H$,
 \eq{
 	f(x+\epsilon) = f(x) + \dotp{\nabla f(x)}{\epsilon} + \frac{1}{2} \dotp{H \epsilon}{\epsilon}
 	+ o(\norm{\epsilon}^2).
 }
-then equating this with the expansion~\eqref{eq-taylor-hess} ensure that $\partial^2 f(x)=H$. This is thus a way to actually determine the hessian without computing all the $p^2$ partial derivative.
+comparison with~\eqref{eq-taylor-hess} identifies $\partial^2 f(x)=H$, avoiding separate computation of all $p^2$ partial derivatives.
 %
-This Hessian can equivalently be obtained by performing an expansion (i.e. computing the differential) of the gradient since
+Equivalently, differentiate the gradient:
 \eq{
 	\nabla f(x+\epsilon) = \nabla f(x) + [\partial^2 f(x)](\epsilon) + o(\norm{\epsilon})
 }
-where $[\partial^2 f(x)](\epsilon) \in \RR^p$ denotes the multiplication of the matrix $\partial^2 f(x)$ with the vector $\epsilon$. 
+where $[\partial^2 f(x)](\epsilon) \in \RR^p$ is the product of the Hessian $\partial^2 f(x)$ with $\epsilon$.
 
-One can show that a twice differentiable function $f$ on $\RR^p$ is convex if and only if for all $x$ the symmetric matrix $\partial^2 f(x)$ is positive semi-definite, i.e. all its eigenvalues are non-negative. 
+A twice differentiable function $f$ on $\RR^p$ is convex exactly when, at every $x$, the Hessian $\partial^2 f(x)$ is positive semidefinite.
 % 
-Furthermore, if these eigenvalues are strictly positive then $f$ is strictly convex (but the converse is not true, for instance $x^4$ is strictly convex on $\RR$ but its second derivative vanishes at $x=0$). 
+Positive definiteness everywhere implies strict convexity of $f$, but is not necessary: $x^4$ is strictly convex on $\RR$ although its second derivative vanishes at $x=0$.
 
-For instance, for a quadratic function $f(x)=\dotp{C x}{x} - \dotp{x}{u}$, one has $\nabla f(x) = Cx-u$ and thus $\partial^2 f(x) = C$ (which is thus constant).
+For a quadratic objective $f(x)=\frac12\dotp{Cx}{x}-\dotp{x}{u}$, the gradient $\nabla f(x) = Cx-u$ gives the constant Hessian $\partial^2 f(x) = C$.
 %
 For the classification function, one has 
 \eq{
@@ -826,93 +825,92 @@ For the classification function, one has
 }
 and thus
 \begin{align*}
-	\nabla f(x+\epsilon) &= -A^\top \diag(y) \nabla L( -\diag(y) Ax - -\diag(y) A\epsilon)  \\
-		&= \nabla f(x)  -A^\top \diag(y) [\partial^2 L( -\diag(y) Ax)]( -\diag(y) A\epsilon) 
+	\nabla f(x+\epsilon) &= -A^\top \diag(y) \nabla L( -\diag(y) Ax-\diag(y)A\epsilon)  \\
+		&= \nabla f(x)  -A^\top \diag(y) [\partial^2 L( -\diag(y) Ax)]( -\diag(y) A\epsilon) + o(\norm{\epsilon})
 \end{align*}
 Since $\nabla L(u) = (\ell'(u_i))$ one has $\partial^2 L(u)=\diag(\ell''(u_i))$. This means that 
 \eq{
 	\partial^2 f(x) = A^\top \diag(y) \times \diag( \ell''(-\diag(y) Ax) ) \times \diag(y) A.
 }
-One verifies that this matrix is symmetric and positive if $\ell$ is convex and thus $\ell''$ is positive. 
+This matrix is symmetric positive semidefinite when $\ell$ is convex, because $\ell''$ is nonnegative.
 
 \begin{rem}[Second order optimality condition]
-The first use of Hessian is to decide wether a point $x^\star$ with $\nabla f(x^\star)$ is a local minimum or not. Indeed, if $\partial^2 f(x^\star)$ is a positive matrix (i.e. its eigenvalues are strictly positive), then $x^\star$ is a strict local minimum. 
+The Hessian can classify a stationary point $x^\star$ with $\nabla f(x^\star)=0$. If $\partial^2 f(x^\star)$ is positive definite, then $x^\star$ is a strict local minimizer.
 %
-Note that if $\partial^2 f(x^\star)$ is only non-negative (i.e. some its eigenvalues might vanish) then one cannot deduce anything (such as for instance $x^3$ on $\RR$). 
+Positive semidefiniteness of $\partial^2 f(x^\star)$ alone does not classify the point; for example, $x^3$ on $\RR$ has a vanishing Hessian at its stationary inflection point.
 %
-Conversely, if $x^\star$ is a local minimum then $\partial^2 f(x)$
+Conversely, if $x^\star$ is a local minimum, then $\partial^2 f(x^\star)$ is positive semidefinite.
 \end{rem}
 
 \begin{rem}[Second order algorithms]
-A second use, is to be used in practice to define second order method (such as Newton's algorithm), which converge faster than gradient descent, but are more costly. The generalized gradient descent reads
+The Hessian also yields second-order methods such as Newton's method. These can converge faster locally than gradient descent, at a greater cost per iteration. A variable-metric gradient step has the form
 \eq{
 	x_{k+1} = x_k - H_k \nabla f(x_k)
 }
-where $H_k \in \RR^{p \times p}$ is a positive symmetric matrix. One recovers the gradient descent when using $H_k=\tau_k \Id_p$, and Newton's algorithm corresponds to using the inverse of the Hessian $H_k=[\partial^2 f(x_k)]^{-1}$.
+where $H_k \in \RR^{p \times p}$ is symmetric positive definite. Gradient descent uses $H_k=\tau_k \Id_p$; Newton's method uses $H_k=[\partial^2 f(x_k)]^{-1}$ when the Hessian is positive definite.
 %
 Note that
 \eq{
-	f(x_k) = f(x_k) - \dotp{H_k \nabla f(x_k)}{\nabla f(x_k)} + o(\norm{H_k \nabla f(x_k)}).
+	f(x_{k+1})=f(x_k)-\dotp{H_k \nabla f(x_k)}{\nabla f(x_k)} + o(\norm{H_k \nabla f(x_k)}).
 }
-Since $H_k$ is positive, if $x_k$ is not a minimizer, i.e. $\nabla f(x_k) \neq 0$, then $\dotp{H_k \nabla f(x_k)}{\nabla f(x_k)}>0$.
+Positive definiteness of $H_k$ ensures that, if $x_k$ is nonstationary with $\nabla f(x_k)\neq0$, then $\dotp{H_k \nabla f(x_k)}{\nabla f(x_k)}>0$.
 %
-So if $H_k$ is small enough one has a valid descent method in the sense that $f(x_{k+1}) < f(x_k)$.
+Scaling $H_k$ sufficiently small therefore guarantees descent, $f(x_{k+1}) < f(x_k)$.
 %
-It is not the purpose of this chapter to explain in more detail these type of algorithm.
+We do not develop second-order algorithms further here.
 \end{rem}
 
-The last use of Hessian, that we explore next, is to study theoretically the convergence of the gradient descent. One simply needs to replace the boundedness of the eigenvalue of $C$ of a quadratic function by a boundedness of the eigenvalues of $\partial^2 f(x)$ for all $x$.
+For convergence analysis, uniform Hessian bounds play the role of the spectral bounds on $C$ in the quadratic case. We require these bounds on $\partial^2 f(x)$ at every $x$.
 %
-Roughly speaking, the theoretical analysis of the gradient descent for a generic function is obtained by applying this approximation and using the proofs of the previous section.
+Integrating these local bounds yields global inequalities that support an analysis similar to the quadratic one.
 
 
 %%%
 \paragraph{Smoothness and strong convexity.}
 
 \wrapfSimple{optim-smooth/up-low-bounds}
-One also needs to quantify the smoothness of $f$. This is enforced by requiring that the gradient is $L$-Lipschitz, i.e.
+For $L>0$, quantify the smoothness of $f$ by requiring an $L$-Lipschitz gradient:
 \eql{\label{eq-lipsch-grad}\tag{$\Rr_L$}
 	\foralls (x,x') \in (\RR^p)^2, \quad
 	\norm{ \nabla f(x)-\nabla f(x') } \leq L \norm{x-x'}. 
 }
-In order to obtain fast convergence of the iterates themselve, it is needed that the function has enough ``curvature'' (i.e. is not too flat), which corresponds to imposing that $f$ is $\mu$-strongly convex
+A linear convergence guarantee for the iterates follows from a uniform lower curvature bound. We impose this by assuming that $f$ is $\mu$-strongly convex
 \eql{\label{eq-strong-conv}\tag{$\Ss_\mu$}
-	\foralls (x,x'), \in (\RR^p)^2, \quad
+	\foralls (x,x')\in (\RR^p)^2, \quad
 	\dotp{\nabla f(x)-\nabla f(x')}{ x-x' } \geq \mu \norm{x-x'}^2. 
 }
-The following proposition express these conditions as constraints on the hessian for $\Cc^2$ functions.
+For $\Cc^2$ functions, these conditions are equivalent to uniform Hessian bounds.
 
 \begin{prop}\label{prop-smooth-strong}
 Conditions~\eqref{eq-lipsch-grad} and~\eqref{eq-strong-conv} imply
 \eql{\label{eq-above-below-quad}
 	\foralls (x,x'), \quad
-	f(x') + \dotp{\nabla f(x)}{x'-x} + \frac{\mu}{2}\norm{x-x'}^2
+	f(x')+\dotp{\nabla f(x')}{x-x'}+\frac{\mu}{2}\norm{x-x'}^2
 	\leq
 	f(x) 
 	\leq 
-	f(x') + \dotp{\nabla f(x')}{x'-x} + \frac{L}{2}\norm{x-x'}^2.
+	f(x')+\dotp{\nabla f(x')}{x-x'}+\frac{L}{2}\norm{x-x'}^2.
 }
 If $f$ is of class $\Cc^2$, conditions~\eqref{eq-lipsch-grad} and~\eqref{eq-strong-conv} are equivalent to
 \eql{\label{eq-upper-lower-bound-hess}
 	\foralls x, \quad \mu \Id_{p}  \preceq \partial^2 f(x) \preceq L \Id_{p}
 }
-where $\partial^2 f(x) \in \RR^{p \times p}$ is the Hessian of $f$, and 
-where $\preceq$ is the natural order on symmetric matrices, i.e.
+where $\partial^2 f(x)\in\RR^{p\times p}$ is the Hessian and $\preceq$ denotes the semidefinite order:
 \eq{
 	A \preceq B \quad\Longleftrightarrow\quad
-	\foralls x \in \RR^p, \quad \dotp{A u}{u} \leq \dotp{B u}{u}.
+	\foralls u\in\RR^p,\quad\dotp{Au}{u} \leq \dotp{B u}{u}.
 }
 \end{prop}
 
 \begin{proof}
-	We prove~\eqref{eq-above-below-quad}, using Taylor expansion with integral remain
+	We prove~\eqref{eq-above-below-quad}, using Taylor expansion with integral remainder
 	\eq{
 		f(x') - f(x) = \int_0^1 \dotp{\nabla f(x_t)}{x'-x} \d t
 		= \dotp{\nabla f(x)}{x'-x} + \int_0^1 \dotp{\nabla f(x_t)-\nabla f(x)}{x'-x} \d t		
 	}
 	where $x_t \eqdef x+t(x'-x)$.
 	%
-	Using Cauchy-Schwartz, and then the smoothness hypothesis~\eqref{eq-lipsch-grad}
+	Using Cauchy--Schwarz, and then the smoothness hypothesis~\eqref{eq-lipsch-grad}
 	\eq{
 		f(x') - f(x) \leq \dotp{\nabla f(x)}{x'-x} +  \int_0^1 L \norm{x_t-x} \norm{x'-x} \d t
 		\leq \dotp{\nabla f(x)}{x'-x} +  L \norm{x'-x}^2 \int_0^1  t  \d t
@@ -926,38 +924,38 @@ where $\preceq$ is the natural order on symmetric matrices, i.e.
 	which gives the desired result since $\norm{x_t-x}^2 / t = t \norm{x'-x}^2$.
 \end{proof}
 
-The relation~\eqref{eq-above-below-quad} shows that a smooth (resp. strongly convex) functional is bounded by below (resp. above) by a quadratic tangential majorant (resp. minorant). 
+Equation~\eqref{eq-above-below-quad} places the objective between a lower quadratic tangent model from strong convexity and an upper quadratic tangent model from smoothness.
 
-Condition~\eqref{eq-upper-lower-bound-hess} thus reads that the singular values of $\partial^2 f(x)$ should be contained in the interval $[\mu,L]$. The upper bound is also equivalent to $\norm{\partial^2 f(x)}_{\text{op}} \leq L$ where $\norm{\cdot}_{\text{op}}$ is the operator norm, i.e. the largest singular value. 
+Condition~\eqref{eq-upper-lower-bound-hess} places every eigenvalue of $\partial^2 f(x)$ in $[\mu,L]$. The upper bound is also equivalent to $\norm{\partial^2 f(x)}_{\text{op}} \leq L$ where $\norm{\cdot}_{\text{op}}$ is the operator norm, i.e. the largest singular value.
 %
-In the special case of a quadratic function of the form $\dotp{Cx}{x}-\dotp{b}{x}$ (recall that necessarily $C$ is semi-definite symmetric positive for this function to be convex), $\partial^2 f(x)=C$ is constant, so that $[\mu,L]$ can be chosen to be the range of the eigenvalues of $C$.
+In the special case of a quadratic function of the form $\frac12\dotp{Cx}{x}-\dotp{b}{x}$ (with $C$ symmetric positive semidefinite), $\partial^2 f(x)=C$ is constant, so that $[\mu,L]$ can be chosen to be the range of the eigenvalues of $C$.
 
 %%%
 \paragraph{Convergence analysis.}
 
-We now give convergence theorem for a general convex function. On contrast to quadratic function, if one does not assumes strong convexity, one can only show a sub-linear rate on the function values (and no rate at all on the iterates themselves). It is only when one assume strong convexity that linear rate is obtained. 
+For a general smooth convex function, gradient descent admits a sublinear objective bound. Strong convexity gives a linear rate for the iterates. Other structural assumptions can also yield faster rates, but are outside this analysis.
 %
-Note that in this case, the solution of the minimization problem is not necessarily unique.
+Without strong convexity, the minimizer need not be unique.
 
-\begin{thm}\label{thm-gradsec-non-strong-conv}
-	If $f$ satisfy conditions~\eqref{eq-lipsch-grad}, assuming there exists $(\tau_{\min},\tau_{\max})$ such that
+\begin{thm}\label{thm-gradsec-non-strong-conv}\label{thm-gradsec-strong-conv}
+	If $f$ is convex, satisfies~\eqref{eq-lipsch-grad}, and has a minimizer, assume there are constants $\tau_{\min},\tau_{\max}$ such that
 	\eq{
 		0 < \tau_{\min} \leq \tau_\ell \leq \tau_{\max} < \frac{2}{L}, 
 	}
 	then $x_k$ converges to a solution $x^\star$ of~\eqref{eq-general-pbm} and
 	there exists $C>0$ such that 
 	\eql{\label{eq-sublin-rate-gd}
-		f(x_k)-f(x^\star) \leq \frac{C}{\ell+1}.
+		f(x_k)-f(x^\star) \leq \frac{C}{k+1}.
 	} 
-	If furthermore $f$ is $\mu$-strongly convex, then there exists $0 \leq \rho < 1$ such that $\norm{x_k-x^\star} \leq \rho^\ell \norm{x_0-x^\star}$.
+	If furthermore $f$ is $\mu$-strongly convex, then there exists $0 \leq \rho < 1$ such that $\norm{x_k-x^\star} \leq \rho^k \norm{x_0-x^\star}$.
 \end{thm}
 
 \begin{proof}
-	In the case where $f$ is not strongly convex, we only prove~\eqref{eq-sublin-rate-gd} since the proof that $x_k$ converges is more technical. Note indeed that if the minimizer $x^\star$ is non-unique, then it might be the case that the iterate $x_k$ ``cycle'' while approaching the set of minimizer, but actually convexity of $f$ prevents this kind of pathological behavior. 
+	We first derive the objective bound and the strong-convexity estimate for the step $1/L$. We then explain convergence for the full step-size range in the theorem.
 	%
-	For simplicity, we do the proof in the case $\tau_\ell = 1/L$, but it extends to the general case. 
+	Take $\tau_\ell=1/L$.
 	%
-	The $L$-smoothness property imply~\eqref{eq-above-below-quad}, which reads
+	The $L$-smoothness property implies~\eqref{eq-above-below-quad}, which reads
 	\eq{
 	f(x_{k+1}) 
 		\leq 
@@ -970,7 +968,7 @@ Note that in this case, the solution of the minimization problem is not necessar
 		f(x_k) -  \frac{1}{L} \norm{\nabla f(x_k)}^2 + \frac{1}{2L} \norm{\nabla f(x_k)}^2
 		\leq  f(x_k) -  \frac{1}{2L} \norm{\nabla f(x_k)}^2 
 	}
-	This shows that $(f(x_k))_\ell$ is a decaying sequence.
+	Thus the objective sequence $(f(x_k))_k$ is nonincreasing.
 	%
 	By convexity
 	\eq{
@@ -988,30 +986,48 @@ Note that in this case, the solution of the minimization problem is not necessar
 	\end{align}
 	Summing these inequalities for $\ell=0,\ldots,k$, one obtains
 	\eq{
-		\sum_{\ell=0}^k f(x_{k+1}) - (k+1) f(x^\star) \leq  \frac{L}{2}\pa{
+		\sum_{\ell=0}^k f(x_{\ell+1}) - (k+1) f(x^\star) \leq  \frac{L}{2}\pa{
 			\norm{x_0-x^\star}^2 - \norm{x^{(k+1)}-x^\star}^2 }
 	}
-	and since $f(x_{k+1})$ is decaying $\sum_{\ell=0}^k f(x_{k+1}) \geq (k+1) f(x^{(k+1)})$, thus 
+	Since $f(x_{k+1})$ is nonincreasing, $\sum_{\ell=0}^k f(x_{\ell+1}) \geq (k+1) f(x^{(k+1)})$. Hence
 	\eq{
 		f(x^{(k+1)}) - f(x^\star) \leq \frac{L \norm{x_0-x^\star}^2}{2(k+1)}
 	}
-	which gives~\eqref{eq-sublin-rate-gd} for $C \eqdef L \norm{x_0-x^\star}^2/2$.
+	which gives~\eqref{eq-sublin-rate-gd} for $C\eqdef L\norm{x_0-x^\star}^2$.
 	
 	If we now assume $f$ is $\mu$-strongly convex, then, using $\nabla f(x^\star)=0$, one has $\frac{\mu}{2}\norm{x^\star-x}^2 \leq f(x)-f(x^\star)$ for all $x$. 
 	%
-	Re-manipulating~\eqref{eq-conv-rate-proof-1} gives
+	Rearranging~\eqref{eq-conv-rate-proof-1} gives
 	\eq{
 		\frac{\mu}{2}\norm{ x_{k+1} - x^\star}^2 \leq f(x_{k+1})-f(x^\star) \leq \frac{L}{2}\pa{
 			\norm{x_k-x^\star}^2 - \norm{x^\star-x_{k+1}}^2 }, 
 	}
 	and hence
 	\eql{\label{eq-rate-strong}
-		\norm{ x_{k+1} - x^\star} \leq \sqrt{ \frac{L}{L+\mu} } \norm{ x_{k+1} - x^\star}, 
+		\norm{ x_{k+1} - x^\star} \leq \sqrt{\frac{L}{L+\mu}}\norm{x_k-x^\star},
 	}
-	which is the desired result. 
+	which is the desired result.
+
+For the general step-size range, use the cocoercivity inequality for a convex function with an $L$-Lipschitz gradient:
+\eq{\norm{\nabla f(x)-\nabla f(y)}^2\leq L\dotp{\nabla f(x)-\nabla f(y)}{x-y}.}
+It follows by applying the descent bound to $f-\dotp{\nabla f(y)}{\cdot}$, whose minimum is at $y$, and then adding the inequality with $x$ and $y$ exchanged. Set $g_k=\nabla f(x_k)$ and $a=\tau_{\min}(1-L\tau_{\max}/2)>0$. The descent bound and cocoercivity give
+\begin{align*}
+f(x_k)-f(x_{k+1})&\geq a\norm{g_k}^2,\\
+\norm{x_{k+1}-x^\star}^2&\leq\norm{x_k-x^\star}^2-\frac{2a}{L}\norm{g_k}^2.
+\end{align*}
+The second inequality makes the iterates bounded and their distance to every minimizer nonincreasing. Summation gives $g_k\to0$. Every accumulation point is therefore a minimizer; the nonincreasing distance to such a point proves convergence of the entire sequence.
+
+For the objective rate, write $d_k=f(x_k)-f(x^\star)$ and $r_k=\norm{x_k-x^\star}$. Convexity and the update imply
+\eq{d_k\leq\frac{r_k^2-r_{k+1}^2}{2\tau_{\min}}
++\frac{\tau_{\max}}{2a}(d_k-d_{k+1}).}
+Summing from $0$ to $k$ and using monotonicity of $d_k$ proves
+$(k+1)d_k\leq r_0^2/(2\tau_{\min})+\tau_{\max}d_0/(2a)$.
+Under strong convexity, the same distance calculation gives
+\eq{r_{k+1}^2\leq\bigl(1-\mu\tau_{\min}(2-L\tau_{\max})\bigr)r_k^2,}
+whose factor belongs to $[0,1)$. This establishes all claims for the stated step sizes.
 \end{proof}
 
-Note that in the low conditioning setting $\epsilon \ll 1$, one retrieve a dependency of the rate~\eqref{eq-rate-strong} similar to the one of quadratic functions~\eqref{eq-rate-strong-quad}, indeed 
+For poor conditioning, $\epsilon \ll 1$, the rate~\eqref{eq-rate-strong} has the same qualitative dependence as the quadratic rate~\eqref{eq-rate-strong-quad}:
 \eq{
 	\sqrt{ \frac{L}{L+\mu} } = (1+\epsilon)^{-\frac{1}{2}} \sim 1 - \frac{1}{2}\epsilon. 
 }
@@ -1020,46 +1036,18 @@ Note that in the low conditioning setting $\epsilon \ll 1$, one retrieve a depen
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Acceleration}
 
-The previous analysis shows that for $L$-smooth functions (i.e. with a hessian uniformly bounded by $L$, $\norm{\partial^2 f(x)}_{\text{op}} \leq L$), the gradient descent with fixed step size converges with a speed on the function value $f(x_k)-\min f = O(1/k)$. 
-%
-Even using various line search strategies, it is not possible to improve over this rate. 
-%
-A way to improve this rate is by introducing some form of ``momentum'' extrapolation and rather consider a pair of variables $(x_k,y_k)$ with the following update rule, for some step size $s$ (which should be smaller than $1/L$)
-\eq{
-	\choice{
-			x_{k+1} = y_{k} - s \nabla f(y_{k}) \\
-			y_{k+1} = x_{k+1} + \beta_k (x_{k+1}-x_{k})
-	}
-}
-where the extrapolation parameter satisfies $0 < \beta_k < 1$. The case of a fixed $\beta_k=\be$ corresponds to the so-called ``heavy-ball'' method. In order for the method to bring an improvement for the $1/k$ ``worse case'' rate (which does not means it improves for all possible case), one needs to rather use increasing momentum $\beta_k \rightarrow 1$, one popular choice being
-\eq{
-	\be_k \frac{k-1}{k+2} \sim 1 - \frac{1}{k} .
-}
-This corresponds to the so-called ``Nesterov'' acceleration (although Nesterov used a slightly different choice, with the similar $1-1/k$ asymptotic behavior).
+For a convex function with an $L$-Lipschitz gradient, ordinary gradient descent has a worst-case $O(1/k)$ objective bound. Accelerated methods combine a gradient step with extrapolation. Starting from $y_0=x_0$ and $0<s\leq1/L$, one example is
+\eq{x_{k+1}=y_k-s\nabla f(y_k),\qquad
+ y_{k+1}=x_{k+1}+\beta_k(x_{k+1}-x_k),\qquad
+ \beta_k=\frac{k}{k+3}.}
+This is a Nesterov-type scheme. It differs from the heavy-ball method, which evaluates the gradient at $x_k$ and adds momentum to that step. The accelerated scheme satisfies
+\eq{f(x_k)-f(x^\star)=O\left(\frac{\norm{x_0-x^\star}^2}{s k^2}\right).}
+This is a worst-case guarantee; it does not ensure that every individual trajectory is faster. If strong convexity is known, appropriately tuned acceleration or restart can give a linear rate.
 
-When using $s \leq 1/L$, one can show that $f(x_k)-\min f = O( \frac{\norm{x_0-x^\star}}{s k^2} )$, so that in the worse case scenario, the convergence rate is improved. Note however that in some situation, acceleration actually deteriorates the rates. For instance, if the function is strongly convex (and even on the simple case $f(x)=\norm{x}^2$), Nesterov acceleration does not enjoy linear convergence rate.
-
-A way to interpret this scheme is by looking at a time-continuous ODE limit when $s \rightarrow 0$. On the contrary to the classical gradient descent, the step size here should be taker as $\tau=\sqrt{s}$ so that the time evolves as $t=\sqrt{s} k$. 
-% 
-The update reads
-\eq{
-	\frac{x_{k+1} - x_k}{\tau} = (1-3/k) \frac{x_k-x_{k-1}}{\tau} -  \nabla f(y_k)
-}
-which can be re-written as
-\eq{
-	\frac{x_{k+1}+x_{k-1} - 2 x_k}{\tau^2} - \frac{3}{k\tau} \frac{x_k-x_{k-1}}{\tau} + \tau \nabla f(y_k) = 0.
-}
-Assuming $(x_k,y_k) \rightarrow (x(t), y(t))$, one obtains in the limit the following second order ODE
-\eq{
-	x''(t) + \frac{3}{t} x'(t) + \nabla f(x(t)) = 0
-	\qwithq
-	\choice{
-		x(0)=x_0, \\
-		x'(0)=0.
-	}
-}
-This corresponds to the movement of a ball in the potential field $f$, where the term $\frac{3}{t} x'(t)$ plays the role of a friction which vanishes in the limit.
-%
-So for small $t$, the method is similar to a gradient descent $x'=-\nabla f(x)$, while for large $t$, it ressemble a Newtonian evolution $x''=-\nabla f(x)$ (which keeps oscillating without converging). 
-%
-The momentum decay rate $3/t$ is very important, it is the only rule which enable the speed improvement from $1/k$ to $1/k^2$.
+A formal continuous-time limit explains the momentum schedule. Set $\tau=\sqrt s$ and $t=k\tau$. Since $\beta_{k-1}=(k-1)/(k+2)$,
+\eq{\frac{x_{k+1}-2x_k+x_{k-1}}{\tau^2}
++\frac{3}{(k+2)\tau}\frac{x_k-x_{k-1}}{\tau}
++\nabla f(y_k)=0.}
+If the interpolated iterates converge smoothly as $\tau\to0$, the limit solves
+\eq{x''(t)+\frac3t x'(t)+\nabla f(x(t))=0,\qquad x(0)=x_0,\quad x'(0)=0.}
+The term $3x'(t)/t$ is a time-dependent friction. Its decay permits inertial motion while retaining an accelerated energy bound. The coefficient $3$ is not the only admissible choice: related dynamics with friction $\alpha/t$ for $\alpha\geq3$ also admit $O(t^{-2})$ objective estimates under the usual convexity assumptions.

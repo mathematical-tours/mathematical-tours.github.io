@@ -3,11 +3,12 @@
 \chapter{Convex Analysis}
 \label{chap-convex-optim}
 
-The main references for this chapter are \cite{ciarlet1982introduction,boyd2004convex}.
-%
-This chapters uses different notations than the previous one, and we denote $f(x)$ a typical function to minimized with respect to the variable $x$. 
-%
-We discus here some important concepts from convex analysis for non-smooth optimization. 
+\chapteroverview{%
+Convexity turns local optimality conditions into certificates of global solutions, even when objectives have corners or encode constraints.
+This provides a common language for understanding regularization and designing optimization methods.
+We develop subgradients and normal cones, study convex conjugates and their relation to smoothness, and derive dual problems and optimality conditions.}
+
+We write $f(x)$ for the objective and $x$ for the variable to be optimized. The main references are~\cite{ciarlet1982introduction,boyd2004convex}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -19,16 +20,16 @@ We consider minimization problems of the form
 \eql{\label{eq-convex-function}
 	\umin{x \in \Hh} f(x)
 }
-over the finite dimension (Hilbertian) space $\Hh \eqdef \RR^N$, with the canonical inner product $\dotp{\cdot}{\cdot}$. 
+over the finite-dimensional Hilbert space $\Hh \eqdef \RR^N$, with the canonical inner product $\dotp{\cdot}{\cdot}$.
 %
-Most of the results of this chapter extends to possibly infinite dimensional Hilbert space. 
+Many of these results extend to infinite-dimensional Hilbert spaces, with additional hypotheses where compactness is used.
 
-Here $f : \Hh \longrightarrow \bar \RR \eqdef \RR \cup \{+\infty\}$ is a convex function. Note that we allow here $f$ to take the value $+\infty$ to integrate constraints in the objective, and the constraint set is thus the ``domain'' of the function
+The objective $f : \Hh \longrightarrow \bar \RR \eqdef \RR \cup \{+\infty\}$ is convex. Allowing $f$ to take the value $+\infty$ encodes constraints directly in the objective; its effective domain is
 \eq{
 	\dom(f) \eqdef \enscond{x}{f(x)<+\infty}.
 }
 
-A useful notation is the indicator function of a set $\Cc \subset \Hh$
+For a set $\Cc \subset \Hh$, define the indicator function
 \eq{
 	\iota_{\Cc}(x) \eqdef \choice{
 		0 \qifq x \in \Cc, \\
@@ -40,19 +41,19 @@ A useful notation is the indicator function of a set $\Cc \subset \Hh$
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Convex Sets and Functions}
 
-A convex set $\Om \subset \Hh$ is such that
+A set $\Om \subset \Hh$ is convex if
 \eq{
-	\foralls (x,y,t) \in \Hh^2 \times [0,1], \quad (1-t)x+ty \in \Om.
+	\foralls (x,y,t) \in \Om^2 \times [0,1], \quad (1-t)x+ty \in \Om.
 }
-A convex function is such that 
+A function is convex if
 \eql{\label{eq-convex-defn}
 	\foralls (x,y,t) \in \Hh^2 \times [0,1], \quad f( (1-t)x+ty ) \leq (1-t)f(x) + t f(y)
 }
-and this is equivalent to its epigraph $\enscond{(x,r) \in \Hh \times \RR}{r \geq f(x)}$ being a convex set. Note that here we use $\leq$ as a comparison over $\bar\RR$. 
+Equivalently, its epigraph $\enscond{(x,r) \in \Hh \times \RR}{r \geq f(x)}$ is convex. The inequality is interpreted in the extended real line $\bar\RR$, with the convention $0\cdot(+\infty)=0$ at the endpoints $t=0,1$.
 %
-The function $f$ is strictly convex if equality in~\eqref{eq-convex-defn} only holds for $t \in \{0,1\}$.
+The function $f$ is strictly convex if the inequality in~\eqref{eq-convex-defn} is strict whenever $x,y\in\dom(f)$ are distinct and $0<t<1$.
 %
-A set $\Om$ being convex is equivalent to $\iota_{\Cc}$ being a convex function.
+A set $\Om$ is convex if and only if $\iota_{\Om}$ is a convex function.
 
 
 
@@ -62,89 +63,87 @@ A set $\Om$ being convex is equivalent to $\iota_{\Cc}$ being a convex function.
 \includegraphics[width=.6\linewidth]{convexity/convex-examples}
 %%
 \caption{\label{fig-convex-examples}
-Convexity and strict convexity for function and sets.}
+Convexity and strict convexity for functions and sets.}
 \end{figure}
 
 
 
 
-In the remaining part of this chapter, we consider convex function $f$ which are proper, i.e. such that $\dom(f) \neq \emptyset$, and that should be lower-semi-continuous (lsc), i.e. such that for all $x \in \Hh$, 
+Throughout the chapter, convex functions $f$ are assumed proper, meaning $\dom(f) \neq \emptyset$, and lower semicontinuous (lsc), meaning that for every $x \in \Hh$,
 \eq{
-	\lim\inf_{y \rightarrow x} f(y)  \geq f(x). 
+	\liminf_{y \rightarrow x} f(y)  \geq f(x).
 }
-It is equivalent to $\epi(f)$ being a closed convex set.
+For a convex function, lower semicontinuity is equivalent to the epigraph $\epi(f)$ being closed.
 %
-We denote $\Ga_0(\Hh)$ the set of proper convex lsc functions.
+We denote by $\Ga_0(\Hh)$ the set of proper convex lsc functions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{First Order Conditions}
+\subsection{First-Order Conditions}
 
 %%%
 \paragraph{Existence of minimizers.}
 
-Before looking at first optimality conditions, one has to check that there exists minimizers, which is implied by the l.s.c. property and coercivity.
+We first address existence. Lower semicontinuity and coercivity provide a useful sufficient condition.
 
 \begin{prop}
-	If $f$ is l.s.c. and coercive (i.e. $f(x)\rightarrow +\infty$ as $x \rightarrow +\infty$), then there exists a minimizer $x^\star$ of $f$. 
+	If $f$ is proper, lower semicontinuous, and coercive (i.e. $f(x)\rightarrow +\infty$ as $\norm{x}\rightarrow +\infty$), then there exists a minimizer $x^\star$ of $f$.
 \end{prop}
 
 \begin{proof}
-Since $f$ is coercive, it is bounded from below, one can consider a minimizing sequence $(x_n)_n$ such that $f(x_n) \rightarrow \min f$. 
-%
-Since $f$ is l.s.c., this implies that the sub-level set of $f$ are closed, and coercivity imply they are bounded, hence compact. One can thus extract from $(x_n)_n$ a converging sub-sequence $(x_{n(p)})_p$, $x_{n(p)} \rightarrow x^\star$. Lower semi-continuity implies that $\min f = \lim_p f(x_{n(p)}) \geq f(x^\star)$, and hence $x^\star$ is a minimizer.
+Choose $x_0\in\dom(f)$. The sublevel set $K=\{x:f(x)\leq f(x_0)\}$ is nonempty, closed by lower semicontinuity, and bounded by coercivity. It is therefore compact in finite dimensions. A lower semicontinuous function attains its infimum on $K$, at some $x^\star$. Since $f(x)>f(x_0)\geq f(x^\star)$ outside $K$, this point is a global minimizer.
 \end{proof}
 
-This existence proof is often called the ``direct method of calculus of variation''.
+This compactness argument is known as the direct method in the calculus of variations.
 %
-Note that if the function $f$ is in $\Ga_0(\Hh)$, then the set of minimizer $\argmin f$ is a closed convex set, and all local minimizers (i.e. minimizer of the function restricted to an open ball) are global one. If it is furthermore strictly convex, then there is a single minimizer. 
+For $f$ in $\Ga_0(\Hh)$, the minimizer set $\argmin f$ is closed and convex, and every local minimizer is global. Strict convexity of $f$ implies that there is at most one minimizer.
 
 %%%
-\paragraph{Sub-differential.}
+\paragraph{Subdifferential.}
 
-The sub-differential at $x$ of such a $f$ is defined as
+The subdifferential at $x$ of $f$ is
 \eq{
-	\partial f(x) \eqdef \enscond{u \in \Hh^*}{ \forall y, f(y) \geq f(x) + \dotp{u}{y-x} }.
+	\partial f(x) \eqdef \enscond{u \in \Hh^*}{ \forall y\in\Hh, f(y) \geq f(x) + \dotp{u}{y-x} },\qquad x\in\dom(f).
 }
-We denote here $\Hh^* = \RR^N$ the set of ``dual'' vector. Although in finite dimensional Euclidean space, this distinction is not needed, it helps to distinguish primal from dual vectors, and recall that the duality pairing implicitly used depends on the choice of an inner product.
+We set $\partial f(x)=\emptyset$ outside $\dom(f)$. Here $\Hh^*=\RR^N$ denotes the space of dual vectors. The inner product identifies the dual space with $\Hh$, but distinguishing primal and dual variables remains useful. The duality pairing itself is canonical; the identification of a linear functional with a vector depends on the inner product.
 %
-The sub-differential $\partial f(x)$ is thus the set of ``slopes'' $u$ of tangent affine planes $f(x) + \dotp{u}{z-x}$ that fits below the graph of $f$. 
+The subdifferential $\partial f(x)$ consists of the slopes $u$ of supporting affine functions $f(x) + \dotp{u}{z-x}$ that lie below $f$.
 
 
 \wrapf{convexity/subdifferential}{The subdifferential}
-Note that $f$ being differentiable at $x$ is equivalent to the sub-differential being reduced to a singleton (equal to the gradient vector)
+At an interior point of $\dom(f)$, the function $f$ is differentiable exactly when its subdifferential consists of the gradient alone:
 \eq{
 	\partial f(x) = \{ \nabla f(x) \}. 
 }
-Informally, the ``size'' of $\partial f(x)$ controls how smooth $f$ is at $x$.
+Multiple elements of $\partial f(x)$ indicate distinct supporting slopes of $f$ at $x$.
 
-Note that one can have $\partial f(x) = \emptyset$, for instance if $x \notin \dom(f)$. Note also that one can still have $x \in \dom(f)$ and $\partial f(x) = \emptyset$, for instance take $f(x)=-\sqrt{1-x^2} + \iota_{[-1,1]}(x)$ at $x=\pm 1$. 
+The subdifferential can also be empty at a boundary point of the effective domain. For example, $f(x)=-\sqrt{1-x^2}$ on $[-1,1]$, extended by $+\infty$ outside this interval, has no subgradient at $x=\pm1$.
 
-Since $\partial f(x) \subset \Hh^*$ is an intersection of half space, it is a closed convex set.
+Since $\partial f(x) \subset \Hh^*$ is an intersection of half-spaces, it is a closed convex set.
 %  and it is non-empty if and only if $x \in \dom(f)$.
 %
-The operator $\partial f : \Hh \mapsto 2^{\Hh^*}$ is thus ``set-valued'', and we often denote this as $\partial f : \Hh \hookrightarrow \Hh^*$.
+Thus $\partial f : \Hh \mapsto 2^{\Hh^*}$ is a set-valued operator, also written $\partial f : \Hh \hookrightarrow \Hh^*$.
 
 \begin{rem}[Maximally monotone operator]
-The operator $\partial f$ is particular instance of so-called monotone operator, since one can check that $U=\partial f$ satisfies 
+The subdifferential $\partial f$ is monotone: setting $U=\partial f$ gives
 \eq{
 	\foralls (u,v) \in U(x) \times U(y), \quad
 		\dotp{y-x}{v-u} \geq 0. 
 }
-In the 1-D setting, being monotone is the same as being an increasing map.
+For single-valued maps on the real line, monotonicity means being nondecreasing.
 %
-Sub-differential can also be shown to be maximally monotone, in the sense that such an operator is not striclty included in the graph of another monotone operator. 
+Subdifferentials can also be shown to be maximally monotone, meaning that their graphs are not properly contained in the graph of another monotone operator.
 %
-Note that there exists monotone maps which are not subdifferential, for instance $(x,y) \mapsto (-y,x)$. 
+Conversely, a monotone map need not be a subdifferential; an example is $(x,y) \mapsto (-y,x)$.
 % 
-Much of the theory of convex analysis and convex optimization can be extended to deal with arbitrary maximally monotone-maps in place of subdifferential, but we will not pursue this here.
+Many results extend from subdifferentials to arbitrary maximally monotone operators. We restrict attention to subdifferentials here.
 \end{rem}
 
-A prototypical example is the absolute value $f(x)=|\cdot|$, and writing conveniently $\partial f(x) = \partial |\cdot|(x)$, one verifies that
+For the absolute value $f(x)=|x|$, write $\partial f(x) = \partial |\cdot|(x)$. Its subdifferential is
 \eq{
 	\partial |\cdot|(x) = 
 	\choice{
-		-1 \qifq x < 0, \\
-		+1 \qifq x > 0, \\
+		\{-1\} \qifq x < 0, \\
+		\{1\} \qifq x > 0, \\
 		{[-1,1]} \qifq x=0.
 	}
 }
@@ -165,12 +164,12 @@ Subdifferential of the absolute value and a piecewise affine convex function.}
 
 
 %%%
-\paragraph{First Order Conditions.}
+\paragraph{First-order conditions.}
 
-The subdifferential is crucial for this simple but extremely important proposition.
+The subdifferential gives a necessary and sufficient optimality condition.
 
 \begin{prop}
-	$x^\star$ is a minimizer of $f$ is and only if $0 \in \partial f(x^\star)$.
+	$x^\star$ is a minimizer of $f$ if and only if $0 \in \partial f(x^\star)$.
 \end{prop}
 \begin{proof}
 	One has
@@ -184,59 +183,61 @@ The subdifferential is crucial for this simple but extremely important propositi
 \end{proof}
 
 %%%
-\paragraph{Sub-differential calculus.}
+\paragraph{Subdifferential calculus.}
 
-There is a large set of calculus rules that allows to simplify the computation of sub-differentials. For decomposable function $f(x_1,\ldots,x_K)=\sum_{k=1}^K f_k(x_k)$, the sub-differential is the product of the sub-differentials
+Calculus rules simplify subdifferential computations. For a separable function $f(x_1,\ldots,x_K)=\sum_{k=1}^K f_k(x_k)$, the subdifferential is the Cartesian product
 \eq{
 	\partial f(x_1,\ldots,x_K) = \partial f_1(x_1) \times \ldots \times \partial f_K(x_K).
 }
-This can be used to compute the sub-differential of the $\ell^1$ norm $\norm{x}_1=\sum_{k=1}^N |x_k|$
+Applying this rule to the $\ell^1$ norm $\norm{x}_1=\sum_{k=1}^N |x_k|$ gives
 \eq{
 	\partial \norm{\cdot}_1(x) = \prod_{k=1}^N \partial |\cdot|(x_k)
 }
-which is thus an hyper rectangle. This means that, denoting $I = \supp(x)$, one has $u \in \partial \norm{\cdot}_1(x)$ is equivalent to 
+a hyperrectangle. With $I = \supp(x)$, the condition $u \in \partial \norm{\cdot}_1(x)$ is equivalent to
 \eq{
 	u_I = \sign(x_I)
 	\qandq
 	\norm{u_{I^c}}_\infty \leq 1.
 }
 
-A tricky problem is to compute the sub-differential of the sum of two functions. If one of the two function is continuous at $x$ (i.e. it has a finite value), then 
+A sum rule requires a domain qualification. If one function is finite and continuous at a point in the domain of the other, then for every $x\in\dom(f)\cap\dom(g)$,
 \eq{
 	\partial (f+g)(x) = \partial f(x) \oplus \partial g(x) = \enscond{u+v}{(u,v) \in \partial f(x) \times \partial g(x)}
 }
-where $\oplus$ thus denotes the Minkowski sum. For instance, if $f$ is differentiable at $x$, then 
+where $\oplus$ denotes the Minkowski sum. In particular, if $f$ is differentiable at $x$, then
 \eq{
 	\partial (f+g)(x) = \nabla f(x) + \partial g(x) = \enscond{\nabla f(x) + v }{ v \in \partial g(x) }.
 }
-Positive linear scaling is simple to handle
+Positive scaling gives
 \eq{
-	\foralls \la \in \RR_+, \quad
+	\foralls \la >0, \quad
 	\partial (\la f)(x) = \la (\partial f(x)). 
 }
 
-The chain rule for sub-differential is difficult since in general composition does not work so-well with convexity. 
+General compositions need not preserve convexity, so no unrestricted chain rule is available.
 %
-The only simple case is composition with linear functions, which preserves convexity. Denoting $A \in \RR^{P \times N}$ and $f \in \Ga_0(\RR^P)$, one has that $f \circ A \in \Ga_0(\RR^N)$ and
+Composition with a linear map does preserve convexity. For $A \in \RR^{P \times N}$ and $f \in \Ga_0(\RR^P)$, assume $\Im(A)\cap\relint(\dom(f))\neq\emptyset$. Then $f \circ A \in \Ga_0(\RR^N)$ and
 \eq{
 	\partial (f \circ A)(x) = A^* (\partial f)(Ax) \eqdef \enscond{A^* u}{ u \in \partial f(Ax) }. 
 }
 
 \begin{rem}[Application to the Lasso]
-	{\color{red} TODO}
+For $F(x)=\frac12\norm{Ax-y}^2+\lambda\norm{x}_1$ with $\lambda>0$, the sum rule gives
+\eq{0\in A^*(Ax-y)+\lambda\partial\norm{\cdot}_1(x).}
+Writing $r=y-Ax$, optimality is equivalent to $(A^*r)_i=\lambda\sign(x_i)$ on $\supp(x)$ and $|(A^*r)_i|\leq\lambda$ elsewhere. These conditions are useful both for analysis and for checking a numerical solution.
 \end{rem}
 
 %%%
 \paragraph{Normal cone.}
 
 
-The sud-differential of an indicator function is a convex cone, the so-called normal cone to the constraint
+For a nonempty closed convex set $\Cc$, the subdifferential of its indicator is the normal cone:
 \eq{
 	\foralls x \in \Cc, \quad \partial \iota_\Cc(x) = \Nn_\Cc(x) \eqdef \enscond{ v }{ \foralls z \in \Cc, \dotp{z-x}{v} \leq 0 }.
 }
-Note that for $x \notin \Cc$, $\partial  \iota_\Cc(x) = \emptyset$.
+Outside the set, $x \notin \Cc$ implies $\partial  \iota_\Cc(x) = \emptyset$.
 %
-For an affine space $\Cc = a+\Vv$ where $\Vv \subset \Hh$ is a linear space, then $\Nn_\Cc(x)=\Vv^\bot$ is the usual orthogonal for linear spaces. If $x \in \inter(\Cc)$ is in the interior of $\Cc$, then $\Nn_\Cc(x)=\{0\}$. In some sense, the more non-regular the boundary of $\Cc$ is at $x$, the larger is the normal cone. 
+For an affine space $\Cc = a+\Vv$ with direction space $\Vv \subset \Hh$, the normal cone at each of its points is $\Nn_\Cc(x)=\Vv^\bot$, the orthogonal complement of $\Vv$. More generally, at an interior point $x \in \inter(\Cc)$ of $\Cc$, we have $\Nn_\Cc(x)=\{0\}$. At a boundary point, the normal cone describes the supporting directions of $\Cc$ at $x$.
 
 
 
@@ -244,11 +245,11 @@ For an affine space $\Cc = a+\Vv$ where $\Vv \subset \Hh$ is a linear space, the
 
 
 \wrapf{convexity/normal-cone}{Normal cones}
-The normal cone is a way to express first order condition for constrained problem
+The normal cone expresses first-order optimality for the constrained problem
 \eq{
 	\umin{x \in \Cc} f(x)
 }
-which reads, if $f$ is continuous
+If $f$ is finite and continuous at a point of $\Cc$, the sum rule gives the optimality condition
 \eq{
 	0 \in \partial f(x) + \partial \iota_{\Cc}(x)
 	\quad\Leftrightarrow\quad
@@ -263,18 +264,18 @@ If $f$ is differentiable, it reads $-\nabla f(x) \in \Nn_\Cc(x)$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Legendre-Fenchel Transform}
+\section{Legendre--Fenchel Transform}
 
-In order to simplify and accelerate computation involving Lagrange duality, it is very convenient to introduce a particular transformation of convex functions the Legendre-Fenchel transform. In some sense, it is the canonical ``isomorphisms'' (pairing) between convex functions. In spirit, is plays a similar role for convex function as the Fourier transform for signal or images. 
+The Legendre--Fenchel transform provides a dual representation of a convex function. It makes many Lagrange-duality calculations systematic by expressing inner minimizations through conjugates.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Legendre Transform}
 
-For $f \in \Ga_0(\Hh)$, we define its Legendre-Fenchel transform as
+For $f \in \Ga_0(\Hh)$, we define its Legendre--Fenchel transform, or convex conjugate, by
 \eql{\label{eq-fenchel-transf}
 	f^*(u) \eqdef \usup{x} \dotp{x}{u} - f(x).
 }
-Being the maximum of affine functional, one obtains that $f^*$ is itself a convex function, and that in fact $f^\star \in \Ga_0(\Hh^*)$. One can prove the following fundamental bi-duality result.
+As a supremum of continuous affine functions, $f^*$ is convex and lower semicontinuous; in fact, $f^\star \in \Ga_0(\Hh^*)$. The following biconjugacy theorem recovers the original function.
 
 \begin{thm}
 One has
@@ -283,16 +284,18 @@ One has
 }
 \end{thm}
 
-In fact, $f^*$ is convex even in the case where $f$ is not, and $f^{**}$ is the convex envelop of $f$ (i.e. the largest convex function smaller than $f$). \todo{drawing}
+Even when $f$ is not convex, $f^*$ is convex. If $f$ admits an affine minorant, $f^{**}$ is its lower semicontinuous convex envelope: the largest lower semicontinuous convex function below $f$.
 
 
-One has the following basic property relating the sub-differentials of $f$ and $f^*$.
+The subdifferentials of $f$ and $f^*$ satisfy the following inverse relation.
 
 \begin{prop}
-One has $\partial f^* = (\partial f)^{-1}$, where the inverse of a set valued map is defined in~\eqref{eq-inv-setvalued}, and 
+We have $\partial f^* = (\partial f)^{-1}$, where the inverse of a set-valued map is defined in~\eqref{eq-inv-setvalued}. The Fenchel--Young inequality states that
 \eq{
-	\foralls (x,y), \quad \dotp{x}{y} \leq f(x) + f^*(y)
-	\qandq
+	\foralls (x,y), \quad \dotp{x}{y} \leq f(x) + f^*(y).
+}
+Equality is characterized by
+\eq{
 	\dotp{x}{y} = f(x) + f^*(y) 
 	\quad\Leftrightarrow\quad x \in \partial f^*(y)
 	\quad\Leftrightarrow\quad y \in \partial f(x).
@@ -300,7 +303,7 @@ One has $\partial f^* = (\partial f)^{-1}$, where the inverse of a set valued ma
 \end{prop}
 
 \begin{prop}\label{prop-dual-lp}
-	For $1/p+1/q=1$, 
+	For $1\leq p,q\leq\infty$ with $1/p+1/q=1$,
 	\eq{
 		( \iota_{\norm{\cdot}_p \leq 1} )^* = \norm{\cdot}_q
 		\qandq
@@ -309,69 +312,54 @@ One has $\partial f^* = (\partial f)^{-1}$, where the inverse of a set valued ma
 \end{prop}
 
 
-Let us now give some example of Legendre transform. 
+Here are useful examples and transformation rules.
 
 \begin{prop}\label{eq-example-legendre}
-	For $f(x)=\frac{1}{2}\dotp{Ax}{x} - \dotp{b}{x}$ with $A$ inversible, then $f^*(u) = \frac{1}{2}\dotp{A^{-1} u}{u} - \frac{1}{2}\dotp{A^{-1} b}{b}$.
-	In particular, for $f=\norm{\cdot}^2/2$, then $f^*=f$. 
-	One has\todo{check}
-	\eq{
-		f(\cdot-z)^* = f + \dotp{z}{\cdot}, \quad
-		(f + \dotp{z}{\cdot})^* = f(\cdot-z), \quad
-		(\la f)^* = \la f^*(\cdot/\la).		
-	}
+If $A$ is symmetric positive definite and
+$f(x)=\frac12\dotp{Ax}{x}-\dotp{b}{x}$, then
+\eq{f^*(u)=\frac12\dotp{A^{-1}(u+b)}{u+b}.}
+In particular, $f=\norm{\cdot}^2/2$ satisfies $f^*=f$. For $\lambda>0$,
+\eq{
+ [f(\cdot-z)]^*=f^*+\dotp{z}{\cdot},\qquad
+ [f+\dotp{z}{\cdot}]^*=f^*(\cdot-z),\qquad
+ (\lambda f)^*=\lambda f^*(\cdot/\lambda).
+}
 \end{prop}
 \begin{proof}
-	One has $f^*(u) = \dotp{Ax^\star}{x^\star} - \dotp{b}{x^\star}$ where $x^\star$ solves
-	\eq{
-		u = Ax^\star-b \qarrq
-		x^\star = A^{-1} u + A^{-1} b.
-	}
-	Hence
-	\eq{
-		f^*(u)  = \frac{1}{2}\dotp{A A^{-1} ( u +  b )}{A^{-1}( u +  b)} - \dotp{b}{A^{-1} (u + b)}
-			= \frac{1}{2}\dotp{A^{-1} u}{u} 
-			- \frac{1}{2}\dotp{A^{-1} b}{b}
-	}
-	
+The maximizer in $f^*(u)=\sup_x\{\dotp{u+b}{x}-\frac12\dotp{Ax}{x}\}$ satisfies $Ax=u+b$. Substitution of $x=A^{-1}(u+b)$ gives the formula. The translation and scaling identities follow directly by changing variables in~\eqref{eq-fenchel-transf}.
 \end{proof}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Legendre transform and smoothness}
+\subsection{Legendre Transform and Smoothness}
 
-While the Fourier transform is a pairing between smoothness and decay (see Section~\ref{}), the Legendre-Fenchel is really a pairing between smoothness and strong convexity. This can be intuitively seen by the fact that the Legendre-Fenchel inverts the sub-differentials~\eqref{} and hence when the functions involved are $\Cc^2$, it inverse the Hessians 
+The Legendre--Fenchel transform exchanges smoothness and strong convexity. It inverts subdifferentials; when $f$ is twice continuously differentiable with positive definite Hessian and $y=\nabla f(x)$, the inverse function theorem yields
+\eq{\partial^2 f^*(y)=(\partial^2 f(x))^{-1}.}
+The next statement gives a version of this correspondence that does not require second derivatives.
+
+\begin{prop}\label{prop-conjugate-smoothness}
+For $f\in\Ga_0(\Hh)$ and $L>0$,
 \eq{
-	\partial^2 f(x) = ( \partial^2 f^*(y) )^{-1} \quad \text{at} \quad y = \nabla f(x).
+ f\text{ is differentiable on $\Hh$ with $L$-Lipschitz gradient}
+ \quad\Longleftrightarrow\quad
+ f^*\text{ is $1/L$-strongly convex}.
 }
-This relation between Hessian can be seen as implying the exchange of strong convexity and uniform bound on the Hessian, as detailed in Proposition~\ref{prop-smooth-strong}.
-
-\begin{prop}
-	One has
-	\eq{
-		\nabla f \text{ is $L$-Lipschitz } 
-		\quad\Longleftrightarrow\quad
-		\nabla f^* \text{ is $\mu$-strongly convex.} 
-	}
+Here strong convexity means that $f^*-\norm{\cdot}^2/(2L)$ is convex, including when $f^*$ is extended-valued.
 \end{prop}
 
-This results suggests a way to smooth any function $f$. Instead of doing a convolution, one can use the infimal convolution
-\eq{
-	(f \otimes g)(x) \eqdef \usup{ y+y'=x } f(y) + g(y').
-}
-One can check that if $(f,g)$ are convex, so is $f \otimes g$, and that the Legendre transform actually exchanges sum and inf-convolution
-\eq{
-	( f+g )^* = f \otimes g 
-	\qandq 
-	( f \otimes g )^* = f + g.
-}
-The Moreau-Yosida regularization of $f$ is corresponds to a $\mu$-strict-convexification of $f^*$, i.e.
-\eql{\label{eq-moreau-yosida}
-	f_\mu \eqdef f \otimes (\frac{1}{2\mu}\norm{\cdot}^2) = ( f^* + \frac{\mu}{2}\norm{\cdot}^2 )^*.
-}
-Since $f^* + \frac{\mu}{2}\norm{\cdot}^2$ is at least $\mu$-strongly convex, then $f_\mu$ as a $1/\mu$-Lipchitz gradient.
+This suggests a useful smoothing operation. The infimal convolution is
+\eq{(f\otimes g)(x)\eqdef\uinf{y+y'=x}\{f(y)+g(y')\}.}
+For proper convex functions, whenever this infimum defines a proper function, it is convex and satisfies
+\eq{(f\otimes g)^*=f^*+g^*.}
+Moreover, $(f+g)^*=f^*\otimes g^*$ under the qualification $\relint(\dom(f))\cap\relint(\dom(g))\neq\emptyset$; without a qualification, a lower semicontinuous closure can be necessary.
 
-As an example, the Moreau-Yosida regularization of the absolute value reads
+For $\mu>0$, the Moreau--Yosida regularization of $f\in\Ga_0(\Hh)$ is
+\eql{\label{eq-moreau-yosida}
+ f_\mu\eqdef f\otimes\left(\frac{1}{2\mu}\norm{\cdot}^2\right)
+ =\left(f^*+\frac{\mu}{2}\norm{\cdot}^2\right)^*.
+}
+The function inside the conjugate is $\mu$-strongly convex, so $f_\mu$ has a $1/\mu$-Lipschitz gradient.
+
+For the absolute value, the Moreau--Yosida regularization is
 \eq{
 	(|\cdot|_\mu)(x) = 
 	\choice{
@@ -379,7 +367,7 @@ As an example, the Moreau-Yosida regularization of the absolute value reads
 		|x|-\frac{\mu}{2} \qifq |x|>\mu.
 	}
 }
-This should be compared with the regularization $\sqrt{x^2+\mu^2}$ (which is above the curve) that we used previously. \todo{add drawing}
+Compare this with the earlier regularization $\sqrt{x^2+\mu^2}$, which lies above the absolute value.
 
 
 
@@ -389,38 +377,42 @@ This should be compared with the regularization $\sqrt{x^2+\mu^2}$ (which is abo
 \section{Convex Duality}
 \label{sec-cvx-duality}
 
-Duality is associated to a particular formulation of the optimization problem, so that for instance making change of variables results in a different duality. 
+A dual problem depends on the chosen primal formulation. A change of variables or a different representation of the constraints can produce a different dual problem.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Lagrange Duality: Afine Constraint}
+\subsection{Lagrange Duality: Affine Constraints}
 
-We first consider a specific case of problem of the form
+Begin with affine equality constraints:
 \eq{
 	\umin{Ax=y} f(x)
 }
-where $f : \RR^p \rightarrow \RR$ is a convex function  (for now, we assume it cannot assume infinite value and is hence continuous).
+where $A\in\RR^{P\times p}$, $y\in\RR^P$, and $f : \RR^p \rightarrow \RR$ is convex and finite everywhere, hence continuous.
 
-\todo{finalize this}
+Assume that the affine constraint is feasible. Introducing $u\in\RR^P$ gives the Lagrangian $\Ll(x,u)=f(x)+\dotp{Ax-y}{u}$. Minimization over $x$ yields
+\eq{F(u)=-f^*(-A^*u)-\dotp{y}{u}.}
+Because $f$ is finite and continuous everywhere, feasibility is a sufficient qualification for strong duality:
+\eq{\uinf{Ax=y}f(x)=\usup{u\in\RR^P}\{-f^*(-A^*u)-\dotp{y}{u}\}.}
+A primal-dual optimal pair satisfies $Ax^\star=y$ and $-A^*u^\star\in\partial f(x^\star)$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Lagrange Duality: General Case}
 
 We consider a minimization of the form
 \eql{\label{eq-lagrange-primal}
-	p^\star = \umin{x \in \RR^N} \enscond{ f(x) }{ Ax=y \qandq g(x) \leq 0 }
+	p^\star = \uinf{x \in \RR^N} \enscond{ f(x) }{ Ax=y \qandq g(x) \leq 0 }
 }
-for a continuous convex functions $f : \Hh \rightarrow 0$, a matrix $A \in \RR^{P \times N}$ and a function $g : \Hh \rightarrow \RR^Q$ such that each of its coordinates $g_i : \Hh \rightarrow \RR$ are continuous and convex.  
+for a continuous convex function $f : \Hh \rightarrow \RR$, a matrix $A \in \RR^{P \times N}$ and a function $g : \Hh \rightarrow \RR^Q$ such that each coordinate $g_i : \Hh \rightarrow \RR$ is continuous and convex.
 %
-Note that it is always the case that equality in convex program corresponds to affine ones. 
+In the standard formulation of a convex program, equality constraints are affine.
 %
-One can always write a convex minimization problem with positivity constraints in the form~\eqref{eq-lagrange-primal}, although there exists infinite way of doing so (each one giving a different duality formula). 
+Problems with convex inequality constraints can be written in the form~\eqref{eq-lagrange-primal}. The representation is not unique, and different formulations lead to different dual problems.
 
-Here we have assumed for simplicity that $f$ is continuous, i.e. $\dom(f)=\RR^N$.
+For simplicity, $f$ is assumed finite and continuous on its full domain $\dom(f)=\RR^N$.
 %
-The following exposition can be generalized to $\dom(f)$ being arbitrary, but this is more technical. For the sake of simplicity, we thus assume all the constraint defining the domain are encoded in $Ax=y$ and $g(x) \leq 0$
+The theory extends to more general $\dom(f)$, with additional domain qualifications. Here all constraints are expressed through $Ax=y$ and $g(x) \leq 0$.
 
 
-Note that it is possible to generalized the previous Lagrange duality results by replacing ``$x \geq 0$'' by ``$X \succeq 0$'' where $X$ is a matrix (and in fact even more generally using convex cones). 
+Conic duality extends this construction from nonnegativity $x \geq 0$ to positive semidefiniteness $X \succeq 0$ of a matrix $X$, and more generally to membership in a convex cone.
 
 We use the following fact
 \eq{
@@ -436,19 +428,21 @@ We use the following fact
 }
 to encode the constraints $r=Ax-y=0$ and $s=g(x) \leq 0$.
 
-One can represent the constraints appearing in~\eqref{eq-lagrange-primal} conveniently using a maximization over so-called Lagrange multipliers
+Define the Lagrangian by
 \eq{
-	p^\star = \uinf{x} \umax{u \in \RR^P, v \in \RR_+^Q } \Ll(x,u,v) \eqdef f(x) + \dotp{Ax-y}{u} + \dotp{g(x)}{v} .
+	\Ll(x,u,v) \eqdef f(x) + \dotp{Ax-y}{u} + \dotp{g(x)}{v}.
 }
+The primal value in~\eqref{eq-lagrange-primal} is therefore
+\eq{p^\star = \uinf{x} \usup{u \in \RR^P, v \in \RR_+^Q } \Ll(x,u,v).}
 
-It is tempting to inverse the inf and the sup, and study 
+The dual objective is $F(u,v)\eqdef\inf_x\Ll(x,u,v)$. Exchanging the order of optimization gives the dual value
 \begin{align}\label{eq-lagrange-dual}
-	d^\star = \usup{(u,v) \in \RR^P \times \RR_+^Q } F(u,v) &\eqdef \uinf{x}  f(x) + \dotp{Ax-y}{u} + \dotp{g(x)}{v}.
+	d^\star &= \usup{(u,v) \in \RR^P \times \RR_+^Q } F(u,v).
 \end{align}
-One remarks that $F$ is a concave function (as being the minimum of linear forms), and this ``dual'' problem is thus a maximization of a concave function. 
+The dual objective $F$ is concave because it is an infimum of affine functions. The dual problem therefore maximizes a concave objective.
 
 
-The following proposition is the so-called weak duality, which assert that values of the dual problems always lower bounds values of the primal one
+Weak duality states that every feasible dual value is a lower bound on the primal optimum.
 
 \begin{prop}
 	One always has, for all $(u,v) \in \RR^P \times \RR_+^Q$, % for $x$ such that $Ax=y, g(x) \leq 0$ and 
@@ -459,11 +453,12 @@ The following proposition is the so-called weak duality, which assert that value
 \begin{proof}
 	Since $g(x) \leq 0 $ and $v \geq 0$, one has $\dotp{g(x)}{v} \leq 0$, and since $Ax=y$, one has $\dotp{Ax-y}{u}=0$, so that 
 	\eq{
-		\Ll(x,u,v) \leq f(x) \qarrq F(u,v) = \uinf{x} \Ll(x,u,v) \leq \uinf{x} f(x) = p^\star.
+		F(u,v)\leq\Ll(x,u,v)\leq f(x)\quad\text{for every feasible }x.
 	}
+	Taking the infimum over feasible $x$ gives $F(u,v)\leq p^\star$, and taking the supremum over feasible multipliers yields $d^\star\leq p^\star$.
 \end{proof}
 
-The following fundamental theorem, more difficult to prove, gives a sufficient condition (so-called qualification of the constraints) such that one actually has equality.
+The next theorem gives a constraint qualification that guarantees equality of the primal and dual values.
 
 \begin{thm}\label{thm-strong-duality}
 	If 
@@ -471,53 +466,46 @@ The following fundamental theorem, more difficult to prove, gives a sufficient c
 		\exists x_0 \in \RR^N, \quad
 			Ax_0=y \qandq g(x_0)<0, 
 	}
-	then $p^\star=d^\star$. Furthermore, $x^\star$ and $(u^\star,v^\star)$ are  solutions of respectively~\eqref{eq-lagrange-primal} and~\eqref{eq-lagrange-dual} if and only if
+	then $p^\star=d^\star$. If $p^\star$ is finite, the dual supremum is attained. Furthermore, $x^\star$ and $(u^\star,v^\star)$ solve~\eqref{eq-lagrange-primal} and~\eqref{eq-lagrange-dual}, respectively, if and only if
 	\begin{align}
-		\label{eq-lagr-dual-1}  & Ax^\star=y, \quad g(x^\star) \leq 0, \quad u^\star \geq 0 \\
+		\label{eq-lagr-dual-1}  & Ax^\star=y, \quad g(x^\star) \leq 0, \quad v^\star \geq 0 \\
 		\label{eq-lagr-dual-2} 0 &\in \partial f(x^\star) + A^*u^\star + \sum_i v_i^\star \partial g_i(x^\star) \\
-		\label{eq-lagr-dual-3}  \foralls i, \quad & u_i^\star g_i(x^\star) = 0
+		\label{eq-lagr-dual-3}  \foralls i, \quad & v_i^\star g_i(x^\star) = 0
 	\end{align}
 \end{thm}
 
-The existence of such an $x_0$ is called ``constraint qualification'', and as written here, this corresponds to the so-called ``Slater'' qualification condition (many other weaker sufficient conditions exist). 
+The existence of $x_0$ is Slater's constraint qualification; the strict inequality $g(x_0)<0$ holds componentwise. Other, weaker qualifications are possible.
 
-Condition~\eqref{eq-lagr-dual-1} is simply the primal and dual constraints. 
+Condition~\eqref{eq-lagr-dual-1} states primal and dual feasibility.
 %
-Condition~\eqref{eq-lagr-dual-2} is the first order condition for the minimization of $\Ll(x,u,v)$ over $x$.
+Condition~\eqref{eq-lagr-dual-2} expresses optimality of $\Ll(x,u,v)$ with respect to $x$.
 %
-Condition~\eqref{eq-lagr-dual-3} is the first order condition for the maximization of $\Ll(x,u,v)$ over $(u,v)$.
+Together with feasibility, condition~\eqref{eq-lagr-dual-3} expresses maximality of $\Ll(x^\star,u,v)$ over the admissible multipliers $(u,v)$.
 %
-These three conditions are often referred to as ``Karush-Kuhn-Tucker'' (KKT) conditions, and under a constraint qualification condition, they are necessary and sufficient condition for optimality. 
+Together these are the Karush--Kuhn--Tucker (KKT) conditions. Under the stated qualification, they are necessary and sufficient for primal-dual optimality.
 
 
-The last condition $u_i^\star g_i(x^\star) = 0$ (so called ``complementary slackness'') states that if $g_i(x^\star)<0$ (the constraints is not saturated) then $u_i=0$, and also that if $u_i>0$ then $g_i(x^\star)=0$.
+Complementary slackness, $v_i^\star g_i(x^\star) = 0$, relates a multiplier to its constraint: if $g_i(x^\star)<0$, the constraint is inactive and $v_i^\star=0$; if $v_i^\star>0$, the constraint must be active, $g_i(x^\star)=0$.
 
-Note that it is possible to weaken the hypotheses of this theorem, for the linear constraints of the form $g_i(x) = \dotp{x}{h_i} - c_i \leq 0$, by replacing the $g_i(x_0)<0$ by the weaker condition $\dotp{x_0}{h_i} \leq c_i$.
+For an affine inequality $g_i(x) = \dotp{x}{h_i} - c_i \leq 0$, strict feasibility $g_i(x_0)<0$ may be replaced by ordinary feasibility $\dotp{x_0}{h_i} \leq c_i$ in the qualification.
 
-One can generalize this theorem to the setting where $\dom(f)$ is not equal to $\RR^N$ (i.e. it is not continuous, and thus integrates extra constraint beside the $\leq$). In this case, one has to add the extra constraint $x_0 \in \relint(\dom(f))$.
+If $\dom(f)$ is a proper subset of $\RR^N$, the objective itself encodes constraints in addition to those written with $\leq$. The qualification then also requires $x_0 \in \relint(\dom(f))$.
 	
-Theorem~\ref{thm-strong-duality} generalizes the necessary conditions provided by Lagrange multipliers for equality constrained optimization. The setting is both more complex because one can deal with inequalities that might be saturated (so this introduce positivity constraints on the multipliers $v$) but also simpler because of convexity (which thus gives also necessary conditions).
+Theorem~\ref{thm-strong-duality} extends the Lagrange-multiplier conditions to convex problems with inequalities. Inequality constraints introduce nonnegative multipliers $v$. Convexity ensures that the KKT conditions are sufficient, and the stated constraint qualification ensures their necessity.
 
-As a simple example, we now derive the dual for a simple linear projection problem. A more complicated computation is carried over in Section~\ref{sec-duality-lasso} for the Lasso. We consider
-\begin{align*}
-	p^\star = \umin{Ax=y} \frac{1}{2}\norm{x-z}^2 &= \umin{x} \umax{u} \frac{1}{2}\norm{x-z}^2 + \dotp{Ax-y}{u}
-	= \umax{u} F(u) = \umin{x} \frac{1}{2}\norm{x-z}^2 + \dotp{Ax-y}{u}, 
-\end{align*}
-where we used the fact that strong duality holds because only linear constraints are involved.
-%
-For each $u$, the optimal $x$ satisfies $x-z+A^*u$, i.e. $x=z-A^*u$, so that 
-\eq{
-	F(u) = \frac{1}{2}\norm{A^*u}^2 + \dotp{A(z-A^*u)-y}{u} = -\frac{1}{2}\norm{A^*u}^2 + \dotp{u}{Az-y}.
-}
-Weak duality states $p^\star \geq F(u)$ for any $u$, and $p^\star = F(u^\star)$ where the optimal $u^\star$ satisfies $AA^*u = Az-y$. If $y \in \Im(A)$, then such a $u^\star$ exists and can be chosen as $u^\star = u=(AA^*)^{-1} (Az -y)$, and the (unique) primal solution reads 
+As an example, consider projection onto a nonempty affine space $\{x:Ax=y\}$:
+\eq{p^\star=\umin{Ax=y}\frac12\norm{x-z}^2=\umax{u} F(u),\qquad
+F(u)\eqdef\umin{x}\left\{\frac12\norm{x-z}^2+\dotp{Ax-y}{u}\right\}.}
+The minimizing $x$ satisfies $x-z+A^*u=0$, hence $x=z-A^*u$. Therefore
+\eq{F(u)=-\frac12\norm{A^*u}^2+\dotp{u}{Az-y}.}
+An optimal multiplier solves $AA^*u^\star=Az-y$. Since $y\in\Im(A)$, a solution is $u^\star=(AA^*)^+(Az-y)$, where ${}^+$ denotes the Moore--Penrose inverse. If $A$ has full row rank, $(AA^*)^+=(AA^*)^{-1}$. The unique projection is
 \eql{\label{eq-proj-aff}
-	x^\star = \Proj_{A\cdot=y}(z) (\Id-A^+A)z - A^+y.
+ x^\star=\Proj_{A\cdot=y}(z)=z-A^+(Az-y)=(\Id-A^+A)z+A^+y.
 }
-
-
+A further example, the Lasso, is treated in Section~\ref{sec-duality-lasso}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Fenchel-Rockafellar Duality}
+\subsection{Fenchel--Rockafellar Duality}
 
 %It is possible to express the Lagrange duality in term of Fenchel transform. Indeed for instance, re-write~\eqref{eq-lagrange-primal} as
 %\eq{
@@ -529,33 +517,33 @@ Weak duality states $p^\star \geq F(u)$ for any $u$, and $p^\star = F(u^\star)$ 
 %	 \umax{u \in \RR^P, v \RR_-^Q, w \in \RR^N } &\umin{x} f(x) + \dotp{x}{A^*u+w} + \sum_i \umin{z} - \dotp{z}{w} + g_i(z) {v_i} \\
 %\end{align*}
 
-Very often the Lagrange dual can be expressed using the conjugate of the function $f$. We give here a particularly important example, which is often called Fenchel-Rockafellar Duality. 
+Conjugates often give explicit expressions for the Lagrange dual of an objective $f$. Fenchel--Rockafellar duality is a particularly useful example.
 
 We consider the following structured minimization problem
 \eql{\label{eq-fench-rock-basicpb}
 	p^\star = \uinf{x} f(x) + g(Ax).	
 }
-Re-writing it as 
+Introducing an auxiliary variable gives
 \eq{
-	\uinf{y=Ax} f(x) + g(y), 
+	\uinf{y=Ax} f(x) + g(y).
 }
-we can form the primal-dual problem
+We can then form the primal-dual problem
 \eql{\label{eq-primal-dual-fench}
 	\uinf{(x,y)} \usup{u} f(x) + g(y) + \dotp{Ax-y}{u}. 
 }
-If sufficient condition on the domain of $(f,g)$ holds (such as those stated in Theorem~\ref{}), one one can exchange the min and the max and obtains the dual problem
+Under the domain qualification in Theorem~\ref{thm-fenchel-Rockafellar}, one can exchange the infimum and supremum to obtain the dual problem
 \begin{align}\label{eq-deriv-rock-fench}
-	d^\star &= \usup{u} \umin{(x,y)} f(x) + g(y) + \dotp{Ax-y}{u} \\
-	&= \usup{u} \pa{ \umin{x} \dotp{x}{A^* u} + f(x) } + \pa{ \umin{y} -\dotp{y}{u} + g(y) } 
+	d^\star &= \usup{u} \uinf{(x,y)} f(x) + g(y) + \dotp{Ax-y}{u} \\
+	&= \usup{u} \left\{\pa{ \uinf{x} \dotp{x}{A^* u} + f(x) } + \pa{ \uinf{y} -\dotp{y}{u} + g(y) }\right\}.
 \end{align}
-which leads to the celebrated Fenchel-Rockafellar, which we summarize together with qualification sufficient condition ensuring strong duality.
+This gives the Fenchel--Rockafellar dual problem. The following theorem states a sufficient domain qualification for strong duality.
 
-\begin{thm}[Fenchel-Rockafellar]\label{thm-fenchel-Rockafellar}
-If 
+\begin{thm}[Fenchel--Rockafellar]\label{thm-fenchel-Rockafellar}
+Let $f\in\Ga_0(\RR^N)$, $g\in\Ga_0(\RR^P)$, and $A\in\RR^{P\times N}$. If
 \eql{\label{eq-qualif-fenchrock}
 	0 \in \relint( \dom(g) ) - A \relint( \dom(f) )
 }
-the one has the following strong duality
+then strong duality holds
 \begin{align}\label{eq-fenchel-Rockafellar}
 	\uinf{x} f(x) + g(Ax) &= \uinf{x} \usup{u} \Ll(x,u) 
 	= \usup{u} \uinf{x}\Ll(x,u)  
@@ -564,7 +552,7 @@ the one has the following strong duality
 \eq{
 	\qwhereq  \Ll(x,u)  \eqdef f(x) + \dotp{Ax}{u}  - g^*(u).
 }
-Furthermore one has that $(x^\star,u^\star)$ is a pair of optimal primal-dual solutions if and only if
+A pair $(x^\star,u^\star)$ is primal-dual optimal if and only if
 \eql{\label{eq-primal-dual}
 	-A^* u^\star \in \partial f(x^\star)  
 	\qandq
@@ -572,9 +560,9 @@ Furthermore one has that $(x^\star,u^\star)$ is a pair of optimal primal-dual so
 }
 \end{thm}
 
-Condition~\eqref{eq-qualif-fenchrock} is the constraint qualification ensuring that one can inverse the inf and the sup in~\eqref{eq-fenchel-Rockafellar}. It can be recovered from Slater's qualification condition~\eqref{eq-slater} when deriving the dual problem as in~\eqref{eq-deriv-rock-fench}.
+Condition~\eqref{eq-qualif-fenchrock} is the constraint qualification ensuring that one can exchange the infimum and supremum in~\eqref{eq-fenchel-Rockafellar}. It is the relative-interior qualification corresponding to the equality-constrained reformulation~\eqref{eq-deriv-rock-fench}.
 %
-The primal-dual relations~\eqref{eq-primal-dual} are the first order condition along the $x$ and the $u$ variables in minimization and maximization of $\Ll$. They are sometimes summarised in ``matrix'' form 
+The relations~\eqref{eq-primal-dual} express first-order optimality in the primal variable $x$ and dual variable $u$ for the saddle function $\Ll$. They can be collected in matrix notation as
 \eq{
 	0 \in 
 	\begin{pmatrix}

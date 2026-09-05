@@ -1,81 +1,98 @@
-\documentclass[10pt]{book}
+\documentclass[10pt,openany]{book}
 
-% Be sure to use PDF Latex
-\pdfoutput=1
-
-% links
-\usepackage[bookmarks,bookmarksdepth=2, colorlinks=true, linkcolor=blue,citecolor=red, urlcolor=blue]{hyperref}
+\input{book-preamble}
 
 
-
-\usepackage{fullpage}
-
-\usepackage[latin1]{inputenc}
-\usepackage{mystyle}
-\usepackage{wrapfig}
-\usepackage{notations_ot} % for OT chapter
-\usepackage{pdfpages} % to include multiple pages pdf
-
-\graphicspath{{./figures/}{./figures/ot/}}
-
-
-\newcommand{\myauthor}[3]{#1\protect\footnote{#2, \protect\url{#3}}}
-
-
-\title{\Huge \sf Mathematical Foundations of Data Sciences\vspace{1cm}
-\includegraphics[width=.9\linewidth]{wave}} 
-
-\author{%
-\begin{tabular}{c}
-	Gabriel Peyr{\'e} \\ CNRS \& DMA \\
-	 \'Ecole Normale Sup\'erieure \\
-	 \url{gabriel.peyre@ens.fr}\\
-	 \url{https://mathematical-tours.github.io}\\
-	 \url{www.numerical-tours.com}
-\end{tabular}
-}
-
-
-\date{\today}
-
-%%
+\title{\BookTitle}
+\author{\BookAuthor}
+\date{\BookEditionDate}
 
 \begin{document}
 
-\maketitle
-
-% \include{chapters/abstract}
+\ifdefined\StandaloneChapter
+  \setcounter{chapter}{\numexpr\StandaloneNumber-1\relax}
+  \input{chapters/\StandaloneChapter}
+  \BookFigureReview{\StandaloneChapter}
+\else
+\frontmatter
+\begin{titlepage}
+  \sffamily\color{BookInk}\setlength{\parindent}{0pt}
+  \vspace*{16mm}
+  {\small\color{BookAccent}\MakeUppercase{Signal processing\quad Optimization\quad Learning}\par}
+  \vspace{16mm}
+  {\fontsize{36}{42}\selectfont\bfseries
+    \parbox{.60\linewidth}{\raggedright\BookTitle}\par}
+  \vspace{10mm}
+  {\color{BookAccent}\rule{30mm}{1.2pt}\par}
+  \vspace{12mm}
+  {\Large\BookAuthor\par}
+  \vspace{3mm}
+  {\normalsize\BookResearchUnit\par\BookInstitution\par}
+  \vspace{5mm}
+  {\small\color{BookMuted}\BookEditionDate\par}
+  \vfill
+  \includegraphics[width=\linewidth]{wave}
+  \vfill
+  {\small\url{https://mathematical-tours.github.io}\par
+  \url{https://www.numerical-tours.com}\par}
+\end{titlepage}
+\include{chapters/abstract}
+\mainmatter
 
 %%%%%%%% PART I - SIGNAL/IMAGE %%%%
-%\include{chapters/shannon}
-%\include{chapters/fourier}
-%\include{chapters/shannon-coding}
-%%%%% \include{chapters/meshes} % REMOVED
-%\include{chapters/wavelets}
-%%%%%%\include{chapters/meshes-multires} % REMOVED
-%\include{chapters/approximation}
-%\include{chapters/compression}
-%\include{chapters/denoising}
+\include{chapters/shannon}
+\BookFigureReview{shannon}
+\include{chapters/fourier}
+\BookFigureReview{fourier}
+\include{chapters/shannon-coding}
+\BookFigureReview{shannon-coding}
+\include{chapters/wavelets}
+\BookFigureReview{wavelets}
+\include{chapters/approximation}
+\BookFigureReview{approximation}
+\include{chapters/compression}
+\BookFigureReview{compression}
+\include{chapters/denoising}
+\BookFigureReview{denoising}
 %%%%%%% PART II - INVERSE PBMS %%%%
-%\include{chapters/variational-priors}
-%\include{chapters/inverse-problems}
-%\include{chapters/sparse-regularization}
-%\include{chapters/sparse-theory}
-%\include{chapters/compressed-sensing}
+\include{chapters/variational-priors}
+\BookFigureReview{variational-priors}
+\include{chapters/inverse-problems}
+\BookFigureReview{inverse-problems}
+\include{chapters/sparse-regularization}
+\BookFigureReview{sparse-regularization}
+\include{chapters/sparse-theory}
+\BookFigureReview{sparse-theory}
+\include{chapters/compressed-sensing}
+\BookFigureReview{compressed-sensing}
 %%%%%%% PART III - OPTIM & ML %%%%
-%\include{chapters/machine-learning}
-%\include{chapters/optim-ml-smooth}
-%\include{chapters/optim-ml-advanced}
+\include{chapters/machine-learning}
+\BookFigureReview{machine-learning}
+\include{chapters/optim-ml-smooth}
+\BookFigureReview{optim-ml-smooth}
+\include{chapters/optim-ml-advanced}
+\BookFigureReview{optim-ml-advanced}
 \include{chapters/perceptrons}
-%\include{chapters/deep-learning}
-%\include{chapters/convex-analysis}
-%\include{chapters/optim-nonsmooth}
-%%%%%% \include{chapters/optimal-transport}
+\BookFigureReview{perceptrons}
+\include{chapters/deep-learning}
+\BookFigureReview{deep-learning}
+\include{chapters/convex-analysis}
+\BookFigureReview{convex-analysis}
+\include{chapters/optim-nonsmooth}
+\BookFigureReview{optim-nonsmooth}
 
+
+%%%%% \include{chapters/meshes} % REMOVED
+%%%%%%\include{chapters/meshes-multires} % REMOVED
+%%%%%% \include{chapters/optimal-transport}
+\fi
 
 % \nocite{*}
 
+\backmatter
+\ifdefined\SkipBibliography\else
 \bibliographystyle{plain}
 \bibliography{biblio/biblio,biblio/image,biblio/meshes}
+\fi
 
 \end{document}

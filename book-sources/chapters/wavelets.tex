@@ -1,41 +1,43 @@
 % !TEX root = ../FundationsDataScience.tex
 
-\chapter{Wavelets}
+\chapter{Wavelets}\label{chap-wavelets}
+
+\chapteroverview{Signals contain broad trends and localized details that occur at different scales. Separating these components produces representations suited to compression and denoising, while allowing each scale to be processed efficiently. We build orthonormal wavelet bases from nested approximation spaces, derive fast decomposition and reconstruction algorithms in one and two dimensions, and explain how filter design controls localization, smoothness, and cancellation of polynomials.}
 
 The reference for this chapter is \cite{mallat2008wavelet}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Multi-resolution Approximation Spaces}
+\section{Multiresolution Approximation Spaces}
 
-A multiresolution approximation of $L^2(\RR)$ is a set of nested closed subspaces $(V_j)_j$ 
+A multiresolution approximation of $L^2(\RR)$ consists of nested closed subspaces $(V_j)_j$
 \eql{\label{eq-nested-spaces}
-	L^2(\RR) \supset \ldots \supset V^{j-1} \supset V_j \supset V_{j+1} \supset \ldots \supset \{0\}
+	L^2(\RR) \supset \ldots \supset V_{j-1} \supset V_j \supset V_{j+1} \supset \ldots \supset \{0\}
 }
-which must be related one from each other by dyadic scaling and must also be stable by dyadic translation 
+related by dyadic scaling and invariant under translations on the corresponding dyadic grid:
 \eq{
 	f \in V_j \quad\Longleftrightarrow\quad f(\cdot/2) \in V_{j+1}
 	\qandq
 	f \in V_j \quad\Longleftrightarrow\quad \foralls n \in \ZZ, \: f(\cdot + n 2^j) \in V_{j}
 }
-So large $j$ corresponds to coarse approximation spaces, and $2^j$ is often call the ``scale''.
+Large $j$ corresponds to coarse approximation spaces, and $2^j$ is often called the ``scale''.
 
-The limit on the left of~\eqref{eq-nested-spaces} means that $\cup_j V_j$ is dense in $L^2(\RR)$, or equivalently that $P_{V_j}(f) \rightarrow f$ as $j \rightarrow -\infty$ where $P_V$ is the orthogonal projector on $V$
+At the fine-scale limit on the left of~\eqref{eq-nested-spaces}, $\cup_j V_j$ is dense in $L^2(\RR)$. Equivalently, $P_{V_j}(f) \rightarrow f$ as $j \rightarrow -\infty$, where $P_V$ denotes orthogonal projection onto $V$:
 \eq{
 	P_V(f) = \uargmin{f' \in V} \norm{f-f'}.
 }
 The limit on the right of~\eqref{eq-nested-spaces} means that $\cap_j V_j = \{0\}$, or equivalently that $P_{V_j}(f) \rightarrow 0$ as $j \rightarrow +\infty$.
 
-The first example is piecewise constant functions on dyadic intervals
+The first example consists of piecewise constant functions on dyadic intervals
 \eql{\label{eq-haar-multires}
 	V_j = \enscond{f \in L^2(\RR)}{\forall n, f \text{ is constant on } [2^j n, 2^j (n+1)[}, 
 }
 
-A second example is the space used for Shannon interpolation of bandlimitted signals
+A second example is the space used for Shannon interpolation of bandlimited signals
 \eql{\label{eq-shannon-multires}
 	V_j = \enscond{f}{ \Supp(\hat f) \subset [-2^{-j}\pi,2^{-j} \pi] } 
 }
-which corresponds to function which can be exactly represented using samples $f(2^j n)$ (to be compared with piecewise constant signal on a grid with spacing $2^j$). In this case, the orthogonal projection is the bandlimitting operator 
+whose elements are recovered exactly from the samples $f(2^j n)$. As for piecewise constant signals, the sampling grid has spacing $2^j$. Here, however, orthogonal projection is a bandlimiting operation:
 \eq{
 	P_{V_j}(f) = \Ff^{-1}( \hat f \odot 1_{[-2^{-j}\pi,2^{-j} \pi]} ). 
 }
@@ -43,25 +45,25 @@ which corresponds to function which can be exactly represented using samples $f(
 %%
 \paragraph{Scaling functions.}
 
-We also require that there exists a scaling function $\phi \in L^2(\RR)$ so that  
+We also require a scaling function $\phi \in L^2(\RR)$ such that
 \eq{
 	\{\phi(\cdot-n) \}_n  
-	\text{ is an Hilertian orthonormal basis of } 
+	\text{ is a Hilbertian orthonormal basis of }
 	V_0.
 }
 By the dilation property, this implies that 
 \eq{
-	\{ \phi_{j,n} \}_n \text{ is an Hilertian orthonormal basis of } V_j
+	\{ \phi_{j,n} \}_n \text{ is a Hilbertian orthonormal basis of } V_j
 	\qwhereq
 	\phi_{j,n} \eqdef \frac{1}{2^{j/2}} \phi\pa{ \frac{\cdot - 2^j n}{2^j} }.
 }
-The normalization is such to ensure $\norm{\phi_{j,n}} = 1$. 
+The normalization ensures $\norm{\phi_{j,n}} = 1$.
 
 Note that one then has
 \eq{
 	P_{V_j}(f) = \sum_n \dotp{f}{\phi_{j,n}} \phi_{j,n}. 
 }
-Figure~\ref{fig-multires-1d} illustrates the translation and scaling effect. 
+Figure~\ref{fig-multires-1d} illustrates the effects of translation and scaling.
 
 
 \myfigure{
@@ -69,10 +71,10 @@ Figure~\ref{fig-multires-1d} illustrates the translation and scaling effect.
 \image{wavelets}{.3}{multires-1d-1}&
 \image{wavelets}{.3}{multires-1d-2}&
 \image{wavelets}{.3}{multires-1d-3}\\
-$\phi_{j,0}$ & $\phi_{j+1,2}$ & $\phi_{j-1,}$
+$\phi_{j,0}$ & $\phi_{j+1,2}$ & $\phi_{j-1,0}$
 }
 }{%
-	Translation and scaling to generate approximation spaces.%	
+	Translations and dilations of a scaling function generate the approximation spaces.%
 }{fig-multires-1d}
 
 
@@ -86,113 +88,111 @@ For the case of piecewise constant signals~\eqref{eq-haar-multires}, one can use
 For the case of Shannon multiresolution~\eqref{eq-shannon-multires}, one can use 
 $\phi(t) = \sin(\pi t)/(\pi t)$ and one verifies
 \eq{
-	\dotp{f}{\phi_{j,n}} = f(2^j n)
+	\dotp{f}{\phi_{j,n}}=2^{j/2}f(2^jn)\quad(f\in V_j)
 	\qandq
-	f = \sum_n f(2^j n) \phi_{j,n}. 
+	f=\sum_n2^{j/2}f(2^jn)\phi_{j,n}\quad(f\in V_j).
 }
 
 \myfigure{
-\image{wavelets}{.3}{multires-1d-haar-wavelet}
-\image{wavelets}{.3}{multires-1d-haar-scaling}
-}{%
-	\textbf{BUG: the elevation should be $2^{-j/2}$ and not $2^{j/2}$}
-	Haar scaling (left) and wavelet (right) functions.%	
-}{fig-haard-scaling-wav} 
+\begin{minipage}{.9\linewidth}\centering
+$\displaystyle\phi_{j,n}(x)=2^{-j/2}\mathbf1_{[2^jn,\,2^j(n+1))}(x)$\\[1em]
+$\displaystyle\psi_{j,n}(x)=2^{-j/2}\left(\mathbf1_{[2^jn,\,2^j(n+1/2))}(x)-\mathbf1_{[2^j(n+1/2),\,2^j(n+1))}(x)\right)$
+\end{minipage}
+}{Haar scaling and wavelet functions. Both have amplitude $2^{-j/2}$ and unit $L^2$ norm.}{fig-haard-scaling-wav}
 
 %%
 \paragraph{Spectral orthogonalization.}
 
-In many case of practical interest, the space $V_j$ is describe by a translation-invariant basis which is not-orthogonal, $V_j=\Span(\th(\cdot-n))_{n \in \ZZ}$. The following proposition shows how to orthogonalize it using the Fourier transform.
+In many applications, $V_0$ is generated by translates of a function that are not orthogonal: $V_0=\overline{\Span}\{\th(\cdot-n)\}_{n\in\ZZ}$. The next proposition orthogonalizes this family in the Fourier domain.
 %
-Figure~\ref{fig-spline-ortho} shows how it leads to cardinal spline orthogonal functions.
+Figure~\ref{fig-spline-ortho} shows the orthogonal cardinal spline functions obtained by this construction.
 
 \begin{prop}\label{prop-spectral-ortho}
-	For $\th \in L^2(\RR)$ (assumed regular and with fast enough decay), $\{\th(\cdot-n)\}_{n \in \ZZ}$ is orthonormal if and only if
+	Let $\th \in L^2(\RR)$. Its translates $\{\th(\cdot-n)\}_{n \in \ZZ}$ are orthonormal if and only if
 	\eq{
-		\foralls \om, \quad A(\om) \eqdef \sum_{k} |\hat \th(\om-2\pi k)|^2 = 1.
+		A(\om) \eqdef \sum_{k} |\hat \th(\om-2\pi k)|^2 = 1
+		\quad\text{for almost every }\om.
 	}
-	If there exists $0 < a \leq b <+\infty$ such that $a \leq A(\om) \leq b$, then $\phi$ defined by
+	If there exist $0 < a \leq b <+\infty$ such that $a \leq A(\om) \leq b$ almost everywhere, then $\phi$ defined by
 	\eq{
 		\hat\phi(\om) = \frac{\hat\th(\om)}{\sqrt{A(\om)}}
 	}
-	is such that $\{\phi(\cdot-n)\}_{n \in \ZZ}$ is an Hilbertian basis of $\Span\{\th(\cdot-n)\}_{n \in \ZZ}$.
+	is such that $\{\phi(\cdot-n)\}_{n \in \ZZ}$ is an orthonormal basis of $\overline{\Span}\{\th(\cdot-n)\}_{n\in\ZZ}$.
 \end{prop}
 
 
 \myfigure{
 \image{wavelets}{.5}{spline-ortho}
-}{Orthogonalization of b-spline to defines cardinal orthogonal spline functions. 
+}{Orthogonalization of B-splines to define cardinal orthogonal spline functions.
 }{fig-spline-ortho} 
 
 \begin{proof}
-	One has that $\{\th(\cdot-n)\}_{n \in \ZZ}$ is orthonormal if and only if 
+	The family $\{\th(\cdot-n)\}_{n \in \ZZ}$ is orthonormal if and only if
 	\eq{
 		\dotp{\th}{\th(\cdot-n)} = (\th \star \bar\th)(n) = \de_{0,n} \eqdef
 		\choice{
-			0 \qifq n=0, \\
-			1 \quad\text{otherwise.}
+			1 \qifq n=0, \\
+			0 \quad\text{otherwise.}
 		}
 	}
-	where $\bar\th=\th(-\cdot)$ and $\de_0$ is the discrete Dirac vector. 
+	where $\bar\th(x)=\overline{\th(-x)}$ and $\de_0$ is the discrete Dirac vector.
 	%
-	Recall the Poisson summation formula~\eqref{eq-poisson-formula} for any function $h$ 
-	\eq{
-		\sum_n h(\om - 2 n \pi) = \sum_n h(n) e^{-\imath n \om}
-	}
-	which here reads
-	\eq{
-		\sum_n \Ff(\th \star \bar\th)(\om-2\pi n) = \sum_n  \de_{0,n} e^{-\imath n \om} = 1.
-	}
-	We conclude with the Fourier-convolution formula~\eqref{eq-convol-fourier} shows that $\Ff(\th \star \bar\th)(\om)=\hat\th(\om)\hat\th(\om)^*=|\hat\th(\om)|^2$ which leads to the desired formula, and it is if and only if. 
+By Tonelli's theorem and Plancherel's identity, $A\in L^1(\TT)$. Its Fourier coefficients are
+	\begin{align*}
+		\frac{1}{2\pi}\int_0^{2\pi}A(\om)e^{-\imath n\om}\,\d\om
+		&=\frac{1}{2\pi}\int_\RR |\hat\th(\om)|^2e^{-\imath n\om}\,\d\om\\
+		&=\dotp{\th}{\th(\cdot+n)}.
+	\end{align*}
+	Thus the translates are orthonormal exactly when the Fourier coefficients of $A$ are those of the constant function 1. Uniqueness of Fourier coefficients in $L^1(\TT)$ gives $A=1$ almost everywhere.
 	%
-	Normalizing by $1/\sqrt{A(\om)}$, which is a bounded function, shows that $\hat\phi$ satsifies $\sum_{k} |\hat \phi(\om-2\pi k)|^2 = 1$.
+	Since $A$ is $2\pi$-periodic, normalization by the bounded function $1/\sqrt{A(\om)}$ gives $\sum_{k} |\hat \phi(\om-2\pi k)|^2 = 1$. It remains to check equality of the closed spans. Approximate the periodic multipliers $1/\sqrt A$ and $\sqrt A$ by trigonometric polynomials in $L^2(\TT)$. The bounds $a\leq A\leq b$ show that the corresponding products with $\hat\th$ and $\hat\phi$ converge in $L^2(\RR)$. Inverting the Fourier transform expresses each generator as an $L^2$ limit of finite linear combinations of translates of the other.
 \end{proof}
 
-A typical example of application is spline (e.g. cubic ones) interpolations, which are generated by the box-spline function $\th$ which is a piecewise polynomial with a compact support. 
+Spline interpolation provides a typical application. For example, cubic splines are generated by translates of a box-spline function $\th$, which is a compactly supported piecewise polynomial.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Multi-resolution Details Spaces}
+\section{Multiresolution Detail Spaces}
 
-The details spaces are defined as orthogonal complement of $V_j \subset V_{j-1}$, which is legit because these are closed subspaces
+The detail spaces are the orthogonal complements associated with the inclusions $V_j \subset V_{j-1}$. Since these subspaces are closed,
 \eq{
 	\foralls j, \quad W_j \text{ is such that } V_{j-1} = V_j \oplus^\bot W_j. 
 }
-This leads to the following sequence of embedded spaces
+The following diagram shows these nested approximation spaces and their orthogonal complements:
 \begin{center}
 	\image{wavelets}{.8}{embeded-spaces-1d}
 \end{center}
-Once again, we suppose that $W_0$ has an Hilbertian ortho-basis of the form $\{\psi(\cdot-n)\}_n$, so that 
+Suppose that $W_0$ admits an orthonormal basis of translates $\{\psi(\cdot-n)\}_n$. Scaling then gives
 \eq{
-	\{ \psi_{j,n} \}_n \text{ is an Hilertian orthonormal basis of } W_j
+	\{ \psi_{j,n} \}_n \text{ is a Hilbertian orthonormal basis of } W_j
 	\qwhereq
 	\psi_{j,n} \eqdef \frac{1}{2^{j/2}} \psi\pa{ \frac{\cdot - 2^j n}{2^j} }.
 }
 
-Due to the orthogonal complementarity property, one has
+Orthogonal decomposition across all scales yields
 \eq{
 	L^2(\RR) = \bigoplus_{j=-\infty}^{j=+\infty} W_j
-	= V_{j_0} \bigoplus_{j \leq j_0}^{j} V_j.
+	=V_{j_0}\oplus^\bot\bigoplus_{j\leq j_0}W_j.
 }
-This means that for all $f \in L^2(\RR)$, one has the following convergence in $L^2(\RR)$, 
+For every $f \in L^2(\RR)$, the corresponding expansion converges in $L^2(\RR)$:
 \eq{
 	f = 
 	\lim_{(j_-,j_+) \rightarrow (-\infty,+\infty)} \sum_{j=j_-}^{j_+} P_{W_j} f
 	= 
-	\lim_{j_+ \rightarrow +\infty} P_{V_{j_0}} f +  \sum_{j=j_0}^{j_+} P_{W_j} f. 
+	\lim_{j_-\to-\infty}\left(P_{V_{j_0}}f+\sum_{j=j_-}^{j_0}P_{W_j}f\right).
 }
 This decomposition shows that 
 \eq{
 	\enscond{\psi_{j,n}}{(j,n) \in \ZZ^2}
 }
-is an Hilbertian orthogonal basis of $L^2(\RR)$, which is called a wavelet basis.
+is an orthonormal basis of $L^2(\RR)$, which is called a wavelet basis.
 %
-One also have a ``truncated'' ortho-basis 
+Stopping at a coarsest scale gives the orthonormal basis
 \eq{
 	\enscond{\psi_{j,n}}{j \leq j_0, n \in \ZZ} \cup 
 	\enscond{\phi_{j_0,n}}{n \in \ZZ}.
 }
 
-A (forward) Wavelet transform corresponds to the computation of all the inner products of some function $f$ with the elements of these basis.
+The forward wavelet transform computes all inner products of a function $f$ with the elements of this basis.
 
 \myfigure{
 \tabdeux{
@@ -214,42 +214,42 @@ $j=-7$ & $j=-6$
 
 For the Haar multiresolution~\eqref{eq-haar-multires}, one has
 \eql{\label{eq-haar-details}
-	W_j = \enscond{ f }{  \foralls n \in \ZZ, \; f \text{ constant on  } [2^{j+1} n, 2^{j+1} (n+1)) \qandq
+	W_j = \enscond{ f }{  \foralls n \in \ZZ, \; f \text{ constant on  } [2^{j-1}n,2^{j-1}(n+1)) \qandq
 	 \int_{n2^j}^{(n+1)2^j} f = 0 }.
 }
-A possible choice for a mother wavelet function is
+One choice of mother wavelet is
 \eq{
-	\psi(t) = \frac{1}{\sqrt{2}} \choice{
+	\psi(t)=\choice{
 		1 \qforq 0 \leq t < 1/2, \\
 		-1 \qforq 1/2 \leq t < 1, \\
 		0 \quad \text{otherwise,}
 	}
 }
-as shown on Figure~\ref{fig-haard-scaling-wav}, right.
+as shown in Figure~\ref{fig-haard-scaling-wav}.
 
 
 \myfigure{
 \tabdeux{
 \image{wavelets}{.48}{multires-1d-haar-1}& \\
-$P_{V_{-7}} f$ & \\
+$P_{V_j} f$ & \\
 \image{wavelets}{.48}{multires-1d-haar-2}&
 \image{wavelets}{.48}{multires-1d-haar-detail-1}\\
-$P_{V_{-6}}$ f & $P_{W_{-6}} f$ \\
+$P_{V_{j+1}} f$ & $P_{W_{j+1}} f$ \\
 \image{wavelets}{.48}{multires-1d-haar-3}&
 \image{wavelets}{.48}{multires-1d-haar-detail-2} \\
-$P_{V_{-5}} f$ & $P_{W_{-5}} f$
+$P_{V_{j+2}} f$ & $P_{W_{j+2}} f$
 }
 }{%
-	Projection on Haar approximation spaces (left) and detail spaces (right).%	
+	Successive Haar approximations (left) and the extracted details (right). Increasing the relative level from $j$ to $j+1$ and $j+2$ coarsens the approximation.%
 }{fig-haar-appr-details}
 
-Figure~\ref{fig-haar-appr-details} shows examples of projections on details spaces, and how they can be derived from projection on approximation spaces. 
+Figure~\ref{fig-haar-appr-details} illustrates how subtracting consecutive approximation-space projections isolates the details at each scale.
 
 
 %%
 \paragraph{Shannon and splines.}
 
-Figure~\ref{fig-spline-vs-shannon} shows that Shannon and splines corresponds to a hard and a soft segmentation of the frequency domain (Shannon being in some sense the high degree limit of splines).
+Figure~\ref{fig-spline-vs-shannon} compares the sharp frequency partitions of Shannon wavelets with the smooth transitions of spline wavelets. Shannon wavelets can be viewed as a limiting case as the spline degree increases.
 
 
 \myfigure{
@@ -262,58 +262,58 @@ Figure~\ref{fig-spline-vs-shannon} shows that Shannon and splines corresponds to
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{On Bounded Domains}
 
-On a periodic bounded domain $\TT=\RR/\ZZ$ (note that we use here 1-periodicity, in contrast to the convention we used for Fourier series of $2\pi$-periodicity), one obtains an orthogonal wavelet basis of $L^2(\TT)$ by periodizing the original wavelets, and also restricting the translation points $2^j n$ to be in $[0,1]$, i.e. $0 \leq n < 2^{-j}$. Similarly to~\eqref{eq-periodizing}, the periodization of a function $f \in L^1(\RR)$ is the function
+On the periodic domain $\TT=\RR/\ZZ$, we use period 1 rather than the $2\pi$-period convention of the Fourier chapter. To obtain an orthonormal wavelet basis of $L^2(\TT)$, periodize the wavelets and restrict their translation points $2^j n$ to $[0,1]$, choosing $0 \leq n < 2^{-j}$. As in~\eqref{eq-periodizing}, the periodization of $f \in L^1(\RR)$ is
 \eq{
 	f^P = \sum_{n \in \ZZ} f(\cdot-n) \in L^1(\TT). 
 }
-The wavelet basis is thus define as
+For an integer coarsest level $j_0\leq0$, this gives the family
 \eq{
 	\enscond{\psi_{j,n}^P}{j \leq j_0, 0 \leq n < 2^{-j}} \cup 
 	\enscond{\phi_{j_0,n}^P}{0 \leq n < 2^{-j_0}}.
 }
-and one verifies that it defines an Hilbertian ortho-basis of $L^2(\TT)$, see Figure~\ref{fig-periodize}.
+which is an orthonormal basis of $L^2(\TT)$, illustrated in Figure~\ref{fig-periodize}.
 %
-It is possible to define wavelet basis using Neumann (mirror) boundary conditions, but this is more involved.
+One can also construct wavelet bases using Neumann (mirror) boundary conditions, but this is more involved.
 
 
 
 \myfigure{
 \image{wavelets}{.3}{periodize-1}\quad
 \image{wavelets}{.3}{periodize-2}
-}{Periodizing basis functions. This leads to considering only $0 \leq n 2^{-j}$, so that in practice one choose $j_0=0$. 
+}{Periodized basis functions. Only the translations $0\leq n<2^{-j}$ are distinct, and $j_0=0$ is a common choice of coarsest scale.
 }{fig-periodize} 
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Fast Wavelet Transform}
+\section{Fast Wavelet Transform}\label{sec-fast-wavelet-transform}
 
 %%%
 \subsection{Discretization}
 
 We now work over $\RR/\ZZ$.
 %
-The modeling hypothesis is that one has access to a discrete signal $a_J \in \RR^N$ with $N = 2^{-J}$ at some fixed scale $2^J$, and that this signal exactly matches the inner-product with the scaling functions, i.e.
+We assume access to a discrete signal $a_J \in \RR^N$ with $N = 2^{-J}$ at a fixed scale $2^J$, whose entries are inner products with the scaling functions, i.e.
 \eql{\label{eq-hyp-wav-samples}
-	\foralls n, \in \{0,\ldots,N-1\}, \quad a_{J,n} = \dotp{f}{\phi_{J,n}^P} \approx f(2^J n), 
+	\foralls n\in \{0,\ldots,N-1\}, \quad a_{J,n} = \dotp{f}{\phi_{J,n}^P} \approx 2^{J/2}f(2^Jn),
 }
-for some function of interest $f$ we are sampling. This is equivalent to saying that the discretization process have exactly access to $P_{V_J}f$. This hypothesis is questionnable, and similar to the Shannon bandlimit assumption. In practice, the scaling functions $(\phi_{J,n})_n$ are often quite close to the point-spread function of the acquisition device, so it is acceptable. One can however improves this by correcting the acquired values by the device to be closer to asumption~\eqref{eq-hyp-wav-samples}.
+for the underlying continuous function $f$. The approximation uses the normalization $\int\phi=1$. The equality assumes that acquisition gives exact access to $P_{V_J}f$, much as Shannon sampling assumes bandlimiting. This model is reasonable when the scaling functions $(\phi_{J,n})_n$ approximate the acquisition device's point-spread function. Preprocessing the measurements can sometimes improve agreement with~\eqref{eq-hyp-wav-samples}.
 
-The discrete wavelet transform then computes, from this input $a_J$, all the coefficients 
+Starting from $a_J$, the discrete wavelet transform computes the coefficients
 \eq{
 	\foralls j \in \{J+1,J+2, \ldots, 0\}, \quad
 	\foralls n \in \range{0,2^{-j}-1}, \quad
 	a_{j,n} \eqdef \dotp{f}{\phi_{j,n}^P}, \qandq
 	d_{j,n} \eqdef \dotp{f}{\psi_{j,n}^P}
 }
-in this order (increasing values of $j$). During the algorithm, the previously computed vector $a_j$ can be discarded, and only the $d_j$ are kept. 
+in order of increasing $j$. After an approximation vector $a_j$ has been used to compute the next scale, it can be discarded; the detail vectors $d_j$ are retained.
 
-The forward discrete wavelet transform on a bounded domain is thus the orthogonal finite dimensional map
+The forward discrete wavelet transform on a bounded domain is thus the orthogonal finite-dimensional map
 \eq{
 	a_J \in \RR^N \longmapsto
-	\enscond{ d_{j,n} }{ 0 \leq j < J, 0 \leq n < 2^{-j} } \cup \{a_0 \in \RR\}. 
+	\enscond{ d_{j,n} }{ J<j\leq0,\ 0\leq n<2^{-j} } \cup \{a_0 \in \RR\}.
 }
-The inverse transform, which is thus the adjoint due to orthogonality, is the inverse map.
+By orthogonality, the inverse transform is the adjoint.
 
 
 Figure~\ref{fig-wavcoef-1d} shows examples of wavelet coefficients. For each scale $2^j$, there are $2^{-j}$ coefficients.
@@ -332,23 +332,23 @@ Signal $f$ & $d_{-7}$ \\
 $d_{-6}$ & $d_{-5}$ 
 }
 }{%
-	Wavelet coefficients. Top row: all the coefficients. Bottoms rows: zoom on the different scales%	
+	Wavelet coefficients. Top: the complete decomposition. Below: enlarged views of individual scales.%
 }{fig-wavcoef-1d}
 
 
 %%%
 \subsection{Forward Fast Wavelet Transform (FWT)}
 
-The algorithm proceeds by computing a series of simple operators 
+The algorithm applies a sequence of elementary operators
 \eql{\label{eq-wavelet-step}
 	\foralls j = J+1, \ldots, 0, \quad 
 	(a_{j},d_{j}) = \Ww_j(a_{j-1})
 	\qwhereq
 	\Ww_j : \RR^{2^{-j+1}} \rightarrow \RR^{2^{-j}} \times \RR^{2^{-j}}
 }
-The number of such steps is thus $|J|=\log_2(N)$. Each $\Ww_j$ is orthogonal since it corresponds to linear maps between coefficients in orthogonal bases. 
+There are $|J|=\log_2(N)$ steps. Each $\Ww_j$ changes coordinates between orthonormal bases and is therefore orthogonal.
 
-In order to describe the algorithm that computes $\Ww_j$, we introduce the filters ``filter'' coefficients $f, g \in \RR^\ZZ$
+To describe the algorithm for $\Ww_j$, we introduce the filter coefficients $h,g \in \RR^\ZZ$
 \eql{\label{eq-dfn-h-g}
 	h_n \eqdef \frac{1}{\sqrt{2}} \dotp{ \phi(\cdot/2) }{\phi(\cdot-n)}
 	\qandq
@@ -358,44 +358,44 @@ Figure~\ref{fig-haar-inner} illustrates the computation of these weights for the
 
 \myfigure{
 \image{wavelets}{.3}{haar-inner}
-}{Haar wavelets weights as inner products. 
+}{Haar filter weights as inner products.
 }{fig-haar-inner} 
 
 
-We denote as $\downarrow_2 : \RR^K \rightarrow \RR^{K/2}$ the subsampling operator by a factor of 2, i.e.
+We denote by $\downarrow_2 : \RR^K \rightarrow \RR^{K/2}$ the subsampling operator by a factor of 2, i.e.
 \eq{
-	u\downarrow_2 \eqdef (u_0,u_2,u_4,\ldots,u_{K-2},u_K).
+	u\downarrow_2 \eqdef (u_0,u_2,u_4,\ldots,u_{K-2}).
 }
-In the following, we assume that these filters are decaying fast enough.
+Throughout the following derivation, the scaling function, wavelet, and filters are real, and the filters decay sufficiently fast. The notation $\bar h_n=h_{-n}$ and $\bar g_n=g_{-n}$ denotes reflection. Complex filters would require conjugation as well.
 
 \begin{prop}
 One has
 \eql{\label{eq-convol-subsample}
-	\Ww_j(a_j) = ( (\bar h \star a_{j-1})\downarrow_2, (\bar g \star a_{j-1})\downarrow_2 ), 
+	\Ww_j(a_{j-1})= ( (\bar h \star a_{j-1})\downarrow_2, (\bar g \star a_{j-1})\downarrow_2 ),
 }
-where $\star$ denotes periodic convolutions on $\RR^{-j+1}$. 
+where $\star$ denotes periodic convolutions on $\RR^{2^{-j+1}}$.
 \end{prop}
 
 \begin{proof}
-We note that $\phi(\cdot/2)$ and $\psi(\cdot/2)$ are in $\Ww_j$, so one has the decompositions
+We note that $\phi(\cdot/2)$ and $\psi(\cdot/2)$ belong to $V_0$, so one has the decompositions
 \eql{\label{eq-phipsi-recurse-1}
 	\frac{1}{\sqrt{2}} \phi(t/2) = \sum_n h_n \phi(t-n)
 	\qandq
 	\frac{1}{\sqrt{2}} \psi(t/2) = \sum_n g_n \phi(t-n)
 }
-Doing the change of variable $t \mapsto \frac{t-2^j p}{2^{j-1}}$ in~\eqref{eq-phipsi-recurse-1}, one obtains
+Making the substitution $t \mapsto \frac{t-2^j p}{2^{j-1}}$ in~\eqref{eq-phipsi-recurse-1}, one obtains
 \eq{
 	\frac{1}{\sqrt{2}} \phi\pa{ \frac{t-2^j p}{2^j} }  = \sum_n h_n \phi\pa{ \frac{t}{2^{j-1}}-(n+2p)}
 }
-(similarly for $\psi$) and then doing the change $n \mapsto n-2p$, one obtains
+(similarly for $\psi$) and then reindexing $n \mapsto n-2p$, one obtains
 \eq{
 	\phi_{j,p} = \sum_{n \in \ZZ} h_{n-2p} \phi_{j-1,n}
 	\qandq 
-	\psi_{j,p} = \sum_{n \in \ZZ} g_{n-2p} \psi_{j-1,n}.
+	\psi_{j,p}=\sum_{n\in\ZZ}g_{n-2p}\phi_{j-1,n}.
 }
-When working with periodized function $(\phi_{j,n}^P,\psi_{j,p}^P)$, this formula is still valid, but the summation over $n \in \ZZ$ should be done modulo $2^{-j+1}$. 
+For periodized functions $(\phi_{j,n}^P,\psi_{j,p}^P)$, these identities remain valid after periodizing the filters modulo $2^{-j+1}$.
 %
-Taking inner product of both size with respect to $f$ (which is legit if $h,g$ are decaying fast enough), one obtains the fundamental recursion fromula
+Taking inner products with $f$ on both sides gives the fundamental recursion below; the decay of $h,g$ justifies exchanging the sum and inner product.
 \eql{\label{eq-recurse-formula-wav}
 	a_{j,p} = \sum_{n \in \ZZ} h_{n-2p} a_{j-1,n} = (\bar h \star a_{j-1})_{2p}
 	\qandq 
@@ -403,10 +403,10 @@ Taking inner product of both size with respect to $f$ (which is legit if $h,g$ a
 }
 where $\bar u_n \eqdef u_{-n}$. 
 %
-One can show that this formula is still valid when working over a bounded interval $\TT=\RR/\ZZ$, but then $\star$ denotes the periodic convolution over $\ZZ/2^{-j+1}\ZZ$.
+On the periodic domain $\TT=\RR/\ZZ$, the same recursion holds with $\star$ interpreted as convolution on $\ZZ/2^{-j+1}\ZZ$.
 \end{proof}
 
-Figure~\ref{fig-filterbank-fwd} shows two steps of application of these refinement relationships. 
+Figure~\ref{fig-filterbank-fwd} shows two successive decomposition steps, each separating a coarse approximation from its details.
 
 \myfigure{
 \image{wavelets}{.95}{filterbank-fwd}
@@ -414,32 +414,32 @@ Figure~\ref{fig-filterbank-fwd} shows two steps of application of these refineme
 	Forward filter bank decomposition.%	
 }{fig-filterbank-fwd}
 
-The FWT thus operates as follow:
+The FWT thus operates as follows. The same real filters also act on complex-valued input signals:
 \begin{rs}
 	\item \textbf{Input:} signal $f \in \CC^N$.
 	\item \textbf{Initialization:} $a_J = f$.
 	\item \textbf{For} $j=J,\ldots,j_0-1$.
 		\eq{
-			a_{j+1} = (a_j \star \tilde h) \downarrow 2 \qandq
-			d_{j+1} = (a_j \star \tilde g) \downarrow 2
+			a_{j+1} = (a_j \star \bar h) \downarrow 2 \qandq
+			d_{j+1} = (a_j \star \bar g) \downarrow 2
 		}
-	\item \textbf{Output:} the coefficients $\{ d_j \}_{j_0 \leq j < J} \cup \{ a_{j_0} \}$.
+	\item \textbf{Output:} the coefficients $\{d_j\}_{J<j\leq j_0} \cup \{ a_{j_0} \}$.
 \end{rs}
 
-If $|h|,|g| \leq C$ so that both filter are compactly supported, then computing each $\Ww_j$ is $(2C) 2^{-j}$ operation, so that the complexity of the whole wavelet transform is 
+If the supports of $h$ and $g$ each contain at most $C$ indices, then evaluating each $\Ww_j$ requires $(2C) 2^{-j}$ operations, so that the complexity of the whole wavelet transform is
 \eq{
-	\sum_{j=J}^1 (2C) 2^{-j} = (2C) 2^{-J} = 2CN. 
+	\sum_{j=J+1}^{0}(2C)2^{-j}=2C(2^{-J}-1)<2CN.
 }
-This shows that the fast wavelet transform is a linear time algorithm.
+This shows that the fast wavelet transform is a linear-time algorithm.
 %
-Figure~\ref{fig-filterbank-pyramidal} shows the process of extracting iteratively the wavelet coefficients.
+Figure~\ref{fig-filterbank-pyramidal} shows the iterative extraction of the wavelet coefficients.
 %
-Figure~\ref{fig-wavalgo-1d} shows an example of computation, where at each iteration, the coefficients of $a_j$ and $d_j$ are added to the left of the output vector.
+Figure~\ref{fig-wavalgo-1d} illustrates the storage layout: at each step, the new vectors $a_j$ and $d_j$ occupy the left portion of the output array.
 
 \myfigure{
 \image{wavelets}{.4}{filterbank-pyramidal}
 }{%
-	Pyramid computation of the coefficients. %	
+	Pyramidal computation of wavelet coefficients. %
 }{fig-filterbank-pyramidal}
 
 \myfigure{
@@ -469,33 +469,33 @@ This corresponds to the filters
 	h = [\ldots,\;0,\;h[0]=\frac{1}{\sqrt{2}},\;\frac{1}{\sqrt{2}},\;0,\ldots],
 }
 \eq{
-	g = [\ldots,\;0,\;h[0]=\frac{1}{\sqrt{2}},\;-\frac{1}{\sqrt{2}},\;0,\ldots].
+	g = [\ldots,\;0,\;g[0]=\frac{1}{\sqrt{2}},\;-\frac{1}{\sqrt{2}},\;0,\ldots].
 }
-The Haar wavelet transform algorithm thus processes by iterating averaging and differences:
+The Haar transform iterates normalized sums and differences:
 \begin{rs}
 	\item \textbf{Input:} signal $f \in \CC^N$.
 	\item \textbf{Initialization:} $a_J = f$.
 	\item \textbf{For} $j=J,\ldots,j_0-1$.
 		\eq{
-			a_{j+1,n} = \frac{1}{\sqrt{2}} (a_{j-1,2n}+a_{j-1,2n+1}) \qandq
-			d_{j+1,n} = \frac{1}{\sqrt{2}} (a_{j-1,2n}-a_{j-1,2n+1}).
+			a_{j+1,n} = \frac{1}{\sqrt{2}} (a_{j,2n}+a_{j,2n+1}) \qandq
+			d_{j+1,n} = \frac{1}{\sqrt{2}} (a_{j,2n}-a_{j,2n+1}).
 		}
-	\item \textbf{Output:} the coefficients $\{ d_j \}_{j_0 \leq j < J} \cup \{ a_{j_0} \}$.
+	\item \textbf{Output:} the coefficients $\{d_j\}_{J<j\leq j_0} \cup \{ a_{j_0} \}$.
 \end{rs}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Inverse Fast Transform (iFWT)}
 
 The inverse algorithm proceeds by inverting each step~\eqref{eq-wavelet-step}
-\eql{\label{eq-wavelet-step}
-	\foralls j = 0, \ldots, J+1, \quad 
+\eql{\label{eq-wavelet-inverse-step}
+	\foralls j=0,-1,\ldots,J+1, \quad
 	a_{j-1} = \Ww_j^{-1}(a_{j},d_{j}) = \Ww_j^*(a_{j},d_{j}), 
 }
-where $\Ww_j^{*}$ is the adjoint for the canonical inner product on $\RR^{2^{-j+1}}$ , i.e. when viewed as a matrix, the transpose.
+where $\Ww_j^{*}$ is the adjoint for the canonical inner product on $\RR^{2^{-j+1}}$; in matrix form, it is the transpose.
 
-We denote $\uparrow_2 : \RR^{K/2} \rightarrow \RR^K$ the up-sampling operator
+Let $\uparrow_2 : \RR^{K/2} \rightarrow \RR^K$ denote up-sampling by inserting zeros:
 \eq{
-	a\uparrow_2 = (a_0,0,a_1,0,\ldots,0,a_{K/2},0) \in \RR^K.
+	a\uparrow_2 = (a_0,0,a_1,0,\ldots,a_{K/2-1},0) \in \RR^K.
 }
 
 \begin{prop}
@@ -514,34 +514,34 @@ We write the whole transform as
 	\qwhereq
 	\choice{
 		\Dd(a)=(a,a), \\
-		C_{\bar h,\bar g}(a,b) = (\bar h \star a, \bar g \star a), \\
+		C_{\bar h,\bar g}(a,b)=(\bar h\star a,\bar g\star b), \\
 		S_2( a,b ) = (a\downarrow_2, b\downarrow_2).	
 	}
 }
-One has the following adjoint operator
+The adjoints are
 \eq{
 	\Dd^*(a,b)=a+b, \quad
 	C_{\bar h,\bar g}^*(a,b) = (h \star a, g \star b), \qandq
-	S_2( a,b ) = (a\uparrow_2, b\uparrow_2).
+	S_2^*(a,b)=(a\uparrow_2,b\uparrow_2).
 }
-Indeed, let us check this for the convolution, assuming involved sequences are in $\ell_1$ (they are actually finite sums when considering periodic signals), 
+To verify the convolution adjoint, assume the sequences are summable; in the periodic setting, the sums are finite:
 \eq{
 	\dotp{f \star \bar h}{g} = \sum_n (f \star \bar h)_n g_n = \sum_n \sum_k f_k h_{k-n} g_n
 	 = 
 	 \sum_k f_k  \sum_n h_{k-n} g_n = \dotp{f}{h \star g}, 
 }
-for the copying
+For the copying operator,
 \eq{
 	\dotp{\Dd(a)}{(u,v)} = \dotp{a}{u} + \dotp{a}{v} = \dotp{a}{u+v} = \dotp{a}{\Dd^*(u,v)}, 
 }
-and for the down-sampling
+and for down-sampling,
 \eq{
 	\dotp{f\downarrow_2}{g} = \sum_{n} f_{2n}  g_{n} = \sum_{n} (f_{2n}  g_{n} + f_{2n+1} 0 )
 	= \dotp{f}{g \uparrow_2}.  
 }
-This is shown using matrix notations in Figure~\ref{fig-inversion-transpose}.
+This is shown using matrix notation in Figure~\ref{fig-inversion-transpose}.
 %
-Putting everything together gives the desired formula.
+Composing these adjoints in reverse order gives the reconstruction formula.
 \end{proof}
 
 \myfigure{
@@ -549,25 +549,25 @@ Putting everything together gives the desired formula.
 \raisebox{1.7cm}{$\qqarrqq$}
 \image{wavelets}{.4}{inversion-transpose-2}
 }{%
-	Wavelet inversion in matrix format.%	
+	Inverse wavelet transform in matrix form.%
 }{fig-inversion-transpose}
 
 
-The inverse Fast wavelet transform iteratively applies this elementary step
+The inverse fast wavelet transform iteratively applies this elementary step
 \begin{rs}
-	\item \textbf{Input:} $\{ d_j \}_{j_0 \leq j < J} \cup \{ a_{j_0} \}$.
-	\item \textbf{For} $j=j_0, \ldots, J+1$.
+	\item \textbf{Input:} $\{d_j\}_{J<j\leq j_0} \cup \{ a_{j_0} \}$.
+	\item \textbf{For} $j=j_0,j_0-1,\ldots,J+1$.
 		\eq{
 			a_{j-1} = (a_j \uparrow 2) \star h +  (d_j \uparrow 2) \star g.
 		}
 	\item \textbf{Output:} $f = a_J$.
 \end{rs}
-This process is shown using a block diagram in Figure~\ref{fig-filterbank-bwd}, which is the inverse of the block diagram~\ref{fig-filterbank-fwd}. 
+The block diagram in Figure~\ref{fig-filterbank-bwd} reverses the operations of the forward transform in Figure~\ref{fig-filterbank-fwd}.
 
 \myfigure{
 \image{wavelets}{.95}{filterbank-bwd}
 }{%
-	Backward filterbank recomposition algorithm.%	
+	Inverse filter-bank reconstruction.%
 }{fig-filterbank-bwd}
 
 
@@ -579,15 +579,15 @@ This process is shown using a block diagram in Figure~\ref{fig-filterbank-bwd}, 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Anisotropic Wavelets}
 
-2-D anisotropic wavelets are defined using tensor product of Wavelet basis functions~\eqref{eq-tensor-product}. The basis over $\TT^2$ is thus of the form
-\eq{
-	\enscond{ \psi_{(j_1,j_2),(n_1,n_2)} }{ (j_1,j_2) \in \ZZ^2, 0 \leq n_1 < 2^{-j_1}, 0 \leq n_2 < 2^{-j_2} }
-}
+The anisotropic basis on $\TT^2$ is the tensor product of the complete one-dimensional periodized basis $\mathcal B$ (including its coarsest scaling functions):
+\eq{\{b_1\otimes b_2:b_1,b_2\in\mathcal B\}.}
+Its wavelet--wavelet elements have the form
 \eql{\label{eq-aniso-wav}
-	\qwhereq
-	\psi_{(j_1,j_2),(n_1,n_2)}(x_1,x_2) = \psi_{j_1,n_1}(x_1)\psi_{j_2,n_2}(x_2). 
+ \psi_{(j_1,j_2),(n_1,n_2)}(x_1,x_2)
+ =\psi_{j_1,n_1}^{P}(x_1)\psi_{j_2,n_2}^{P}(x_2).
 }
-The computation of the fast anisotropic Wavelet transform in 2-D is similar to the 2-D FFT detailed in Section~\ref{sec-fft-2d}. Viewing the input image $a_J \in \RR^{2^{-J} \times 2^{-J}}$ as a matrix, one first apply the 1-D FWT to each row, and then to each column, resulting in a linear time $O(N)$ algorithm, where $N=2^{-2J}$. 
+The basis also includes wavelet--scaling, scaling--wavelet, and scaling--scaling products.
+The anisotropic 2-D transform follows the same separable construction as the 2-D FFT in Section~\ref{sec-fft-2d}. Treat the image $a_J \in \RR^{2^{-J} \times 2^{-J}}$ as a matrix, apply the 1-D FWT to each row, and then apply it to each column. The total cost is $O(N)$ for $N=2^{-2J}$ pixels.
 
 \myfigure{
 \tabtrois{
@@ -601,9 +601,9 @@ Image $f$ & Row transform & Column transform.
 }{fig-wavalgo-2d-aniso}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Isotropic Wavelets}
+\subsection{Isotropic Wavelets}\label{sec-isotropic-wav}
 
-A major issue with these anisotropic wavelet~\eqref{eq-aniso-wav} is that a function $\psi_{(j_1,j_2),(n_1,n_2)}$ is scaled independently in each direction, leads to functions concentrated along an axis-oriented rectangle of size $2^{-j_1} \times 2^{j_2}$. This is not a very good features (since natural images usually do not exhibit such an anisotropy) and typically leads to visually unpleasant artifacts when used for processing (denoising or compression). 
+The anisotropic atoms~\eqref{eq-aniso-wav} have independent scales in the two coordinate directions. For compactly supported wavelets, their supports lie in axis-aligned rectangles of size proportional to $2^{j_1}\times2^{j_2}$. This directional bias can produce visible artifacts in denoising and compression when it does not match the image geometry.
 
 \myfigure{
 \image{wavelets}{.3}{wavcoefs-iso-aniso-2}
@@ -612,27 +612,27 @@ A major issue with these anisotropic wavelet~\eqref{eq-aniso-wav} is that a func
 	Anisotropic (left) versus isotropic (right) wavelet coefficients.%	
 }{fig-wavecoefs-iso}
 
-One rather use isotropic wavelet obtained by considering 2-D multi-resolution, obtained by tensor products of the 1-D approximation spaces
+An alternative uses a common scale in both directions. Tensor products of one-dimensional approximation spaces give a two-dimensional multiresolution
 \eq{
-	L^2(\RR^2) \supset \ldots \supset V^{j-1} \otimes V^{j-1} \supset V_j \otimes V_j \supset V_{j+1} \otimes V_{j+1} \supset \ldots \supset \{0\}.
+	L^2(\RR^2) \supset \ldots \supset V_{j-1} \otimes V_{j-1} \supset V_j \otimes V_j \supset V_{j+1} \otimes V_{j+1} \supset \ldots \supset \{0\}.
 }
-In the following, we denote 
+We write
 \eq{
 	V_j^O \eqdef V_j \otimes V_j
 } 
-this isotropic 2-D multiresolution space. 
+for this isotropic 2-D approximation space.
 
-Recall that the tensor product of two space $(V_1,V_2) \in L^2(\RR)^2$ is
+Recall that the tensor product of two closed subspaces $V_1,V_2\subset L^2(\RR)$ is
 \eq{
 	V_1 \otimes V_2 = \text{Closure}\pa{ \Span\enscond{f_1(x_1)f_2(x_2) \in L^2(\RR^2)}{ f_1 \in V_1, f_2 \in V_2 } }.
 }
-If $(\phi_k^s)_k$ are Hilbertian bases for $V_s$, then one can show that $( \phi_k^1(x_1)\phi_k^2(x_2) )_{k}$ is an Hilbertian basis for $V_1 \otimes V_2$.
+If $(\phi_k^s)_k$ are orthonormal bases of $V_s$, their tensor products $(\phi_{k_1}^1(x_1)\phi_{k_2}^2(x_2))_{k_1,k_2}$ form an orthonormal basis of $V_1 \otimes V_2$.
 
-One easily verify that one has the distributivity
+The tensor product distributes over these orthogonal sums
 \eq{
-		( V_j \oplus^\bot W_J) \otimes ( V_j \oplus^\bot W_J)
+		( V_j \oplus^\bot W_j) \otimes ( V_j \oplus^\bot W_j)
 		= 
-		V_j^O \oplus^\bot W_j^V \oplus^\bot W_j^V \oplus^\bot W_j^V
+		V_j^O \oplus^\bot W_j^V\oplus^\bot W_j^H\oplus^\bot W_j^D
 		\qwhereq
 		\choice{
 		W_j^V \eqdef (V_j \otimes W_j), \\
@@ -640,14 +640,14 @@ One easily verify that one has the distributivity
 		W_j^D \eqdef (W_j \otimes W_j).
 		}
 }
-Here the letters $\{V,H,D\}$ stands for \textit{Vertical, Horizontal, Diagonal} detail spaces. 
+The labels $\{V,H,D\}$ stand for \textit{Vertical, Horizontal, Diagonal} detail spaces.
 %
-This leads to the following diagram of embedded spaces
+The following diagram summarizes the nested spaces and their detail components:
 \begin{center}
 	\image{wavelets}{.8}{embeded-spaces-2d}
 \end{center}
 
-For $j \in \ZZ$, each of the three wavelet spaces is spanned with a wavelet, where basis elements are indexed by $n=(n_1,n_2) \in \ZZ$ (or in $\{0,\ldots,2^{-j}-1\}^2$ on the interval $\TT$),
+For $j \in \ZZ$, translates of a mother wavelet span each detail space. We index them by $n=(n_1,n_2)\in\ZZ^2$, or by indices in $\{0,\ldots,2^{-j}-1\}^2$ on the torus $\TT^2$:
 \eq{
 	\foralls \om \in \{V,H,D\}, \quad
 	W_j^\om = 
@@ -664,25 +664,25 @@ and where the three mother wavelets are
 	\psi^V(x)=\phi(x_1)\psi(x_2), \qandq
 	\psi^D(x)=\psi(x_1)\psi(x_2).
 }
-Figure~\ref{fig-wavelets-2d} displays an examples of these wavelets.
+Here the span is closed in $L^2$ on an unbounded domain; on the torus, the wavelets are periodized. Figure~\ref{fig-wavelets-2d} displays examples of these wavelets.
 
 \myfigure{
 \tabquatre{
 \image{wavelets}{.24}{wavelets-2d-1}&
 \image{wavelets}{.24}{wavelets-2d-2}&
 \image{wavelets}{.24}{wavelets-2d-3}&
-\image{wavelets}{.24}{wavelets-2d-support}\\
+\image{wavelets}{.24}{wavelets-2d-support-corrected}\\
 $\psi^H$ & $\psi^V$ & $\psi^D$ & Support
 }
 }{%
-	2-D wavelets and their approximative support (right).%	
+	2-D wavelets and a schematic support centered at $(2^j n_1,2^j n_2)$, with width $K2^j$ (right).%
 }{fig-wavelets-2d}
 
 
 %%
 \paragraph{Haar 2-D multiresolution.}
 
-For the Haar multiresolution, one obtains 2-D piecewise-constant Haar approximation. A function of $V_j \otimes V_j$ is constant on squares of size $2^j \times 2^j$. Figure~\ref{fig-multires-2d-haar} shows an example of projection of an image onto these 2-D Haar approximation spaces. 
+The 2-D Haar construction gives piecewise constant approximations: functions in $V_j \otimes V_j$ are constant on squares of size $2^j \times 2^j$. Figure~\ref{fig-multires-2d-haar} shows the corresponding projections of an image.
 
 \myfigure{
 \image{wavelets}{.24}{multires-2d-haar-0}
@@ -696,20 +696,20 @@ For the Haar multiresolution, one obtains 2-D piecewise-constant Haar approximat
 %%
 \paragraph{Discrete 2-D wavelet coefficients.}
 
-Similarly to~\eqref{eq-hyp-wav-samples}, we suppose that the sampling mechanism gives us access to inner product of the analog (continuous) signal $f$ with the scaling function at scale $N=2^{-J}$
+As in~\eqref{eq-hyp-wav-samples}, assume that acquisition provides inner products of the continuous signal $f$ with scaling functions at scale $2^J$, with $N=2^{-J}$ samples per direction:
 \eq{
-	\foralls n, \in \{0,\ldots,N-1\}^2, \quad a_{J,n} = \dotp{f}{\phi_{J,n}^P}
+	\foralls n\in \{0,\ldots,N-1\}^2, \quad a_{J,n}=\dotp{f}{(\phi_{J,n_1}\otimes\phi_{J,n_2})^P}
 }
 Discrete wavelet coefficients are defined as
 \eq{
 	\foralls \om \in \{V,H,D\}, \; \foralls J < j \leq 0, \; \foralls 0 \leq n_1,n_2 < 2^{-j}, \quad
 	d_{j,n}^\om = \dotp{ f }{ \psi_{j,n}^{\om} } .
 }
-(we use here periodized wavelets).
+Here the wavelets are periodized.
 %
 Approximation coefficients are defined as
 \eq{
-	a_{j,n} = \dotp{f_0}{\phi_{j,n}^O}.
+	a_{j,n}=\dotp{f}{(\phi_{j,n_1}\otimes\phi_{j,n_2})^P}.
 }
 
 \myfigure{
@@ -719,7 +719,7 @@ Approximation coefficients are defined as
 	2-D wavelet coefficients.%	
 }{fig-wavcoefs-2d}
 
-Figure~\ref{fig-wavcoefs-2d} shows examples of wavelet coefficients, that are packed in an image of $N$ pixels.
+Figure~\ref{fig-wavcoefs-2d} shows how the wavelet coefficients are arranged in an image of $N^2$ pixels.
 %
 Figure~\ref{fig-wavcoefs-example} shows other examples of wavelet decompositions.
 
@@ -733,28 +733,28 @@ Figure~\ref{fig-wavcoefs-example} shows other examples of wavelet decompositions
 \image{wavelets}{.3}{wavcoefs-example-mandrill-coefs}
 }
 }{%
-	Examples of images (top row) and the corresponding wavelet coefficients (bottom row) .%	
+	Images (top) and their wavelet coefficients (bottom).%
 }{fig-wavcoefs-example}
 
 %%
-\paragraph{Forward 2-D wavelet transform basic step.}
+\paragraph{One step of the forward 2-D transform.}
 
-A basic step of the computation of the 2-D wavelet transform computes detail coefficients and a low pass residual from the fine scale coefficients
+Each step separates fine-scale approximation coefficients into three detail arrays and a coarse approximation:
 \eq{
 	a_{j-1} \longmapsto (a_j, d_j^H, d_j^V, d_j^D).
 }
-Similarly to the 1-D setting, this mapping is orthogonal, and is computed using the 1-D filtering and sub-sampling formula~\eqref{eq-convol-subsample}.
+As in one dimension, this map is orthogonal. It is implemented by applying the filtering and sub-sampling formula~\eqref{eq-convol-subsample} in each coordinate direction.
 
 One first applies 1-D horizontal filtering and sub-sampling
 \eqm{
-	\tilde a_j &= ( a_{j-1} \star^H \tilde h ) \downarrow^H 2\\
-	\tilde d_j &= ( a_{j-1} \star^H \tilde h ) \downarrow^H 2,
+	\tilde a_j &= ( a_{j-1} \star^H \bar h ) \downarrow^H 2\\
+	\tilde d_j &= (a_{j-1}\star^H\bar g) \downarrow^H 2,
 }
-where $\star^H$ is the horizontal convolution, that applies the 1-D convolution to each column of a matrix
+where $\star^H$ denotes convolution along the first coordinate (called horizontal here), applied to each column of the array
 \eq{
 	a \star^H b_{n_1,n_2} = \sum_{m_1=0}^{P-1} a_{n_1-m_1,n_2} b_{m_1}
 }
-where $a \in \CC^{P \times P}$ and $b \in \CC^P$ are matrix and vectors. The notation $\downarrow^H 2$ accounts for sub-sampling in the horizontal direction
+Here $a\in\CC^{P\times P}$ is a matrix and $b\in\CC^P$ is a filter. The notation $\downarrow^H 2$ denotes sub-sampling in the horizontal direction
 \eq{
 	(a \downarrow^H 2)_{n_1,n_2} = a_{2n_1,n_2}.
 }
@@ -762,15 +762,15 @@ where $a \in \CC^{P \times P}$ and $b \in \CC^P$ are matrix and vectors. The not
 One then applies 1-D vertical filtering and sub-sampling to $\tilde a_j$ and $\tilde d_j$ to obtain
 \eqm{
 	\begin{array}{ll}
-	a_j &=  ( \tilde a_j \star^V \tilde h ) \downarrow^V 2,\\
-	d_j^V &= ( \tilde a_j \star^V \tilde g ) \downarrow^V 2,
+	a_j &=  ( \tilde a_j \star^V \bar h ) \downarrow^V 2,\\
+	d_j^V &= ( \tilde a_j \star^V \bar g ) \downarrow^V 2,
 	\end{array}\qquad	
 	\begin{array}{ll}
-	d_j^H &= ( \tilde d_j \star^V \tilde h ) \downarrow^V 2,\\
-	d_j^D &= ( \tilde d_j \star^V \tilde g ) \downarrow^V 2,
+	d_j^H &= ( \tilde d_j \star^V \bar h ) \downarrow^V 2,\\
+	d_j^D &= ( \tilde d_j \star^V \bar g ) \downarrow^V 2,
 	\end{array}
 }
-where the vertical operators are defined similarly to horizontal operators but operating on rows.
+where the vertical operators are defined analogously to the horizontal operators, acting on rows.
 
 \myfigure{
 \image{wavelets}{.9}{wavalgo-2d-step-fwd}
@@ -783,61 +783,61 @@ where the vertical operators are defined similarly to horizontal operators but o
 \image{wavelets}{.24}{wavalgo-2d-0}&
 \image{wavelets}{.24}{wavalgo-2d-1}&
 \image{wavelets}{.24}{wavalgo-2d-2}\\
-Coefficients $a_j$ & Transform on rows & Transform on columns
+Coefficients $a_{j-1}$ & Transform on rows & Transform on columns
 }
 }{%
 	One step of the 2-D wavelet transform algorithm.%	
 }{fig-wavalgo-2d}
 
-These two forward steps are shown in block diagram in Figure~\ref{fig-wavalgo-2d-step-fwd}. 
-These steps can be applied in place, so that the coefficients are stored in an image of $N$ pixels, as shown in Figure~\ref{fig-wavalgo-2d}. This gives the traditional display of wavelet coefficients used in Figure~\ref{fig-wavcoefs-example}.
+These two forward steps are shown in the block diagram in Figure~\ref{fig-wavalgo-2d-step-fwd}.
+The updates can be performed in place, storing all coefficients in an image of $N^2$ pixels, as shown in Figure~\ref{fig-wavalgo-2d}. This produces the familiar multiscale arrangement used in Figure~\ref{fig-wavcoefs-example}.
 
 %%
 \paragraph{Fast 2-D wavelet transform.}
 
 The 2-D FWT algorithm iterates these steps through the scales:
 \begin{rs}
-	\item \textbf{Input:} signal $f \in \CC^N$.
+	\item \textbf{Input:} image $f \in \CC^{N\times N}$.
 	\item \textbf{Initialization:} $a_J = f$.
-	\item \textbf{For} $j=J,\ldots,j_0-1$.
+	\item \textbf{For} $j=J+1,\ldots,j_0$.
 		\eq{
 			\begin{array}{ll}
-			\tilde a_j &= ( a_{j-1} \star^H \tilde h ) \downarrow^H 2, \\ 
-			\tilde d_j &= ( a_{j-1} \star^H \tilde h ) \downarrow^H 2, \\
-			a_j &=  ( \tilde a_j \star^V \tilde h ) \downarrow^V 2, 
+			\tilde a_j &= ( a_{j-1} \star^H \bar h ) \downarrow^H 2, \\
+			\tilde d_j &= (a_{j-1}\star^H\bar g) \downarrow^H 2, \\
+			a_j &=  ( \tilde a_j \star^V \bar h ) \downarrow^V 2,
 			\end{array}\qquad			
 			\begin{array}{ll}
-			d_j^V &= ( \tilde a_j \star^V \tilde g ) \downarrow^V 2,\\
-			d_j^H &= ( \tilde d_j \star^V \tilde h ) \downarrow^V 2,\\
-			d_j^D &= ( \tilde d_j \star^V \tilde g ) \downarrow^V 2.
+			d_j^V &= ( \tilde a_j \star^V \bar g ) \downarrow^V 2,\\
+			d_j^H &= ( \tilde d_j \star^V \bar h ) \downarrow^V 2,\\
+			d_j^D &= ( \tilde d_j \star^V \bar g ) \downarrow^V 2.
 			\end{array}
 		}
-	\item \textbf{Output:} the coefficients $\{ d_j^\om \}_{j_0 \leq j < J, \om} \cup \{ a_{j_0} \}$.
+	\item \textbf{Output:} the coefficients $\{d_j^\om\}_{J<j\leq j_0,\om} \cup \{ a_{j_0} \}$.
 \end{rs}
 
 
 %%
 \paragraph{Fast 2-D inverse wavelet transform.}
 
-The inverse transform undo the horizontal and vertical filtering steps. 
+The inverse transform undoes the horizontal and vertical filtering steps.
 The first step computes
 \eqm{
-	\tilde a_j &= (a_j \star^V h) \uparrow^V 2 + (d_j^V \star^V g) \uparrow^V 2,\\
-	\tilde d_j &= (d_j^H \star^V h) \uparrow^V 2 + (d_j^D \star^V g) \uparrow^V 2,
+	\tilde a_j &= (a_j\uparrow^V2)\star^Vh + (d_j^V\uparrow^V2)\star^Vg,\\
+	\tilde d_j &= (d_j^H\uparrow^V2)\star^Vh + (d_j^D\uparrow^V2)\star^Vg,
 }
 where the vertical up-sampling is
 \eq{
 	(a \uparrow^V 2)_{n_1,n_2} = 
 	\choice{
-		a_{k,n_2} \qifq n_1=2k, \\
-		0 \qifq n=2k+1.
+		a_{n_1,k}\qifq n_2=2k, \\
+		0\qifq n_2=2k+1.
 	}
 }
 The second inverse step computes
 \eqm{
-	a_{j-1} &= (\tilde a_j \star^H h) \uparrow^H 2 + (\tilde d_j \star^H g) \uparrow^H 2.
+	a_{j-1} &= (\tilde a_j\uparrow^H2)\star^Hh + (\tilde d_j\uparrow^H2)\star^Hg.
 }
-Figure~\ref{fig-wavalgo-2d-step-bwd} shows in block diagram this inverse filter banks, that is the inverse of the diagram~\ref{fig-wavalgo-2d-step-fwd}.
+Figure~\ref{fig-wavalgo-2d-step-bwd} gives the inverse filter-bank diagram corresponding to Figure~\ref{fig-wavalgo-2d-step-fwd}.
 
 \myfigure{
 \image{wavelets}{.9}{wavalgo-2d-step-bwd}
@@ -845,14 +845,14 @@ Figure~\ref{fig-wavalgo-2d-step-bwd} shows in block diagram this inverse filter 
 	Backward 2-D filterbank step.%	
 }{fig-wavalgo-2d-step-bwd}
 
-The inverse Fast wavelet transform iteratively applies these elementary steps
+The inverse fast wavelet transform iteratively applies these elementary steps
 \begin{rs}
-	\item \textbf{Input:} $\{ d_j^\om \}_{j_0 \leq j < J, \om} \cup \{ a_{j_0} \}$.
-	\item \textbf{For} $j=j_0, \ldots, J+1$.
+	\item \textbf{Input:} $\{d_j^\om\}_{J<j\leq j_0,\om} \cup \{ a_{j_0} \}$.
+	\item \textbf{For} $j=j_0,j_0-1,\ldots,J+1$.
 		\eqm{
-			\tilde a_j &= (a_j \star^V h) \uparrow^V 2 + (d_j^V \star^V g) \uparrow^V 2,\\
-			\tilde d_j &= (d_j^H \star^V h) \uparrow^V 2 + (d_j^D \star^V g) \uparrow^V 2,\\
-			a_{j-1} &= (\tilde a_j \star^H h) \uparrow^V 2 + (\tilde d_j \star^H g) \uparrow^V 2.
+			\tilde a_j &= (a_j\uparrow^V2)\star^Vh + (d_j^V\uparrow^V2)\star^Vg,\\
+			\tilde d_j &= (d_j^H\uparrow^V2)\star^Vh + (d_j^D\uparrow^V2)\star^Vg,\\
+			a_{j-1} &= (\tilde a_j\uparrow^H2)\star^Hh + (\tilde d_j\uparrow^H2)\star^Hg.
 		}
 	\item \textbf{Output:} $f = a_J$.
 \end{rs}
@@ -864,9 +864,9 @@ The inverse Fast wavelet transform iteratively applies these elementary steps
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Wavelet Design}
 
-To be able to compute the wavelet coefficients using the FWT algorithm, it remains to know how to compute the scaling and wavelet functions. The FWT only makes use of the filters $h$ and $g$, so instead of explicitly knowing the functions $\phi$ and $\psi$, one can only know these filters. Indeed, most of the known wavelets do not have explicit formula, and are implicitly defined through the cascade of the FWT algorithm. 
+Implementing the FWT requires the filters $h$ and $g$, rather than explicit formulas for the scaling function $\phi$ and wavelet $\psi$. Most useful wavelets have no elementary closed form; their refinement equations define them implicitly, and the cascade algorithm approximates them.
 
-This section shows what are the constraints $h$ and $g$ should satisfy, and gives practical examples. Furthermore, it shows that the knowledge of $h$ determines $g$ under the constraint of having quadrature filters, which is the most usual choice for wavelet analysis.
+This section derives constraints on the filters and gives examples. Under the usual quadrature-mirror construction, the low-pass filter $h$ determines the high-pass filter $g$.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -879,41 +879,41 @@ We introduce the following three conditions on a filter $h$
 	\label{eq-cond-h-star}\tag{$C^*$}  \underset{\om \in [-\pi/2,\pi/2]}{\inf} |\hat h(\om)|&>0.
 \end{align}
 
-Here we are using the Fourier series associated to a filter $h \in \RR^\ZZ$
-\eq{\label{eq-fourier-tr-infi}
+These conditions use the Fourier series of the filter $h \in \RR^\ZZ$:
+\eql{\label{eq-fourier-tr-infi}
 	\forall \om \in \RR/2\pi\ZZ, \quad
 	\hat h(\om) \eqdef \sum_{n \in \ZZ} h_n e^{-\imath n \om }.
 }
-If $h \in \ell^1(\ZZ)$, this defines a continuous periodic fonction $\hat h \in \Cc^0(\RR/2\pi\ZZ)$, and this definition can be extended to $h \in \ell^2(\ZZ)$ and defines $\hat h \in L^2(\RR/2\pi\ZZ)$.
+If $h \in \ell^1(\ZZ)$, this defines a continuous periodic function $\hat h \in \Cc^0(\RR/2\pi\ZZ)$, and the definition extends to $h \in \ell^2(\ZZ)$ to give $\hat h \in L^2(\RR/2\pi\ZZ)$.
 
 \begin{thm}\label{thm-multires-approx}
-	If $\phi$ defines multi-resolution approximation spaces, then~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-2} holds for $h$ defined in~\eqref{eq-dfn-h-g}.
+	If an integrable real scaling function $\phi$ defines a multiresolution analysis and its filter $h$ is summable, then~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-2} hold for $h$ defined in~\eqref{eq-dfn-h-g}.
 	%
-	Conversely, if~\eqref{eq-cond-h-1},~\eqref{eq-cond-h-2} and~\eqref{eq-cond-h-star} holds, then there exists a $\phi$ defining multi-resolution approximation spaces so that associated filter is $h$ as defined in~\eqref{eq-dfn-h-g}.
+	Conversely, if a finitely supported real filter $h$ satisfies~\eqref{eq-cond-h-1},~\eqref{eq-cond-h-2}, and~\eqref{eq-cond-h-star}, then there exists a $\phi$ defining multi-resolution approximation spaces whose associated filter is $h$ as defined in~\eqref{eq-dfn-h-g}.
 \end{thm}
 
-\begin{proof} We only prove the first statement of the theorem. The converse statement is much more difficult to prove.
+\begin{proof} We prove the forward implication. The converse requires a separate construction.
 
 %%
 We now prove condition~\eqref{eq-cond-h-1}.
 %
-The refinement equation reads like a discrete-continuous convolution (or equivalently a convolution with a distribution)
+The refinement equation convolves a function on the real line with a discrete filter, represented by a sum of Dirac masses:
 \eql{\label{eq-wav-proof-refine}
 	\frac{1}{\sqrt{2}} \phi\pa{\frac{t}{2}} = \sum_{n \in \ZZ} h_n \phi(t-n).
 }
 %
-Denoting $h \star \phi$ such a convolution, assuming $h \in \ell_1(\ZZ)$ and $\phi \in L^1(\RR)$, one check that one can apply Fubini and that $h \star \phi \in L^1(\RR)$ and then 
+Writing $h \star \phi$ for this convolution and assuming $h \in \ell_1(\ZZ)$ and $\phi \in L^1(\RR)$, Fubini's theorem shows that $h \star \phi \in L^1(\RR)$ and gives
 \begin{align*}
 	\Ff( \sum_{n \in \ZZ} h_n \phi(t-n) )(\om) &= \int_\RR \sum_{n \in \ZZ} h_n \phi(t-n) e^{-\imath \om t} \d t
 	= \sum_{n \in \ZZ} h_n \int_\RR \phi(t-n) e^{-\imath \om t} \d t \\
 	& = \sum_{n \in \ZZ} h_n e^{-\imath n \om } \int_\RR \phi(x) e^{-\imath \om x} \d x
 	= \hat \phi(\om) \hat h(\om)
 \end{align*}
-where we made the change of variable $x = t-n$. Note that here, $\hat h(\om)$ is the $2\pi$-periodic Fourier transform (i.e. Fourier series) of infinite filters defined in~\eqref{eq-fourier-tr-infi}, whereas $\hat\phi(\om)$ is the Fourier transform of function. This is thus a product of a $2\pi$-periodic function $\hat h$ and a non-periodic function $\hat \phi$. 
+where we substituted $x = t-n$. Here $\hat h(\om)$ is the $2\pi$-periodic Fourier series of the filter, defined in~\eqref{eq-fourier-tr-infi}, while $\hat\phi(\om)$ is the continuous Fourier transform of the scaling function. The product therefore combines a $2\pi$-periodic factor $\hat h$ with a generally nonperiodic factor $\hat \phi$.
 %
 We recall that $\Ff(f(\cdot/s)) = s \hat f(s \cdot)$.
 %
-Over the Fourier domain, equation~\eqref{eq-wav-proof-refine} thus reads
+In the Fourier domain, equation~\eqref{eq-wav-proof-refine} thus reads
 \eql{\label{eq-wav-proof-refine-fourier}
 	\hat\phi(2\om) = \frac{1}{\sqrt{2}}\hat h(\om) \hat \phi(\om).
 }
@@ -923,89 +923,89 @@ One can show that $\hat \phi(0) \neq 0$ (actually, $|\hat \phi(0)| = 1$), so tha
 %%
 We now prove condition~\eqref{eq-cond-h-2}.
 %
-The orthogonality of $\phi(\cdot-n) \}_n$ is rewritten using a continuous convolution as (see also  Proposition~\ref{prop-spectral-ortho})
+The orthogonality of $\{\phi(\cdot-n)\}_n$ can be expressed as a continuous convolution (see also Proposition~\ref{prop-spectral-ortho})
 \eq{
-	\foralls n \in \ZZ, \quad \phi \star \bar \phi(n)=\de_0
+	\foralls n \in \ZZ, \quad (\phi\star\bar\phi)(n)=\delta_{n,0}
 }
 where $\bar \phi(x) = \phi(-x)$, 
-and thus over the Fourier domain, using~\eqref{eq-wav-proof-refine-fourier} which shows $\hat\phi(\om) = \frac{1}{\sqrt{2}}\hat h(\om/2) \hat \phi(\om/2)$
+and thus in the Fourier domain, using~\eqref{eq-wav-proof-refine-fourier} which shows $\hat\phi(\om) = \frac{1}{\sqrt{2}}\hat h(\om/2) \hat \phi(\om/2)$
 \eq{
 	1 = \sum_k |\hat \phi(\om+2k\pi)|^2 = \frac{1}{2}\sum_k |\hat h(\om/2+k\pi)|^2 |\hat \phi(\om/2+k\pi)|^2.
 }
-Since $\hat h$ is $2\pi$-periodic, one can split even and odd $k$ and obtain
+Since $\hat h$ is $2\pi$-periodic, one can separate even and odd indices $k$ and obtain
 \eq{
 	2 = |\hat h(\om/2)|^2 \sum_k |\hat \phi(\om/2+2k\pi)|^2 +
 	    |\hat h(\om/2+\pi)|^2 \sum_k |\hat \phi(\om/2+2k\pi+\pi)|^2
 }
-This leads to condition~\eqref{eq-cond-h-2}. Re-using the fact that $\sum_k |\hat \phi(\om+2k\pi)|^2=1$ for $\om'=\om/2$ in place of $\om$, one thus has 
+To obtain condition~\eqref{eq-cond-h-2}, apply $\sum_k |\hat \phi(\om+2k\pi)|^2=1$ at $\om'=\om/2$ instead of $\om$:
 \eq{
 	|\hat h(\om')|^2+|\hat h(\om'+\pi)|^2 = 2.
 }
 
 %%
-We do not prove the converse statement, which requires to ``create'' a function $\phi$ from the filter $h$. The intuition is that iterating~\eqref{eq-wav-proof-refine-fourier} leads informally to
+The converse requires constructing a scaling function $\phi$ from the filter $h$; we do not prove it here. Iterating~\eqref{eq-wav-proof-refine-fourier} suggests the infinite-product construction
 \eql{\label{eq-dfn-cascade-inf}
-	\hat \phi(\om) = \prod_{k < 0} \frac{\hat h(\om/2^k)}{\sqrt{2}}.
+	\hat \phi(\om) = \prod_{k=1}^{\infty}\frac{\hat h(\om/2^k)}{\sqrt{2}}.
 }
-Condition~\eqref{eq-cond-h-star} can be shown to imply that this infinite product converge, and define a (non-periodic) function in $L^2(\RR)$.
+Condition~\eqref{eq-cond-h-star} can be shown to imply that this infinite product converges and defines a (non-periodic) function in $L^2(\RR)$.
 \end{proof}
 
 
-Note that for the converse statement of this theorem to holds, condition~\eqref{eq-cond-h-star} imposes a control on the behavior of $\hat h$ near 0. 
+Condition~\eqref{eq-cond-h-star} prevents zeros of $\hat h$ on the central half-period. It is a sufficient nondegeneracy condition for the converse construction used here.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{High-pass Filter Constraints}
 
-We now introduce the following two conditions on a pair of filter $(g,h)$
+We now introduce the following two conditions on a pair of filters $(g,h)$
 \begin{align}
 	\label{eq-cond-g-1}\tag{$C_3$}  |\hat g(\om)|^2 + |\hat g(\om+\pi)|^2&=2  \\
 	\label{eq-cond-g-2}\tag{$C_4$}   \hat g(\om) \hat h(\om)^* + \hat g(\om+\pi) \hat h(\om+\pi)^*&=0.
 \end{align}
-Figure~\ref{fig-filter-constr} illustrates this constraint. 
+Figure~\ref{fig-filter-constr} illustrates these filter constraints.
 
 \myfigure{
 \image{wavelets}{.3}{filter-constr}
-}{Low/high pass filter constraint. 
+}{Constraints on low-pass and high-pass filters.
 }{fig-filter-constr} 
 
 
 
 \begin{thm}\label{thm-wave-h}
-	If $(\phi,\psi)$ defines a multi-resolution analysis, then~\eqref{eq-cond-g-1} and~\eqref{eq-cond-g-2} holds for $(h,g)$ defined in~\eqref{eq-dfn-h-g}.
+	If $(\phi,\psi)$ defines a multi-resolution analysis, then~\eqref{eq-cond-g-1} and~\eqref{eq-cond-g-2} hold for $(h,g)$ defined in~\eqref{eq-dfn-h-g}.
 	%
-	Conversely, if~\eqref{eq-cond-h-1} to~\eqref{eq-cond-g-2} hold, then there exists a $(\phi,\psi)$ defining multi-resolution analysis so that associated filters are $(h,g)$ as defined in~\eqref{eq-dfn-h-g}. Furthermore, 
+	Conversely, if the finitely supported real low-pass filter satisfies~\eqref{eq-cond-h-1}--\eqref{eq-cond-h-star}, and a summable real filter $g$ satisfies~\eqref{eq-cond-g-1}--\eqref{eq-cond-g-2}, then there is a multiresolution wavelet pair $(\phi,\psi)$ whose associated filters are $(h,g)$ as defined in~\eqref{eq-dfn-h-g}. Furthermore,
 	\eql{\label{eq-rel-psi-phi}
 		\hat \psi(\om) = \frac{1}{\sqrt{2}} \hat g(\om/2) \hat \phi(\om/2).
 	}
 \end{thm}
 
 \begin{proof}
-We prove condition~\eqref{eq-cond-g-1}.
+We prove the forward implication, beginning with condition~\eqref{eq-cond-g-1}.
 %
 The refinement equation for the wavelet reads
 \eq{
 	\frac{1}{\sqrt{2}} \psi\pa{\frac{t}{2}} = \sum_{n \in \ZZ} g_n \phi(t-n)
 }
-and thus over the Fourier domain
+and thus in the Fourier domain
 \eql{\label{eq-ref-fourier-wav}
 	\hat\psi(2\om) = \frac{1}{\sqrt{2}}\hat g(\om) \hat \phi(\om).
 }
-The orthogonality of $\{ \psi(\cdot-n) \}_n$ is re-written
+Orthogonality of the translates $\{ \psi(\cdot-n) \}_n$ gives
 \eq{
-	\foralls n \in \ZZ, \quad  \psi \star \bar \psi(n)=\de_0
+	\foralls n \in \ZZ, \quad  (\psi\star\bar\psi)(n)=\delta_{n,0}
 }
-and thus over the Fourier domain (using Poisson formula, see also Proposition~\ref{prop-spectral-ortho})
+and thus in the Fourier domain (using Poisson's formula, see also Proposition~\ref{prop-spectral-ortho})
 \eq{
 	\sum_k |\hat \psi(\om+2k\pi)|^2 = 1.
 }
-Using the Fourier domain refinement equation~\eqref{eq-ref-fourier-wav}, similarely to the proof of Theorem~\ref{thm-multires-approx} for~\eqref{eq-cond-h-1}, this is equivalent to condition~\eqref{eq-cond-g-1}.
+Apply the Fourier refinement equation~\eqref{eq-ref-fourier-wav} and separate the even and odd terms, as in the proof of condition~\eqref{eq-cond-h-2} in Theorem~\ref{thm-multires-approx}. This gives condition~\eqref{eq-cond-g-1}.
 %
-Figure~\ref{fig-filters-complements} shows the Fourier transform of two filters that satisfy this complementary condition.
+Figure~\ref{fig-filters-complements} shows the Fourier transforms of a pair of filters satisfying this complementarity condition.
 
 \myfigure{
 \image{wavelets}{.4}{filters-complement}
 }{%
-	Complementarity between a low pass and a high pass wavelet filters $h$ and $g$ that satisfy condition~\eqref{eq-cond-g-1}.%	
+	Complementarity of low-pass and high-pass filters $h$ and $g$ satisfying~\eqref{eq-cond-g-1}.%
 }{fig-filters-complements}
 
 We now prove condition~\eqref{eq-cond-g-2}.
@@ -1014,7 +1014,7 @@ The orthogonality between $\{ \psi(\cdot-n) \}_n$ and $\{ \phi(\cdot-n) \}_n$ is
 \eq{
 	\foralls n \in \ZZ, \quad \psi \star \bar \phi(n)=0
 }
-and hence over the Fourier domain (using Poisson formula, similarly to Proposition~\ref{prop-spectral-ortho})
+and hence in the Fourier domain (using Poisson's formula, similarly to Proposition~\ref{prop-spectral-ortho})
 \eq{
 	\sum_k \hat \psi(\om+2k\pi)\hat \phi^*(\om+2k\pi) = 0.
 }
@@ -1028,10 +1028,10 @@ Using the Fourier domain refinement equations~\eqref{eq-wav-proof-refine-fourier
 %%
 \paragraph{Quadrature mirror filters.}
 
-Quadrature mirror filters (QMF) defines $g$ as a function of $h$ so that the conditions of Theorem~\ref{thm-wave-h} are automatically satisfy. This choice is the natural choice to build wavelet filters, and is implicitly assumed in most constructions (other choices leading to the same wavelet function anyway, since it safisfies~\eqref{eq-rel-psi-phi}).
+Quadrature mirror filters (QMF) define $g$ as a function of $h$ so that the conditions of Theorem~\ref{thm-wave-h} are automatically satisfied. Most wavelet constructions implicitly use this choice (other phase choices can yield different wavelets spanning the same detail spaces).
 
 \begin{prop}
-	For a filter $h \in \ell^2(\ZZ)$ satisfying~\eqref{eq-cond-h-1}, defining $g \in \ell^2(\ZZ)$ as
+	For a real filter $h\in\ell^1(\ZZ)$ satisfying~\eqref{eq-cond-h-2}, the filter $g \in \ell^2(\ZZ)$ defined by
 	\eql{\label{eq-qmf}
 		\foralls n \in \ZZ, \quad g_n = (-1)^{1-n}h_{1-n}
 	}
@@ -1039,8 +1039,8 @@ Quadrature mirror filters (QMF) defines $g$ as a function of $h$ so that the con
 \end{prop}
 
 \begin{proof}
-	One indeed has that 
-	\eql{\label{eq-qmf}
+	Taking the Fourier series of the defining relation gives
+	\eql{\label{eq-qmf-fourier}
 		\hat g(\om) = e^{-i \om} \hat h(\om+\pi)^*, 
 	}
 	so that 
@@ -1068,47 +1068,47 @@ Quadrature mirror filters (QMF) defines $g$ as a function of $h$ so that the con
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Wavelet Design Constraints}
 
-According to the previous sections, the construction of a multi-resolution analysis (i.e. of functions $(\phi,\psi$) is obtained by designing a filter $h$ satisfying conditions~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-2}. The function $\phi$ is obtained by an infinite cascade of filtering, or equivalently in the Fourier domain by~\eqref{eq-dfn-cascade-inf}, there is in general (put aside special case such as the Haar multiresolution) no closed form expression for $\phi$. Once $\phi$ is defined, $\psi$ is automatically defined by the relation~\eqref{eq-rel-psi-phi} (and $g$ can be defined as~\eqref{eq-qmf}). 
+One can construct a multiresolution wavelet pair by designing a finite filter $h$ satisfying~\eqref{eq-cond-h-1}--\eqref{eq-cond-h-star}. The scaling function is obtained through the infinite product~\eqref{eq-dfn-cascade-inf}. Except in special cases such as Haar wavelets, it has no elementary closed form. The QMF relation~\eqref{eq-qmf} then defines $g$, and~\eqref{eq-rel-psi-phi} defines $\psi$.
 
-There exists only one Fourier transform, but there is a large choice of different mother wavelet functions $\psi$. They are characterized by
+Fourier atoms are fixed exponentials, whereas mother wavelets can be designed to meet several requirements:
 \begin{rs}
 	\item Size of the support.
-	\item Number of oscillations (the so called number $p$ of vanishing moments).
-	\item Symmetry (only possible for non-orthogonal bases).
+	\item Cancellation of polynomials, measured by the number $p$ of vanishing moments.
+	\item Symmetry (for compactly supported scalar orthogonal wavelets, the Haar system is the exceptional symmetric case).
 	\item Smoothness (number of derivatives).
 \end{rs}
-We now detail how these constraints are integrated together with conditions ~\eqref{eq-cond-h-1}-~\eqref{eq-cond-g-2}.
+We now explain how these design requirements interact with conditions~\eqref{eq-cond-h-1}--\eqref{eq-cond-g-2}.
 
 %%
 \paragraph{Vanishing moments.}
 
 A wavelet $\psi$ has $p$ vanishing moments if
 \eql{\label{eq-dfn-vm}
-	\foralls k \leq p-1, \quad \int_\RR \psi(x) \, x^k \d x = 0.
+	\foralls k=0,\ldots,p-1, \quad \int_\RR \psi(x) \, x^k \d x = 0.
 }
-This ensures that $\dotp{f}{\psi_{j,n}}$ is small if $f$ is $\Cal$, $\al<p$ on Supp$(\psi_{j,n})$, which can be seen by doing a Taylor expansion of $f$ around the point $2^j n$ on the support of the wavelet.
+Vanishing moments make $\dotp{f}{\psi_{j,n}}$ small when $f$ has regularity $\Cal$ with $\al<p$ on Supp$(\psi_{j,n})$. A Taylor expansion of $f$ about $2^j n$ on the wavelet's support explains this cancellation.
 %
-This condition is equivalently expressed over Fourier as followed (see Fig.~\ref{fig-vanmoments}).
+The vanishing-moment condition has the following equivalent Fourier characterization; see Figure~\ref{fig-vanmoments}.
 
 \myfigure{
 \image{wavelets}{.3}{vanmoments}
 }{%
-	Wanishing moment condition as zero derivative conditions.
+	Vanishing moments correspond to vanishing derivatives of the Fourier transform.
 }{fig-vanmoments}
 
 \begin{prop}
-Assuming enough regularity of $\psi$, and using the QMF construction~\eqref{eq-qmf}, it has $p$ vanishing moments if and only if
+Assuming the required moments of $\psi$ and derivatives of the filter symbols exist, a wavelet obtained by the QMF construction~\eqref{eq-qmf} has $p$ vanishing moments if and only if
 \eql{\label{eq-cond-vm-fourier}
-	\foralls k \leq p-1, \quad 
+	\foralls k=0,\ldots,p-1, \quad
 	\frac{\d^k \hat h}{\d \om^k}(\pi) = \frac{\d^k \hat g}{\d \om^k}(0) = 0.
 }
 \end{prop}
 \begin{proof}
-	Since $\psi$ is regular, one has that $\hat\psi^{(k)} = \Ff( (-\imath \cdot)^k \psi(\cdot) )$, so that
+	Integrability of the moments allows differentiation under the Fourier integral: $\hat\psi^{(k)} = \Ff( (-\imath \cdot)^k \psi(\cdot) )$. Thus
 	\eq{
 		(-\imath)^k \int_\RR x^k \psi(x) \d x  = \hat\psi^{(k)}(0).
 	}
-	Relation~\eqref{eq-rel-psi-phi} and~\eqref{eq-qmf}  implies 
+	Relations~\eqref{eq-rel-psi-phi} and~\eqref{eq-qmf} imply
 	\eq{
 		\hat \psi(2\om) = \hat h(\om+\pi)^* \rho(\om)
 		\qwhereq
@@ -1118,18 +1118,18 @@ Assuming enough regularity of $\psi$, and using the QMF construction~\eqref{eq-q
 	\eq{
 		2 \hat \psi^{(1)}(2\om) = \hat h(\om+\pi)^* \rho^{(1)}(\om) + \hat h^{(1)}(\om+\pi)^* \rho(\om)
 	}
-	which shows that, since $\rho(0) = \hat \phi(0) \neq 0$, $\psi^{(1)}(0)=0 \Leftrightarrow \hat h^{(1)}(\pi)^*=0$.
+	Since $\hat h(\pi)=0$ and $\rho(0)=\hat\phi(0)/\sqrt2\neq0$, this shows that $\hat\psi^{(1)}(0)=0 \Leftrightarrow \hat h^{(1)}(\pi)^*=0$.
 	%
-	Recursing this argument and iterating the derrivative, one obtains that 
-	$\psi^{(k)}(0)=0 \Leftrightarrow \hat h^{(k)}(\pi)^*=0$ (assuming this hold for previous derivatives).
+	Induction gives the higher-order equivalence
+	$\hat\psi^{(k)}(0)=0 \Leftrightarrow \hat h^{(k)}(\pi)^*=0$, provided all derivatives of lower order vanish.
 \end{proof}
 
-Note that conditions~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-1} implies that $\hat h(\pi)=0$, so that an admissible wavelet necessarily has $1$ vanishing moment, i.e. $\int \psi=0$. Condition~\eqref{eq-cond-vm-fourier} shows that having more vanishing moment is equivalent to having a Fourier transform $\hat h$ which is ``flatter'' arround $\om=\pi$.
+Conditions~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-2} give $\hat h(\pi)=0$, so every admissible wavelet has at least $1$ vanishing moment: $\int \psi=0$. By~\eqref{eq-cond-vm-fourier}, additional vanishing moments require the Fourier transform $\hat h$ to vanish to higher order at $\om=\pi$.
 
 %%
 \paragraph{Support.}
 
-Figure~\ref{fig-vanishing-moments-1d} shows the wavelet coefficients of a piecewise smooth signal. Coefficients of large magnitude are clustered near the singularities, because the wavelet $\psi$ has enough vanishing moments.
+Figure~\ref{fig-vanishing-moments-1d} shows the wavelet coefficients of a piecewise smooth signal. The cancellation provided by $\psi$ suppresses coefficients in smooth regions, leaving the largest coefficients near singularities.
 
 \myfigure{
 \image{wavelets}{.6}{vanishing-moments-1d-coefs}
@@ -1137,46 +1137,46 @@ Figure~\ref{fig-vanishing-moments-1d} shows the wavelet coefficients of a piecew
 	Location of large wavelet coefficients.%	
 }{fig-vanishing-moments-1d}
 
-To avoid that many wavelets create large coefficients near singularities, one should choose $\psi$ with a small support.
+Choosing $\psi$ with short support limits how many wavelets intersect each singularity.
 %
 One can show that the size of the support of $\psi$ is proportional to the size of the support of $h$.
 %
-This requirement is however contradictory with the vanishing moment property~\eqref{eq-dfn-vm}. Indeed, one can prove that 
+Short support competes with the vanishing-moment requirement~\eqref{eq-dfn-vm}. Indeed, one can prove that
 for an orthogonal wavelet basis with $p$ vanishing moments
 \eq{
 	|\text{Supp}(\psi)| \geq 2p-1,
 } 
-where $\sup(a)$ is the largest closed interval outside of which the function $f$ is zero.
+where the left-hand side denotes the length of the smallest closed interval containing the support of a compactly supported orthogonal mother wavelet.
 
 
-Chapter~\ref{chap-approx} studies in details the tradeoff of support size and vanishing moment to perform non-linear approximation of piecewise smooth signals.
+Chapter~\ref{chap-approx} studies in detail the tradeoff between support size and vanishing moments in nonlinear approximation of piecewise smooth signals.
 
 %%
 \paragraph{Smoothness.}
 
-In compression or denoising applications, an approximate signals is recovered from a partial set $I_M$ of coefficients, 
+In compression or denoising applications, an approximate signal is recovered from a partial set $I_M$ of coefficients,
 \eq{
 	f_M = \sum_{(j,n) \in I_M} \dotp{f}{\psi_{j,n}} \psi_{j,n}.
 }
-This approximation $f_M$ has the same smoothness as $\psi$. 
+This finite sum is at least as smooth as $\psi$.
 
-To avoid visually unpleasant artifacts, one should thus choose a smooth wavelet function $\psi$. This is only for cosmetic reasons, since increasing smoothness does not leads to a better approximation. However, for most wavelet family, increasing the number of vanishing moments also increases the smoothness of the wavelets. This is for instance the case of the Daubechies family exposed in the next section.
+A smooth wavelet $\psi$ helps avoid visible reconstruction artifacts. Smoothness controls the regularity of the reconstructed signal, while vanishing moments and localization primarily determine the approximation rates studied below. These properties are often linked: in many families, including the Daubechies wavelets introduced next, more vanishing moments also bring greater smoothness.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Daubechies Wavelets}
 
-To build a wavelet $\psi$ with a fixed number $p$ of vanishing moments, one designs the filter $h$, and use the quadrature mirror filter relation~\eqref{eq-qmf} to compute $g$. One thus look for $h$ such that 
+To build a wavelet $\psi$ with a fixed number $p$ of vanishing moments, one designs the filter $h$, and uses the quadrature mirror filter relation~\eqref{eq-qmf} to compute $g$. One therefore looks for $h$ such that
 \eq{
 	|\hat h(\om)|^2 + |\hat h(\om+\pi)|^2 = 2, \quad 
 	\hat h(0)=\sqrt{2}, \qandq
-	\foralls k <p, \; {\frac{\d^k \hat h}{\d \om^k} }(\pi)=0.
+	\foralls k=0,\ldots,p-1, \; {\frac{\d^k \hat h}{\d \om^k} }(\pi)=0.
 }
-This corresponds to algebraic relationships between the coefficients of $h$, and it turns out that they can be solved explicitly using the Euclidean division algorithm for polynomials.  
+These conditions give algebraic relations between the coefficients of $h$, which can be solved explicitly using the Euclidean division algorithm for polynomials.
 
-This leads to Daubechies wavelets with $p$ vanishing moments, which are orthogonal wavelets with a minimum support length of $2p-1$.
+The resulting Daubechies wavelets have $p$ vanishing moments and attain the minimum support length $2p-1$ among compactly supported orthogonal wavelets.
 
-For $p=1$, it leads to the Haar wavelet, with 
+The following filter coefficients are rounded to four decimal places. For $p=1$, the construction gives the Haar system (up to the overall sign of the wavelet), with
 \eq{
 	h= [h_0 = 0.7071;    0.7071].
 }
@@ -1192,7 +1192,7 @@ and for $p=3$,
 %%
 \paragraph{Wavelet display.}
 
-Figure~\ref{fig-wavelets} shows examples of Daubechies mother wavelet functions with an increasing number of vanishing moments. These displays are obtained by computing in fact a discrete wavelet $\bar \psi_{j,n}$ defined in~\eqref{eq-discr-wav-basis} for a very large number of samples $N$. This discrete wavelet is computed by applying the inverse wavelet transform to the coefficients
+Figure~\ref{fig-wavelets} compares Daubechies mother wavelets with increasing numbers of vanishing moments. Each continuous wavelet is approximated by a discrete wavelet $\bar \psi_{j,n}$ computed on a fine grid of $N$ samples. Applying the inverse transform to the following coefficient vector produces that discrete wavelet:
 $d_{j',n'} = \delta_{j-j'} \delta_{n-n'}$.
 
 \myfigure{
@@ -1203,7 +1203,5 @@ $d_{j',n'} = \delta_{j-j'} \delta_{n-n'}$.
 \image{wavelets}{.45}{wavelet-daubechies-4}
 }
 }{%
-	Examples of Daubechies mother wavelets $\psi$ with an increasing number $p$ of vanishing moments. %	
+	Daubechies mother wavelets $\psi$ with increasing numbers $p$ of vanishing moments. %
 }{fig-wavelets}
-
-

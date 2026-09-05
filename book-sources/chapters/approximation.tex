@@ -1,9 +1,11 @@
 % !TEX root = ../FundationsDataScience.tex
 
-\chapter{Linear and Non-linear Approximation}
-\label{chap-approx}
+\chapter{Linear and Nonlinear Approximation}
+\label{chap-approx}\label{chap-approximation}
 
-This chapter studies the theory of signal and image approximation, and gives an application to lossy compression. This theoritical analysis is performed for continuous functions $f \in \Ldeux([0,1]^d)$ for $d=1,2$. This analysis is important to studies the performance of compression, denoising, and super-resolution applications.
+\chapteroverview{When only a limited number of coefficients can be retained, the choice of representation determines which features of a signal survive. Approximation rates quantify this tradeoff and help explain the performance of compression and denoising methods. We compare fixed and adaptive coefficient selection, relate Fourier and wavelet errors to smoothness and edges, and examine triangulations and curvelets for images with smooth contours.}
+
+The analysis concerns functions $f \in \Ldeux([0,1]^d)$ on a continuous domain, with $d=1,2$.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -12,16 +14,16 @@ This chapter studies the theory of signal and image approximation, and gives an 
 \section{Approximation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Approximation in an Ortho-basis}
+\subsection{Approximation in an Orthonormal Basis}
 
-We consider an orthogonal basis $\Bb = \{ \psi_m \}_m$ of $\Ldeux([0,1]^d)$, with for instance $d=1$ (signals) or $d=2$ (images).
-We recall that the decomposition of a signal in an orthonormal basis
+Let $\Bb = \{ \psi_m \}_m$ be an orthonormal basis of $\Ldeux([0,1]^d)$, with $d=1$ for signals or $d=2$ for images.
+The complete expansion in this basis,
 \eq{
 	f = \sum_{m \in \ZZ} \dotp{f}{\psi_m} \psi_m
 }
-gives back the original signal and thus produces no error. Processing algorithms modify the coefficients $\dotp{f}{\psi_m}$ and introduce some error.  
+reconstructs the signal exactly. Approximation and processing methods modify the coefficients $\dotp{f}{\psi_m}$, introducing a reconstruction error.
 
-The simplest processing computes an approximation by considering only a sub-set $I_M \subset \ZZ$ of $M$ coefficients and performing the reconstruction from this subset 
+The simplest approximation reconstructs the signal from a subset $I_M \subset \ZZ$ of $M$ coefficients:
 \eq{
 	f_M \eqdef \sum_{m \in I_M} \dotp{f}{\psi_m} \psi_m, 
 	\qwhereq M = |I_M|.
@@ -30,28 +32,28 @@ The reconstructed signal $f_M$ is the orthogonal projection of $f$ onto the spac
 \eq{
 	V_M \eqdef \Span\enscond{\psi_m}{m \in I_M}.
 }
-Since $V_M$ might depend on $f$, this projection $f \mapsto f_M$ might be non-linear.
+If the selected space $V_M$ depends on $f$, the overall approximation map $f \mapsto f_M$ may be nonlinear, even though projection onto each fixed space is linear.
 
 Since the basis is orthogonal, the approximation error is 
 \eq{
 	\norm{f-f_M}^2 = \sum_{m \notin I_M} |\dotp{f}{\psi_m}|^2.
 }
-The important question is now to choose the set $I_M$, which might depend on the signal $f$ itself. 
+The central choice is the retained index set $I_M$, which may depend on the signal $f$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Linear Approximation}
 
-Linear approximation is obtained by fixing once for all $I_M$, and thus using the same set of coefficients for all $f$. The mapping $f \mapsto f_M$ is a linear orthogonal projection on $V_M$, and it satisfies
+Fixing $I_M$ independently of the input gives a linear approximation: the same coefficients are retained for every $f$. The map $f \mapsto f_M$ is then orthogonal projection onto a fixed space $V_M$, and it satisfies
 \eq{
 	(f+g)_M = f_M + g_M
 }
-For the Fourier basis, one usually selects the low-frequency atoms
+For the Fourier basis and an even coefficient budget, one usually selects the low-frequency atoms
 \eq{
 	I_M = \{-M/2+1,\ldots,M/2\}.
 }
 For a 1-D wavelet basis, one usually selects the coarse wavelets
 \eq{
-	I_M= \enscond{m=(j,m)}{ j \geq j_0}
+	I_M=\{\text{coarsest scaling atoms and wavelets }(j,n)\text{ with }j\geq j_0\}
 }
 where $j_0$ is selected such that $|I_M|=M$.
 
@@ -60,22 +62,22 @@ where $j_0$ is selected such that $|I_M|=M$.
 \image{approximation}{.32}{approximation-original}&
 \image{approximation}{.32}{approximation-linear}&
 \image{approximation}{.32}{approximation-non-linear}\\
-Original $f$ & Linear $f_M^\ell$ & Non-linear $f_M^n$
+Original $f$ & Linear $f_M^\ell$ & Nonlinear $f_M^n$
 }
 }{%
-	Linear versus non-linear wavelet approximation. %	
+	Linear versus nonlinear wavelet approximation. %
 }{fig-approximation}
 
-Figure \ref{fig-approximation}, center, shows an example of such a linear approximation with wavelets. Linear approximation tends to performs poorly near singularities, because they introduce some blurring.
+Figure \ref{fig-approximation}, center, illustrates linear wavelet approximation. Discarding all fine-scale details blurs singularities, where the approximation is least accurate.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Non-linear Approximation}
+\subsection{Nonlinear Approximation}
 
-A non-linear approximation is obtained by choosing $I_M$ depending on $f$. In particular, one would like to choose $I_M$ to minimize the approximation error $\norm{f-f_M}$. Since the basis is orthogonal, this is achieved by selecting the $M$ largest coefficients in magnitude 
+Allowing $I_M$ to depend on $f$ gives a nonlinear approximation. To choose $I_M$ that minimizes $\norm{f-f_M}$, orthogonality reduces the problem to retaining the $M$ coefficients of largest magnitude:
 \eq{
 	I_M= \{ M \text{ largest coefficients } |\dotp{f}{\psi_m}| \}.
 }
-This can be equivalently obtained using a thresholding 
+When there are no ties at the cutoff, this can be obtained by thresholding
 \eq{
 	I_M = \enscond{m}{ |\dotp{f}{\psi_m}|>T }
 }
@@ -87,19 +89,17 @@ where $T$ depends on the number of coefficients $M$,
 %%
 \paragraph{Computation of the threshold.}
 
-There is a bijective 1:1 mapping between $T$ and $M$ obtained by ordering the coefficient magnitudes $|\dotp{f}{\psi_m}|$ by decaying order, 
+Order the coefficient magnitudes in nonincreasing order. For a finite vector, write
 \eql{\label{eq-dfn-ordered-coefs}
-	T = d_{M} \qwhereq
-	\{ d_m \}_{m=0}^{N-1} = \{ |\dotp{f}{\psi_m}| \}_{0}^{N-1}
-	\qandq
-	d_m \geq d_{m+1}.
+	d_1\geq\cdots\geq d_N\geq0,\qquad\{d_m\}_{m=1}^{N}=\{|\dotp{f}{\psi_m}|\}_{m=1}^{N}
+	.
 }
-Figure \ref{fig-decay-coefs} shows this mapping between $M$ and $T$.
+If $d_M>d_{M+1}$, any threshold $d_{M+1}\leq T<d_M$ retains exactly $M$ coefficients. At a tie, a deterministic rule must select among equal coefficients. Thus the threshold $T$ and coefficient count $M$ do not determine each other uniquely. Figure~\ref{fig-decay-coefs} illustrates the relationship.
 
-The following proposition show that the decay of the ordered coefficients is linked to the non-linear approximation decay.
+The following proposition shows that the decay of the ordered coefficients governs the decay of the nonlinear approximation error.
 
 \begin{prop}\label{prop-equiv-comp-decay}
-One has
+For $\alpha>0$, with $(d_m)_{m\geq1}$ in nonincreasing order, one has
 \eql{\label{eq-decay-coef-approx}
 	d_m = O( m^{-\frac{\al+1}{2}} )
 	\quad\Longleftrightarrow\quad
@@ -112,7 +112,7 @@ One has
 \eq{
 	\norm{f-f_M}^2 = \sum_{m>M} d_m^2
 }
-and 
+The forward implication follows from $\sum_{m>M}m^{-\alpha-1}\leq\alpha^{-1}M^{-\alpha}$. For the converse, taking $M$ even (integer rounding changes only constants),
 \eq{
 	d_M^2 \leq \frac{2}{M} \sum_{m=M/2+1}^{M} d_m^2 \leq \frac{2}{M} \sum_{m > M/2} d_m^2 = \frac{2}{M} \norm{f-f_{M/2}}^2.
 }
@@ -123,26 +123,26 @@ and
 \myfigure{
 \image{approximation}{.3}{approximation-decay-coefs}
 }{%
-	Decay of the ordered coefficients and determination of the threshold for non-linear approxiation. %	
+	Ordered coefficient magnitudes and the threshold used for nonlinear approximation. %
 }{fig-decay-coefs}
 
 %%
 \paragraph{Hard thresholding.}
  
-The non-linear approximation is re-written as
+For the coefficient set selected by a threshold $T$, the nonlinear approximation can be written as
 \eql{\label{eq-nonlinear-approx}
 	f_M = \sum_{ |\dotp{f}{\psi_m}|>T } \dotp{f}{\psi_m} \psi_m
 	=  \sum_m S_T(\dotp{f}{\psi_m}) \psi_m,
 }
 where 
-\eql{\label{eq-hard-thresh}
+\eql{\label{eq-hard-thresh-approx}
 	S_T(x) = 
 	\choice{ 
 		x \qifq |x|>T \\ 
 		0 \qifq |x| \leq T 
 	}
 }
-is the hard thresholding, that is displayed in Figure \ref{fig-thresholding-hard}. 
+is the hard thresholding operator displayed in Figure \ref{fig-thresholding-hard}.
 
 \myfigure{
 \image{approximation}{.3}{thresholding-hard}
@@ -158,8 +158,8 @@ is the hard thresholding, that is displayed in Figure \ref{fig-thresholding-hard
 \section{Signal and Image Modeling}
 \label{sec-signal-models}
 
-A signal model is a constraint $f \in \Theta$, where $\Theta \subset \Ldeux([0,1]^d)$ is a set of signals one is interested in.
-Figure \ref{fig-approximation-class} shows different class of models for images, that we describe in the following paragraph.
+A signal model specifies a constraint $f \in \Theta$, where $\Theta \subset \Ldeux([0,1]^d)$ is the class of signals of interest.
+Figure \ref{fig-approximation-class} shows different image models, which we describe below.
 
 \myfigure{
 \tabquatre{
@@ -167,11 +167,11 @@ Figure \ref{fig-approximation-class} shows different class of models for images,
 \image{approximation}{.24}{approximation-class-bv}&
 \image{approximation}{.24}{approximation-class-cartoon}&
 \image{approximation}{.24}{approximation-class-natural}\\
-Regular & Bounded variations & Cartoon & Natural
+Regular & Bounded variation & Cartoon & Natural
 }
 %\image{approximation}{.3}{approximation-class-pieceregular}
 }{%
-	Examples of different kinds of image models. %	
+	Examples of image models. %
 }{fig-approximation-class}
 
 
@@ -183,47 +183,47 @@ Regular & Bounded variations & Cartoon & Natural
 %%
 \paragraph{Signals with derivatives.}
 
-The simplest model is made of uniformly smooth signals, that have bounded derivatives
+The simplest model consists of uniformly smooth signals with bounded derivatives
 \eql{\label{eq-smooth-model} 
-	\Th = \enscond{ f \in \Ldeux([0,1]^d) }{ \norm{f}_{\Cal} \leq C },
+	\Th = \enscond{ f \in \Ldeux([0,1]^d) }{ \norm{f}_{\Cal} \leq C },
 }
-where $C>0$ is a fixed constant, and where in 1-D
+where $C>0$ is fixed. For integer $\alpha\geq1$, in one dimension
 \eq{
-	\norm{f}_{\Cal} \eqdef \umax{k \leq \al} \normb{ \frac{\d^k f}{\d t^k} }_{\infty}.
+	\norm{f}_{\Cal} \eqdef \umax{0\leq k\leq\al} \normb{ \frac{\d^k f}{\d t^k} }_{\infty}.
 }
-This extends to higher dimensional signals by considering partial derivatives along each direction.
+In higher dimensions, take the maximum over all partial derivatives of total order at most $\alpha$. For noninteger $\alpha=m+\beta$, $0<\beta<1$, use the usual H\"older norm: derivatives through order $m$ are bounded, and order-$m$ derivatives are $\beta$-H\"older continuous.
 
 %%
 \paragraph{Sobolev smooth signals and images.}
 
-A smooth $\Cal$ signals in \eqref{eq-smooth-model} has derivatives with bounded energy, so that 
+For integer $\alpha\geq1$, a $\Cal$ signal in the model~\eqref{eq-smooth-model} has derivatives with bounded energy:
 \eq{
 	\frac{\d^\al f}{\d t^\al}(t) = f^{(\al)}(t) \in \Ldeux([0,1]). 
 }	
-Using the fact that 
+For integer $\alpha$ and periodic boundary conditions, use the identity
 \eq{
 	\hat f^{(\al)}_m = (2i\pi m)^\al \hat f_m
 }
-where $\hat f$ is the Fourier coefficient defined in \eqref{eq-defn-fourier-coeffs}, except we are here on $\RR/\ZZ$ in place of $\RR/2\pi\ZZ$, 
+Here $\hat f$ denotes Fourier coefficients as in~\eqref{eq-defn-fourier-coeffs}, now on $\RR/\ZZ$ rather than $\RR/2\pi\ZZ$:
 \eq{
 	\hat f_n \eqdef \int_0^1 e^{-2\imath\pi n x} f(x) \d x, 
 }
-one defines a so-called Sobolev functional 
+This motivates the homogeneous Sobolev seminorm
 \eql{\label{eq-sobolev-norm}
 	\norm{f}_{\text{Sob}(\al)}^2 = \sum_{m \in \ZZ} |2\pi m|^{2\al} |\dotp{f}{e_m}|^2,
 }
-that satisfies $\norm{f}_{\text{Sob}(\al)} = \norm{f^{(\al)}}$ for smooth functions. This Sobolev functional is extended to signals that have derivatives in the sense of distribution in $\Ldeux([0,1])$.
+so that $\norm{f}_{\text{Sob}(\al)} = \norm{f^{(\al)}}$ for smooth periodic functions. The same seminorm applies when the derivatives exist only in the distributional sense and belong to $\Ldeux([0,1])$.
 
 This definition extends to distributions and signals $f \in \Ldeux([0,1]^d)$ of arbitrary dimension $d$ as
 \eql{\label{eq-sobolev-norm-highdim}
 	\norm{f}_{\text{Sob}(\al)}^2 = \sum_{m \in \ZZ^d} (2\pi \norm{m})^{2\al} |\dotp{f}{e_m}|^2,
 }
 
-The $\Cal$-Sobolev model
+The periodic Sobolev model
 \eql{\label{eq-sobolev-model}
-	\Th = \enscond{f \in \ldeux([0,1]^d)}{ \umax{k \leq \al} \norm{f}_{\text{Sob}(k)}^2 \leq C }
+	\Th = \enscond{f \in \Ldeux([0,1]^d)}{ \norm{f}_2^2+\norm{f}_{\text{Sob}(\al)}^2\leq C }
 }
-generalizes the $\Cal$ smooth image model \eqref{eq-smooth-model}.
+includes the corresponding periodic $C^\alpha$ model~\eqref{eq-smooth-model} for integer $\alpha$, after adjusting the radius of the ball. For noninteger $\alpha$, H\"older regularity gives Sobolev regularity of every order $s<\alpha$, but need not give regularity of order $\alpha$ itself.
 
 Figure \ref{fig-signal-model-sobolev} shows images with an increasing Sobolev norm for $\al=2$.
 
@@ -240,36 +240,35 @@ Figure \ref{fig-signal-model-sobolev} shows images with an increasing Sobolev no
 %%
 \paragraph{Piecewise smooth signals.}
 
-Piecewise smooth signals in 1-D are functions $f \in \Ldeux([0,1])$ that are $\Cal$ smooth outside a set of less than $K$ pointwise discontinuities
+A piecewise smooth 1-D signal $f \in \Ldeux([0,1])$ is $\Cal$ on the intervals separated by at most $K$ interior singular points:
 \eql{\label{eq-model-piece-smooth}
-	\Th = \enscond{f \in \Ldeux([0,1])}{ \exists \, (t_i)_{i=0}^{K-1}, \; 
-	\norm{f_{(t_i,t_{i+1})}}_{\Cal} \leq C }
+	\Th = \enscond{f \in \Ldeux([0,1])}{ \exists\,0=t_0<t_1<\cdots<t_{K+1}=1,\quad\max_{0\leq i\leq K}\norm{f|_{(t_i,t_{i+1})}}_{\Cal}\leq C }
 }
-where $f_{(t_i,t_{i+1})}$ is the restriction of $f$ to the open interval $(t_i,t_{i+1})$.
+Here $f|_{(t_i,t_{i+1})}$ denotes the restriction of $f$ to the open interval $(t_i,t_{i+1})$.
 
 %%
 \paragraph{Piecewise smooth images.}
 
-Piecewise smooth images are 2-D functions $f \in \Ldeux([0,1]^2)$ that are $\Cal$ regular outside a set of less than $K$ curves that have a finite perimeter
+A piecewise smooth image is a function $f \in \Ldeux([0,1]^2)$ with $\Cal$ regularity away from at most $K$ rectifiable curves:
 \eql{\label{eq-model-piece-smooth-2d}
-	\Th = \enscond{f \in \Ldeux([0,1]^2)}{ \exists \, \Ga = (\ga_i)_{i=0}^{K-1}, \; 
+	\Th = \enscond{f \in \Ldeux([0,1]^2)}{ \exists \, \Ga=\bigcup_{i=0}^{K-1}\ga_i, \;
 	\norm{f}_{\Cal(\Ga^c)} \leq C_1 \qandq
 	|\ga_i| \leq C_2
 	 }	 
 }
-where $|\ga_i|$ is the length of the curve $\ga_i$ and where $\norm{f}_{\Cal(\Ga^c)}$ is the maximum norm of the derivatives of $f$ outside the set of curves $\Ga$. 
+Here $|\ga_i|$ denotes curve length. The $C^\alpha$ bound applies separately within each smooth region, with uniform one-sided regularity up to its edges.
 
-Segmentation methods such as the one proposed by Mumford and Shah \cite{mumford-shah} implicitly assume such a piecewise smooth image modem. 
+Segmentation methods such as the one proposed by Mumford and Shah \cite{mumford-shah} implicitly assume such a piecewise smooth image model.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Bounded Variation Signals and Images}
 \label{subsec-bv-model}
 
-Signals with edges are obtained by considering functions with bounded variations
+Bounded variation provides a more flexible model for signals with edges
 \eql{\label{eq-model-tv}
-	\Th = \enscond{f \in \Ldeux(\RR^d)}{ \normi{f} \leq C_1 \qandq \normTV{f} \leq C_2 }.
+	\Th=\enscond{f\in\Ldeux([0,1]^d)}{ \normi{f} \leq C_1 \qandq \normTV{f} \leq C_2 }.
 }
-For $d=1$ and $d=2$, this model generalizes the model of piecewise smooth signals \eqref{eq-model-piece-smooth} and images \eqref{eq-model-piece-smooth-2d}.
+For $d=1$ and $d=2$, this model includes the piecewise smooth signal and image models~\eqref{eq-model-piece-smooth} and~\eqref{eq-model-piece-smooth-2d} when $\alpha\geq1$, after adjusting the constants. Bounds on the derivatives, jump sizes, and total edge length then control the variation.
 
 The total variation of a smooth function is 
 \eq{
@@ -279,13 +278,11 @@ where
 \eq{
 	\nabla f(x) = \pa{ \frac{\partial f}{\partial x_i}  }_{i=0}^{d-1} \in \RR^d
 } 
-is the gradient vector at $x$. The total variation is extended to discontinuous images, that might for instance exhibit jumps across singular curves (the edges of the image). In particular, the total variation of a piecewise smooth image is the sum of the lengths of its level sets
+is the gradient at $x$. Total variation also extends to discontinuous images, including those with jumps across edges. The coarea formula expresses the total variation of a piecewise smooth image as an integral of the perimeters of its superlevel sets:
 \eql{\label{eq-tv-coaera}
-	\normTV{f} = \int_{-\infty}^\infty |\Ll_t(f)| \d t < +\infty
-	\qwhereq
-	\Ll_t(f) = \enscond{x}{f(x)=t},
+	\normTV{f}=\int_{-\infty}^{\infty}\operatorname{Per}(\{f>t\};\Omega)\,\d t,\qquad\Omega=(0,1)^d.
 }	
-and where $|\Ll_t(f)|$ is the length of $\Ll_t(f)$. For a set $\Om \subset \RR^2$ with finite perimeter $|\partial \Om|$, then
+Here the perimeter is relative to the image domain. For smooth functions in two dimensions it agrees, for almost every $t$, with the length of the level curve. For a bounded set $\Om\subset\RR^2$ with piecewise smooth boundary, taking total variation on all of $\RR^2$ gives
 \eq{
 	\normTV{1_\Om} = |\partial \Om|.
 }
@@ -295,30 +292,30 @@ The model of bounded variation was introduced in image processing by Rudin, Oshe
 \subsection{Cartoon Images}
 \label{subsec-cartoon-images}
 
-The bounded variation image model \eqref{eq-model-tv} does not constrain the smoothness of the level set curves $\Ll_t(f)$. Geometrical images have smooth contour curves, which should be taken into account to improve the result of processing methods. 
+The bounded-variation model~\eqref{eq-model-tv} controls total perimeter but does not require individual edges to be smooth. For images with smooth contours, incorporating that additional geometry can improve approximation and processing.
 
-The model of $\Cal$ cartoon images is composed of 2-D functions that are $\Cal$ regular outside a set of less that $K$ regular edge curves $\ga_i$
+The $\Cal$ cartoon model consists of 2-D functions that are $\Cal$ away from at most $K$ smooth edge curves $\ga_i$:
 \eql{\label{eq-cartoon-model}
-	\Th = \enscond{f \in \Ldeux([0,1]^2)}{ \exists \, \Ga = (\ga_i)_{i=0}^{K-1}, \; 
+	\Th = \enscond{f \in \Ldeux([0,1]^2)}{ \exists \, \Ga=\bigcup_{i=0}^{K-1}\ga_i, \;
 	\norm{f}_{\Cal(\Ga^c)} \leq C_1 \qandq
 	\norm{\ga_i}_{\Cal} \leq C_2
 	 }
 }
-where each $\ga_i$ is a arc-length parameterization of the curve $\ga_i : [0,A] \mapsto [0,1]^2$.
+Each curve is parameterized by arc length on $[0,A_i]$, with a uniform bound on $A_i$ and its $C^\alpha$ norm.
 Figure \ref{fig-image-model-cartoon} shows cartoon images with increasing total variation $\normTV{f}$.
 
 \myfigure{
 \image{approximation}{.5}{image-model-cartoon}
 }{%
-	Cartoon image with increasing total variation.%	
+	Cartoon images with increasing total variation.%
 }{fig-image-model-cartoon}
 
-Typical images might also be slightly blurred by optical diffraction, so that one might consider a blurred cartoon image model 
+Optical diffraction can blur these edges, motivating the blurred cartoon model
 \eql{\label{eq-cartoon-model-smooth}
 	\tilde\Th = \enscond{\tilde f = f \star h \in \Ldeux([0,1]^2)}{ f \in \Th \qandq h \in \Hh	}
 }
-where $\Th$ is the model of sharp (unblurred) images \eqref{eq-cartoon-model} and $\Hh$ is a set of constraints on the blurring kernel, for instance $h \geq 0$ should be smooth, localized in space and frequency.
-This unknown blurring makes difficult brute force approaches that detects the edges location $\Ga$ and then process the regular parts in $[0,1]^2 \backslash \Ga$.
+where $\Th$ is the sharp-image model~\eqref{eq-cartoon-model} and $\Hh$ specifies the admissible blur kernels. For example, $h \geq 0$ may be required to be smooth and localized in both space and frequency.
+Unknown blur makes it difficult to first detect the edges $\Gamma$ and then process the smooth regions separately.
 
 Figure \ref{fig-sample-cartoon} shows examples of images in $\Th$ and $\tilde\Th$.
 
@@ -327,52 +324,52 @@ Figure \ref{fig-sample-cartoon} shows examples of images in $\Th$ and $\tilde\Th
 \image{approximation}{.25}{sample-cartoon-2}
 \image{approximation}{.25}{sample-cartoon-3}
 }{%
-	Examples of cartoon images: sharp discontinuities (left and center) and smooth discontinuities (right). %	
+	Examples of cartoon images: sharp discontinuities (left and center) and blurred edges (right). %
 }{fig-sample-cartoon}
 
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Efficient approximation}
+\section{Efficient Approximation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Decay of Approximation Error}
 \label{sec-linear-approx-error}
 
-To perform an efficient processing of signals or images in $\Th$, the goal is to design an orthogonal basis such that the non-linear approximation error $\norm{f-f_M}$ decays as fast as possible to $0$ when $M$ increases. 
+To process signals in $\Theta$ efficiently, we seek an orthonormal basis in which the nonlinear approximation error $\norm{f-f_M}$ tends to $0$ as rapidly as possible when $M$ grows.
 
 
 %%
 \paragraph{Polynomial error decay.}
 
-This error decay measured using a power law 
+This error decay is measured using a power law
 \eql{\label{eq-approx-powerlaw}
 	\foralls f \in \Th, \; \foralls M, \quad \norm{f-f_M}^2 \leq C_f M^{-\al}
 }
-where $\al$ is independent of $f$ and should be as large as possible. The parameter $\al$ depends on the basis and on $\Th$. It is a class-complexity parameter that describes the overall complexity of signals in $\Th$ with respect to the orthogonal basis one considers for approximation. The parameter $C_f$ depends on $f$ and describes the complexity of the signal $f$ within its class $\Th$.
+Here $\al$ is common to all signals in the model; larger values mean faster decay. The exponent depends on the basis and the model $\Th$, and measures how efficiently the basis represents that class. The constant $C_f$ may depend on the particular signal $f$.
 
 %%
 \paragraph{Relevance for compression, denoising and inverse problems.}
 
-Monitoring the decay of approximation error is not only interesting from a mathematical point of view. Section \ref{sec-transform-coding} shows that the compression error is close to the non-linear approximation error. Bases that are efficient for approximation are thus also efficient for compression. 
+Approximation rates have practical consequences. Section \ref{sec-transform-coding} relates compression error to nonlinear approximation error, explaining why an effective approximation basis also supports efficient compression.
 
-Chapter \ref{chap-denoising} shows that a similar conclusion holds for non-linear denoising with thresholding. Efficient denoisers are obtained by performing a non-linear approximation of the noisy image in a well chosen basis. The average denoising error with respect to a random noise is closely related to the approximation error.
+Chapter \ref{chap-denoising} develops a similar connection for thresholding denoisers. Thresholding forms a nonlinear approximation of the noisy image, and the expected denoising error is controlled by how well the basis approximates the clean signal.
 
-Chapter \ref{chap-sparsity} shows that ill-posed inverse problems such as super-resolution of missing information can be solved by taking advantage of the compressibility of the signal or the image in a well chosen basis. A basis that is efficient for approximation of the high resolution signal is needed to recover efficiently missing information. The performance of these schemes is difficult to analyze, and the basis atoms must also be far enough from the kernel of the operator that removes information.  
+Chapter \ref{chap-sparse-regul} uses compressibility in a chosen basis to address inverse problems such as super-resolution and inpainting. Efficient approximation of the unknown signal helps recover missing information, provided the measurement operator retains enough information about sparse combinations of basis atoms. Recovery performance therefore depends on both the basis and the measurements.
 
 
 
 %%%%
 \paragraph{Comparison of signals.}
 
-For a fixed basis (for instance wavelets), the decay of $\norm{f-f_M}$ allows one to compare the complexity of different images.  Figure \ref{fig-approx-speed} shows that natural images with complicated geometric structures and textures are more difficult to approximate using wavelets.
+With the basis fixed, the decay of $\norm{f-f_M}$ compares the approximation complexity of different images. Figure \ref{fig-approx-speed} illustrates how intricate geometry and textures slow down wavelet approximation.
 
-Since the approximation error often decays in a power-low fashion \eqref{eq-approx-powerlaw}, the curves are displayed in a log-log plot, so that
+To reveal approximate power-law behavior, the error curves are displayed on logarithmic axes. An exact power law has the form
 \eq{
 	\log(\norm{f-f_M}^2) = \text{cst} - \al \log(M)
 }
-and hence one should expect an affine curve with slope $-\al$. Due to discretization issue, this is only the case for value of $M \ll N$, since the error quickly drops to zero for $M \approx N$.
+and appears as a straight line with slope $-\al$. For sampled data, this behavior is generally studied when $M \ll N$; as $M \approx N$, retaining nearly all coefficients drives the error to zero.
 
 
 \myfigure{
@@ -384,7 +381,7 @@ and hence one should expect an affine curve with slope $-\al$. Due to discretiza
 Smooth & Cartoon & Natural \#1 & Natural \#2
 }
 }{%
-	Several different test images.%	
+	Test images with different types of structure.%
 }{fig-approx-speed-1}
 
 
@@ -392,13 +389,13 @@ Smooth & Cartoon & Natural \#1 & Natural \#2
 \myfigure{
 \image{approximation}{.4}{approx-speed-curves}
 }{%
-	Comparison of approximation error decay in wavelets for different images shown in Figure \ref{fig-approx-speed-1}.%	
+	Wavelet approximation error for the images in Figure \ref{fig-approx-speed-1}.%
 }{fig-approx-speed}
 
 %%%
 \subsection{Comparison of bases.}
 
-For a given image $f$, one can compare different ortho-bases using the decay of $\norm{f-f_M}$. Figure \ref{fig-approx-effi} shows the efficiency of several bases to approximate a fixed natural image with contours and textures. The Fourier basis described in Section \ref{sec-2d-fourier} is highly innefficient because of periodic boundary artifact and the global support of its atoms that fail to capture contours. The cosine basis uses symmetric boundary conditions and thus removes the boundary artifacts, but it still not able to resolve efficiently localized features. The local DCT basis corresponds to the union of local cosine bases defined on small square patches. It is more efficient since its atoms have a local support. However, it gives bad approximation for a small number $M$ of kept coefficients, because of blocking artifacts. The isotropic wavelet basis detailed in Section \ref{sec-isotropic-wav} gives the best approximation results because its is both composed of localized atoms and does not have a block structure but rather a multiresolution structure. 
+For a fixed image $f$, the decay of $\norm{f-f_M}$ compares the efficiency of different bases. Figure \ref{fig-approx-effi} makes this comparison for an image containing contours and textures. The Fourier basis of Section \ref{sec-fourier-multiple-dim} performs poorly here: periodic boundaries create artifacts, and globally supported atoms do not follow local contours. The cosine basis removes the periodic boundary discontinuity through symmetric extension, but its atoms remain global. Local DCT bases use cosine atoms on small square patches, improving localization. At small coefficient budgets $M$, however, their block structure produces visible artifacts. The isotropic wavelet basis of Section \ref{sec-isotropic-wav} performs best in this example by combining localized atoms with a multiresolution organization.
 
 \myfigure{
 \tabquatre{
@@ -465,14 +462,14 @@ The following proposition shows the relationship between these models.
 		\geq \sum_{n>M} n^{2\ga} u_n^2
 		\geq M^{2\ga} \sum_{m > M} u_n^2 
 	}
-	so that $u$ safisfies~\eqref{eq-model-error} with $\be=\al$ and $C_u^{\text{err}}=C_u^{\text{sob}}$.
+	so that $u$ satisfies~\eqref{eq-model-error} with $\be=\al$ and $C_u^{\text{err}}=C_u^{\text{sob}}$.
 	
 	One has, if the coefficients are sorted
 	\eq{
 		u_M^2 \leq \frac{2}{M} \sum_{m=M/2+1}^{M} u_m^2 \leq \frac{2}{M} \sum_{n > M/2} u_n^2 = \frac{2}{M} \norm{f-f_{M/2}}^2.
 	}
 	This proves that
-	\eql{\label{eq-decay-coef-approx}
+	\eql{\label{eq-decay-coef-approx-draft}
 		u_n = O( n^{-\frac{\al+1}{2}} )
 		\quad\Longleftrightarrow\quad
 		\norm{f-f_M}^2 = O(M^{-\al}).
@@ -483,12 +480,12 @@ The following proposition shows the relationship between these models.
 
 
 
-Figure~\ref{fig-approx-comparaison} summarizes the different type of approximation decays for various class of data, which are detailed in the following section.
+Figure~\ref{fig-approx-comparaison} summarizes the approximation rates developed in the following sections for different data models.
 
 \myfigure{
 \image{approximation}{1}{approx-comparaison}
 }{%
-	Summary of linear and non-linear approximation rates 
+	Summary of linear and nonlinear approximation rates
 	$\norm{f-f_M}^2$ for different classes of 1-D signals and images. %	
 }{fig-approx-comparaison}
 
@@ -497,27 +494,27 @@ Figure~\ref{fig-approx-comparaison} summarizes the different type of approximati
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Fourier Linear Approximation of Smooth Functions}
 
-The smooth signal and image model \eqref{eq-smooth-model} assumed that the analog function have bounded $\al$ continuous derivatives. A function $f$ with a large $\al$ has more smoothness, and is thus simpler to approximate. Figure \ref{fig-signal-model-sobolev} shows images with increasing smoothness.
+For integer $\alpha$, the smooth model~\eqref{eq-smooth-model} bounds all continuous derivatives through that order. Greater regularity of $f$, measured by a larger $\al$, permits faster approximation. Figure~\ref{fig-signal-model-sobolev} illustrates the related Sobolev measure of smoothness.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{1-D Fourier Approximation}
 
-A 1-D signal $f \in \Ldeux([0,1])$ is associated to a 1-periodic function $f(t+1)=f(t)$ defined for $t \in \RR$.
+A 1-D signal $f \in \Ldeux([0,1])$ is associated with a 1-periodic function $f(t+1)=f(t)$ defined for $t \in \RR$.
 
 %%
 \paragraph{Low pass approximation.}
 
-We consider a linear Fourier approximation, that only retains low frequencies
+For even $M$, consider the linear Fourier approximation that retains frequencies up to $M/2$:
 \eq{
 	f_M^{\text{lin}} = \sum_{m=-M/2}^{M/2} \dotp{f}{e_m}e_m
 }
 where we use the 1-D Fourier atoms
 \eq{
-	\foralls n \in \ZZ, \quad e_m(t) \eqdef e^{2 i \pi m t}.
+	\foralls m\in\ZZ,\quad e_m(t) \eqdef e^{2 i \pi m t}.
 }
-We note that $f_M$ actually requires $M+1$ Fourier atoms.
+This symmetric cutoff retains $M+1$ Fourier atoms; the extra coefficient does not affect the asymptotic rates below.
 
-Figure \ref{fig-ourier-approx-1d} shows examples of such linear approximation for an increasing value of $M$. Since the original function $f$ is singular (no derivative), this produces a large error and one observe ringing artifacts near singularities.
+Figure \ref{fig-ourier-approx-1d} shows these approximations for increasing $M$. The jumps in $f$ produce substantial error and ringing near the singularities.
 
 % Code \ref{approx-fourier-linear} implement this low pass linear approximation and code \ref{approx-fourier-nonlinear} implement the non-linear approximation.
 
@@ -539,27 +536,27 @@ Figure \ref{fig-ourier-approx-1d} shows examples of such linear approximation fo
 %}{2-D Fourier linear approximation. Input: image \matvar{f} and number of coefficients \matvar{M}, output: approximation \matvar{f1}.  }{approx-fourier-nonlinear}
 
 
-This low pass approximation corresponds to a filtering, since 
+This low-pass approximation is a convolution, since
 \eq{
 	f_M = \sum_{m=-M/2}^{M/2} \dotp{f}{e_m} e_m = f \star h_M
 	\qwhereq
 	\hat h_{M} \eqdef 1_{[-M/2,M/2]}.
 }
-Here, $h_M$ is the so-called Dirichlet kernel (see also the chapter on Fourier).
+The kernel $h_M$ is the Dirichlet kernel introduced in the Fourier chapter.
 
-The following proposition shows that this approximation decays fast for $\Cc^\al$ signals.
+The following elementary bound shows that this approximation error decays for $\Cc^\al$ signals.
 
 \begin{prop}
-	One has for $f \in \Cc^\al(\RR/\ZZ)$
+	For integer $\alpha\geq1$ and $f\in C^\alpha(\RR/\ZZ)$
 	\eq{
 		\norm{ f-f_M^{\text{lin}} }^2 = O(M^{-2\al+1}).
 	}
 \end{prop}
 
 \begin{proof}
-Using integration by part, one shows that for a $\Cal$ function $f$ in the smooth signal model~\eqref{eq-smooth-model}, 
+Using integration by parts, one shows that for a $\Cal$ function $f$ in the smooth signal model~\eqref{eq-smooth-model},
 $\Ff(f^{(\ell)})_m = (2\imath m \pi)^\ell \hat f_m$, so that 
-one has using Cauchy-Schwartz
+Cauchy--Schwarz gives
 \eq{
 	|\dotp{f}{e_m}| \leq |2\pi m|^{-\al} \norm{f^{(\al)}}_2.
 }
@@ -570,105 +567,105 @@ This implies
 }
 \end{proof}
 
-We show next that a slightly modified proof gives a better decay (assuming $f^{(\al)}$ is in $L^2(\RR/\ZZ)$) and that this conclusion is valid for a larger class of Sobolev functions.
+Using the full energy of $f^{(\al)}$ gives a sharper bound under the same assumptions. The argument also applies to the larger Sobolev class.
 
 \begin{prop}\label{prop-sobol-fourier-lin}
-	For signal $f$ in the Sobolev model~\eqref{eq-sobolev-model}, i.e. $f^{(\al)} \in L^2(\RR)$, one has
+	For $\alpha>0$ and a periodic signal in the Sobolev model~\eqref{eq-sobolev-model}, one has
 	\eql{\label{eq-sovolev-signal-decay}
-		\norm{f-f^{\text{lin}}_M}^2 \leq C \norm{f^{(\al)}}^2  M^{-2\al}.
+		\norm{f-f^{\text{lin}}_M}^2 \leq C \norm{f}_{\mathrm{Sob}(\alpha)}^2  M^{-2\al}.
 	}
 \end{prop}
 \begin{proof}
 	One has
 	\eqml{
-		\norm{f^{(\al)}}^2 &= \sum_m |2 \pi m|^{2\al} |\dotp{f}{e_m}|^2
+		\norm{f}_{\mathrm{Sob}(\alpha)}^2 &= \sum_m |2 \pi m|^{2\al} |\dotp{f}{e_m}|^2
 		\geq \sum_{|m|>M/2} |2 \pi m|^{2\al} |\dotp{f}{e_m}|^2 \\ 
-		& \geq (\pi M)^{2\al} \sum_{m > M/2}
+		& \geq (\pi M)^{2\al} \sum_{|m|>M/2}
 		|\dotp{f}{e_m}|^2 \geq (\pi M)^{2\al} \norm{f-f_M^{\text{lin}}}^2.
 	}
 \end{proof}
 
-One can also shows that this asymptotic error decay is optimal, and that the non-linear approximation error in Fourier also decays like $O(M^{-2\al})$.
+This rate is optimal uniformly over a Sobolev ball. The best $M$-term Fourier approximation satisfies the same upper bound because it is at least as accurate as the low-pass approximation; individual functions may have faster decay.
 
-For a signal in the piecewise smooth model \eqref{eq-model-piece-smooth}, such as the one shows in Figure \ref{fig-ourier-approx-1d}, one only has a slow decay of the linear and non-linear approximation error
+For signals with piecewise Lipschitz regularity in the model~\eqref{eq-model-piece-smooth}, such as the example in Figure \ref{fig-ourier-approx-1d}, the general bound for both linear and nonlinear Fourier approximation errors is
 \eql{\label{eq-fourier-piecewisesmooth}
 	\norm{f-f_M}^2 \leq C_f M^{-1}
 }
-and Fourier atoms are not anymore optimal for approximation.
+and Fourier atoms are no longer optimal for approximation.
 %
-A typical example is $f=1_[a,b]$ the indicator of a step, for which $|\hat f_m| \sim 1/m$, and thus
-$\norm{f-f_M}^2 \sim \sum_{|m|>M} 1/|m|^2 \sim  1/M$ for both linear and non-linear approximations.
+For example, the interval indicator $f=1_{[a,b]}$ has coefficients $\hat f_m=(e^{-2\pi\imath ma}-e^{-2\pi\imath mb})/(2\pi\imath m)$ for $m\neq0$, and hence
+$\norm{f-f_M}^2\asymp M^{-1}$ when $0<b-a<1$ for both linear and nonlinear approximations.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Sobolev Images}
 
-This analysis caries over to images and higher dimensional datasets by considering a Sobolev functional \eqref{eq-sobolev-norm-highdim} for $d>1$.
+The same argument applies to images and higher-dimensional data through the Sobolev seminorm~\eqref{eq-sobolev-norm-highdim} with $d>1$.
 
-The linear and non-linear approximation of an $\al$-regular Sobolev image then satisfy
+For an $\al$-regular Sobolev image, the linear and nonlinear approximation errors satisfy
 \eq{
-	 \norm{f-f_M}^2 \leq C \norm{f^{\al}}^2 M^{-\al}.
+	 \norm{f-f_M}^2 \leq C \norm{f}_{\mathrm{Sob}(\alpha)}^2 M^{-\al}.
 }
-For $d$-dimensional data $f : [0,1]^d \rightarrow \RR$, one would have an error decay of $O(M^{-2\al/d})$. 
+For $d$-dimensional data $f : [0,1]^d \rightarrow \RR$, the corresponding error bound is $O(M^{-2\al/d})$.
 
-For an image in the piecewise smooth model \eqref{eq-model-piece-smooth-2d}, the linear and non-linear error decays are slow, 
+For an image with piecewise Lipschitz regularity and finite-length edges in the model~\eqref{eq-model-piece-smooth-2d}, the linear and nonlinear errors satisfy the slower general bound
 \eql{\label{eq-fourier-decay-2d}
 	\norm{f-f_M}^2 \leq C_f M^{-1/2},
 }
-and Fourier atoms are not anymore optimal for approximation.
+and Fourier atoms are no longer optimal for approximation.
 
 \myfigure{
 \tabquatre{
-\image{approximation}{.24}{fourier-approx-2d-0}&
-\image{approximation}{.24}{fourier-approx-2d-1}&
-\image{approximation}{.24}{fourier-approx-2d-2}&
-\image{approximation}{.24}{fourier-approx-2d-3}\\
+\image{approximation}{.238}{fourier-approx-2d-0}&
+\image{approximation}{.238}{fourier-approx-2d-1}&
+\image{approximation}{.238}{fourier-approx-2d-2}&
+\image{approximation}{.238}{fourier-approx-2d-3}\\
 &
-\image{approximation}{.24}{approx-2d-fourier-1}&
-\image{approximation}{.24}{approx-2d-fourier-2}&
-\image{approximation}{.24}{approx-2d-fourier-3}
+\image{approximation}{.238}{approx-2d-fourier-1}&
+\image{approximation}{.238}{approx-2d-fourier-2}&
+\image{approximation}{.238}{approx-2d-fourier-3}
 }
 }{%
-	Linear (top row) and non-linear (bottom row) Fourier approximation.%	
+	Linear (top row) and nonlinear (bottom row) Fourier approximation.%
 }{fig-fourier-approx-2d-linnonlin}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Wavelet Approximation of Piecewise Smooth Functions}
 
-Wavelet approximation improve significantly over Fourier approximation to capture singularities. This is due to the localized support of wavelets. 
+Wavelets improve approximation near singularities because their support is localized.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Decay of Wavelet Coefficients}
 \label{subsect-wavdecay}
 
-To efficiently approximate regular parts of signals and images, one uses wavelet with a large enough number $p$ of vanishing moments
+To approximate smooth regions efficiently, choose wavelets with sufficiently many vanishing moments, denoted by $p$:
 \eq{
-	\foralls k<p, \; \int \psi(x) x^k \d x = 0.
+	\foralls k=0,\ldots,p-1, \; \int \psi(x) x^k \d x = 0.
 }
-This number $p$ should be larger than the regularity $\al$ of the signal outside singularities (for instance jumps or kinks).
+Choose $p\geq\alpha$, where $\alpha$ is the regularity of the signal outside singularities (for instance jumps or kinks).
 
 \myfigure{
 \image{approximation}{.55}{singular-part-1d}
 \image{approximation}{.25}{singular-part-2d}
 }{%
-	Singular par of signals (left) and image (right).%	
+	Singular and regular regions of a signal (left) and an image (right).%
 }{fig-singular-part}
 
-To quantify the approximation error decay for piecewise smooth signals \eqref{eq-model-piece-smooth} and images \eqref{eq-model-piece-smooth-2d}, one needs to treat differently wavelets that are in regular and singular areas. Figure \ref{fig-singular-part} shows for a signal and an image the localization of singular and regular parts.
+To quantify the approximation error decay for piecewise smooth signals \eqref{eq-model-piece-smooth} and images \eqref{eq-model-piece-smooth-2d}, one treats wavelets supported in smooth regions separately from those crossing singularities. Figure \ref{fig-singular-part} locates the singular and regular regions of a signal and an image.
 
 \begin{prop}
-If $f$ is $\Cal$ on $\supp(\psi_{j,n})$, with $p \geq \al$, one has
+Assume a compactly supported wavelet with $p\geq\alpha$ vanishing moments (all moments of total degree less than $p$ in dimension $d$). If $f$ admits a $C^\alpha$ extension to a neighborhood of the support, one has
 \eql{\label{eq-wavcoef-decay-1}
-	|\dotp{f}{\psi_{j,n}}| \leq C_f \norm{\psi}_1 2^{j(\al+d/2)}.
+	|\dotp{f}{\psi_{j,n}}| \leq C_f2^{j(\alpha+d/2)}\int|t|^\alpha|\psi(t)|\,\d t.
 }
-In general, one always has for bounded $f$
-\eq{\label{eq-wavcoef-decay-2}
+Without the smoothness assumption, every bounded $f$ satisfies
+\eql{\label{eq-wavcoef-decay-2}
 	|\dotp{f}{\psi_{j,n}}| \leq \norm{f}_\infty \norm{\psi}_1 2^{j \frac{d}{2}}.
 }
 \end{prop}
 
 \begin{proof}
-If $f$ is $\Cal$ on $\supp(\psi_{j,n})$, with $p \geq \al$, then one can perform a Taylor expansion of $f$ around the point $2^j n$
+Under these assumptions, one can perform a Taylor expansion of $f$ around the point $2^j n$
 \eq{
 	f(x) = P(x-2^j n) + R(x-2^jn) = P(2^j t) + R(2^j t)
 }
@@ -681,33 +678,33 @@ One then bounds the wavelet coefficient
 	\dotp{f}{\psi_{j,n}} = \frac{1}{2^{j \frac{d}{2}}} \int f(x) \psi\pa{ \frac{x-2^j n}{2^j} } \d x 
 		= 2^{j \frac{d}{2}} \int R(2^j t) \psi(t) \d t
 }
-where we have performed the change of variable $t = \frac{x-2^j n}{2^j}$. This shows that~\eqref{eq-wavcoef-decay-1} holds. Property~\eqref{eq-wavcoef-decay-2} is straightforward. 
+where we substituted $t = \frac{x-2^j n}{2^j}$. This proves~\eqref{eq-wavcoef-decay-1}. The bound~\eqref{eq-wavcoef-decay-2} follows directly by bounding the function in the inner product.
 \end{proof}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{1-D Piecewise Smooth Approximation}
 
-For 1-D signal in the piecewise regular model \eqref{eq-model-piece-smooth}, large wavelets coefficients $\dotp{f}{\psi_{j,n}}$ are clustered around the singularities of the signal. We call $\Ss \subset [0,1]$ the finite set of singular points.
+For a piecewise smooth 1-D signal in the model~\eqref{eq-model-piece-smooth}, the large coefficients $\dotp{f}{\psi_{j,n}}$ concentrate near singularities. Denote the finite set of singular points by $\Ss \subset [0,1]$.
 
 
 \begin{thm}\label{thm-approx-piecesmooth-1d}
-$f$ is in the piecewise smooth signal model \eqref{eq-model-piece-smooth}, the non-linear approximation error in wavelet obeys
+For $\alpha>0$, let $f$ belong to the piecewise $C^\alpha$ model~\eqref{eq-model-piece-smooth}. With compactly supported orthonormal wavelets having at least $\alpha$ vanishing moments (and a compatible boundary construction), the best $M$-term error satisfies
 \eql{\label{eq-decay-piecewav}
 	\norm{f-f_M}^2 = O(M^{-2\al}).
 }
 \end{thm}
 
 \begin{proof}
-The proof is split in several parts.
+The proof is split into several parts.
 
 %%
-\paragraph{Step 1. Coefficient segmentation.}
+\paragraph{Step 1. Separating regular and singular coefficients.}
 
-The singular support at scale $2^j$ is the set of coefficients corresponding to wavelets that are crossing a singularity
+At scale $2^j$, define the singular index set by the wavelets whose support crosses a singularity:
 \eql{\label{eq-singsupport-1d}
 	\Cc_j = \enscond{n}{ \supp(\psi_{j,n}) \cap \Ss \neq \emptyset }
 }
-It has a constant size because of the dyadic translation of wavelets
+Compact support and dyadic spacing imply a bound on its cardinality that is uniform in $j$:
 \eq{
 	|\Cc_j| \leq K |\Ss| = \text{constant}.
 }
@@ -719,13 +716,13 @@ Using \eqref{eq-wavcoef-decay-2} for $d=1$, the decay of singular coefficients i
 \eq{
 	\foralls n \in \Cc_j, \quad \abs{\dotp{f}{\psi_{j,n}}} \leq  C 2^{j/2}.
 }
-Once a fixed threshold $T$ is fixed to compute the non-linear approximation, one defines cut-off scales for regular and singular coefficients that depend on $T$
+For a sufficiently small threshold $T$, define two cutoff scales, one for regular coefficients and one for singular coefficients, as functions of $T$:
 \eq{
 	2^{j_1} = (T/C)^{\frac{1}{\al+1/2}}
 	\qandq
 	2^{j_2} = (T/C)^{2}.
 }
-Figure \ref{fig-singular-support-1d} shows a schematic segmentation of the set of wavelet coefficients into regular and singular parts, and also using the cut-off scales.
+Round these cutoff scales to integers; this changes constants only. All subsequent scale sums are bounded above by the fixed coarsest scale $j_0=0$, and the finitely many scaling coefficients are retained. Figure~\ref{fig-singular-support-1d} shows a schematic segmentation of the set of wavelet coefficients into regular and singular parts, together with the cut-off scales.
 
 \myfigure{
 \image{approximation}{.6}{singular-support-1d}
@@ -735,12 +732,12 @@ Figure \ref{fig-singular-support-1d} shows a schematic segmentation of the set o
 }{fig-singular-support-1d}
 
 %%
-\paragraph{Step 2. Counting the error.}
-These cut-off scales allow us to define a hand-crafted approximation signal
+\paragraph{Step 2. Bounding the error.}
+These cut-off scales allow us to define a comparison approximation
 \eql{\label{eq-hand-made-approx}
-	\tilde f_M = \sum_{j \geq j_2} \sum_{n \in \Cc_j} \dotp{f}{\psi_{j,n}} \psi_{j,n} +  \sum_{j \geq j_1} \sum_{n \in \Cc_j^c} \dotp{f}{\psi_{j,n}} \psi_{j,n}.
+	\tilde f_M=P_{V_0}f+\sum_{j_2\leq j\leq0} \sum_{n \in \Cc_j} \dotp{f}{\psi_{j,n}} \psi_{j,n} +  \sum_{j_1\leq j\leq0} \sum_{n \in \Cc_j^c} \dotp{f}{\psi_{j,n}} \psi_{j,n}.
 }
-The approximation error generated by this $M$-term approximation $\tilde f_M$ is larger than the best $M$-term approximation error, and hence
+The error of the comparison $M$-term approximation $\tilde f_M$ bounds the best $M$-term error from above:
 \eqml{\label{eq-wavapprox-1d-1}
 	\norm{f-f_M}^2 &\leq \norm{f-\tilde f_M}^2 \leq \sum_{j<j_2, n \in \Cc_j} |\dotp{f}{\psi_{j,n}}|^2 + 
 \sum_{j<j_1, n \in \Cc_j^c} |\dotp{f}{\psi_{j,n}}|^2 \\
@@ -749,22 +746,22 @@ The approximation error generated by this $M$-term approximation $\tilde f_M$ is
 }
 
 %%
-\paragraph{Step 3. Counting the number of measurements.}
+\paragraph{Step 3. Counting the Coefficients.}
 The number of coefficients needed to build the approximating signal $\tilde f_M$ is
 \eqml{\label{eq-wavapprox-1d-2}
-	M & \leq \sum_{j \geq j_2} |\Cc_j| +
-\sum_{j \geq j_1} |\Cc_j^c| \leq
-\sum_{j \geq j_2} K |\Ss| +
-\sum_{j \geq j_1} 2^{-j} \\
+	M &\leq1+\sum_{j_2\leq j\leq0} |\Cc_j| +
+\sum_{j_1\leq j\leq0} |\Cc_j^c| \leq
+1+\sum_{j_2\leq j\leq0} K |\Ss| +
+\sum_{j_1\leq j\leq0} 2^{-j} \\
 	&= O( |\log(T)| + T^{\frac{-1}{\al+1/2}} ) 
 =  O(T^{\frac{-1}{\al+1/2}} ).
 }
 %%
-\paragraph{Step 3.  Putting everything together.}
-Putting equations \eqref{eq-wavapprox-1d-1} and \eqref{eq-wavapprox-1d-2} together gives the desired result.
+\paragraph{Step 4. Putting everything together.}
+Given a coefficient budget $M$, choose $T$ to be a sufficiently large constant times $M^{-(\alpha+1/2)}$. The coefficient-count bound then uses at most $M$ terms, and the error bound is $O(M^{-2\alpha})$.
 \end{proof}
 
-This theorem improves significantly over the $O(M^{-1})$ decay of Fourier approximation \eqref{eq-fourier-piecewisesmooth}. Furthermore, this decay is the same as the error decay of uniformly smooth signal \eqref{eq-sovolev-signal-decay}. In 1-D, wavelet approximations do not ``see'' the singularities. The error decay \eqref{eq-decay-piecewav} can be shown to be asymptotically optimal.
+For piecewise Lipschitz signals, the wavelet rate is faster than the jump-limited $O(M^{-1})$ Fourier bound in~\eqref{eq-fourier-piecewisesmooth}. It also matches the smooth-signal rate~\eqref{eq-sovolev-signal-decay}: finitely many singularities do not worsen the asymptotic exponent in one dimension. The rate~\eqref{eq-decay-piecewav} is asymptotically optimal for this class.
 
 \myfigure{
 \image{approximation}{.6}{wav-approx-1d-1}\\
@@ -780,21 +777,21 @@ Figure \ref{fig-wav-approx-1d} shows examples of wavelet approximation of singul
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{2-D Piecewise Smooth Approximation}
 
-We now give the equivalent of Theorem~\ref{thm-approx-piecesmooth-1d} but for 2-D functions.
+We now give the counterpart of Theorem~\ref{thm-approx-piecesmooth-1d} for 2-D functions.
 
 \begin{thm}\label{thm-approx-piecesmooth-2d}
-$f$ is in the piecewise smooth signal model \eqref{eq-model-piece-smooth-2d}, the non-linear approximation error in wavelet obeys
+Let $f$ belong to the piecewise smooth image model~\eqref{eq-model-piece-smooth-2d}, with $\alpha\geq1$ and finitely many rectifiable edge curves. For compactly supported orthonormal wavelets with at least $\alpha$ vanishing moments and compatible boundary treatment, the best $M$-term error satisfies
 \eql{\label{eq-approximation-error-wav-2d}
 	\norm{f-f_M}^2 = O(M^{-1}).
 }
 \end{thm}
 
 \begin{proof}
-For an image in the piecewise smooth model \eqref{eq-model-piece-smooth-2d}, we define the singular support $\Cc_j$ as in \eqref{eq-singsupport-1d}. The major difference with the 1-D setting, is that for 2-D images, the size of the singular support grows when the scale $2^j$ goes to zero
+For an image in the model~\eqref{eq-model-piece-smooth-2d}, define the singular index set $\Cc_j$ as in~\eqref{eq-singsupport-1d}. Unlike the 1-D case, its cardinality grows as the scale $2^j$ decreases:
 \eq{
 	|\Cc_j^\om| \leq 2^{-j} K |\Ss|,
 }
-where $|\Ss|$ is the perimeter of the singular curves $\Ss$, and $\om \in \{V,H,D\}$ is the wavelet orientation. 
+where $|\Ss|$ is the total length of the singular curves $\Ss$, and $\om \in \{V,H,D\}$ is the wavelet orientation.
 Using \eqref{eq-wavcoef-decay-1} for $d=2$, the decay of regular coefficients is bounded as
 \eq{
 	\foralls n \in (\Cc_j^{\om})^c, \quad \abs{\dotp{f}{\psi_{j,n}^\om}} \leq  C2^{j(\alpha+1)}.
@@ -809,7 +806,7 @@ After fixing $T$, the cut-off scales are defined as
 	\qandq
 	2^{j_2} = T/C.
 }
-We define similarly to \eqref{eq-hand-made-approx} a hand-made approximation.
+We define, as in \eqref{eq-hand-made-approx}, a comparison approximation.
 Similarly to \eqref{eq-wavapprox-1d-1}, we bound the approximation error as
 \eq{
 	\norm{f-f_M}^2 \leq \norm{f-\tilde f_M}^2 
@@ -817,14 +814,14 @@ Similarly to \eqref{eq-wavapprox-1d-1}, we bound the approximation error as
 }
 and the number of coefficients as 
 \eq{
-	M = O( T^{-1} + T^{\frac{-1}{\al+1}} ) = O(T^{-1} ).
+	M=O(T^{-1}+T^{-2/(\alpha+1)}) = O(T^{-1} ).
 }
-This leads to the announced decay of the non-linear wavelet approximation error.
+Since $\alpha\geq1$, choose $T$ of order $M^{-1}$ with a sufficiently large constant. This meets the coefficient budget and gives the asserted error. For $0<\alpha<1$, the same argument gives $O(M^{-\alpha})$ instead.
 \end{proof}
 
-This improves significantly over the $O(M^{-1/2})$ decay of Fourier approximation \eqref{eq-fourier-decay-2d}. This result is however deceiving, since it does not take advantage of the $\Cal$ regularity of the image outside the edge curves. 
+The wavelet rate improves on the $O(M^{-1/2})$ Fourier rate~\eqref{eq-fourier-decay-2d}, but it still fails to exploit the full $\Cal$ regularity away from the edge curves.
 
-This error decay is still valid for the more general model of images with bounded variations \eqref{eq-model-tv}. One can shows that wavelets are asymptotically optimal to approximate images with bounded variations. 
+This rate also holds for the broader bounded-variation model~\eqref{eq-model-tv}, for which wavelet approximation is asymptotically optimal.
 
 \myfigure{
 \tabtrois{
@@ -849,16 +846,16 @@ Figure \ref{fig-approx-2d-wav} shows wavelet approximations of a bounded variati
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Cartoon Images Approximation}
+\section{Approximation of Cartoon Images}
 
-The square support of wavelet makes them inefficient to approximate geometric images \eqref{eq-cartoon-model}, whose edges are more regular than the level set of bounded variation images \eqref{eq-model-tv}, which are only assumed to be of finite length. 
+The isotropic, compactly supported wavelets considered here occupy squares that do not follow the smooth contours of geometric images~\eqref{eq-cartoon-model}. These contours have more structure than the finite-length level sets allowed by the bounded-variation model~\eqref{eq-model-tv}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Wavelet Approximation of Cartoon Images}
 
-Result \eqref{eq-approximation-error-wav-2d} shows that wavelet approximation of images in the cartoon models \eqref{eq-cartoon-model} decays at least like $O(M^{-1})$. One can show that simple cartoon images like $f=1_\Om$ where $\Om$ is a disk reach this low decay speed. This is because the square support of wavelets forbid them to take advantage of the regularity of edge curves. The approximation error for the smoothed cartoon model \eqref{eq-cartoon-model-smooth} is also slow if the width of the blurring kernel is small with respect to the number $M$ of coefficients. 
+The bound~\eqref{eq-approximation-error-wav-2d} gives a wavelet approximation rate of $O(M^{-1})$ for cartoon images~\eqref{eq-cartoon-model}. Even the simple indicator $f=1_\Om$, where $\Om$ is a disk, can attain this slow rate: isotropic wavelets do not efficiently follow its curved boundary. The smoothed cartoon model~\eqref{eq-cartoon-model-smooth} can behave similarly when the coefficient budget $M$ is too small to resolve the blur.
 
-Figure \ref{fig-cartoon-wav} shows that many large coefficients are located near edge curves, and retaining only a small number leads to a bad approximation with visually unpleasant artifacts. 
+Figure \ref{fig-cartoon-wav} shows that many large coefficients are located near edge curves, and retaining only a small number leads to a poor approximation with visually unpleasant artifacts.
 
 
 \myfigure{
@@ -866,7 +863,7 @@ Figure \ref{fig-cartoon-wav} shows that many large coefficients are located near
 \image{approximation}{.32}{cartoon-wav-image}&
 \image{approximation}{.32}{cartoon-wav-approx}&
 \image{approximation}{.32}{cartoon-wav-coefs}\\
-$f$ & $\{\dotp{f}{\psi_{j,n}^\om}\}$ & $f_M$
+$f$ & $f_M$ & $\{\dotp{f}{\psi_{j,n}^\om}\}$
 }
 }{%
 	Wavelet approximation of a cartoon image. %	
@@ -875,7 +872,7 @@ $f$ & $\{\dotp{f}{\psi_{j,n}^\om}\}$ & $f_M$
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Finite Element Approximation}
 
-To improve over the wavelet approximation, one can design an adapted triangulation that is highly anisotropic near edges. 
+An adaptive triangulation can improve the approximation by using elongated triangles aligned with the edges.
 Figure \ref{fig-triangulation-image} shows an example of such a triangulation.
 
 \myfigure{
@@ -885,77 +882,76 @@ Figure \ref{fig-triangulation-image} shows an example of such a triangulation.
 	Left: cartoon image, right: adaptive triangulation. %	
 }{fig-triangulation-image}
 
-A triangulation is obtain by sampling $M$ points over the image domain $[0,1]^2$ and then connecting them using triangles. One then defines a piecewise linear interpolation $\tilde f_M$ over these triangles. 
+Select $M$ points in the image domain $[0,1]^2$ and connect them into a triangulation. Define $\tilde f_M$ by piecewise affine interpolation on the resulting triangles.
 
 \myfigure{
 \image{approximation}{.3}{triangulation-aniso}\quad
 \image{approximation}{.3}{triangulation-iso}
 }{%
-	Aspect ratio of triangle away from edges (left) and near an edge (right). %	
+	Anisotropic triangles near an edge (left) and approximately isotropic triangles away from edges (right). %
 }{fig-triangulation-anisoiso}
 
-As shown in Figure \ref{fig-triangulation-anisoiso}, an efficient approximation of a $\Cdeux$-cartoon image \eqref{eq-cartoon-model} for $\al=2$ is obtained by seeding $\approx M/2$ approximately equilateral triangles of width $\approx M^{-1/2}$ in the areas where the image is regular. Near the edges, using the $\Cdeux$ regularity of the singular curve, one can seed $\approx M/2$ anisotropic triangles of length $M^{-1}$ and width $\approx M^{-1/2}$. One can show that such an adaptive triangulation leads to an approximation error 
+Figure \ref{fig-triangulation-anisoiso} illustrates a construction for $\Cdeux$ cartoon images~\eqref{eq-cartoon-model} with $\al=2$. In smooth regions, use $\approx M/2$ nearly equilateral triangles of width $\approx M^{-1/2}$. Near the edges, exploit the $\Cdeux$ contour regularity by placing $\approx M/2$ elongated triangles of length $\approx M^{-1}$ along the contours and width $\approx M^{-2}$ across them. Such a triangulation yields the error bound
 \eql{\label{eq-error-triangulation}
 	\norm{f-f_M}^2 = O(M^{-2}),
 }
 which improves over the wavelet approximation error decay \eqref{eq-approximation-error-wav-2d}. 
 
-This scheme is however difficult to implement in practice, since the edge curves are not known and difficult to find. This is in particular the case for smooth cartoon images when the smoothing kernel $h$ is unknown. 
+Implementing this construction requires estimating the edges. This is particularly difficult for blurred cartoon images with an unknown smoothing kernel $h$.
 
-There is currrently no known algorithm that can automatically produces the error decay \eqref{eq-error-triangulation}. 
-One thus has to use heuristics and greedy algorithm to find the location of the sampling points and computes the triangles. 
-Figure \eqref{fig-triangulation-peppers} shows an example of compression using such a greedy seeding algorithm, that works well in practice. 
+Practical methods use heuristics or greedy rules to select sample points and triangulate them from discrete or noisy data.
+Figure~\ref{fig-triangulation-peppers} illustrates compression with one such greedy construction.
 
 \myfigure{
 \tabtrois{
 \image{approximation}{.32}{triangulation-peppers}&
 \image{approximation}{.32}{triangulation-peppers-triangles}&
 \image{approximation}{.32}{triangulation-peppers-jpeg2k}\\
-Adpated triangulation & $\tilde f_M$ & JPEG-2000
+Adapted triangulation & $\tilde f_M$ & JPEG-2000
 }
 }{%
 	Comparison of adaptive triangulation and JPEG-2000, with the same number of bits. %	
 }{fig-triangulation-peppers}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Curvelets Approximation}
+\subsection{Curvelet Approximation}
 
-Instead of using an adaptive approximation scheme such as finite elements, one can replace the wavelet basis by a set of oriented anisotropic atoms. The curvelet frame was proposed by Cand\`es and Donoho for this purpose \cite{candes-tight-frame}.
+A fixed family of oriented, anisotropic atoms offers an alternative to adaptive triangulations. Cand\`es and Donoho introduced the curvelet frame for this purpose~\cite{candes-tight-frame}.
 
 %%
 \paragraph{Curvelets.}
 
-The curvelet construction starts from a curvelet function $c$ that is oriented along the horizontal direction, and perform stretching
+At fine scales $j\leq0$, the geometry can be illustrated by applying parabolic scaling to a horizontally oriented mother function $c$,
 \eq{
 	c_{2^j}(x_1,x_2) \approx 2^{-3j/4} c(2^{-j/2} x_1, 2^{-j} x_2),
 } 
-translation and rotation 
+followed by translation and rotation,
 \eq{
-	c_{2^j,u}^\th(x_1,x_2) = c_{2^j}(R_\th(x-u))
+	c_{2^j,u}^\th(x_1,x_2) = c_{2^j}(R_{-\th}(x-u))
 }
 where $R_\th$ is the rotation of angle $\th$.
 
-The atoms $c_{2^j,u}^\th$ is located near $u$, with an orientation $\th$, and has an aspect ratio ``width $\approx$ length$^2$'', which is the same aspect used to build an adaptive finite element approximation. This aspect ratio is essential to capture the anisotropic regularity near edges for images in the cartoon model \eqref{eq-cartoon-model} for $\al=2$. 
+The atom $c_{2^j,u}^\th$ is localized near $u$ and oriented at angle $\th$. Its dimensions obey ``width $\approx$ length$^2$'', the same relation used for adaptive triangles near edges. This scaling matches the contour geometry of the cartoon model~\eqref{eq-cartoon-model} with $\al=2$.
 
 \myfigure{
 \image{approximation}{.36}{curvelet-spacial}
 \image{approximation}{.4}{curvelet-fourier}
 }{%
-	Left: a curvelet $c_m$, right: its Fourier transform localization.%	
+	A curvelet $c_m$ in space (left) and its localization in the Fourier domain (right).%
 }{fig-curvelet}
 
-Figure \ref{fig-curvelet-discretization} shows the spacial and frequency localization of curvelets.
+Figure \ref{fig-curvelet} illustrates this localization in space and frequency.
 
 %%
 \paragraph{Parameter discretization.}
 
-To build an image representation, one need to sample the $u$ and $\th$ parameter.
-To maintain a stable representation, the sub-sampling of the angles depends on the scale
+To build an image representation, one needs to sample the position $u$ and orientation $\theta$.
+The angular sampling interval depends on the scale:
 \eq{
 	\foralls 0 \leq k < 2^{-\lceil j/2 \rceil+2}, \quad
 	\th_{k}^{(j)} = k \pi 2^{ \lceil j/2 \rceil -1 }  
 }
-and the spacial grid depends on the scale and on the angles
+and the spatial grid depends on both scale and orientation:
 \eq{
 	\foralls m=(m_1,m_2) \in \ZZ^2, \quad
 	u_m^{(j,\th)} = R_\th( 2^{j/2} m_1, 2^j m_2 ).
@@ -971,52 +967,41 @@ Figure \ref{fig-curvelet-discretization} shows this sampling pattern.
 %%
 \paragraph{Curvelet tight frame.}
 
-This sampling leads to a stable redundant family 
+The scaling and sampling formulas above describe the geometry of curvelets. An exact tight frame additionally requires carefully chosen frequency windows and a low-frequency family; an arbitrary mother function $c$ does not suffice. With this construction, write the complete family as $(C_\lambda)_{\lambda\in\Lambda}$, where $\Lambda$ includes the fine-scale indices $(j,m,k)$ and the low-frequency indices. Then
 \eq{
-	C_{j,m,k}(x) = c_{2^j,u}^{ \th }(x)
-	\qwhereq \th = \th_{k}^{(j)}
-	\qandq u=u_m^{(j,\th)},
+ \norm{f}^2=\sum_{\lambda\in\Lambda}|\dotp{f}{C_\lambda}|^2,
+ \qquad f=\sum_{\lambda\in\Lambda}\dotp{f}{C_\lambda}C_\lambda.
 }
-that obeys a conservation of energy 
-\eq{
-	\norm{f}^2 = \sum_{j \in \ZZ} \sum_{ k=0 }^{ 2^{-\lceil j/2 \rceil+2} }
-	\sum_{m \in \ZZ^2} |\dotp{f}{C_{j,m,k}}|^2
-}
-and a reconstruction formula
-\eq{
-	f = \sum_{j \in \ZZ} \sum_{ k=0 }^{ 2^{-\lceil j/2 \rceil+2} }
-	\sum_{m \in \ZZ^2} \dotp{f}{C_{j,m,k}} C_{j,m,k}
-}
-that extends the properties of orthogonal basis (tight frame), although the representation is redundant (the atoms are not orthogonal).
+The reconstruction converges in $L^2$. These are the Parseval-frame identities; the family is redundant and its atoms are not mutually orthogonal.
 
-A numerical implementation of this tight frame also defines a discrete tight frame for image of $N$ pixels, that is made of $\approx 5 N$ atoms \cite{candes-discrete-curvelet}. 
+One discrete construction for an image with $N$ pixels uses $\approx 5 N$ atoms~\cite{candes-discrete-curvelet}.
 
 %%
 \paragraph{Curvelet approximation.}
 
-A non-linear $M$-term approximation in curvelets is defined as
+A nonlinear $M$-term approximation in curvelets is defined as
 \eq{
-	f_M = \sum_{|\dotp{f}{C_{j,m,k}}| > T} \dotp{f}{C_{j,m,k}} C_{j,m,k}
+	f_M = \sum_{\lambda\in\Lambda:\,|\dotp{f}{C_\lambda}| > T} \dotp{f}{C_\lambda} C_\lambda
 }
-where $T$ is a threshold that depends on $M$. One should note that $f_M$ is not necessarily the best $M$-term curvelet approximation since the curvelet frame is not orthogonal. 
+The complete index set $\Lambda$ includes the low-frequency family, and the threshold $T$ determines the number $M$ of retained coefficients. As before, ties require a selection rule if an exact coefficient count is prescribed. Because the frame is not orthogonal, $f_M$ need not be the best $M$-term curvelet approximation.
 
-For position $u_m^{(j,\th)}$ that are far away from an edges, the vanishing moments of the curvelets create a small coefficient $\dotp{f}{C_{j,m,k}}$. If  $u_m^{(j,\th)}$ is close to an edge curve whose tangent has direction $\tilde\th$, then the coefficient $\dotp{f}{C_{j,m,k}}$ decays very fast to zero when $|\th-\tilde \th|$ increases. Figure \ref{fig-curvelets-vs-wavelets} shows the principle of this curvelet approximation, and compares it with directional wavelets that have a square support.  
+Far from an edge, at locations $u_m^{(j,\th)}$, cancellation makes the coefficients $\dotp{f}{C_{j,m,k}}$ small. When $u_m^{(j,\th)}$ lies near an edge with tangent direction $\tilde\th$, the coefficient $\dotp{f}{C_{j,m,k}}$ rapidly decreases as the orientation mismatch $|\th-\tilde \th|$ grows. Figure \ref{fig-curvelets-vs-wavelets} compares this adaptation to edges with the square supports of directional wavelets.
 
 
 \myfigure{
 \image{approximation}{.8}{curvelets-vs-wavelets}
 }{%
-	Comparison of the principle of wavelets (left) and curvelet (right) approximations of a cartoon image.%	
+	Wavelet (left) and curvelet (right) approximation of a cartoon image.%
 }{fig-curvelets-vs-wavelets}
 
-Using these two properties together with the sparse sampling of the curvelet in space and orientation leads to the following approximation error decay
+Combining spatial cancellation, directional selectivity, and scale-dependent sampling gives the approximation bound
 \eq{
 	\norm{f-f_M}^2 = O(\log^3(M) M^{-2})
 }
-for image in the cartoon model \eqref{eq-cartoon-model} for $\al=2$.
-This is close to the decay of adaptive triangulations \eqref{eq-error-triangulation}, but this time one computes $f_M$ with a fast $O(N \log(N))$ algorithm for an image of $N$ pixels.
+for images in the cartoon model \eqref{eq-cartoon-model} for $\al=2$.
+This nearly matches the adaptive-triangulation rate~\eqref{eq-error-triangulation}, while allowing $f_M$ to be computed in $O(N \log(N))$ operations for an image of $N$ pixels.
 
-In practice, the redundancy of the curvelet frame makes it not suitable for image compression. Its efficiency is however useful for denoising purpose, where it can improve over wavelet to denoise geometric images and textures, see Figure \ref{fig-curvelet-denoising}. The result is obtained by using a thresholding denoiser as detailed in Section \ref{subsec-denoise-hard}.
+Redundancy complicates the use of curvelets for compression, but their approximation properties are useful for denoising geometric images and textures. Figure \ref{fig-curvelet-denoising} compares curvelet and wavelet denoising using the thresholding method of Section \ref{subsec-denoise-hard}.
 
 
 \myfigure{
@@ -1027,10 +1012,8 @@ In practice, the redundancy of the curvelet frame makes it not suitable for imag
 Noisy $f$ & Wavelet $\tilde f$ & Curvelets $\tilde f$
 }
 }{%
-	Comparison of wavelets (translation invariant) and curvelet denoising. %	
+	Comparison of translation-invariant wavelet denoising and curvelet denoising. %
 }{fig-curvelet-denoising}
-
-
 
 
 
