@@ -1,0 +1,970 @@
+%!TEX root = ../FundationsDataScience.tex
+
+\chapter{Basics of Machine Learning}
+\chapteroverview{Machine learning seeks useful structure in data and predictors that remain accurate on new observations. We begin with dimensionality reduction and clustering, then develop regression and classification through empirical risk minimization, regularization, and kernel methods. Connections with inverse problems explain the role of model assumptions, while the final analysis of generalization balances approximation error against the statistical complexity of the chosen model class.}
+
+
+% Refs \cite{rosasco2017notes,friedman2001elements,murphy2012machine}
+
+Imaging problems often concern the reconstruction or processing of an individual signal or image, whereas machine learning studies patterns across collections of observations. Their goals and performance measures differ, but both use tools such as linear models, regularization, and convex optimization.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Unsupervised Learning}
+
+In unsupervised learning, we observe $n$ points $(x_i)_{i=1}^n$.
+%
+The aim is to identify structure in these observations, for example to visualize them or group them into clusters.
+%
+We assume for simplicity that the observations lie in Euclidean space, $x_i \in \RR^p$, where $p$ is the number of features. We store the observations as the rows of a matrix $X\in\RR^{n\times p}$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dimensionality Reduction and PCA}
+
+Dimensionality reduction produces a compact representation of the data for visualization or subsequent analysis. By retaining informative features, it can also reduce computational cost and improve prediction.
+%
+Principal component analysis (PCA) projects the data orthogonally onto the principal axes of the covariance matrix.
+
+%%%
+\paragraph{Presentation of the method.}
+
+The empirical mean is defined as 
+\eq{
+    \hat m \eqdef \frac{1}{n} \sum_{i=1}^n x_i \in \RR^p
+} 
+and the empirical covariance as
+\eql{\label{eq-emp-cov}
+ 	\hat C \eqdef \frac{1}{n} \sum_{i=1}^n (x_i-\hat m) (x_i-\hat m)^* \in \RR^{p \times p}. 
+}
+With the centered data matrix $\tilde X \eqdef X-\ones_n\hat m^*$, the covariance is $\hat C=\tilde X^*
+\tilde X/n$. 
+
+Suppose the points $(x_i)_i$ are i.i.d. with a finite second moment, and let $\xp$ denote a random variable with their common distribution. The law of large numbers gives the following almost sure limits as $n \rightarrow +\infty$:
+\eql{\label{eq-cov-approx}
+	\hat m \rightarrow m \eqdef \EE(\xp)
+	\qandq
+	\hat C \rightarrow C \eqdef \EE((\xp-m)(\xp-m)^*).
+}
+Let $\mu$ be the distribution on $\RR^p$ of $\xp$. Then these limits can also be written as
+\eq{
+	m = \int_{\RR^p} x \d\mu(x)
+	\qandq
+	C = \int_{\RR^p} (x-m)(x-m)^* \d\mu(x).	
+}
+
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/cov/proposed.pdf}
+\caption{Empirical covariance of the Iris measurements and its eigenvalues.}
+\label{fig-cov}
+\end{figure}
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{chapter-basics-of-machine-learning/ml-pca-variance/original/ml-pca-variance.pdf}
+\caption{Principal directions of variation.}
+\label{fig-review-ml-pca-variance}
+\end{figure}
+The PCA basis consists of the right singular vectors of the centered data matrix. Proposition~\ref{prop-svd} gives the reduced singular value decomposition
+\eq{
+ 	\tilde X = \sqrt{n} U \diag(\si) V^*
+}
+where $U \in \RR^{n \times r}$ and $V \in \RR^{p \times r}$ have orthonormal columns, and $r=\rank(\tilde X) \leq \min(n,p)$.
+%
+Write $V=(v_k)_{k=1}^r$ for the orthonormal columns, which are eigenvectors of $\hat C = V \diag(\si^2) V^\top$, with $v_k \in \RR^p$. These vectors describe the principal directions of variation in the point cloud $(x_i)_i$ in $\RR^p$.
+%
+We order the singular values as $\si_1 \geq \ldots \geq \si_r$, so the leading components account for the greatest variance.
+
+Figure~\ref{fig-cov} displays an empirical covariance matrix and its spectrum $(\si_k^2)_k$ for the Iris dataset\footnote{\url{https://en.wikipedia.org/wiki/Iris_flower_data_set}} introduced by Fisher. It contains 50 samples from each of three iris species: Iris setosa, Iris virginica, and Iris versicolor. The four features are sepal length, sepal width, petal length, and petal width.
+
+To obtain a PCA embedding $x_i \in \RR^p \mapsto z_i \in \RR^d$ of dimension $d \leq p$, project onto the first $d$ right singular vectors, extending the basis if $d>r$:
+\eql{\label{eq-pca-1}
+	z_i \eqdef ( \dotp{x_i-\hat m}{v_k} )_{k=1}^d \in \RR^d.
+}
+The corresponding reconstruction is
+\eql{\label{eq-pca-2}
+	\tilde x_i\eqdef\hat m+\sum_{k=1}^d z_{i,k}v_k \in \RR^p.
+}
+Thus $\tilde x_i = \Proj_{\tilde T}(x_i)$, where $\tilde T\eqdef\hat m+ \Span_{k=1}^d(v_k)$ is the affine reconstruction space.
+
+Figure~\ref{fig-pca} shows an example of PCA for 2-D and 3-D visualization.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/pca/proposed.pdf}
+\caption{PCA projections of the data into two and three dimensions.}
+\label{fig-pca}
+\end{figure}
+
+
+%%%
+\paragraph{Optimality analysis.}
+
+\input{chapters-tex/sec-pca-theory.tex}
+ 
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Clustering and \texorpdfstring{$k$}{k}-means}
+
+Clustering assigns a label $y_i \in \{1,\ldots,k\}$ to each observation $x_i$. Observations with the same label form a cluster.
+
+%%%%
+\paragraph{\texorpdfstring{$k$}{k}-means}
+
+One approach is to seek compact clusters by minimizing a measure of within-cluster dispersion. In Euclidean space, the $k$-means objective measures distances from observations to their centroids $c=(c_\ell)_{\ell=1}^k$, with $c_\ell \in \RR^p$. Related formulations are possible in general metric spaces, although the centroid computations may be more difficult. The optimization problem is
+\eq{
+	\umin{ (y,c) } \Ee( y, c ) \eqdef \sum_{\ell=1}^k \sum_{ i : y_i=\ell } \norm{x_i-c_\ell}^2. 
+}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{chapter-basics-of-machine-learning/ml-voronoi/original/ml-voronoi.pdf}
+\caption{$k$-means clusters according to Voronoi cells.}
+\label{fig-review-ml-voronoi}
+\end{figure}
+The $k$-means algorithm alternates between updating the labels and updating the centroids, a form of block coordinate minimization.
+%
+Initialize the centroids $c$, for example by choosing well-separated observations. We discuss a more systematic initialization below.
+% 
+For fixed centroids $c$, minimize $y \mapsto \Ee(y,c)$ by assigning each observation to its nearest centroid:
+\eql{\label{eq-kmeans-1}
+	\foralls i \in \{1,\ldots,n\}, \quad y_i \leftarrow \uargmin{1 \leq \ell \leq k} \norm{x_i-c_\ell}.
+}
+For fixed labels $y$, minimize $c \mapsto \Ee(y,c)$ by setting each centroid to the mean of its cluster:
+\eql{\label{eq-kmeans-2}
+	\foralls \ell \in \{1,\ldots,k\}, \quad c_\ell \leftarrow \frac{
+		\sum_{i : y_i=\ell} x_i
+	}{
+		|\enscond{i}{y_i=\ell}|
+	}
+}
+If a cluster becomes empty, its centroid does not contribute to the objective for the current labels. One may leave it in place or reseed it at a data point before the next assignment step. The centroid formula applies only to nonempty clusters.
+
+Each step decreases or preserves $\Ee$. With a fixed tie-breaking rule that retains existing assignments at ties, and without indefinite reseeding, a changed assignment strictly decreases the objective. There are finitely many label assignments, so the algorithm terminates after finitely many such changes.
+
+Because the objective is nonconvex, $k$-means need not find globally optimal clusters.
+%
+A reseeding heuristic moves centroids $c_\ell$ from redundant or low-contribution clusters to regions with high distortion. This can help the iterations escape a poor local configuration.
+
+Figure~\ref{fig-kmeans} shows an example of $k$-means iterations on the Iris dataset.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/kmeans/proposed.pdf}
+\caption{Left: iterations of the $k$-means algorithm. Right: class histograms after the $k$-means optimization.}
+\label{fig-kmeans}
+\end{figure}
+
+
+%%%%
+\paragraph{\texorpdfstring{$k$}{k}-means++}
+
+The result of $k$-means depends strongly on initialization. Well-separated initial centers tend to cover the data more effectively than tightly grouped centers.
+
+The randomized $k$-means++ initialization has an approximation guarantee even before Lloyd iterations are applied. In practice, Lloyd iterations usually improve the resulting centers. First choose $c_1$ uniformly among the sample points. After choosing $c_1,\ldots,c_\ell$, select $c_{\ell+1}$ from the sample according to a probability $\pi^{(\ell)}$ on $\{1,\ldots,n\}$ proportional to the squared distance from the nearest selected center
+\eq{
+	\foralls i \in \{1,\ldots,n\}, \quad 
+	\pi^{(\ell)}_i \eqdef \frac{d_i^2}{\sum_{j=1}^n d_j^2}
+	\qwhereq
+	d_i\eqdef\min_{1\leq r\leq\ell}\norm{x_i-c_r}.
+}
+Points far from the previously seeded centers are more likely to be chosen. If every $d_i=0$, the current centers already achieve zero distortion and the procedure can stop.
+
+The following theorem, due to David Arthur and Sergei Vassilvitskii, bounds the expected seeding cost by a logarithmic factor times the optimal cost. Computing a global optimum is NP-hard in general.
+
+\begin{thm}
+	Let $c^\star$ be the centroids selected by $k$-means++ and let $y^\star$ be their nearest-centroid labels, as in~\eqref{eq-kmeans-1}. Then
+	\eq{
+		\EE(\Ee(y^\star,c^\star)) \leq 8 (2+\log(k)) \umin{(y,c)}\Ee(y,c),
+	}
+	where the expectation is over the random choices made during initialization.
+\end{thm}
+
+
+
+
+%%%%
+\paragraph{Lloyd algorithm and continuous densities.}
+
+The $k$-means iterations are also known as Lloyd's algorithm and are used in vector quantization for compression. The same alternating procedure applies to a probability measure $\mu$ on $\RR^p$ with finite second moment.
+%
+The energy to minimize becomes
+\eq{
+	\umin{ (\Vv,c) } \sum_{\ell=1}^k \int_{\Vv_\ell} \norm{x-c_\ell}^2 \d \mu(x)
+}
+where $(\Vv_\ell)_\ell$ is a partition of the domain. 
+%
+Step~\eqref{eq-kmeans-1} is replaced by the computation of a Voronoi cell
+\eq{
+	\foralls \ell \in \{1,\ldots,k\}, \quad 
+	\Vv_\ell \eqdef \enscond{x}{ \foralls \ell' \neq \ell, \norm{x-c_\ell} \leq \norm{x-c_{\ell'}} }.
+}
+For distinct centroids, the Voronoi cells are polyhedra bounded by perpendicular bisectors. Resolve distance ties consistently to obtain a partition; this matters if $\mu$ assigns positive mass to a boundary. In low dimensions, computational geometry provides efficient algorithms for constructing the cells.
+%
+Step~\eqref{eq-kmeans-2} is then replaced by
+\eq{
+	\foralls \ell \in \{1,\ldots,k\}, \quad c_\ell \leftarrow \frac{
+		\int_{\Vv_\ell} x \d\mu(x)
+	}{
+		\int_{\Vv_\ell} \d\mu(x)
+	}.
+}
+The centroid update applies to cells of positive $\mu$-mass; zero-mass cells require a separate convention, as in the discrete algorithm. For a uniform planar density, hexagonal Voronoi patterns are characteristic of high-resolution quantization away from the boundary. They need not be exact finite-$k$ minimizers on a bounded domain.
+%
+Figure~\ref{fig-lloyd} displays two examples of Lloyd iterations on 2-D densities on a square domain.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/lloyd/proposed.pdf}
+\caption{Continuous $k$-means (Lloyd) iterations $0,2,3,5,30$. The top row uses a uniform density; the bottom row uses the nonuniform density shown in grayscale.}
+\label{fig-lloyd}
+\end{figure}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Empirical Risk Minimization}
+
+We first describe empirical risk minimization, a framework shared by regression and classification. For classification, predictions may represent class probabilities rather than labels.
+
+To make fitting $y_i \approx f(x_i)$ computationally tractable and obtain useful predictions, we restrict the admissible functions to a class of controlled complexity. The class may become richer as the sample size $n$ grows, but its complexity must remain compatible with the available data.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Empirical Risk}
+
+Let $\Ff_n$ be a class of functions that may depend on the sample size. A common learning procedure is empirical risk minimization (ERM)
+\eql{\label{eq-erm-1}
+	\hat f \in \uargmin{f \in \Ff_n} \frac{1}{n} \sum_{i=1}^n \loss(f(x_i),y_i).
+}
+The loss function $\loss : \Yy^2 \rightarrow \RR^+$ measures prediction error for the chosen task. %
+Classification and regression typically require different loss functions.
+%
+We sometimes write $\hat f_n$ to emphasize the estimator's dependence on the sample size $n$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Prediction and Consistency}
+
+For the analysis, assume the training pairs $(x_i,y_i)$ are i.i.d. with distribution $\pi$ on $\Xx \times \Yy$. The corresponding population optimization problem is
+\eql{\label{eq-consistency-estim}
+	\bar f \in \uargmin{f \in \Ff_\infty} \int_{\Xx \times \Yy} \loss(f(x),y) \d\pi(x,y) = \EE_{(\xp,\yp)\sim\pi}\bigl(\loss(f(\xp),\yp)\bigr).
+}
+The desired consistency property is $\hat f_n \rightarrow \bar f$ as $n \rightarrow +\infty$. One way to express this is through expected prediction error over the training samples $(x_i,y_i)_i$:
+\eq{
+	E_n \eqdef \EE( \tilde\loss(\hat f_n(\xp),\bar f(\xp)) ) \longrightarrow 0.
+}
+Here the expectation includes both the test input $\xp$, drawn from the marginal $\pi_\Xx$, and the $n$ i.i.d. training pairs $(x_i,y_i)\sim\pi$ that determine $\hat f_n$.
+%
+The comparison loss $\tilde\loss$ measures discrepancies between predictions in $\Yy$; for example, we may take $\tilde\loss=\loss$.
+One can also study convergence in probability, i.e. 
+\eq{
+	\foralls \epsilon>0, \quad
+	E_{\epsilon,n} \eqdef \PP( \tilde\loss(\hat f_n(\xp),\bar f(\xp)) > \epsilon ) \rightarrow 0.
+}
+These properties define consistency in expectation and in probability, respectively.
+%
+A convergence rate gives an explicit upper bound on the decay of $E_n$ or $E_{\epsilon,n}$.
+
+For $\tilde\loss(y,y')=|y-y'|^r$, convergence in expectation implies convergence in probability by Markov's inequality:
+\eq{
+	E_{\epsilon,n} = \PP( |\hat f_n(\xp)-\bar f(\xp)|^r > \epsilon )  \leq \frac{1}{\epsilon} \EE( |\hat f_n(\xp)-\bar f(\xp)|^r ) = \frac{E_n}{\epsilon}.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Parametric Approaches and Regularization}
+
+Instead of specifying $\Ff_n$ through a hard constraint, we can favor simple or regular functions through a penalty.
+%
+A typical way to achieve this is by using a parametric model $y \approx f(x,\be)$ where $\be \in \Bb$ parametrizes the function $f(\cdot,\be) : \Xx \rightarrow \Yy$. The empirical risk minimization procedure~\eqref{eq-erm-1} now becomes 
+\eql{\label{eq-erm-param}
+	\hat \be \in \uargmin{\be \in \Bb} \frac{1}{n} \sum_{i=1}^n \loss(f(x_i,\be),y_i) + \la_n J(\be).
+}
+where $J$ is a regularizer. For example, $J=\norm{\cdot}_2^2$ controls parameter magnitude, while $J=\norm{\cdot}_1$ promotes sparse coefficients and, in a linear feature model, feature selection. Here $\la_n>0$ is a regularization parameter, and its asymptotic scaling must balance approximation and estimation; consistency often requires $\la_n\to0$ at a controlled rate.
+
+The population counterpart of~\eqref{eq-consistency-estim} defines the parameter $\bar \be$. A limiting estimator as $n \rightarrow +\infty$ then takes the form $\bar f = f(\cdot,\bar \be)$, with $\bar \be$ satisfying
+\eql{\label{eq-consistency-param}
+	\bar \be \in \uargmin{\be} \int_{\Xx \times \Yy} \loss(f(x,\be),y) \d\pi(x,y) = \EE_{(\xp,\yp)\sim\pi}\bigl(\loss(f(\xp,\be),\yp)\bigr).
+}
+
+
+
+%%
+\paragraph{Prediction vs. estimation risks.}
+
+We may also ask how accurately $\hat\be$ estimates $\bar\be$, as measured by the parameter error $\norm{\hat\be-\bar\be}$ for a chosen norm $\norm{\cdot}$. Parameter estimation is generally more demanding than prediction: different parameters can produce similar predictions, especially when the model is poorly identified.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Validation, Test Sets, and Cross-validation}
+
+The errors $E_n$ and $E_{\epsilon,n}$ cannot be evaluated directly because the population optimum $\bar f$ is unknown.
+%
+To tune a parameter such as the regularization strength $\la$, we estimate the prediction risk $\EE(L(\hat f(\xp),\yp))$ on data held out from training.
+
+%
+Use a second sample $(\bar x_j,\bar y_j)_{j=1}^{\bar n}$, called a validation set. In the statistical model, these observations are i.i.d. with distribution $\pi$ and independent of the training sample. The validation risk is
+\eql{\label{eq-valid-risk}
+	R_{\bar n} = \frac{1}{\bar n} \sum_{j=1}^{\bar n} \loss(\hat f(\bar x_j),\bar y_j)
+}
+which converges to $\EE(L(\hat f(\xp),\yp))$ for large $\bar n$.
+%
+Minimizing $R_{\bar n}$ over hyperparameters (such as $\la_n$) is holdout validation. Cross-validation repeats training and validation across folds. A separate test set, untouched by hyperparameter selection, estimates the performance of the final selected procedure.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Supervised Learning: Regression}
+\label{sec-regression}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{chapter-basics-of-machine-learning/ml-joint-model/original/ml-joint-model.pdf}
+\caption{Probabilistic modeling.}
+\label{fig-review-ml-joint-model}
+\end{figure}
+In supervised learning, the training data consist of pairs $(x_i,y_i)\in\Xx\times\Yy$, with $\Xx=\RR^p$ here for simplicity. We seek a function $f:\Xx\rightarrow\Yy$ that captures the relationship $y_i\approx f(x_i)$ and predicts an output $f(x)$ for a new input $x$.
+
+When $\Yy$ is finite and discrete, the task is supervised classification, studied in Section~\ref{sec-classif}. Binary classification uses $\Yy=\{0,1\}$; for example, in a medical application, $y_i=0$ may indicate a healthy subject and $y_i=1$ a subject with the condition of interest.
+%
+When $\Yy$ is continuous, typically $\Yy=\RR$, the task is regression.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Linear Regression}
+\label{sec-linear-models}
+
+For regression, we specialize empirical risk minimization to $\Yy=\RR$ with the quadratic loss $\loss(y,y')=\frac{1}{2}|y-y'|^2$.
+
+Nonlinear regression can be formulated using a dictionary of features, such as polynomials. This lifts the data into a higher-dimensional space and leads to the kernel methods of Section~\ref{sec-kernel-methods}.
+
+%%%
+\paragraph{Least squares and conditional expectation.}
+
+If $f$ ranges over measurable functions and $\EE(\yp^2)<\infty$, a population minimizer $\bar f$ in~\eqref{eq-consistency-estim} is the conditional mean of the response given the input. It is defined up to equality almost everywhere under the input distribution.
+%
+Suppose for simplicity that $\pi$ has density $\frac{\d \pi}{\d x \d y}$ with respect to a product measure $\d x \d y$, such as Lebesgue measure. Then
+\eq{
+	\foralls x \in \Xx, \quad
+	\bar f(x) = \EE( \yp | \xp=x) = 
+	\frac{ 
+		\int_{\Yy} y \frac{\d \pi}{\d x \d y}(x,y) \d y 
+	}{ 
+		\int_{\Yy} \frac{\d \pi}{\d x \d y}(x,y) \d y
+	 }
+}
+where $(\xp,\yp)$ has law $\pi$ and the formula applies where the denominator is positive.
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{chapter-basics-of-machine-learning/bound-regul/original/ml-conditional-expectation.pdf}
+\caption{Conditional expectation.}
+\label{fig-bound-regul}
+\end{figure}
+
+If $\Xx$ and $\Yy$ are discrete, let $\pi_{x,y}$ denote the probability of $(\xp=x,\yp=y)$. Then
+\eq{
+	\foralls x \in \Xx, \quad
+	\bar f(x) = \frac{ \sum_{y}  y \pi_{x,y} }{ \sum_{y} \pi_{x,y} }
+}
+with no prescribed value when the marginal of $\pi$ on $\Xx$ vanishes at $x$.
+
+Replacing $\pi$ by the empirical distribution averages responses at each observed input but leaves predictions unspecified elsewhere. Generalization therefore requires assumptions on regularity or model complexity.
+
+
+%%%
+\paragraph{Penalized linear models.}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{chapter-basics-of-machine-learning/ml-linear-fit/original/ml-linear-fit.pdf}
+\caption{Linear regression.}
+\label{fig-review-ml-linear-fit}
+\end{figure}
+A linear model constrains $f$ to have the form $f(x,\be)=\dotp{x}{\be}$ with parameters $\be \in \Bb=\RR^p$. Affine predictors are included through the identity $\dotp{x}{\be}+\be_0=\dotp{(x,1)}{(\be,\be_0)}$, by appending a constant coordinate to $x$ to form $(x,1)$. We therefore use the linear notation below.
+
+Under the square loss, the regularized ERM~\eqref{eq-erm-param} is conveniently rewritten as 
+\eql{\label{eq-erm-lin}
+	\hat \be \in \uargmin{\be \in \Bb} \frac{1}{2} \dotp{\hat C \be}{\be} - \dotp{\hat u}{\be} + \la_n J(\be)
+}
+where we introduced the empirical second-moment matrix (equal to the covariance~\eqref{eq-emp-cov} for centered data) and cross-moment vector
+\eq{
+	\hat C \eqdef \frac{1}{n} X^* X = \frac{1}{n} \sum_{i=1}^n x_i x_i^*
+	\qandq
+	\hat u \eqdef \frac{1}{n} \sum_{i=1}^n y_i x_i = \frac{1}{n} X^* y \in \RR^p.
+}
+As $n\to+\infty$, suitable moment assumptions on $\pi$ give the following almost sure limits by the law of large numbers:
+\eql{\label{eq-empirical-conver}
+	\hat C \rightarrow C \eqdef \EE(\xp\xp^*)
+	\qandq
+	\hat u \rightarrow u \eqdef \EE(\yp \xp).
+}
+For appropriately chosen $\la_n \rightarrow 0$, the estimator can converge as $n \rightarrow +\infty$ to the population parameter
+\eq{
+	\bar \be \in \uargmin{\be} \enscond{ J(\be) }{ C\be=u }.
+}
+
+Problem~\eqref{eq-erm-lin} is equivalent to the regularized resolution of inverse problems~\eqref{eq-regul-inv}, with $X/\sqrt n$ in place of $\Phi$ and $y/\sqrt n$ as the observation vector.
+%
+Random design introduces sampling error into the operator as well: $\hat C$ estimates $C$. The typical scale is $1/\sqrt{n}$, in the sense that
+\eq{
+	\EE(\norm{\hat C-C}) =O(n^{-1/2})
+	\qandq
+	\EE(\norm{\hat u-u}) =O(n^{-1/2}),
+}
+assuming $\EE(\yp^4)<+\infty$ and $\EE(\norm{\xp}^4)<+\infty$, which give finite second moments for $\xp\xp^*$ and $\xp\yp$. Using a linear predictor does not require a correctly specified model $\yp=\dotp{\xp}{\be} + w$ with noise $w$ independent of $\xp$. The aim is to estimate the best linear predictor $\bar\be$.
+
+Extensions of Theorems~\ref{thm-sublin-quad}, \ref{thm-bregman-rates}, and~\ref{thm-linrate-l1} can account for covariance-estimation error and yield prediction bounds of the form
+\eq{
+	\EE( |\dotp{\hat \be}{\xp}-\dotp{\bar \be}{\xp}|^2 ) = O( n^{-\kappa} )
+}
+and estimation rates of the form 
+\eq{
+	\EE( \norm{\hat \be-\bar \be}^2  ) = O( n^{-\kappa'} ), 
+}
+under suitable source conditions involving $C$ and $u$.
+%
+Since the noise level is roughly $n^{-\frac{1}{2}}$, the ideal cases are when $\kappa=\kappa'=1$, which is the so-called linear rate regime.  
+%
+Support-recovery guarantees can also be derived by extending Theorem~\ref{thm-support-stable}. We now focus on quadratic regularization, a standard regression method. Sparse penalties such as $\ell^1$ are useful when feature selection or a sparse model is appropriate; their statistical benefit depends on the data and assumptions.
+%
+In imaging inverse problems, sparse regularization expresses prior structure of the object being reconstructed.
+
+%%%
+\paragraph{Ridge regression (quadratic penalization).}
+
+For $J=\norm{\cdot}^2/2$, the estimator~\eqref{eq-erm-lin} is obtained in closed form as
+\eql{\label{eq-linest-std}
+	\hat\be = ( X^* X + n\la_n \Id_p )^{-1} X^* y = 
+	(\hat C+\la_n\Id_p)^{-1}\hat u.
+}
+This is often called ridge regression in the literature.
+%
+The Woodbury identity gives the equivalent expression
+\eql{\label{eq-linest-woodbury}
+	\hat\be = X^* ( XX^* + n\la_n \Id_n )^{-1}  y .
+}
+When $n\gg p$, formula~\eqref{eq-linest-std} requires solving the smaller, $p\times p$ system. When $p\gg n$, formula~\eqref{eq-linest-woodbury} uses an $n\times n$ system and is preferable; it also extends to infinite-dimensional feature spaces.
+
+Convergence to the minimum-norm population solution $\bar\be=C^+u$ requires control of both the regularization bias and sampling error. The condition $\la_n\to0$ alone is insufficient when small eigenvalues amplify noise. Here is one elementary bound that also applies in a Hilbert feature space.
+
+\begin{thm}
+Assume $\norm{\xp}\leq\kappa$ almost surely, $\EE(\yp^2)<\infty$, and $u=C\bar\be$. Suppose
+\eql{\label{eq-sc-stat}
+ \bar\be=C^\gamma z,\qquad\norm{z}\leq\rho,\qquad0<\gamma\leq1.
+}
+Set $B^2=\kappa^2\bigl(\EE(\yp^2)+\kappa^2\norm{\bar\be}^2\bigr)$. For every $\lambda>0$,
+\eq{\EE\norm{\hat\be-\bar\be}^2\leq2\rho^2\lambda^{2\gamma}+\frac{4B^2}{n\lambda^2}.}
+If $B,\rho>0$, choosing $\la_n=(B/(\rho\sqrt n))^{1/(\gamma+1)}$ gives
+\eql{\label{eq-rate-estim}
+ \EE\norm{\hat\be-\bar\be}^2
+ \leq6\rho^{2/(\gamma+1)}B^{2\gamma/(\gamma+1)}n^{-\gamma/(\gamma+1)}.
+}
+\end{thm}
+\begin{proof}
+Let $\be_\lambda=(C+\lambda\Id)^{-1}u$. Spectral calculus gives
+$\norm{\be_\lambda-\bar\be}\leq\rho\lambda^\gamma$ and $\norm{\be_\lambda}\leq\norm{\bar\be}$. Moreover,
+\eq{\hat\be-\be_\lambda=(\hat C+\lambda\Id)^{-1}
+ \bigl((\hat u-u)-(\hat C-C)\be_\lambda\bigr).}
+The inverse has norm at most $1/\lambda$. Independence and the second-moment bound yield
+$\EE\norm{\hat\be-\be_\lambda}^2\leq2B^2/(n\lambda^2)$. Combining the two errors with $\norm{a+b}^2\leq2\norm a^2+2\norm b^2$ proves the first claim; the stated choice of $\la_n$ gives the second.
+\end{proof}
+
+In finite dimensions, a source representation exists for every $\bar\be\in\Im(C)$, but its radius $\rho$ depends on the spectrum and on the target. In infinite dimensions, it is an additional regularity assumption. The bound displays no explicit feature dimension, although $\kappa$, $B$, and $\rho$ may depend on it. Standard ridge regularization has bias saturation beyond source exponent $\gamma=1$; stronger source assumptions alone do not justify extending this estimate to $\gamma=2$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Supervised Learning: Classification}
+\label{sec-classif}
+
+For classification, the labels are discrete: $y_i \in \Yy = \{1,\ldots,k\}$.
+%
+We study two standard methods: nearest neighbors and logistic classification.
+%
+Both methods provide useful baselines for assessing more elaborate models.
+%
+Nearest-neighbor methods also apply to regression.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Nearest-Neighbor Classification}
+\label{sec-nn-classif}
+
+The $R$-nearest-neighbor method ($R$-NN) classifies an input using the labels of its $R$ nearest training observations. Increasing $R$ reduces sensitivity to individual noisy labels, but excessive smoothing can obscure class boundaries. For consistency, a standard asymptotic choice has $R=R_n\to\infty$ and $R_n/n\to0$.
+%
+Nearest-neighbor classification is a useful baseline, especially when the feature dimension $p$ is small.
+
+The prediction $\hat f(x)\in\Yy$ is the most frequent label among those $R$ observations, with a fixed rule for breaking ties. The method is nonparametric: its representation depends on the training sample rather than on a fixed-dimensional parameter vector.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{chapter-basics-of-machine-learning/ml-nearest-neighbors/original/ml-nearest-neighbors.pdf}
+\caption{Nearest neighbors.}
+\label{fig-review-ml-nearest-neighbors}
+\end{figure}
+First compute the Euclidean distance from the query $x$ to each training observation $x_i$.
+%
+Sorting the distances generates an indexing $\si$ (a permutation of $\{1,\ldots,n\}$) such that 
+\eq{
+ 	\norm{x-x_{\si(1)}} \leq \norm{x-x_{\si(2)}} \leq \ldots \leq \norm{x-x_{\si(n)}}. 
+}
+For a given $R$, one can compute the ``local'' histogram of classes around $x$
+\eq{
+	h_\ell(x)\eqdef\frac1R\#\{i\in\{1,\ldots,R\}:y_{\si(i)}=\ell\}.
+}
+The predicted class at $x$ is an index attaining the largest histogram value:
+\eq{
+	\hat f(x) \in \uargmax{\ell} h_\ell(x).
+}
+
+Choose $R$ by validation or cross-validation. For classification, the validation risk~\eqref{eq-valid-risk} typically uses the 0--1 loss, giving the fraction of misclassified observations
+\eq{
+	R_{\bar n}\eqdef\frac1{\bar n}\sum_{j=1}^{\bar n}\de(\bar y_j-\hat f(\bar x_j))
+}
+where $\de(0)=0$ and $\de(s)=1$ if $s \neq 0$. 
+%
+The method also applies to features in a general metric space in place of $\RR^p$.
+%
+Fast nearest-neighbor search can avoid explicitly sorting every distance.
+	
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/hist-classif/proposed.pdf}
+\caption{Classification boundaries produced by $R$-nearest neighbors.}
+\label{fig-hist-classif}
+\end{figure}
+
+Figure~\ref{fig-hist-classif} shows the predicted class regions $\enscond{x}{\hat f(x)=\ell}$, for $\ell=1,\ldots,k$, in a two-dimensional projection of the Iris dataset.
+%
+Increasing $R$ leads to smoother class boundaries.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Binary Logistic Classification}
+\label{sec-two-class-logit}
+
+Logistic classification is a widely used baseline for binary and multiclass prediction. It outputs a probability for each class, providing a richer prediction than a class label alone. The accuracy of these probabilities must still be assessed on held-out data.
+%
+The standard name for this model is logistic regression, even when the prediction task is classification.
+
+Support vector machines provide another common approach. Their hinge loss is nonsmooth, and their scores are not probabilities without an additional calibration step. The choice between these methods depends on the task and evaluation criterion.
+
+For the binary formulas below, use labels $y_i \in \Yy = \{-1,1\}$. In logistic classification, the prediction $f(\cdot,\be) \in [0,1]$ is a probability for the positive class rather than a class label. We retain the notation $f$ for this probability predictor.
+
+
+%%%%
+\paragraph{Approximate risk minimization.}
+
+A linear score $\dotp{x}{\be}$ defines the classifier $\sign(\dotp{x}{\be})$, with either class assigned when the score is zero. The empirical 0--1 objective counts classification errors, leading to the minimization problem
+\eql{\label{eq-ideal-classif}
+	\umin{\be} \sum_{i=1}^n \ell_0(-y_i \dotp{x_i}{\be})
+} 
+where $\ell_0=1_{[0,+\infty)}$ counts zero margins as errors. Away from ties, misclassification corresponds to $\dotp{x_i}{\be}$ and $y_i$ having different signs, so that in this case $\ell_0(-y_i \dotp{x_i}{\be})=1$ (and 0 otherwise for correct classification).
+
+The loss $\ell_0$ is nonconvex, and solving~\eqref{eq-ideal-classif} globally is NP-hard in general. Convex upper bounds on $\ell_0$ provide tractable surrogate objectives.
+
+Two common surrogates are
+\eq{
+	\ell(u)=(1+u)_+ 
+	\qandq
+	\ell(u)=\log(1+\exp(u))/\log(2)
+}	
+These are, respectively, the nonsmooth hinge loss used in support vector machines and the smooth logistic loss. The $1/\log(2)$ is just a constant which makes $\ell_0 \leq \ell$.
+% 
+AdaBoost uses the exponential loss $\ell(u)=e^u$.
+%
+Least squares uses $\ell(u)=(1+u)^2$. Its growth for large negative margins makes it a poor pointwise approximation of $\ell_0$, although it can still give useful classifiers.
+% 
+Unregularized hinge-loss minimization is equivalent to a linear program with nonnegative slack variables:
+\eq{
+	\umin{u \geq 0, \be} \enscond{\sum_i u_i}{y_i\dotp{x_i}{\be}\geq1-u_i\text{ for all }i }.
+}	
+
+
+%%%%
+\paragraph{Logistic loss probabilistic interpretation.}
+
+Logistic regression applies a sigmoid to the linear score from Section~\ref{sec-linear-models}. The resulting probability predictor is nonlinear. The predicted probability of class $+1$ is
+\eql{\label{eq-two-class-logit-model}
+	f(x,\be) \eqdef \th(\dotp{x}{\be})
+	\qwhereq
+   	\th(s) \eqdef \frac{e^{s}}{1+e^s} = (1+e^{-s})^{-1},
+}
+which is often called the ``logit'' model.
+%
+Despite its simplicity, a linear classifier can be effective when the feature dimension $p$ is large.
+%
+With $s=\dotp{x}{\be}$, the predicted probability of class $-1$ is $1-f(x,\be)=\th(-s)$. The identity $\th(-s)=1-\th(s)$ makes the two probabilities sum to one. It does not require balanced class frequencies; an intercept can account for unequal prior frequencies.
+
+For a nonzero parameter, $\be/\norm{\be}$ determines the normal direction of the separating hyperplane, while $1/\norm{\be}$ controls the width of the probability transition. As $\norm{\be} \rightarrow +\infty$ along a fixed direction, the transition approaches a sharp decision boundary.
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{chapter-basics-of-machine-learning/logistic-sharpness/original/ml-logistic-one-dimension.pdf}\hfill
+\BookPanel{.485}{2}{chapter-basics-of-machine-learning/logistic-sharpness/original/ml-logistic-two-dimensions.pdf}
+\caption{Logistic classification in one and two dimensions, showing how $\norm{\be}$ controls the width of the probability transition.}
+\label{fig-logistic-sharpness}
+\end{figure}
+
+The predictor $f(x,\be)$ is also a single-layer perceptron with a logistic (sigmoid) activation; see Chapter~\ref{c-deep-learning}.
+
+For conditionally independent labels $y_i\in\{-1,+1\}$, write $\bar y_i=(y_i+1)/2\in\{0,1\}$, $s_i=\dotp{x_i}{\be}$, and $p_i=\th(s_i)$. The likelihood is
+\eq{\PP(\yp=y_i\mid\xp=x_i)=p_i^{\bar y_i}(1-p_i)^{1-\bar y_i}.}
+Thus the negative log-likelihood is
+\eq{\sum_i\{-\bar y_i\log p_i-(1-\bar y_i)\log(1-p_i)\}
+=\sum_i\log(1+\exp(-y_is_i)).}
+After division by the sample size, this gives the empirical-risk objective~\eqref{eq-erm-param} with logistic loss:
+\eql{\label{eq-logistic-optim}
+	\hat\be \in \uargmin{\be \in \RR^p} 
+		 E(\be)  = \frac{1}{n} \sum_{i=1}^n \loss(\dotp{x_i}{\be},y_i)  
+}
+where the logistic loss reads
+\eql{\label{eq-logistic-loss}
+	 \loss( s,y ) \eqdef \log( 1+\exp(-sy) ). 
+}
+Problem~\eqref{eq-logistic-optim} is a smooth convex minimization. If $X$ has full column rank, $E$ is strictly convex, so it has at most one minimizer. A finite minimizer need not exist for separable data. A positive quadratic penalty guarantees existence and uniqueness.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/losses/proposed.pdf}
+\caption{Classification losses as functions of the negative margin $s=-y\dotp{x}{\be}$, with zero margin counted as an error. The unscaled logistic loss need not upper-bound the 0--1 loss; division by $\log 2$ gives the upper-bound normalization used above.}
+\label{fig-losses}
+\end{figure}
+
+Figure~\ref{fig-losses} compares the 0--1, logistic, and hinge losses.
+
+%%%
+\paragraph{Gradient descent method.}
+
+Write the objective as
+\eq{
+	 E(\be) = \Loss(X \be,y) \qwhereq \Loss(s,y)= \frac{1}{n}  \sum_i \loss(s_i,y_i), 
+}
+Its gradient is
+\eq{
+	 \nabla E(\be) = X^* \nabla \Loss(X \be,y)
+      \qwhereq
+      \nabla\Loss(s,y)=-\frac{y}{n}\odot\th(-y\odot s),
+}
+where $\odot$ is the pointwise multiplication operator, i.e. \texttt{.*} in Matlab.
+%
+Once $\be^{(\ell=0)} \in \RR^{p}$ is initialized (for instance at $0_{p}$), one step of gradient descent~\eqref{eq-grad-desc} reads
+\eq{
+	 \iit{\be} = \it{\be} - \tau_\ell \nabla E(\it{\be}). 
+}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/separation-influ/proposed.pdf}
+\caption{Effect of class separation on predicted classification probabilities.}
+\label{fig-separation-influ}
+\end{figure}
+
+Figure~\ref{fig-separation-influ} illustrates the method on samples from a Gaussian mixture, whose overlap is controlled by an offset $\omega$.
+%
+Overlaying the data on the probability map highlights the separating hyperplane $\enscond{x}{\dotp{\be}{x}=0}$.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Multiclass Logistic Classification}
+\label{sec-multiclass-logit}
+
+For multiclass logistic classification, introduce one weight vector for each of the
+$k$ classes. Collect the vectors $\be = ( \be_\ell )_{\ell=1}^k$ as columns of $\be \in \RR^{p \times k}$.
+
+For an input $x \in \RR^p$, convert the class scores into probabilities
+using the softmax model:
+\eql{\label{eq-multiclass-logitmap}
+	 f(x,\be) = \pa{ \frac{ e^{\dotp{x}{\be_\ell}} }{ \sum_m e^{\dotp{x}{\be_m}} } }_\ell
+}
+The vector $f(x,\be)\in[0,1]^k$ gives the probabilities that $x$ belongs
+to each class, and satisfies $\sum_\ell f(x,\be)_\ell=1$.
+
+Estimate $\be$ by maximizing the log-likelihood
+over the training sample:
+ \eq{
+	 \umax{\be \in \RR^{p \times k}} \frac{1}{n} \sum_{i=1}^n \log( f(x_i,\be)_{y_i} ) 
+}
+where $y_i \in \Yy = \{1,\ldots,k\}$ is the label of
+observation $x_i$.
+
+This is conveniently rewritten as
+\eq{
+	 \umin{\be \in \RR^{p \times k}} \Ee(\be)\eqdef\frac1n\left(\sum_i\text{LSE}(X\be)_i-\dotp{X\be}{D}\right)
+}
+where $D \in \{0,1\}^{n \times k}$ is the one-hot class matrix
+\eq{
+	  D_{i,\ell} = \choice{
+          1 \qifq y_i=\ell, \\
+          0 \text{otherwise}.
+      }
+}
+and LSE is the log-sum-exp operator
+\eq{
+	 \text{LSE}(S)_i=\log\left(\sum_\ell\exp(S_{i,\ell})\right),\qquad\text{LSE}(S)\in\RR^n.
+}
+For $k=2$, identify the first class with label $+1$ and the second with label $-1$. The model then agrees with binary logistic classification in Section~\ref{sec-two-class-logit}, with parameter $\be_1-\be_2$. A single weight vector therefore suffices in that case.
+
+Direct evaluation of log-sum-exp can
+overflow when $S_{i,\ell}$ is large. A stable evaluation
+subtracts the largest entry in each row before exponentiation,
+using the identity
+\eq{
+	\text{LSE}(S+a)=\text{LSE}(S)+a
+} 
+for a rowwise constant $a$. This shift is especially useful for well-separated classes, whose parameter vectors $\be_\ell$ may grow large.
+
+
+The gradient of the sum of the rowwise log-sum-exp values is the softmax operator
+\eq{
+	  \nabla_S\sum_i\text{LSE}(S)_i = \text{SM}(S) \eqdef
+      \pa{
+          \frac{
+                  e^{S_{i,\ell}}
+              }{
+                  \sum_m e^{S_{i,m}}
+              } }   
+}
+As with log-sum-exp, subtract the largest entry in each row before evaluating the exponentials.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/digits/proposed.pdf}
+\caption{Digit images and their two- and three-dimensional PCA projections.}
+\label{fig-digits}
+\end{figure}
+
+Once the matrix $D$ is computed, the gradient of $\Ee$ is computed as
+\eq{
+	 \nabla \Ee(\be) =  \frac{1}{n} X^* ( \text{SM}(X \be) - D ).  
+}
+The objective $\Ee$ can then be minimized by gradient descent.
+
+To illustrate the method, we use a dataset of $n$ images of size $p = 8 \times 8$, representing digits from 0
+to 9 (so there are $k=10$ classes).
+%
+Figure~\ref{fig-digits} displays a few representative examples as well as 2-D and 3-D PCA projections.
+%
+Figure~\ref{fig-digits-classes} visualizes the fitted class probabilities $f(x,\hat\be)$ by assigning colors on a regular image grid.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/digits-classes/proposed.pdf}
+\caption{Digit classification. Left: the first nine class probabilities on an affine two-dimensional PCA slice through the training mean. Right: the mixture of all ten class colors, with projected observations overlaid.}
+\label{fig-digits-classes}
+\end{figure}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Kernel Methods}
+\label{sec-kernel-methods}
+
+Linear models may fail to capture the geometry needed for a regression or classification task. Moreover, inputs such as strings and graphs need not belong to a vector space.
+
+Kernel methods introduce a feature map into a richer space and apply linear prediction there. This produces nonlinear regression and classification rules while retaining linear-system solvers and convex optimization. The kernel trick expresses the computations through similarities between the $n$ observations, without constructing the feature vectors explicitly. Such methods are nonparametric when the number of fitted coefficients grows with $n$, allowing the model to become more expressive as data accumulate.
+
+Algorithms that use the observations $x_i$ only through inner products can often be kernelized. Examples include linear regression, nearest-neighbor methods, SVMs, logistic classification, and PCA. We introduce the construction through ridge regression and then extend it to other losses and distance-based methods.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Feature Map and Kernels}
+
+Let $\phi : \Xx \rightarrow \Hh$ be a feature map into a real Hilbert space $\Hh$, which may be infinite dimensional.
+%
+The input space $\Xx$ need not be a vector space. When $\Xx=\RR^p$, the choice $\phi(x)=x$ recovers ordinary linear methods.
+%
+For regression, we consider predictions which are linear functions over this lifted space, i.e. of the form $x \mapsto \dotp{\phi(x)}{\be}_\Hh$ for some weight vector $\be \in \Hh$. For binary classification, one uses $x \mapsto \sign(\dotp{\phi(x)}{\be}_\Hh)$.
+
+For scalar inputs ($p=1$), the feature map $\phi(x) = (1,x,x^2,\ldots,x^k)\in\RR^{k+1}$ gives polynomial regression. Multivariate monomials extend this construction to higher-dimensional inputs.
+%
+Let $\Phi = ( \phi(x_i)^* )_{i=1}^n$ be the feature matrix, whose rows are $\phi(x_i)$. For $\Hh=\RR^{\bar p}$, it is an ordinary matrix $\Phi \in \RR^{n \times \bar p}$. In an infinite-dimensional feature space, the same notation represents a linear operator.
+
+For $\la>0$, consider the regularized empirical-risk problem
+\eql{\label{eq-kernel-generic-intro}
+	 \umin{\be \in \Hh} \sum_{i=1}^n \ell(y_i, \dotp{\phi(x_i)}{\be}) + \frac{\la}{2} \norm{\be}_\Hh^2
+	 =
+	 \Loss(\Phi \be,y) + \frac{\la}{2} \norm{\be}_\Hh^2
+}
+
+Start with regression under the squared loss $\ell(y,z)=\frac{1}{2}(y-z)^2$:
+\eq{
+	\be^\star = \uargmin{\be \in \Hh} \norm{\Phi\be-y}_{\RR^n}^2+\la\norm{\be}_\Hh^2.
+}
+which is the ridge regression problem studied in Section~\ref{sec-linear-models}. 
+%
+Setting the gradient to zero gives
+\eq{
+	\be^\star = ( \Phi^*\Phi + \la \Id_{\Hh} )^{-1} \Phi^* y.
+}
+Direct computation may be impractical or impossible when $\Hh$ is infinite dimensional. The following Woodbury identity converts the problem into a finite system.
+%
+This is the feature-space counterpart of~\eqref{eq-linest-woodbury}, with $\Phi$ replacing $X$ and $\la$ replacing $n\la_n$.
+
+\begin{prop}
+	One has
+	\eq{
+		( \Phi^*\Phi + \la \Id_{\Hh} )^{-1} \Phi^* = \Phi^* ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1}. 
+	}
+\end{prop}
+\begin{proof}
+	Denoting $U=( \Phi^*\Phi + \la \Id_{\Hh} )^{-1} \Phi^*$ and $V=\Phi^* ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1}$, one has
+ 	\eq{
+		( \Phi^*\Phi + \la \Id_{\Hh} ) U = \Phi^*
+	}
+	and
+	\eq{
+		( \Phi^*\Phi + \la \Id_{\Hh} ) V = ( \Phi^*\Phi\Phi^* + \la \Phi^*)  ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1}
+		 = \Phi^* ( \Phi \Phi^* + \la \Id_{\RR^n} ) ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1} = \Phi^*.		
+	}
+	Since $( \Phi^*\Phi + \la \Id_{\Hh} )$ is invertible, one obtains the result. 
+\end{proof}
+
+The identity gives the alternative representation
+\eq{
+	\be^\star = \Phi^* c^\star
+	\qwhereq
+		c^\star \eqdef  ( K + \la \Id_{\RR^n} )^{-1} y
+}	
+where the empirical kernel matrix is
+\eq{
+	K=\Phi\Phi^* = ( \kappa(x_i,x_j) )_{i,j=1}^n \in \RR^{n \times n}
+	\qwhereq
+	\kappa(x,x') \eqdef \dotp{\phi(x)}{\phi(x')}. 
+}	
+The coefficients $c^\star \in \RR^n$ depend on the inputs only through $\kappa$, without explicit computation of $\phi(x)$. If $\kappa$ is inexpensive to evaluate, forming $K$ takes $O(n^2)$ kernel evaluations. A dense direct solve costs $O(n^3)$ operations; an iterative solve costs $O(n^2)$ per matrix-vector product, with the iteration count determined by conditioning and accuracy.
+
+The fitted predictor at a new input $x \in \Xx$ also uses only kernel evaluations:
+\eql{\label{eq-prediction-evaluation}
+	\dotp{\be^\star}{\phi(x)}_\Hh = \dotp{ \sum_i c_i^\star \phi(x_i)}{\phi(x)}_\Hh = \sum_i c_i^\star \kappa(x,x_i).
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Kernel Design}
+
+One can also start directly from a kernel $\kappa(x,x')$ rather than an explicit feature map $\phi$. This is often convenient because kernels can be designed through their geometric properties and combined, for example by addition. The required condition is that every Gram matrix $(\kappa(x_i,x_j))_{i,j}$ be symmetric positive semidefinite. Such kernels are commonly called positive definite kernels; the condition is equivalent to the existence of a Hilbert-space feature map generating the kernel.
+%
+The underlying input space need not be Euclidean.
+
+
+When using the linear kernel $\kappa(x,y)=\dotp{x}{y}$, one retrieves the linear models studied in the previous section, and the lifting is trivial $\phi(x)=x$.
+%
+A family of popular kernels are polynomial ones,  $\kappa(x,x') = (\dotp{x}{x\prime}+c)^a$ for $a
+\in \NN^*$ and $c>0$, which corresponds to a lifting in finite dimension. For instance, for $a=2$ and $p=2$, one has a lifting in dimension $6$
+\eq{
+	\kappa(x,x') = \pa{ x_1x_1'+x_2x_2' + c}^2 = \dotp{\phi(x)}{\phi(x')}
+	\qwhereq
+	\phi(x)=(x_1^2,x_2^2,\sqrt{2}x_1x_2,\sqrt{2c}x_1,\sqrt{2c}x_2,c)^* \in \RR^6.	
+}
+A widely used choice on Euclidean spaces is the Gaussian kernel
+\eql{\label{eq-gauss-kernel}
+	 \kappa(x,y) \eqdef e^{-\frac{\norm{x-y}^2}{2\sigma^2}} . 
+}
+The bandwidth $\si>0$ controls the locality of the model and is typically tuned by cross-validation. The Gaussian kernel has the infinite-dimensional feature map $\phi(x)(t)=(2/(\pi\sigma^2))^{p/4}\exp(-\norm{x-t}^2/\sigma^2)\in L^2(\RR^p)$.
+%
+Another related popular kernel is the Laplacian kernel $\exp(-\norm{x-y}/\si)$.
+%
+More generally, Bochner's theorem states that a continuous translation-invariant kernel $\kappa(x,x')=k(x-x')$ on $\RR^p$ is positive definite if and only if $k$ is the Fourier transform of a finite nonnegative measure. If this measure has an integrable density, a feature map can be built from the square root of that density. When $k$ is integrable and its Fourier transform is an integrable function, the condition is $\hat k\geq0$; strict positivity is not necessary.
+%
+Figure~\ref{fig-kernel} shows an example of regression using a Gaussian kernel. 
+
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/kernel/proposed.pdf}
+\caption{Regression using a Gaussian kernel.}
+\label{fig-kernel}
+\end{figure}
+
+\paragraph{Kernel on non-Euclidean spaces.}
+
+On a general input space $\Xx$, a real kernel $\kappa$ must produce a symmetric positive semidefinite Gram matrix $K=(\kappa(x_i,x_j))_{i,j}$ for every finite collection of inputs. Equivalently, there is a Hilbert space $\Hh$ and a feature map $\phi:\Xx \rightarrow \Hh$ such that $\kappa(x,x')=\dotp{\phi(x)}{\phi(x')}_\Hh$.
+
+For instance, if $\Xx = \Pp(\Mm)$ is the set of measurable sets of finite measure in a measure space $(\Mm,\mu)$, one can define $\kappa(A,B) = \mu(A \cap B)$ which corresponds to the lifting $\phi(A)=1_A$ so that $\dotp{\phi(A)}{\phi(B)} = \int 1_A(x) 1_B(x)\d \mu(x) = \mu(A \cap B)$.
+%
+Kernels can also be defined on strings and graphs, although their construction is more involved.
+
+When $\kappa(x,x)>0$ for every input under consideration, the kernel can be normalized to have a unit diagonal. For a translation-invariant kernel on $\RR^p$, the diagonal equals the constant $k(0)$, so normalization only requires division by $k(0)>0$. This corresponds to replacing $\phi(x)$ by $\phi(x)/\norm{\phi(x)}_\Hh$ and thus replacing $\kappa(x,x')$ by $\frac{\kappa(x,x')}{\sqrt{\kappa(x,x)}\sqrt{\kappa(x',x')}}$.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{General Case}
+
+The least-squares result extends to other losses under the assumptions below. With a squared Hilbert-space norm penalty, the minimizer belongs to a subspace generated by the data, of dimension at most $n$. This representer theorem reduces the problem to finitely many coefficients even when the feature space $\Hh$ is infinite dimensional.
+
+\begin{prop}
+	Assume $\lambda>0$ and the losses $\ell(y_i,\cdot)$ are finite, nonnegative, and convex. The solution $\be^\star\in\Hh$ of
+	\eql{\label{eq-kernel-generic}
+		 \umin{\be \in \Hh} \sum_{i=1}^n \ell(y_i, \dotp{\phi(x_i)}{\be}) + \frac{\la}{2} \norm{\be}_\Hh^2
+		 =
+		 \Loss(\Phi \be,y) + \frac{\la}{2} \norm{\be}_\Hh^2
+	}
+	is unique and can be written as
+	\eql{\label{eq-rkhs-representer}
+		\be = \Phi^* c^\star = \sum_i c_i^\star \phi(x_i) \in \Hh
+	}
+	where $c^\star\in\RR^n$ is a solution of
+	\eql{\label{eq-rkhs-variational}
+		\umin{c \in \RR^n} \Loss(K c,y) + \frac{\la}{2} \dotp{K c}{c}_{\RR^n}
+	}
+	where we defined 
+	\eq{
+		K\eqdef\Phi\Phi^* = ( \dotp{\phi(x_i)}{\phi(x_j)}_\Hh )_{i,j=1}^n \in \RR^{n \times n}.
+	}
+\end{prop}
+
+\begin{proof}
+Let $V=\Span\{\phi(x_i):1\leq i\leq n\}$ and decompose $\be=\be_V+\be_\perp$ orthogonally. Predictions on the data depend only on $\be_V$, while
+$\norm{\be}^2=\norm{\be_V}^2+\norm{\be_\perp}^2$. Since $\lambda>0$, a minimizer has $\be_\perp=0$. The restriction to the finite-dimensional space $V$ is continuous, coercive, and strictly convex, hence has a unique minimizer. Substituting $\be=\Phi^*c$ gives~\eqref{eq-rkhs-variational}; the coefficient vector $c$ need not be unique if $K$ is singular.
+\end{proof} 
+
+Equation~\eqref{eq-rkhs-representer} places the minimizer in a subspace of dimension at most $n$, spanned by the observed feature vectors $\phi(x_i)$.
+%
+The potentially infinite-dimensional problem~\eqref{eq-kernel-generic} becomes the finite-dimensional problem~\eqref{eq-rkhs-variational}. A dense first-order iteration costs $O(n^2)$ once the kernel matrix is available. A low-rank approximation $K \approx \tilde\Phi^* \tilde \Phi$ can reduce this cost further by introducing a smaller approximate feature space.
+
+For classification applications, one can use for $\ell$ a hinge or a logistic loss function, and then the decision boundary is computed following~\eqref{eq-prediction-evaluation} using kernel evaluations only as 
+\eq{
+	\sign(\dotp{\be^\star}{\phi(x)}_\Hh) = \sign(\sum_i c_i^\star \kappa(x,x_i)).
+}
+Figure~\ref{fig-classes-kernel} illustrates a nonlinear decision boundary in two dimensions. The decision rule is linear in the feature space $\Hh$; evaluating it through the nonlinear feature map produces a curved boundary in the input space.
+
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-basics-of-machine-learning/classes-kernel/proposed.pdf}
+\caption{Nonlinear classification using a Gaussian kernel.}
+\label{fig-classes-kernel}
+\end{figure}
+
+Nearest-neighbor classification (Section~\ref{sec-nn-classif}) and regression can likewise use distances in feature space, computed entirely from the kernel:
+\eq{
+	\norm{\phi(x_i)-\phi(x_j)}_\Hh^2 = \kappa(x_i,x_i)+\kappa(x_j,x_j) - 2 \kappa(x_i,x_j).	
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Probably Approximately Correct Learning}
+
+This section introduces Probably Approximately Correct (PAC) learning, which studies generalization guarantees under explicit complexity and sampling assumptions. Distribution-free bounds avoid further restrictions on the data distribution.
+The main reference (and in particular the proofs of the mentioned results) for this section is the book ``Foundations of Machine Learning'' by Mehryar Mohri, Afshin Rostamizadeh, and Ameet Talwalkar \url{https://cs.nyu.edu/~mohri/mlbook/}.
+
+%%%
+\input{chapters-tex/machine-learning-sec-pac.tex}
+
+

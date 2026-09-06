@@ -1,0 +1,143 @@
+% Shared typography for the complete book and the individual chapters.
+\makeatletter
+\def\input@path{{chapters-tex/shared/}}
+\makeatother
+\input{chapters-tex/shared/book-metadata}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{newpxtext}
+\usepackage[scaled=.94]{sourcesanspro}
+\usepackage{mystyle}
+\let\BookTranspose\transp
+\let\transp\relax
+\usepackage{newpxmath}
+\let\transp\BookTranspose
+% These legacy symbol families ship scalable outlines but discrete NFSS sizes.
+\input{ursfs.fd}
+\DeclareFontShape{U}{rsfs}{m}{n}{<5-7>rsfs5 <7-8>rsfs7 <8->rsfs10}{}
+\input{Ustmry.fd}
+\DeclareFontShape{U}{stmry}{m}{n}{<-5.5>stmary5 <5.5-6.5>stmary6
+  <6.5-7.5>stmary7 <7.5-8.5>stmary8 <8.5-9.5>stmary9 <9.5->stmary10}{}
+\usepackage{microtype}
+\usepackage[a4paper,inner=23mm,outer=20mm,top=24mm,bottom=24mm,
+  headheight=15pt,headsep=8mm,footskip=12mm]{geometry}
+\usepackage{wrapfig}
+\usepackage{pdfpages}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[font=small,labelfont={bf,sf},labelsep=period]{caption}
+\usepackage{enumitem}
+\usepackage[nottoc,notlof,notlot]{tocbibind}
+\settocbibname{References}
+\usepackage{xr-hyper}
+\usepackage[unicode,bookmarksdepth=2,colorlinks=true,hypertexnames=false,
+  linkcolor=BookAccent,citecolor=BookAccent,urlcolor=BookAccent,
+  pdfauthor={\BookAuthor},
+  pdftitle={\BookTitle}]{hyperref}
+\usepackage{bookmark}
+\urlstyle{same}
+
+\definecolor{BookInk}{HTML}{203746}
+\definecolor{BookAccent}{HTML}{146C78}
+\definecolor{BookMuted}{HTML}{667780}
+\graphicspath{{./figures/}{./docs/figures/archive/legacy-assets/}{./docs/figures/archive/legacy-assets/ot/}}
+\renewcommand{\baselinestretch}{1.06}
+\setlength{\parindent}{1.25em}
+\setlength{\emergencystretch}{2em}
+\raggedbottom
+% The digital edition starts sections immediately, without blank verso pages.
+\let\cleardoublepage\clearpage
+\setlist{topsep=.5\baselineskip,itemsep=.15\baselineskip,parsep=0pt}
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{2}
+\newcommand{\BookStandaloneMasthead}{%
+  {\normalfont\sffamily\color{BookInk}%
+    {\large\bfseries\BookTitle\par}%
+    \vspace{4pt}%
+    {\normalsize\BookAuthor\par}%
+    {\small\color{BookMuted}\BookAffiliation\par}}%
+  \vspace{16pt}}
+\titleformat{\chapter}[display]
+  {\sffamily\bfseries\color{BookInk}}
+  {\ifdefined\StandaloneChapter\BookStandaloneMasthead\fi
+   \large\color{BookAccent}\MakeUppercase{\chaptertitlename}\enspace\thechapter}
+  {10pt}{\huge}
+  [\vspace{10pt}{\color{BookAccent}\titlerule[1pt]}]
+\titlespacing*{\chapter}{0pt}{18pt}{30pt}
+% A brief motivation and roadmap opens every numbered chapter.
+\newcommand{\chapteroverview}[1]{%
+  \begingroup
+    \sffamily\setlength{\parindent}{0pt}%
+    \ifdefined\StandaloneChapter
+      \noindent{\small\color{BookMuted}\BookEditionDate}\par
+      \nobreak\smallskip
+    \fi
+    \noindent\color{BookInk}#1\par
+  \endgroup
+  \medskip}
+\titleformat{\section}{\Large\sffamily\bfseries\color{BookInk}}{\thesection}{.7em}{}
+\titleformat{\subsection}{\large\sffamily\bfseries\color{BookInk}}{\thesubsection}{.7em}{}
+\titleformat{\paragraph}[runin]{\normalsize\bfseries}{\theparagraph}{.5em}{}
+\titlespacing*{\section}{0pt}{2.2ex plus .8ex}{1ex}
+\titlespacing*{\subsection}{0pt}{1.8ex plus .6ex}{.8ex}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\sffamily\color{BookMuted}\nouppercase{\leftmark}}
+\fancyhead[RO]{\small\sffamily\color{BookMuted}\nouppercase{\rightmark}}
+\fancyfoot[LE,RO]{\small\sffamily\color{BookInk}\thepage}
+\renewcommand{\headrulewidth}{.3pt}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter\enspace #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\enspace #1}}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[LE,RO]{\small\sffamily\thepage}\renewcommand{\headrulewidth}{0pt}}
+\renewcommand{\bibname}{References}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,columns=fullflexible,
+  commentstyle=\color{BookMuted}\itshape,keywordstyle=\bfseries\color{BookAccent}}
+
+% Use actual norm delimiters with consistent spacing and sizing.
+\renewcommand{\norm}[1]{\lVert#1\rVert}
+\renewcommand{\normb}[1]{\Bigl\lVert#1\Bigr\rVert}
+\renewcommand{\normB}[1]{\left\lVert#1\right\rVert}
+\AtBeginDocument{%
+  \renewcommand{\bibname}{References}%
+  \renewcommand{\d}{\mathrm{d}}%
+  \renewcommand{\th}{\theta}%
+  \renewcommand{\SS}{\mathbb{S}}}
+
+% Small illustrations float with a readable side caption instead of wrapping
+% narrow columns of mathematics or colliding with the next illustration.
+\renewcommand{\wrapf}[2]{%
+  \begin{figure}[tbp]\centering
+    \begin{minipage}{.3\linewidth}\centering
+      \includegraphics[width=.94\linewidth]{#1}
+    \end{minipage}\hfill
+    \begin{minipage}{.64\linewidth}\caption{#2}\end{minipage}
+  \end{figure}}
+\renewcommand{\wrapfSimple}[1]{%
+  \begin{figure}[tbp]\centering
+    \includegraphics[width=.3\linewidth]{#1}
+  \end{figure}}
+
+% Keep reconstructed diagrams at their natural, readable type size, reducing
+% only drawings wider than the available line. Compact source drawings keep
+% labels readable within panel rows; longer sequences can use continued captions.
+\newsavebox{\BookDrawingBox}
+\newcommand{\BookDrawing}[1]{%
+  \sbox{\BookDrawingBox}{\includegraphics{#1}}%
+  \ifdim\wd\BookDrawingBox>.96\linewidth
+    \resizebox{.96\linewidth}{!}{\usebox{\BookDrawingBox}}%
+  \else\usebox{\BookDrawingBox}\fi}
+% Compact rows keep a consistent panel label and align the top edges.
+\newcommand{\BookPanel}[3]{%
+  \begin{minipage}[t]{#1\linewidth}\vspace{0pt}\centering
+    {\small\sffamily\color{BookMuted}Panel #2\par}\smallskip
+    \BookDrawing{#3}%
+  \end{minipage}}
+\DeclareCaptionLabelFormat{bookcontinued}{#1~#2 (continued)}
+\newcommand{\BookContinuedFigure}{%
+  \ContinuedFloat\captionsetup{list=false,labelformat=bookcontinued}}
+
+\newcommand{\myauthor}[3]{#1\protect\footnote{#2, \protect\url{#3}}}
+\ifdefined\BookExternalReferences
+  \externaldocument{\BookExternalReferences}[../FundationsDataScience.pdf]
+\fi

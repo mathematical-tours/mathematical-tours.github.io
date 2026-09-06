@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `denoising--iltering
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id denoising--iltering-optimal-curve
+build/figure-runtime/bin/python tools/regenerate_figures.py --id denoising--iltering-optimal-curve
 ```
 
 Matching asset directory: `figures/chapter-denoising/filtering-optimal-curves`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

@@ -1,0 +1,101 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\title{Entropy Bound for Empirical Non-Overlapping Blocks}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Setup and notation (everything is deterministic)}
+Fix a finite alphabet $\mathcal A=\{1,\dots,K\}$ and a finite text
+\[
+x_1x_2\cdots x_N\in\mathcal A^N,
+\]
+with $N$ a multiple of a chosen block length $n\ge1$. Write $N=mn$ and split the text into \emph{non-overlapping} blocks
+\[
+B_s \coloneqq (x_{(s-1)n+1},\dots,x_{sn})\in\mathcal A^n,\qquad s=1,\dots,m.
+\]
+All objects below are defined by counting occurrences in this fixed text; there is \emph{no} probabilistic model.
+
+\paragraph{Empirical symbol distribution.}
+For $a\in\mathcal A$,
+\[
+p(a)\;\coloneqq\;\frac{1}{N}\sum_{t=1}^{N}\mathbf 1\{x_t=a\},\qquad
+p\in\Delta^{K-1}.
+\]
+
+\paragraph{Empirical block distribution (non-overlapping).}
+For $w\in\mathcal A^n$,
+\[
+P(w)\;\coloneqq\;\frac{1}{m}\sum_{s=1}^{m}\mathbf 1\{B_s=w\},\qquad
+P\in\Delta^{K^n-1}.
+\]
+
+\paragraph{Position-$t$ marginals of blocks.}
+For each $t\in\{1,\dots,n\}$ and $a\in\mathcal A$,
+\[
+q_t(a)\;\coloneqq\;\frac{1}{m}\sum_{s=1}^{m}\mathbf 1\{x_{(s-1)n+t}=a\},\qquad
+q_t\in\Delta^{K-1}.
+\]
+These are the marginals of $P$ on coordinate $t$ (with the non-overlapping segmentation).
+
+\medskip
+\noindent\textbf{Counting identity.} For every $a\in\mathcal A$,
+\begin{equation}
+\label{eq:avg-marg}
+p(a)\;=\;\frac{1}{n}\sum_{t=1}^{n} q_t(a)
+\quad\Longleftrightarrow\quad
+\boxed{\,p=\frac{1}{n}\sum_{t=1}^{n} q_t\,}.
+\end{equation}
+
+\section*{Entropies}
+For a distribution $r$ on a finite set, let $H(r)\coloneqq -\sum r\log_2 r$ (with the convention $0\log 0=0$). We write
+\[
+H(p)\ \text{ for symbols},\qquad H(P)\ \text{ for $n$-blocks},\qquad H(q_t)\ \text{ for position-$t$ marginals}.
+\]
+
+\section*{Main inequality (holds for any $n$ and any text length $N$ multiple of $n$)}
+\begin{equation}
+\label{eq:main}
+\boxed{\; H(P)\ \le\ \sum_{t=1}^{n} H(q_t)\ \le\ n\,H(p)\; }.
+\end{equation}
+
+\paragraph{Proof.}
+\emph{Step 1 (comparison with product of marginals).}
+By construction, $P$ has marginals $q_1,\dots,q_n$. Consider the product distribution
+\[
+Q\;\coloneqq\; q_1\otimes q_2\otimes\cdots\otimes q_n,
+\]
+on $\mathcal A^n$. Then
+\[
+H(Q)=\sum_{t=1}^n H(q_t).
+\]
+Since $P$ and $Q$ share the same marginals, one has
+\[
+D(P\|Q)=\sum_{w} P(w)\log\frac{P(w)}{Q(w)}\;\ge 0.
+\]
+Rearranging gives
+\[
+H(P)\ \le\ H(Q)=\sum_{t=1}^n H(q_t).
+\]
+
+\smallskip
+\emph{Step 2 (concavity + \eqref{eq:avg-marg}).} Entropy is concave, so
+\[
+\frac{1}{n}\sum_{t=1}^{n} H(q_t)\ \le\ H\!\Big(\frac{1}{n}\sum_{t=1}^{n}q_t\Big)
+= H(p).
+\]
+Thus $\sum_{t=1}^{n} H(q_t)\le n\,H(p)$. Combining with Step 1 proves \eqref{eq:main}.
+
+\section*{Remarks}
+\begin{itemize}
+  \item With non-overlapping blocks, each $q_t$ need not equal $p$; only the average relation \eqref{eq:avg-marg} is guaranteed.
+  \item The bound \eqref{eq:main} is purely combinatorial: it holds for \emph{every} fixed text, for \emph{every} $n\ge1$, and for \emph{every} length $N$ that is a multiple of $n$.
+\end{itemize}
+
+\end{document}

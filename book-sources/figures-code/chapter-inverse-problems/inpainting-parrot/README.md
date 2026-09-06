@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `inverse-problems--i
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id inverse-problems--inpainting-parrot
+build/figure-runtime/bin/python tools/regenerate_figures.py --id inverse-problems--inpainting-parrot
 ```
 
 Matching asset directory: `figures/chapter-inverse-problems/inpainting-parrot`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `compression--compre
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id compression--compression-jpeg
+build/figure-runtime/bin/python tools/regenerate_figures.py --id compression--compression-jpeg
 ```
 
 Matching asset directory: `figures/chapter-compression/compression-jpeg`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

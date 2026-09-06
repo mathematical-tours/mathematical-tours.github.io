@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `approximation--thre
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id approximation--thresholding-hard
+build/figure-runtime/bin/python tools/regenerate_figures.py --id approximation--thresholding-hard
 ```
 
 Matching asset directory: `figures/chapter-linear-and-nonlinear-approximation/thresholding-hard`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

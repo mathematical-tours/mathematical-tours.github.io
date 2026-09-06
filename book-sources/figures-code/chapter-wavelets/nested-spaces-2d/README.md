@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `wavelets--embeded-s
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id wavelets--embeded-spaces-2d
+build/figure-runtime/bin/python tools/regenerate_figures.py --id wavelets--embeded-spaces-2d
 ```
 
 Matching asset directory: `figures/chapter-wavelets/nested-spaces-2d`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

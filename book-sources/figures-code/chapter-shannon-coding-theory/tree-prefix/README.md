@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `shannon-coding--tre
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id shannon-coding--tree-prefix
+build/figure-runtime/bin/python tools/regenerate_figures.py --id shannon-coding--tree-prefix
 ```
 
 Matching asset directory: `figures/chapter-shannon-coding-theory/tree-prefix`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

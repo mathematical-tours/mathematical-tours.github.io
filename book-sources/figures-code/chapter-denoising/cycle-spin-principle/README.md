@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `denoising--cycle-sp
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id denoising--cycle-spin-principle
+build/figure-runtime/bin/python tools/regenerate_figures.py --id denoising--cycle-spin-principle
 ```
 
 Matching asset directory: `figures/chapter-denoising/cycle-spin-principle`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

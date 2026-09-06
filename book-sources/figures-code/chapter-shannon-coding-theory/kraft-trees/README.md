@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `shannon-coding--kra
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id shannon-coding--kraft-trees
+build/figure-runtime/bin/python tools/regenerate_figures.py --id shannon-coding--kraft-trees
 ```
 
 Matching asset directory: `figures/chapter-shannon-coding-theory/kraft-trees`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

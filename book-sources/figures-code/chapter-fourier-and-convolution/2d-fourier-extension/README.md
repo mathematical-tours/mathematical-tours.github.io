@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `fourier--2d-fourier
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id fourier--2d-fourier-extension
+build/figure-runtime/bin/python tools/regenerate_figures.py --id fourier--2d-fourier-extension
 ```
 
 Matching asset directory: `figures/chapter-fourier-and-convolution/2d-fourier-extension`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

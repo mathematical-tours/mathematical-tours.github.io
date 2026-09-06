@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `compression--thresh
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id compression--thresholding-vs-quantizing
+build/figure-runtime/bin/python tools/regenerate_figures.py --id compression--thresholding-vs-quantizing
 ```
 
 Matching asset directory: `figures/chapter-compression/thresholding-vs-quantizing`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.

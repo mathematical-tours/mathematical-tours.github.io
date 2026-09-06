@@ -19,7 +19,7 @@ Omitted from the current comparison PDF. Stable identifier: `denoising--additive
 Rebuild from the repository root:
 
 ```sh
-build/figure-runtime/bin/python scripts/regenerate_figures.py --id denoising--additive-noise-model
+build/figure-runtime/bin/python tools/regenerate_figures.py --id denoising--additive-noise-model
 ```
 
 Matching asset directory: `figures/chapter-denoising/additive-noise-model`. `context.tex` records the mathematical context at reconstruction time. `original/` preserves historical assets and `original.pdf` assembles the previous figure. `proposed.pdf` is used by the reading editions only when the manifest state is `accepted`.
