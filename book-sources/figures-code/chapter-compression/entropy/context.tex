@@ -1,0 +1,84 @@
+% Context from chapters/compression.tex; for mathematical reference, not compilation.
+\section{Entropy Coding}
+\label{subsec-entropic-coding}
+
+Entropy coding exploits the uneven distribution of the quantized coefficients to reduce the expected file size: zeros are frequent, while large values are rare. Shannon's coding theory \cite{shannon-information} quantifies the resulting savings.
+
+We refer to Section~\ref{sec-shannon-source} for the theoretical foundations of the methods described below.
+
+
+  
+\paragraph{Probabilistic modeling.}
+
+The quantized coefficients $q_m \in \{-A,\ldots,A\}$ take values in an alphabet of $Q=2A+1$ elements.
+A code maps the coefficient sequence to a binary string:
+\eq{
+	\{q_m\}_m \longmapsto \{0,1,1,\ldots,0,1\} \in \{0,1\}^R.
+}
+We first model the $q_m$ as independent draws from a known probability distribution:
+\eq{
+	\PP(q_m=i)=p_i \in [0,1].
+}
+
+  
+\paragraph{Huffman code.}
+
+A Huffman code assigns a variable-length binary string to each symbol:
+\eq{
+	q_m=i \in \{-A,\ldots,A\} \longmapsto c_i \in \{0,1\}^{|c_i|}
+}
+where $|c_i|$ is the codeword length. Codeword lengths are assigned so that a less probable symbol receives no shorter a codeword than a more probable symbol.
+Huffman coding minimizes the expected length among binary prefix codes. Shannon's construction gives lengths $\lceil-\log_2p_i\rceil$ for positive-probability symbols, so optimality of Huffman's code implies
+\eq{\mathbb E R=N\sum_i p_i|c_i|\leq N(\Ee(p)+1),}
+where $\Ee$ is the entropy of the distribution, defined as
+\eq{
+	\Ee(p) = -\sum_i p_i \log_2(p_i).
+}
+Figure~\ref{fig-entropy} illustrates how entropy depends on the distribution. Concentrated distributions have low entropy, as is often the case for quantized wavelet coefficients because many are zero.
+
+Symbol-by-symbol Huffman coding uses an integer number of bits per symbol. This constraint can cause a substantial gap above entropy when one symbol is very probable. Arithmetic coding encodes whole sequences and can achieve an expected length close to $N\Ee(p)$, with a small overhead, under the assumed probability model.
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.315}{1}{tikz/compression-probability-1}\hfill
+\BookPanel{.315}{2}{tikz/compression-probability-2}\hfill
+\BookPanel{.315}{3}{tikz/compression-probability-3}
+\caption{Three different probability distributions on the same alphabet of $Q=7$ symbols. Entropy is measured in bits.}
+\label{fig-entropy}
+\end{figure}
+
+
+
+                                        
+\section{JPEG-2000}
+
+JPEG-2000 is a family of still-image compression standards based on wavelet transform coding and adaptive entropy coding. Its irreversible transform uses the biorthogonal CDF 9/7 filters; its reversible transform uses integer-to-integer 5/3 lifting for lossless coding. Symmetric boundary extension limits edge artifacts. Because the transform is biorthogonal, the orthonormal energy identities above are replaced by bounds involving the synthesis operator.
+
+\myfigure{
+\image{approximation}{.9}{jpeg-2k-architecture}
+}{ 
+	JPEG-2000 coding architecture.   
+}{fig-jpeg-2k-architecture}
+
+Figure~\ref{fig-jpeg-2k-architecture} outlines the JPEG-2000 architecture, and Figure~\ref{fig-compression-jpeg} compares its reconstructions with those of JPEG. JPEG uses a blockwise DCT and can exhibit visible block boundaries at low bit rates. JPEG-2000 uses a wavelet transform and supports features such as regions of interest, which allow selected parts of an image to be encoded more accurately.
+ 
+\myfigure{
+\tabdeux{
+\image{approximation}{.35}{compression-jpeg-boat}&
+\image{approximation}{.35}{compression-jpeg-lena}\\
+\image{approximation}{.35}{compression-jpeg2k-boat}&
+\image{approximation}{.35}{compression-jpeg2k-lena}
+}
+}{ 
+	Comparison of JPEG (top) and JPEG-2000 (bottom) coding. 
+}{fig-compression-jpeg}
+
+
+  
+\paragraph{Progressive coefficient refinement.}
+
+Bit-plane coding progressively reveals the binary digits of the quantized coefficient magnitudes. We describe this refinement schematically using thresholds $T_i = 2^{-i}T_0$: each new bit plane resolves coefficient values at a finer scale.
+
+  
+\paragraph{Rate allocation and quality layers.}
+The coder processes coefficient blocks $S_k$ independently, producing embedded streams $c_i^k$. The encoder selects coding-pass truncation points within these streams to balance rate against estimated distortion, then organizes the retained data into quality layers. Decoding add

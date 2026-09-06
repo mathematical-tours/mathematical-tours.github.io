@@ -1,0 +1,100 @@
+% Context from chapters/sparse-regularization.tex; for mathematical reference, not compilation.
+\section{Sparse Regularization of Inverse Problems}
+\label{sec-sparse-ip}
+
+Using the $\lun$ prior in an orthonormal basis $\{\psi_m\}_m$ of $\RR^N$, with $\Ju$ defined in \eqref{eq-dfn-lun-prior}, gives the convex inverse problem
+\eql{\label{eq-bpdn}
+	f_\la \in \uargmin{f \in \RR^N} \frac{1}{2}\norm{y-\Phi f}^2 + \la \sum_m |\dotp{f}{\psi_m}|.
+}
+Chen, Donoho, and Saunders introduced this basis pursuit denoising formulation in \cite{chen-basis-pursuit}. Section \ref{subsec-proximal-ip} derives an iterative thresholding algorithm for~\eqref{eq-bpdn}.
+
+   
+\paragraph{Analysis vs. synthesis priors.}
+
+For a nonorthogonal dictionary $\Psi=\{\psi_m\}_{m=1}^Q$, which is redundant if $Q>N$, there are two distinct extensions of~\eqref{eq-bpdn}. Each uses a convex prior $J$ in
+\eql{\label{eq-regul-generic}
+	f_\la \in \uargmin{f \in \RR^N} \frac{1}{2}\norm{y-\Phi f}^2 + \la J(f).
+}
+We also use the dictionary symbol for its synthesis operator; its adjoint is the analysis operator:
+\eq{
+	\Psi : x \in \RR^Q \mapsto \Psi x = \sum_m x_m \psi_m
+	\qandq
+	\Psi^* : f \in \RR^N \mapsto ( \dotp{f}{\psi_m} )_{m=1}^Q \in \RR^Q.
+}
+
+The analysis prior penalizes the sum of the magnitudes of correlations with the dictionary atoms:
+\eql{\label{eq-sparsity-analysis}
+	J_1^{\text{A}}(f) \eqdef \sum_m |\dotp{f}{\psi_m}| = \norm{\Psi^* f}_1.
+}
+The synthesis prior minimizes the coefficient norm over expansions of $f$ in $\Psi$:
+\eql{\label{eq-sparsity-synthesis}
+	J_1^{\text{S}}(f) \eqdef \umin{x \in \RR^Q, \Psi x = f} \norm{x}_1.
+}
+The two priors agree for an orthonormal basis, but generally differ for redundant dictionaries. Analysis regularization often requires primal--dual algorithms, as detailed in Chapter~\ref{chap-conv-duality}. Its recovery theory depends on the dictionary and on the structure of the vanishing analysis coefficients. The synthesis formulation leads directly to the coefficient-space algorithms studied below. We assume the dictionary spans $\RR^N$; otherwise the synthesis prior is $+\infty$ outside its span.
+
+We now focus on synthesis regularization $J=J_1^{\text{S}}$, and rewrite~\eqref{eq-regul-generic} as $f_\la = \Psi x_\la$ where $x_\la$ is any solution of the following basis pursuit denoising problem
+\eql{\label{eq-lasso-lagr-ip}
+	x_\la \in \uargmin{x \in \RR^Q} \frac{1}{2\la} \norm{y-Ax}^2 + \norm{x}_1
+} 
+where the measurement matrix in coefficient space is
+\eq{
+	A \eqdef \Phi \Psi \in \RR^{P \times Q}. 
+}
+For consistent data $y\in\Im(A)$, the limit $\la\downarrow0$ leads to the constrained problem
+\eql{\label{eq-lasso-constr-ip}
+	x^\star \in \uargmin{A x = y} \norm{x}_1
+} 
+and the signal is recovered as $f^\star=\Psi x^\star \in \RR^N$.
+
+
+                                                                                                                                                                  
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{optim-geom-l1}&
+\image{invpbm}{.3}{optim-geom-l2}&
+\image{invpbm}{.3}{optim-geom-l1noisy}\\
+$\umin{\Phi f = y} \normu{\Psi^* f}$ &
+$\umin{\Phi f = y} \norm{f}^2$ &
+$\umin{\norm{\Phi f-y} \leq \epsilon} \normu{\Psi^* f}$
+}
+}{ 
+	Geometry of convex optimization problems.  
+}{fig-optim-geom}
+
+
+ 
+                                                                
+                                                                
+                                                                
+\section{Iterative Soft Thresholding Algorithm}
+\label{subsec-proximal-ip}
+
+We now derive iterative methods for~\eqref{eq-lasso-lagr-ip}, beginning with a comparison to its constrained counterpart.
+
+                                                                
+\subsection{Noiseless Recovery as a Linear Program}
+\label{eq-linearprog-lasso}
+
+Before treating $\la>0$, note that~\eqref{eq-lasso-constr-ip} can be written as a linear program. Split $x=x_+-x_-$ with $(x_+,x_-)\in(\RR_+^Q)^2$ and solve
+\eql{\label{eq-lin-prog-lasso}
+	(x_+^\star,x_-^\star) \in \uargmin{(x_+,x_-) \in (\RR_+^Q)^2} \enscond{ \dotp{x_+}{\ones_Q}+\dotp{x_-}{\ones_Q} }{ y = A(x_+ - x_-) }.
+}
+Then recover $x^\star=x_+^\star-x_-^\star$. For small or moderate $Q$, the linear program can be solved by simplex or interior-point methods.
+ 
+For large imaging and learning problems, first-order methods are often preferable. One option is Douglas--Rachford splitting, developed in Section~\ref{sec-dr}.
+ 
+The penalized problem~\eqref{eq-lasso-lagr-ip} admits a particularly simple splitting algorithm because its fidelity term is smooth. The relative computational cost of the two formulations depends on the solver and on $A$.
+
+
+                                                                
+\subsection{Projected Gradient Descent for \texorpdfstring{$\ell^1$}{l1}}
+
+We first solve~\eqref{eq-lasso-lagr-ip} by projected gradient descent, which is analyzed in detail in Section~\ref{sec-proj-grad}.
+ 
+As in~\eqref{eq-lin-prog-lasso}, we rewrite~\eqref{eq-lasso-lagr-ip} as a constrained minimization problem of the form~\eqref{eq-constr}, with the nonnegative constraint set $\Cc$ and
+\eq{
+	u=(u_+,u_-) \in (\RR^Q)^2, \quad
+	\Cc=(\RR_+^Q)^2, 
+	\qandq
+	\Ee(u) = \frac{1}{2}\norm{ A(u_+-u_-) - y }^2 + \la \dotp{u_+}{\ones_Q} +

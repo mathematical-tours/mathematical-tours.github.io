@@ -1,0 +1,161 @@
+% Context from chapters/sparse-regularization.tex; for mathematical reference, not compilation.
+ction{Example: Sparse Deconvolution}
+
+
+                                                                
+\subsection{Sparse Spikes Deconvolution}
+
+Sparse spike deconvolution uses sparsity in the spatial domain, which corresponds to the orthonormal basis of Diracs $\psi_m[n] = \de[n-m]$. In seismic imaging, a simple sparse reflectivity model represents $f_0$ as a few impulses associated with changes in acoustic impedance.
+
+In a linearized one-dimensional model that neglects multiple reflections, the subsurface reflectivity $f_0$ produces observations $y=h \star f_0 + w$. Here $h$ is the transmitted pulse, called a seismic wavelet. This use of the word differs from the orthogonal wavelet bases constructed in Chapter \ref{chap-wavelets}, although the terminology originated in seismic imaging.
+
+The seismic wavelet $h$ is typically band-pass, balancing spatial and frequency concentration. Figure~\ref{fig-spikes-lun} shows a second derivative of a Gaussian and its Fourier transform. The narrow transmitted band illustrates how acquisition suppresses information about $f_0$.
+
+            
+                                  
+      
+                       
+                     
+
+Using $\lun$ regularization in the Dirac basis gives
+\eq{
+	 f^\star = \uargmin{f \in \RR^N} \frac{1}{2} \norm{f \star h - y}^2 + \la \sum_m |f_m|.
+}
+Figure \ref{fig-spikes-lun} shows the result of $\lun$ minimization with an oracle choice of $\la$ that minimizes the error $\norm{f^\star-f_0}$.
+
+
+\myfigure{
+\tabdeux{
+\image{invpbm}{.4}{spikes-filter}&
+\image{invpbm}{.4}{spikes-filter-fourier}\\
+$h$ & $\hat h$ \\
+                                                
+\image{invpbm}{.4}{spikes-signal}&
+\image{invpbm}{.4}{spikes-observations}\\
+$f_0$ & $y=h \star f_0 + w$ \\
+\image{invpbm}{.4}{spikes-pinv}&
+\image{invpbm}{.4}{spikes-l1}\\
+$f^+$ & $f^\star$ 
+}
+}{ 
+    Sparse spike recovery by the pseudoinverse and by $\lun$ regularization.  
+}{fig-spikes-lun}
+
+ISTA for sparse spike recovery alternates the updates
+\eq{
+	\tilde f^{(k)} = f^{(k)} - \tau h^\vee \star ( h \star f^{(k)}-y )
+}
+and
+\eq{
+	f^{(k+1)}_m = S_{\la \tau}^{1}(\tilde f^{(k)}_m )
+}
+where $h^\vee[n]=\overline{h[-n]}$ is the adjoint convolution kernel. It equals $h$ for a real symmetric filter. The step size must satisfy
+\eq{
+	0<\tau < 2/\norm{\Phi^* \Phi} = 2 / \umax{\om} |\hat h(\om)|^2
+}
+to guarantee convergence. Figure \ref{fig-spikes-ista-decay} shows convergence of both the objective values and the iterates. Objective convergence alone would not ensure convergence of the iterates when minimizers are nonunique; the forward--backward convergence theorem provides the latter guarantee here.
+
+
+\myfigure{
+\tabdeux{
+\image{invpbm}{.4}{spikes-ista-decay-conv}&
+\image{invpbm}{.4}{spikes-ista-decay-energy} \\
+                                        
+$\log_{10}( E(f^{(k)})/E(f^\star)-1 )$ &
+$\log_{10}( \norm{f^{(k)}-f^\star}/\norm{f_0} )$
+}
+}{ 
+	Convergence of the energy and iterates under iterative soft thresholding.  
+}{fig-spikes-ista-decay}
+
+
+                                                                
+\subsection{Sparse Wavelets Deconvolution}
+
+
+Camera images can be blurred by defocus, motion during exposure, or diffraction. Assuming spatial invariance, we model the blur operator $\Phi$ by convolution:
+\eq{
+	y = f_0 \star h + w.
+}
+We use a Gaussian filter $h$ of width $\mu > 0$. On a fixed $d$-dimensional domain, the number of effectively transmitted frequencies scales roughly as $\mu^{-d}$, with a threshold-dependent factor, because higher frequencies are strongly attenuated.
+
+Figures~\ref{fig-deconvolution-1d} and~\ref{fig-deconvolution-2d} show examples of signal and image acquisition with Gaussian blur.
+
+Sobolev regularization~\eqref{eq-quad-regul-convol} suppresses high-frequency noise more strongly than the squared-norm penalty~\eqref{eq-regul-normsq}. Both can blur sharp transitions. TV regularization and sparsity in a wavelet basis are better adapted to signals with edges.
+
+Figure \ref{fig-deconvolution-1d} compares wavelet and Sobolev regularization for a one-dimensional signal; Figure \ref{fig-deconvolution-2d} shows the corresponding image-deblurring results. Replacing an orthogonal wavelet basis in \eqref{eq-ista} by a translation-invariant tight frame~\eqref{eq-ti-wavframe} can reduce artifacts. For a redundant frame, synthesis ISTA acts in coefficient space with $A=\Phi\Psi$. Simply analyzing, thresholding, and synthesizing is generally not the proximal map of the analysis penalty.
+
+\myfigure{
+\tabdeux{
+                                             
+\image{invpbm}{.4}{deconv1d-signal}&
+\image{invpbm}{.4}{deconv1d-filter} \\
+Signal $f_0$ & Filter $h$ \\
+\image{invpbm}{.4}{deconv1d-observations}&
+\image{invpbm}{.4}{deconv1d-l1}\\
+Observation $y=h\star f_0+w$ & $\lun$ recovery $f^\star$
+}
+}{ 
+	One-dimensional deconvolution with sparsity in an orthogonal wavelet basis.  
+}{fig-deconvolution-1d}
+
+                                  
+
+  
+
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{deconv2d-image}&
+\image{invpbm}{.3}{deconv2d-observations}&
+\image{invpbm}{.3}{deconv2d-l2}\\
+Image $f_0$ & Observations $y=h\star f_0+w$ & $\ldeux$ regularization \\
+\image{invpbm}{.3}{deconv2d-sob}&
+\image{invpbm}{.3}{deconv2d-l1}&
+\image{invpbm}{.3}{deconv2d-l1inv}\\
+Sobolev regularization & $\lun$ regularization & $\lun$ invariant \\
+
+}
+}{ 
+	Image deconvolution.   
+}{fig-deconvolution-2d}
+
+Figure \ref{fig-deconvolution-2d-snr} plots the SNR against $\la$. Computing the SNR requires the clean reference image $f_0$; the reported experiments use the maximizing value of $\la$.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{deconv2d-l2-snr}&
+\image{invpbm}{.3}{deconv2d-sob-snr}&
+\image{invpbm}{.3}{deconv2d-l1-snr}\\
+$\ldeux$ regularization  &
+Sobolev regularization  &
+$\lun$ regularization  
+}
+}{ 
+	SNR as a function of $\la$.   
+}{fig-deconvolution-2d-snr}
+
+
+                                
+   
+                                                                                                                                                                                                                                          
+                  
+
+
+
+                                      
+\subsection{Sparse Inpainting}
+
+This section continues the discussion in Section~\ref{sec-inpainting-variational}.
+
+For noiseless inpainting, a small $\lambda>0$ approximates constrained $\ell^1$ minimization. Exact interpolation is obtained in the limit under the assumptions of Proposition~\ref{prop-gamma-conv-regul}.
+For an orthonormal basis, the iterative thresholding algorithm~\eqref{eq-ista} takes the following form for $\tau=1$:
+\eq{
+	f^{(k+1)} = \sum_m S_{\la}^{1}( \dotp{ P_y(f^{(k)}) }{\psi_m} )  \psi_m
+}
+Figure \ref{fig-inpainting-lena} compares Sobolev inpainting with wavelet sparsity priors, including a translation-invariant frame.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{inpainting-lena-image}&
+\

@@ -1,0 +1,194 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+r h) \downarrow 2 \qandq
+			d_{j+1} = (a_j \star \bar g) \downarrow 2
+		}
+	\item \textbf{Output:} the coefficients $\{d_j\}_{J<j\leq j_0} \cup \{ a_{j_0} \}$.
+\end{rs}
+
+If the supports of $h$ and $g$ each contain at most $C$ indices, then evaluating each $\Ww_j$ requires $(2C) 2^{-j}$ operations, so that the complexity of the whole wavelet transform is
+\eq{
+	\sum_{j=J+1}^{0}(2C)2^{-j}=2C(2^{-J}-1)<2CN.
+}
+This shows that the fast wavelet transform is a linear-time algorithm.
+ 
+Figure~\ref{fig-filterbank-pyramidal} shows the iterative extraction of the wavelet coefficients.
+ 
+Figure~\ref{fig-wavalgo-1d} illustrates the storage layout: at each step, the new vectors $a_j$ and $d_j$ occupy the left portion of the output array.
+
+\myfigure{
+\image{wavelets}{.4}{filterbank-pyramidal}
+}{ 
+	Pyramidal computation of wavelet coefficients.  
+}{fig-filterbank-pyramidal}
+
+\myfigure{
+\tabdeux{
+\image{wavelets}{.48}{wavalgo-1d-0}&
+\image{wavelets}{.48}{wavalgo-1d-1}\\
+\image{wavelets}{.48}{wavalgo-1d-2}&
+\image{wavelets}{.48}{wavalgo-1d-3}
+}
+}{ 
+	Wavelet decomposition algorithm.  
+}{fig-wavalgo-1d}
+
+
+  
+\paragraph{Fast Haar transform.}
+
+For the Haar wavelets, one has
+\eq{
+	\phi_{j,n} = \frac{1}{\sqrt{2}} ( \phi_{j-1,2n} + \phi_{j-1,2n+1} ),
+}
+\eq{
+	\psi_{j,n} = \frac{1}{\sqrt{2}} ( \phi_{j-1,2n} - \phi_{j-1,2n+1} ).
+}
+This corresponds to the filters
+\eq{
+	h = [\ldots,\;0,\;h[0]=\frac{1}{\sqrt{2}},\;\frac{1}{\sqrt{2}},\;0,\ldots],
+}
+\eq{
+	g = [\ldots,\;0,\;g[0]=\frac{1}{\sqrt{2}},\;-\frac{1}{\sqrt{2}},\;0,\ldots].
+}
+The Haar transform iterates normalized sums and differences:
+\begin{rs}
+	\item \textbf{Input:} signal $f \in \CC^N$.
+	\item \textbf{Initialization:} $a_J = f$.
+	\item \textbf{For} $j=J,\ldots,j_0-1$.
+		\eq{
+			a_{j+1,n} = \frac{1}{\sqrt{2}} (a_{j,2n}+a_{j,2n+1}) \qandq
+			d_{j+1,n} = \frac{1}{\sqrt{2}} (a_{j,2n}-a_{j,2n+1}).
+		}
+	\item \textbf{Output:} the coefficients $\{d_j\}_{J<j\leq j_0} \cup \{ a_{j_0} \}$.
+\end{rs}
+
+                                                            
+\subsection{Inverse Fast Transform (iFWT)}
+
+The inverse algorithm proceeds by inverting each step~\eqref{eq-wavelet-step}
+\eql{\label{eq-wavelet-inverse-step}
+	\foralls j=0,-1,\ldots,J+1, \quad
+	a_{j-1} = \Ww_j^{-1}(a_{j},d_{j}) = \Ww_j^*(a_{j},d_{j}), 
+}
+where $\Ww_j^{*}$ is the adjoint for the canonical inner product on $\RR^{2^{-j+1}}$; in matrix form, it is the transpose.
+
+Let $\uparrow_2 : \RR^{K/2} \rightarrow \RR^K$ denote up-sampling by inserting zeros:
+\eq{
+	a\uparrow_2 = (a_0,0,a_1,0,\ldots,a_{K/2-1},0) \in \RR^K.
+}
+
+\begin{prop}
+One has
+\eq{
+	\Ww_j^{-1}(a_{j},d_{j}) = (a_{j}\uparrow_2) \star h +  (d_{j}\uparrow_2) \star g.
+}
+\end{prop}
+
+\begin{proof}
+Since $\Ww_j$ is orthogonal, $\Ww_j^{-1} = \Ww_j^*$.
+ 
+We write the whole transform as 
+\eq{
+	\Ww_j = S_2 \circ C_{\bar h,\bar g} \circ \Dd
+	\qwhereq
+	\choice{
+		\Dd(a)=(a,a), \\
+		C_{\bar h,\bar g}(a,b)=(\bar h\star a,\bar g\star b), \\
+		S_2( a,b ) = (a\downarrow_2, b\downarrow_2).	
+	}
+}
+The adjoints are
+\eq{
+	\Dd^*(a,b)=a+b, \quad
+	C_{\bar h,\bar g}^*(a,b) = (h \star a, g \star b), \qandq
+	S_2^*(a,b)=(a\uparrow_2,b\uparrow_2).
+}
+To verify the convolution adjoint, assume the sequences are summable; in the periodic setting, the sums are finite:
+\eq{
+	\dotp{f \star \bar h}{g} = \sum_n (f \star \bar h)_n g_n = \sum_n \sum_k f_k h_{k-n} g_n
+	 = 
+	 \sum_k f_k  \sum_n h_{k-n} g_n = \dotp{f}{h \star g}, 
+}
+For the copying operator,
+\eq{
+	\dotp{\Dd(a)}{(u,v)} = \dotp{a}{u} + \dotp{a}{v} = \dotp{a}{u+v} = \dotp{a}{\Dd^*(u,v)}, 
+}
+and for down-sampling,
+\eq{
+	\dotp{f\downarrow_2}{g} = \sum_{n} f_{2n}  g_{n} = \sum_{n} (f_{2n}  g_{n} + f_{2n+1} 0 )
+	= \dotp{f}{g \uparrow_2}.  
+}
+This is shown using matrix notation in Figure~\ref{fig-inversion-transpose}.
+ 
+Composing these adjoints in reverse order gives the reconstruction formula.
+\end{proof}
+
+\myfigure{
+\image{wavelets}{.4}{inversion-transpose-1}
+\raisebox{1.7cm}{$\qqarrqq$}
+\image{wavelets}{.4}{inversion-transpose-2}
+}{ 
+	Inverse wavelet transform in matrix form. 
+}{fig-inversion-transpose}
+
+
+The inverse fast wavelet transform iteratively applies this elementary step
+\begin{rs}
+	\item \textbf{Input:} $\{d_j\}_{J<j\leq j_0} \cup \{ a_{j_0} \}$.
+	\item \textbf{For} $j=j_0,j_0-1,\ldots,J+1$.
+		\eq{
+			a_{j-1} = (a_j \uparrow 2) \star h +  (d_j \uparrow 2) \star g.
+		}
+	\item \textbf{Output:} $f = a_J$.
+\end{rs}
+The block diagram in Figure~\ref{fig-filterbank-bwd} reverses the operations of the forward transform in Figure~\ref{fig-filterbank-fwd}.
+
+\myfigure{
+\image{wavelets}{.95}{filterbank-bwd}
+}{ 
+	Inverse filter-bank reconstruction. 
+}{fig-filterbank-bwd}
+
+
+                                                   
+                                                   
+                                                   
+\section{2-D Wavelets}
+
+                                                   
+\subsection{Anisotropic Wavelets}
+
+The anisotropic basis on $\TT^2$ is the tensor product of the complete one-dimensional periodized basis $\mathcal B$ (including its coarsest scaling functions):
+\eq{\{b_1\otimes b_2:b_1,b_2\in\mathcal B\}.}
+Its wavelet--wavelet elements have the form
+\eql{\label{eq-aniso-wav}
+ \psi_{(j_1,j_2),(n_1,n_2)}(x_1,x_2)
+ =\psi_{j_1,n_1}^{P}(x_1)\psi_{j_2,n_2}^{P}(x_2).
+}
+The basis also includes wavelet--scaling, scaling--wavelet, and scaling--scaling products.
+The anisotropic 2-D transform follows the same separable construction as the 2-D FFT in Section~\ref{sec-fft-2d}. Treat the image $a_J \in \RR^{2^{-J} \times 2^{-J}}$ as a matrix, apply the 1-D FWT to each row, and then apply it to each column. The total cost is $O(N)$ for $N=2^{-2J}$ pixels.
+
+\myfigure{
+\tabtrois{
+\image{wavelets}{.3}{wavalgo-2d-aniso-0}&
+\image{wavelets}{.3}{wavalgo-2d-aniso-1}&
+\image{wavelets}{.36}{wavalgo-2d-aniso-2}\\
+Image $f$ & Row transform & Column transform.
+}
+}{ 
+	Steps of the anisotropic wavelet transform.  
+}{fig-wavalgo-2d-aniso}
+
+                                                   
+\subsection{Isotropic Wavelets}\label{sec-isotropic-wav}
+
+The anisotropic atoms~\eqref{eq-aniso-wav} have independent scales in the two coordinate directions. For compactly supported wavelets, their supports lie in axis-aligned rectangles of size proportional to $2^{j_1}\times2^{j_2}$. This directional bias can produce visible artifacts in denoising and compression when it does not match the image geometry.
+
+\myfigure{
+\image{wavelets}{.3}{wavcoefs-iso-aniso-2}
+\image{wavelets}{.3}{wavecoefs-iso-aniso-1}
+}{ 
+	Anisotropic (left) versus isotropic (right) wavelet coefficients.  
+}{fig-wavecoefs-iso}
+
+An alternative uses a common scale in both dire

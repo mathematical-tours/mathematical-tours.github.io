@@ -1,0 +1,138 @@
+% Context from chapters/variational-priors.tex; for mathematical reference, not compilation.
+ion energy $\Jtv$ is nonsmooth, both in its continuous form \eqref{eq-dfn-tv-energy} and in its discrete form \eqref{eq-discr-tv}. In the discrete case, $\Jtv$ is nondifferentiable at any image $f$ with a pixel $n$ where $\nabla f_n = 0$.
+
+If $\nabla f_n\neq0$ at every pixel, the gradient is
+\eq{
+	(\grad J(f))_n = -\diverg\pa{ \frac{ \nabla f}{ \norm{\nabla f} } }_n
+}
+The displayed quotient is undefined where the spatial gradient vanishes. Figure \ref{fig-discrete-operators-lapl}, right, shows the negative TV gradient; normalization by small gradient magnitudes makes it sensitive to perturbations in smooth regions.
+
+Nondifferentiability prevents the use of classical gradient descent at such images. A TV flow can nevertheless be defined through the subgradient inclusion $\partial_t f_t\in-\partial\Jtv(f_t)$. Here we first study a smooth approximation.
+
+  
+\paragraph{Regularized total variation.}
+	
+To obtain a differentiable energy, we smooth the TV prior as follows:
+\eql{\label{eq-tv-smoothed}
+	\Jtv^\epsilon(f) = \sum_n \sqrt{ \epsilon^2 + \norm{ \nabla f_n }^2 }
+}
+where $\epsilon>0$ controls the smoothing. Figure \ref{fig-regul-abs} illustrates the corresponding smoothing of the absolute value function.
+
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/variational-smoothed-absolute-1}\hfill
+\BookPanel{.485}{2}{tikz/variational-smoothed-absolute-2}
+\caption{Regularized absolute value $x \mapsto \sqrt{x^2+\epsilon^2}$.}
+\label{fig-regul-abs}
+\end{figure}
+
+The smoothed TV energy has gradient
+\eql{\label{eq-grad-tv-eps}
+	\grad \Jtv^\epsilon(f) = -\diverg\pa{ \frac{ \nabla f}{ \sqrt{\epsilon^2+\norm{\nabla f}^2} } }.
+}
+This smoothing interpolates between TV and a rescaled Sobolev energy. For fixed $f$,
+\eq{
+	\grad\Jtv^\epsilon(f) = -\Delta f/\epsilon + O(\epsilon^{-3}) \quad\text{when}\quad \epsilon \rightarrow +\infty.
+}
+Figure \ref{fig-discrete-operators-tveps} displays the regularized spatial-gradient magnitude for several smoothing parameters.
+
+\myfigure{
+\tabquatre{
+\image{variational}{.24}{discrete-operators-tveps-1}&
+\image{variational}{.24}{discrete-operators-tveps-2}&
+\image{variational}{.24}{discrete-operators-tveps-3}&
+\image{variational}{.24}{discrete-operators-tveps-4}\\
+$\epsilon=0.01$ & $\epsilon=0.05$ & $\epsilon=0.1$ & $\epsilon=0.5$
+}
+}{ 
+	Regularized gradient norm $\sqrt{ \norm{\nabla f(x)}^2 + \epsilon^2 }$.
+}{fig-discrete-operators-tveps}
+
+
+  
+\paragraph{Regularized total variation flow.}
+
+The smoothed total variation flow is then defined as
+\eql{\label{eq-tv-eps-flow}
+	\pd{f_t}{t} = \diverg\pa{ \frac{ \nabla f_t}{ \sqrt{\epsilon^2+\norm{\nabla f_t}^2} } }.
+}
+Choosing a small $\epsilon$ makes the flow approximate total variation minimization more closely, but requires smaller time steps in explicit discretizations.
+
+In practice, gradient descent~\eqref{eq-gradmin-flow} discretizes this flow in time. For the smoothed total variation flow to converge, a sufficient condition is $0<\tau<\epsilon/4$. Thus, a closer approximation to the TV energy requires smaller time steps and more iterations.
+
+Figure \ref{fig-flow} compares heat flow with smoothed TV flow for a small $\epsilon$. TV flow preserves edges better than heat diffusion, consistent with the ability of the TV energy to represent sharp transitions.
+
+                                                                                          
+
+                                
+                                                                                                                                                                                                                                                                                                               
+                            
+
+
+                                                                      
+\subsection{PDE Flows for Denoising}
+\label{subsec-pde-denoise}
+
+PDE flows can be used to remove noise from an observation $f= f_0 + w$. As detailed in Section \ref{subsec-image-formation}, a simple noise model assumes that each pixel is corrupted by Gaussian noise $w_n \sim \Nn(0,\si^2)$, and that these perturbations are independent (white noise).
+
+To denoise, we initialize the PDE flow at the observed image $f$ at time $t=0$:
+\eq{
+	\pd{f_t}{t} = - \grad_{f_t} J
+	\qandq
+	f_{t=0} = f.
+}
+Stopping the flow defines an estimator $\tilde f = f_{t_0}$, whose quality depends on the stopping time $t_0$. Figure \ref{fig-denoising-flow} illustrates denoising by Sobolev and TV flows.
+
+\myfigure{
+\tabquatre{
+\image{variational}{.23}{denoising-flow-sob-1}&
+\image{variational}{.23}{denoising-flow-sob-2}&
+\image{variational}{.23}{denoising-flow-sob-3}&
+\image{variational}{.23}{denoising-flow-sob-4}\\
+\image{variational}{.23}{denoising-flow-tv-1}&
+\image{variational}{.23}{denoising-flow-tv-2}&
+\image{variational}{.23}{denoising-flow-tv-3}&
+\image{variational}{.23}{denoising-flow-tv-4}
+}
+}{ 
+    Denoised images $f_t$ at several times $t$: Sobolev flow (top) and TV flow (bottom).
+}{fig-denoising-flow}
+
+On a connected periodic grid, $f_t$ converges to a constant image when $t \rightarrow +\infty$, so the choice of $t_0$ balances noise removal against excessive smoothing of image edges. Selecting this stopping time is often difficult. In simulations, if one has access to the clean image $f_0$, one can monitor the denoising error $\norm{f_0-f_t}$ and choose the $t=t_0$ that minimizes this error. Figure \ref{fig-denoising-cameraman}, top row, shows reconstructions obtained with such an oracle choice of stopping time.
+
+
+                                                                      
+                                                                      
+                                                                      
+\section{Regularization for Denoising}
+
+The flow-based approach in Section \ref{subsec-pde-denoise} defines the estimator by choosing a stopping time. Alternatively, we can define it as the minimizer of an objective that balances data fidelity and a prior. This formulation also accommodates nonsmooth priors such as total variation $\Jtv$ and sparsity $\Ju$. Chapter \ref{chap-invpbm} extends it to general inverse problems.
+
+
+\myfigure{
+\tabtrois{
+\image{variational}{.32}{denoising-cameraman-noisy}&
+\image{variational}{.32}{denoising-cameraman-heat}&
+\image{variational}{.32}{denoising-cameraman-tvflow}\\
+Noisy $f$ & Sobolev flow & TV flow \\
+\image{variational}{.32}{denoising-cameraman-sobreg}&
+\image{variational}{.32}{denoising-cameraman-tvreg}&
+\image{variational}{.32}{denoising-cameraman-wavti}\\
+Sobolev reg & TV reg & TI wavelets
+}
+}{ 
+	Denoising using PDE flows and regularization.
+}{fig-denoising-cameraman}
+
+\myfigure{
+\tabdeux{
+\image{variational}{.4}{denoising-cameraman-heat-snr}&
+\image{variational}{.4}{denoising-cameraman-tvflow-snr}\\
+Sobolev flow & TV flow \\
+\image{variational}{.4}{denoising-cameraman-sobreg-snr}&
+\image{variational}{.4}{denoising-cameraman-tvreg-snr}\\
+Sobolev regularization & TV regularization
+}
+}{ 
+	SNR as a func

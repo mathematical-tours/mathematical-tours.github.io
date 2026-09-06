@@ -1,0 +1,44 @@
+\input{figures-code/tikz-preamble.tex}
+\begin{document}
+\begin{tikzpicture}[x=.98cm]
+\pgfmathsetmacro{\lambdaone}{1}
+\pgfmathsetmacro{\lambdatwo}{.325*.325}
+\pgfmathsetmacro{\sigmaone}{sqrt(\lambdaone)}
+\pgfmathsetmacro{\sigmatwo}{sqrt(\lambdatwo)}
+\pgfmathsetmacro{\levelscale}{sqrt(\lambdaone*\lambdatwo)}
+\path[use as bounding box] (-3,-3.25) rectangle (8.8,3.6);\begin{scope}[shift={(0.0,0)}]
+\draw[axis] (-2.3,0)--(2.5,0);\draw[axis] (0,-1.8)--(0,2.1);\begin{scope}[rotate=32]
+\foreach \r in {1,1.5,2} {
+  \draw[accent!70] (0,0) ellipse ({\r*\sigmaone} and {\r*\sigmatwo});
+}
+\draw[->,ink] (-2.3,0)--(2.4,0) node[right] {$u_1$};\draw[->,ink] (0,-2.0)--(0,2.2) node[above] {$u_2$};
+% Reflection symmetry gives zero mean and zero cross covariance.
+% Since .4^2+.9^2+1.4^2=2.93, the empirical eigenvalues
+% of these twelve points are exactly 1 and .325^2.
+\foreach \a/\b in {.4/1.4,.9/.9,1.4/.4} {
+  \foreach \sx in {-1,1} {
+    \foreach \sy in {-1,1} {
+      \fill[ink] ({\sx*\sigmaone*\a*sqrt(3/2.93)},{\sy*\sigmatwo*\b*sqrt(3/2.93)}) circle (1.2pt);
+    }
+  }
+}
+\end{scope}
+\node at (0,3.15) {Data covariance};
+\node[font=\footnotesize] at (0,2.65) {Width along $u_i\ \propto\sqrt{\lambda_i}$};
+\node at (0,-2.5) {$C/n=U\operatorname{diag}(\lambda_i)U^\top$};
+\end{scope}
+\begin{scope}[shift={(5.8,0)}]
+\draw[axis] (-2.3,0)--(2.5,0);\draw[axis] (0,-1.8)--(0,2.1);\begin{scope}[rotate=32]
+\foreach \r in {1,1.5,2} {
+  \draw[accent!70] (0,0) ellipse ({\r*\levelscale/\sigmaone} and {\r*\levelscale/\sigmatwo});
+}
+\draw[->,ink] (-2.3,0)--(2.4,0) node[right] {$u_1$};\draw[->,ink] (0,-2.0)--(0,2.2) node[above] {$u_2$};
+\end{scope}
+\node at (0,3.15) {Quadratic level sets};
+\node[font=\footnotesize] at (0,2.65) {Width along $u_i\ \propto1/\sqrt{\lambda_i}$};
+\node at (0,-2.5) {$\langle Cx,x\rangle/n=\mathrm{constant}$};
+\end{scope}
+\node[align=center,font=\footnotesize] at (2.9,-3.08)
+  {Semiaxes: $r\sqrt{\lambda_i}$ (left), $r\sqrt{\lambda_1\lambda_2}/\sqrt{\lambda_i}$ (right), $r=1,\frac32,2$.};
+\end{tikzpicture}
+\end{document}

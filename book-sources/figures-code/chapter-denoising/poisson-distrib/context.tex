@@ -1,0 +1,81 @@
+% Context from chapters/denoising.tex; for mathematical reference, not compilation.
+\section{Signal-Dependent Noise}
+\label{sect-data-dept-noises}
+
+In many imaging systems, the variance of the noise affecting $f_{0,n}$ depends on the intensity $f_{0,n}$ itself. We now study Poisson counts and multiplicative noise. Both can be expressed as additive residuals, but their residual distributions depend on the signal.
+
+                                                     
+\subsection{Poisson Noise}
+
+Many imaging devices measure intensity by counting photons. Examples include digital cameras, confocal microscopy, PET and SPECT tomography.
+
+  
+\paragraph{Poisson model.}
+
+For an unknown mean intensity $f_{0,n}\geq0$, a Poisson model describes the observed photon count:
+\eq{
+	f_n \sim \Pp(\la)
+	\qwhereq \lambda=f_{0,n}\in[0,\infty),
+}
+The Poisson distribution $\Pp(\la)$ has probability mass function
+\eq{
+	\PP(f_n=k)=\frac{\la^k e^{-\la}}{k!}
+}
+and its parameter varies across pixels with the underlying intensity. Figure \ref{fig-poisson-distrib} shows several Poisson distributions.
+
+\myfigure{
+\image{denoising}{.5}{poisson-distrib}
+}{ 
+	 Poisson distributions for various $\la$.   
+}{fig-poisson-distrib}
+
+One has 
+\eq{
+	\mathbb E(f_n)=\la=f_{0,n}
+	\qandq
+	\text{Var}(f_n)=\la=f_{0,n}
+}
+Thus denoising again estimates a mean from one observation, but the variance now varies with intensity. The absolute noise level increases as more photons reach the sensor. For positive intensity, the relative standard deviation $f_{0,n}^{-1/2}$ instead decreases.
+
+Figure \ref{fig-poisson-denoising} shows Poisson-corrupted versions of a clean image $f_0$ at different maximum mean intensities $\la_{\max}$.
+
+\myfigure{
+\tabquatre{
+\image{denoising}{.23}{poisson-denoising-1}&
+\image{denoising}{.23}{poisson-denoising-2}&
+\image{denoising}{.23}{poisson-denoising-3}&
+\image{denoising}{.23}{poisson-denoising-4}\\
+Example 1 & Example 2 & Example 3 & Example 4
+}
+}{ 
+	 Examples of Poisson-corrupted images at different count levels. Numerical acquisition parameters are not available for these legacy illustrations.  
+}{fig-poisson-denoising}
+
+  
+\paragraph{Variance stabilization.}
+
+Applying a thresholding estimator
+\eq{
+	\Dd(f) = \sum_m S_T^q(\dotp{f}{\psi_m}) \psi_m
+}
+directly to $f$ can perform poorly because a single threshold $T$ cannot adapt to spatially varying noise. A variance-stabilizing transform $\phi : [0,+\infty) \rightarrow \RR$, applied pixelwise, maps the counts to $\phi(f)$. An additive Gaussian white-noise model can then be a useful approximation:
+\eql{\label{eq-var-stab}
+	\phi(f) \approx \phi(f_0) + w
+}
+where $w_n\sim\Nn(0,\sigma^2)$ are independent centered Gaussians with constant variance $\si^2$.
+
+The model~\eqref{eq-var-stab} is approximate, and its accuracy depends on the intensity range of $f_{0,n}$.
+Two common variance-stabilizing transforms for Poisson noise are the Anscombe transform
+\eq{
+	\phi(x) = 2\sqrt{x+3/8}
+}
+and the Freeman--Tukey transform
+\eq{
+	\phi(x) = \sqrt{x+1}+\sqrt{x}.
+}
+Figure \ref{fig-variance-stabilization} compares the variance of $\phi(f)$ after these transformations.
+
+\myfigure{
+\image{denoising}{.5}{variance-stabilization-corrected}
+}{ 
+	 Exact Po

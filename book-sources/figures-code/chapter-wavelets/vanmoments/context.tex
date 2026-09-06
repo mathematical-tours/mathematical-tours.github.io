@@ -1,0 +1,163 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+rthermore,
+	\eql{\label{eq-rel-psi-phi}
+		\hat \psi(\om) = \frac{1}{\sqrt{2}} \hat g(\om/2) \hat \phi(\om/2).
+	}
+\end{thm}
+
+\begin{proof}
+We prove the forward implication, beginning with condition~\eqref{eq-cond-g-1}.
+ 
+The refinement equation for the wavelet reads
+\eq{
+	\frac{1}{\sqrt{2}} \psi\pa{\frac{t}{2}} = \sum_{n \in \ZZ} g_n \phi(t-n)
+}
+and thus in the Fourier domain
+\eql{\label{eq-ref-fourier-wav}
+	\hat\psi(2\om) = \frac{1}{\sqrt{2}}\hat g(\om) \hat \phi(\om).
+}
+Orthogonality of the translates $\{ \psi(\cdot-n) \}_n$ gives
+\eq{
+	\foralls n \in \ZZ, \quad  (\psi\star\bar\psi)(n)=\delta_{n,0}
+}
+and thus in the Fourier domain (using Poisson's formula, see also Proposition~\ref{prop-spectral-ortho})
+\eq{
+	\sum_k |\hat \psi(\om+2k\pi)|^2 = 1.
+}
+Apply the Fourier refinement equation~\eqref{eq-ref-fourier-wav} and separate the even and odd terms, as in the proof of condition~\eqref{eq-cond-h-2} in Theorem~\ref{thm-multires-approx}. This gives condition~\eqref{eq-cond-g-1}.
+ 
+Figure~\ref{fig-filter-constr} shows the squared Fourier magnitudes of a pair of filters satisfying this complementarity condition.
+
+
+
+We now prove condition~\eqref{eq-cond-g-2}.
+ 
+The orthogonality between $\{ \psi(\cdot-n) \}_n$ and $\{ \phi(\cdot-n) \}_n$ is written as
+\eq{
+	\foralls n \in \ZZ, \quad \psi \star \bar \phi(n)=0
+}
+and hence in the Fourier domain (using Poisson's formula, similarly to Proposition~\ref{prop-spectral-ortho})
+\eq{
+	\sum_k \hat \psi(\om+2k\pi)\hat \phi^*(\om+2k\pi) = 0.
+}
+Using the Fourier domain refinement equations~\eqref{eq-wav-proof-refine-fourier} and~\eqref{eq-ref-fourier-wav}, this is equivalent to condition~\eqref{eq-cond-g-2}.
+\end{proof}
+
+
+
+
+
+  
+\paragraph{Quadrature mirror filters.}
+
+Quadrature mirror filters (QMF) define $g$ as a function of $h$ so that the conditions of Theorem~\ref{thm-wave-h} are automatically satisfied. Most wavelet constructions implicitly use this choice (other phase choices can yield different wavelets spanning the same detail spaces).
+
+\begin{prop}
+	For a real filter $h\in\ell^1(\ZZ)$ satisfying~\eqref{eq-cond-h-2}, the filter $g \in \ell^2(\ZZ)$ defined by
+	\eql{\label{eq-qmf}
+		\foralls n \in \ZZ, \quad g_n = (-1)^{1-n}h_{1-n}
+	}
+	satisfies conditions~\eqref{eq-cond-g-1} and~\eqref{eq-cond-g-2}.
+\end{prop}
+
+\begin{proof}
+	Taking the Fourier series of the defining relation gives
+	\eql{\label{eq-qmf-fourier}
+		\hat g(\om) = e^{-i \om} \hat h(\om+\pi)^*, 
+	}
+	so that 
+	\eq{
+		|\hat g(\om)|^2 + |\hat g(\om+\pi)|^2 = 
+		|e^{-i \om} \hat h(\om+\pi)^*|^2 + |e^{-i (\om+\pi)} \hat h(\om+2\pi)^*|^2
+		= 
+		|\hat h(\om+\pi)|^2 + |\hat h(\om+2\pi)|^2 = 2.
+	}
+	where we used the fact that $\hat h$ is $2\pi$-periodic, 
+	and also 
+	\begin{align*}
+		\hat g(\om) \hat h(\om)^* + \hat g(\om+\pi) \hat h(\om+\pi)^* &= 
+		e^{-i \om} \hat h(\om+\pi)^* \hat h(\om)^* + e^{-i (\om+\pi)} \hat h(\om+2\pi)^* \hat h(\om+\pi)^* \\
+		&=
+		(e^{-i \om}+e^{-i (\om+\pi)}) \hat h(\om+\pi)^* \hat h(\om)^*
+		=0.
+	\end{align*}
+\end{proof}
+
+
+
+
+
+                                   
+\subsection{Wavelet Design Constraints}
+
+One can construct a multiresolution wavelet pair by designing a finite filter $h$ satisfying~\eqref{eq-cond-h-1}--\eqref{eq-cond-h-star}. The scaling function is obtained through the infinite product~\eqref{eq-dfn-cascade-inf}. Except in special cases such as Haar wavelets, it has no elementary closed form. The QMF relation~\eqref{eq-qmf} then defines $g$, and~\eqref{eq-rel-psi-phi} defines $\psi$.
+
+Fourier atoms are fixed exponentials, whereas mother wavelets can be designed to meet several requirements:
+\begin{rs}
+	\item Size of the support.
+	\item Cancellation of polynomials, measured by the number $p$ of vanishing moments.
+	\item Symmetry (for compactly supported scalar orthogonal wavelets, the Haar system is the exceptional symmetric case).
+	\item Smoothness (number of derivatives).
+\end{rs}
+We now explain how these design requirements interact with conditions~\eqref{eq-cond-h-1}--\eqref{eq-cond-g-2}.
+
+  
+\paragraph{Vanishing moments.}
+
+A wavelet $\psi$ has $p$ vanishing moments if
+\eql{\label{eq-dfn-vm}
+	\foralls k=0,\ldots,p-1, \quad \int_\RR \psi(x) \, x^k \d x = 0.
+}
+Vanishing moments make $\dotp{f}{\psi_{j,n}}$ small when $f$ has regularity $\Cal$ with $\al<p$ on Supp$(\psi_{j,n})$. A Taylor expansion of $f$ about $2^j n$ on the wavelet's support explains this cancellation.
+ 
+The vanishing-moment condition has the following equivalent Fourier characterization; see Figure~\ref{fig-vanmoments}.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/wavelets-vanishing-moments}
+\caption{Vanishing moments correspond to vanishing derivatives of the Fourier transform.}
+\label{fig-vanmoments}
+\end{figure}
+
+\begin{prop}
+Assuming the required moments of $\psi$ and derivatives of the filter symbols exist, a wavelet obtained by the QMF construction~\eqref{eq-qmf} has $p$ vanishing moments if and only if
+\eql{\label{eq-cond-vm-fourier}
+	\foralls k=0,\ldots,p-1, \quad
+	\frac{\d^k \hat h}{\d \om^k}(\pi) = \frac{\d^k \hat g}{\d \om^k}(0) = 0.
+}
+\end{prop}
+\begin{proof}
+	Integrability of the moments allows differentiation under the Fourier integral: $\hat\psi^{(k)} = \Ff( (-\imath \cdot)^k \psi(\cdot) )$. Thus
+	\eq{
+		(-\imath)^k \int_\RR x^k \psi(x) \d x  = \hat\psi^{(k)}(0).
+	}
+	Relations~\eqref{eq-rel-psi-phi} and~\eqref{eq-qmf} imply
+	\eq{
+		\hat \psi(2\om) = \hat h(\om+\pi)^* \rho(\om)
+		\qwhereq
+		\rho(\om) \eqdef \frac{1}{\sqrt{2}} e^{-i \om}  \hat \phi(\om).
+	}
+	and differentiating this relation shows	
+	\eq{
+		2 \hat \psi^{(1)}(2\om) = \hat h(\om+\pi)^* \rho^{(1)}(\om) + \hat h^{(1)}(\om+\pi)^* \rho(\om)
+	}
+	Since $\hat h(\pi)=0$ and $\rho(0)=\hat\phi(0)/\sqrt2\neq0$, this shows that $\hat\psi^{(1)}(0)=0 \Leftrightarrow \hat h^{(1)}(\pi)^*=0$.
+	 
+	Induction gives the higher-order equivalence
+	$\hat\psi^{(k)}(0)=0 \Leftrightarrow \hat h^{(k)}(\pi)^*=0$, provided all derivatives of lower order vanish.
+\end{proof}
+
+Conditions~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-2} give $\hat h(\pi)=0$, so every admissible wavelet has at least $1$ vanishing moment: $\int \psi=0$. By~\eqref{eq-cond-vm-fourier}, additional vanishing moments require the Fourier transform $\hat h$ to vanish to higher order at $\om=\pi$.
+
+  
+\paragraph{Support.}
+
+Figure~\ref{fig-vanishing-moments-1d} shows the wavelet coefficients of a piecewise smooth signal. The cancellation provided by $\psi$ suppresses coefficients in smooth regions, leaving the largest coefficients near singularities.
+
+\myfigure{
+\image{wavelets}{.6}{vanishing-moments-1d-coefs}
+}{ 
+	Location of large wavelet coefficients.  
+}{fig-vanishing-moments-1d}
+
+Choosing $\psi$ with short support limits how many wavelets intersect each singul

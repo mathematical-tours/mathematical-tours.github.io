@@ -1,0 +1,138 @@
+% Context from chapters/machine-learning.tex; for mathematical reference, not compilation.
+ \diag(\si) V^*
+}
+where $U \in \RR^{n \times r}$ and $V \in \RR^{p \times r}$ have orthonormal columns, and $r=\rank(\tilde X) \leq \min(n,p)$.
+ 
+Write $V=(v_k)_{k=1}^r$ for the orthonormal columns, which are eigenvectors of $\hat C = V \diag(\si^2) V^\top$, with $v_k \in \RR^p$. These vectors describe the principal directions of variation in the point cloud $(x_i)_i$ in $\RR^p$.
+ 
+We order the singular values as $\si_1 \geq \ldots \geq \si_r$, so the leading components account for the greatest variance.
+
+Figure~\ref{fig-cov} displays an empirical covariance matrix and its spectrum $(\si_k^2)_k$ for the Iris dataset\footnote{\url{https://en.wikipedia.org/wiki/Iris_flower_data_set}} introduced by Fisher. It contains 50 samples from each of three iris species: Iris setosa, Iris virginica, and Iris versicolor. The four features are sepal length, sepal width, petal length, and petal width.
+
+To obtain a PCA embedding $x_i \in \RR^p \mapsto z_i \in \RR^d$ of dimension $d \leq p$, project onto the first $d$ right singular vectors, extending the basis if $d>r$:
+\eql{\label{eq-pca-1}
+	z_i \eqdef ( \dotp{x_i-\hat m}{v_k} )_{k=1}^d \in \RR^d.
+}
+The corresponding reconstruction is
+\eql{\label{eq-pca-2}
+	\tilde x_i\eqdef\hat m+\sum_{k=1}^d z_{i,k}v_k \in \RR^p.
+}
+Thus $\tilde x_i = \Proj_{\tilde T}(x_i)$, where $\tilde T\eqdef\hat m+ \Span_{k=1}^d(v_k)$ is the affine reconstruction space.
+
+Figure~\ref{fig-pca} shows an example of PCA for 2-D and 3-D visualization.
+
+\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
+\includegraphics[width=.4\linewidth]{ml/pca-nn/points-2d}&
+\includegraphics[width=.4\linewidth]{ml/pca-nn/points-3d}
+\end{tabular}
+\caption{\label{fig-pca}
+PCA projections of the data into two and three dimensions.
+}
+\end{figure}
+
+
+   
+\paragraph{Optimality analysis.}
+
+\input{chapters/sec-pca-theory.tex}
+ 
+ 
+
+                                                                  
+\subsection{Clustering and \texorpdfstring{$k$}{k}-means}
+
+Clustering assigns a label $y_i \in \{1,\ldots,k\}$ to each observation $x_i$. Observations with the same label form a cluster.
+
+    
+\paragraph{\texorpdfstring{$k$}{k}-means}
+
+One approach is to seek compact clusters by minimizing a measure of within-cluster dispersion. In Euclidean space, the $k$-means objective measures distances from observations to their centroids $c=(c_\ell)_{\ell=1}^k$, with $c_\ell \in \RR^p$. Related formulations are possible in general metric spaces, although the centroid computations may be more difficult. The optimization problem is
+\eq{
+	\umin{ (y,c) } \Ee( y, c ) \eqdef \sum_{\ell=1}^k \sum_{ i : y_i=\ell } \norm{x_i-c_\ell}^2. 
+}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-voronoi}
+\caption{$k$-means clusters according to Voronoi cells.}
+\label{fig-review-ml-voronoi}
+\end{figure}
+The $k$-means algorithm alternates between updating the labels and updating the centroids, a form of block coordinate minimization.
+ 
+Initialize the centroids $c$, for example by choosing well-separated observations. We discuss a more systematic initialization below.
+  
+For fixed centroids $c$, minimize $y \mapsto \Ee(y,c)$ by assigning each observation to its nearest centroid:
+\eql{\label{eq-kmeans-1}
+	\foralls i \in \{1,\ldots,n\}, \quad y_i \leftarrow \uargmin{1 \leq \ell \leq k} \norm{x_i-c_\ell}.
+}
+For fixed labels $y$, minimize $c \mapsto \Ee(y,c)$ by setting each centroid to the mean of its cluster:
+\eql{\label{eq-kmeans-2}
+	\foralls \ell \in \{1,\ldots,k\}, \quad c_\ell \leftarrow \frac{
+		\sum_{i : y_i=\ell} x_i
+	}{
+		|\enscond{i}{y_i=\ell}|
+	}
+}
+If a cluster becomes empty, its centroid does not contribute to the objective for the current labels. One may leave it in place or reseed it at a data point before the next assignment step. The centroid formula applies only to nonempty clusters.
+
+Each step decreases or preserves $\Ee$. With a fixed tie-breaking rule that retains existing assignments at ties, and without indefinite reseeding, a changed assignment strictly decreases the objective. There are finitely many label assignments, so the algorithm terminates after finitely many such changes.
+
+Because the objective is nonconvex, $k$-means need not find globally optimal clusters.
+ 
+A reseeding heuristic moves centroids $c_\ell$ from redundant or low-contribution clusters to regions with high distortion. This can help the iterations escape a poor local configuration.
+
+Figure~\ref{fig-kmeans} shows an example of $k$-means iterations on the Iris dataset.
+
+\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{10mm}}c@{}}
+\includegraphics[width=.4\linewidth]{ml/pca-nn/kmeans-iter}&
+\includegraphics[width=.35\linewidth]{ml/pca-nn/kmeans-classif-scores}
+\end{tabular}
+\caption{\label{fig-kmeans}
+Left: iterations of the $k$-means algorithm. Right: class histograms after the $k$-means optimization.
+}
+\end{figure}
+
+
+    
+\paragraph{\texorpdfstring{$k$}{k}-means++}
+
+The result of $k$-means depends strongly on initialization. Well-separated initial centers tend to cover the data more effectively than tightly grouped centers.
+
+The randomized $k$-means++ initialization has an approximation guarantee even before Lloyd iterations are applied. In practice, Lloyd iterations usually improve the resulting centers. First choose $c_1$ uniformly among the sample points. After choosing $c_1,\ldots,c_\ell$, select $c_{\ell+1}$ from the sample according to a probability $\pi^{(\ell)}$ on $\{1,\ldots,n\}$ proportional to the squared distance from the nearest selected center
+\eq{
+	\foralls i \in \{1,\ldots,n\}, \quad 
+	\pi^{(\ell)}_i \eqdef \frac{d_i^2}{\sum_{j=1}^n d_j^2}
+	\qwhereq
+	d_i\eqdef\min_{1\leq r\leq\ell}\norm{x_i-c_r}.
+}
+Points far from the previously seeded centers are more likely to be chosen. If every $d_i=0$, the current centers already achieve zero distortion and the procedure can stop.
+
+The following theorem, due to David Arthur and Sergei Vassilvitskii, bounds the expected seeding cost by a logarithmic factor times the optimal cost. Computing a global optimum is NP-hard in general.
+
+\begin{thm}
+	Let $c^\star$ be the centroids selected by $k$-means++ and let $y^\star$ be their nearest-centroid labels, as in~\eqref{eq-kmeans-1}. Then
+	\eq{
+		\EE(\Ee(y^\star,c^\star)) \leq 8 (2+\log(k)) \umin{(y,c)}\Ee(y,c),
+	}
+	where the expectation is over the random choices made during initialization.
+\end{thm}
+
+
+
+
+    
+\paragraph{Lloyd algorithm and continuous densities.}
+
+The $k$-means iterations are also known as Lloyd's algorithm and are used in vector quantization for compression. The same alternating procedure applies to a probability measure $\mu$ on $\RR^p$ with finite second moment.
+ 
+The energy to minimize becomes
+\eq{
+	\umin{ (\Vv,c) } \sum_{\ell=1}^k \int_{\Vv_\ell} \norm{x-c_\ell}^2 \d \mu(x)
+}
+where $(\Vv_\ell)_\ell$ is a partition of the domain. 
+ 
+Step~\eqref{eq-kmeans-1} is 

@@ -1,0 +1,100 @@
+% Context from chapters/denoising.tex; for mathematical reference, not compilation.
+\section{Noise Modeling}
+
+                                                     
+\subsection{Noise in Images}
+
+Figure \ref{fig-noise-examples} illustrates the variety of imaging noise. Different acquisition devices produce different noise statistics, while the images themselves vary in smoothness and geometry.
+
+\myfigure{
+\tabtrois{
+\image{denoising}{.3}{noise-camera}&
+\image{denoising}{.3}{noise-confocal}&
+\image{denoising}{.3}{noise-sar}\\
+Digital camera & Confocal imaging & SAR imaging
+}
+}{ 
+	Noise in images from different acquisition devices.  
+}{fig-noise-examples}
+
+The model should reflect both the acquisition process and the noise statistics. The regularity and geometry of the clean signal then guide the choice of a basis for its representation.
+
+Since noise perturbs discrete measurements from acquisition devices, we consider only finite-dimensional real signals $f\in\RR^N$.
+
+                                                     
+\subsection{Image Formation}
+\label{subsec-image-formation}
+
+Figure \ref{fig-additive-noise-model} summarizes the model: a clean image $f_0$ combines with noise $w$ to produce the observation $Y := f_0 \oplus w$. The operation $\oplus$ may be addition or multiplication. The observed image $Y$ is modeled as a random vector.
+
+\myfigure{
+\image{denoising}{.8}{additive-noise-model}
+}{ 
+	Image acquisition, noise, and reconstruction by denoising.  
+}{fig-additive-noise-model}
+
+In the statistical model, $w$ is a random vector with a specified distribution. A numerical experiment uses one realization, also written $w$.
+
+  
+\paragraph{Additive Noise.}
+
+The simplest image formation model adds noise to a clean signal $f_0$
+\eq{
+	Y := f_0 + w
+}
+where $w$ is the noise residual. Both $w$ and $Y$ are random; an acquired image is one realization of $Y$, denoted by $y$ or $f$ below. Figures \ref{fig-noise-example-1d} and \ref{fig-noise-example-2d} illustrate additive noise on a signal and an image.
+
+\myfigure{
+\tabdeux{
+\image{denoising}{.45}{noise-example-1d-clean}&
+\image{denoising}{.45}{noise-example-1d-noisy}\\
+$f_0$ & $f$
+}
+}{ 
+	1-D additive noise example.  
+}{fig-noise-example-1d}
+
+
+\myfigure{
+\tabdeux{
+\image{denoising}{.3}{noise-example-2d-clean}&
+\image{denoising}{.3}{noise-example-2d-noisy}\\
+$f_0$ & $y \sim Y = f_0+w$
+}
+}{ 
+	2-D additive noise example.  
+}{fig-noise-example-2d}
+
+The simplest model assumes independent centered Gaussian entries $w_n$ with variance $\si^2$: $w\sim\Nn(0,\sigma^2\Id_N)$. This is Gaussian white noise.
+
+Depending on the image acquisition device, other noise distributions may be appropriate, including uniform noise $w_n \in [-a,a]$ or heavy-tailed generalized Gaussian noise with density
+\eq{
+	p_w(u)\propto e^{-|u/s|^\alpha},\qquad s>0,\quad0<\alpha<2.
+}
+
+In many situations, the noise is not additive; its intensity may, for instance, depend on the signal intensity. This is the case with the Poisson and multiplicative noise models considered in Section \ref{sect-data-dept-noises}.
+
+
+                                                     
+\subsection{Denoiser}
+
+A denoiser produces an estimate $\tilde f = \Dd(Y)$ of $f_0$ from the observation $Y$ alone. The map $\Dd$ is deterministic, but its output is random because it depends on the noise $w$. With centered additive noise, $Y$ has mean $f_0$, so denoising estimates that mean from a single realization. Figure \ref{fig-denoising-clean} illustrates the result.
+
+The quality of a denoiser is measured using the mean squared risk $\mathbb E_w\norm{f_0-\tilde f}^2$,
+where $\mathbb E_w$ averages over the noise $w$. This risk is a theoretical quantity because $f_0$ is unknown in practice. In experiments with known clean data, we instead evaluate one realization $y \sim Y = f_0 + w$ using the signal-to-noise ratio $\text{SNR}(\Dd(y),f_0)$, defined by
+\eq{
+	\text{SNR}(f,g) := -20\log_{10}( \norm{f-g}/\norm{g} ).
+}
+ 
+The SNR is measured in decibels (dB). Computing it requires the clean signal $f_0$, so it serves as a benchmark in controlled experiments. Because an $\ell^2$ error does not fully describe perceptual quality, visual inspection should accompany the numerical comparison.
+
+
+\myfigure{
+\tabtrois{
+\image{denoising}{.32}{denoising-clean}&
+\image{denoising}{.32}{denoising-noisy}&
+\image{denoising}{.32}{denoising-denoised}\\
+$f_0$ & $y$ & $\Dd(y)$
+}
+}{ 
+	Left: clean image, c

@@ -1,0 +1,127 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+\section{Fourier in Multiple Dimensions}
+\label{sec-fourier-multiple-dim}
+
+Tensor products extend the one-dimensional Fourier transform to any finite dimension $d>1$.
+
+
+                                                
+\subsection{On Continuous Domains}
+
+   
+\paragraph{On \texorpdfstring{$\RR^d$}{Euclidean Space}.}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-wave}
+\caption{2-D sine wave.}
+\label{fig-review-fourier-wave}
+\end{figure}
+Tensor products retain a useful feature of Fourier atoms: a product of elementary 1-D complex exponentials is a plane wave
+\eq{
+	\prod_{\ell=1}^d e^{ \imath x_\ell \om_\ell } = e^{ \imath \dotp{x}{\om} }
+}
+whose constant-phase hyperplanes are orthogonal to the wave vector $\om=(\om_\ell)_{\ell=1}^d \in \RR^d$ when this vector is nonzero. Here $\dotp{x}{\om} = \sum_\ell x_\ell \om_\ell$ is the canonical inner product on $\RR^d$.
+
+The Fourier transform and its inverse are defined by
+\begin{align*}
+	\foralls \om \in \RR^d, \quad \hat f(\om) &\eqdef \int_{\RR^d} f(x) e^{-\imath\dotp{x}{\om}} \d x, \\
+	\foralls x \in \RR^d, \quad  f(x) &= \frac{1}{(2\pi)^d} \int_{\RR^d}\hat f(\om)e^{\imath\dotp{x}{\om}}\,\d\om,
+\end{align*}
+under the same integrability assumptions as in one dimension.
+
+
+\myfigure{
+\image{orthobases}{.3}{2d-extension-fourier-plane}
+\image{orthobases}{.2}{2d-extension-fourier-1}
+\image{orthobases}{.2}{2d-extension-fourier-2}
+\image{orthobases}{.2}{2d-extension-fourier-3}
+}{ 
+	2D Fourier orthogonal bases.   
+}{fig-2d-fourier-extension}
+
+
+   
+\paragraph{On \texorpdfstring{$(\RR/2\pi\ZZ)^d$}{the Torus}.}
+
+Given an orthonormal basis $(\phi_{n_1})_{n_1 \in \NN}$ of $L^2(\XX)$, one constructs an orthonormal basis of $L^2(\XX^d)$ by tensorization
+\eql{\label{eq-tensor-product}
+	\foralls k=(k_1,\ldots,k_d) \in \NN^d, \quad
+	\foralls x \in \XX^d, \quad
+	\phi_k(x) = \phi_{k_1}(x_1) \ldots \phi_{k_d}(x_d).
+}
+Fubini's theorem gives orthogonality. Completeness gives convergence of the rectangular partial sums $\sum_{\norm{k}_\infty \leq N} \dotp{f}{\phi_k} \phi_k \rightarrow f$ in $L^2(\XX^d)$.
+
+           
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-torus}
+\caption{The two-dimensional torus $\TT^2=(\RR/2\pi\ZZ)^2$.}
+\label{fig-review-fourier-torus}
+\end{figure}
+   
+For the multidimensional torus $(\RR/2\pi\ZZ)^d$, using the Fourier basis~\eqref{eq-fourier-basis-1d}, this gives the basis
+\eq{
+	\foralls k \in \ZZ^d, \quad \phi_k(x) = e^{\imath \dotp{x}{k}}
+} 
+which is indeed a Hilbertian orthonormal basis for the inner product $\dotp{f}{g} \eqdef \frac{1}{(2\pi)^d} \int_{\TT^d} f(x)\bar g(x)\d x$. 
+ 
+This defines the Fourier transform and the reconstruction formula on $L^2(\TT^d)$
+\eq{
+	\hat f_k \eqdef \frac{1}{(2\pi)^d} \int_{\TT^d} f(x) e^{-\imath \dotp{x}{k}}  \d x
+	\qandq
+	f = \sum_{k \in \ZZ^d} \hat f_k e^{\imath \dotp{x}{k}}.
+}
+
+                                                
+\subsection{On Discrete Domains}
+\label{sec-fft-2d}
+
+    
+\paragraph{Discrete Fourier Transform.}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-torus-discrete}
+\caption{Discrete 2-D torus.}
+\label{fig-review-fourier-torus-discrete}
+\end{figure}
+On a $d$-dimensional discrete domain of the form
+\eq{
+	n = (n_1,\ldots,n_d) \in \YY_d \eqdef \range{1,N_1} \times \ldots \times \range{1,N_d}
+}
+(we denote $\range{a,b} \eqdef \enscond{i \in \ZZ}{a \leq i \leq b}$)
+of $N=N_1\ldots N_d$ points, with periodic boundary conditions, one defines an orthogonal basis $(\phi_k)_k$ by the same tensor product formula as~\eqref{eq-tensor-product} but using the 1-D discrete Fourier basis~\eqref{eq-dft}
+\eql{\label{eq-exp-four-disc-multid}
+	\foralls (k,n) \in \YY_d^2, \quad
+	\phi_k(n) = \phi_{k_1}(n_1) \ldots \phi_{k_d}(n_d) 
+	= \prod_{\ell=1}^d e^{\frac{2\imath\pi}{N_\ell} k_\ell n_\ell}
+	= e^{ 2\imath\pi \dotp{k}{n}_{\YY_d} } 	
+} 
+where we used the (rescaled) inner product
+\eql{\label{eq-inner-prod-multi-d}
+	\dotp{k}{n}_{\YY_d} \eqdef \sum_{\ell=1}^d \frac{k_\ell n_\ell}{N_\ell}.
+}
+The pairing in~\eqref{eq-inner-prod-multi-d} acts on frequency and spatial index vectors. The basis $(\phi_k)_k$ is orthonormal for the signal inner product $N^{-1}\sum_n f_n\bar g_n$. As in one dimension, we define the Fourier coefficients without normalizing by $(N_\ell)_\ell$:
+\begin{align*}
+	\foralls k \in \YY_d, \quad 
+	\hat f_k &\eqdef \sum_{n \in \YY_d} f_n e^{-2\pi\imath\dotp{k}{n}_{\YY_d}}, \\
+	\foralls n \in \YY_d, \quad 
+	f_n &= \frac{1}{N} \sum_{k \in \YY_d} \hat f_k e^{2\pi\imath\dotp{k}{n}_{\YY_d}}.
+\end{align*}
+
+
+
+    
+\paragraph{Fast Fourier Transform.}
+
+We describe the algorithm for $d=2$; the same construction works in any finite dimension.
+ 
+A fast algorithm for orthogonal decompositions in two 1-D bases $(\phi_{k_1}^{1})_{k_1=1}^{N_1}$, $(\phi_{k_2}^{2})_{k_2=1}^{N_2}$ also gives a fast decomposition in the tensor product basis
+$(\phi_{k_1}^{1} \otimes \phi_{k_2}^{2})_{k_1,k_2}$: apply the algorithm first to the rows and then to the columns of the matrix $(f_n)_{n=(n_1,n_2)} \in \RR^{N_1 \times N_2}$. Either order gives the same result.
+ 
+Indeed
+\eq{
+	\foralls k=(k_1,k_2), \quad
+	\dotp{f}{\phi_{k_1}^{1} \otimes \phi_{k_2}^{2}}
+	= 

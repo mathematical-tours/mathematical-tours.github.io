@@ -1,0 +1,144 @@
+% Context from chapters/variational-priors.tex; for mathematical reference, not compilation.
+\section{Sobolev and Total Variation Priors}
+\label{sec-sob-tv-variational}
+
+The simplest priors integrate local differential quantities over the image domain. They measure smoothness through seminorms on function spaces. We study two widely used examples: the Sobolev and total variation priors.
+
+                                                                      
+\subsection{Continuous Priors}
+\label{sec-sob-tv-cont}
+
+In this section we define priors for functions $f \in \Ldeux([0,1]^2)$ on a continuous domain. Section \ref{subsec-disc-priors} develops their counterparts for discrete images $f \in \RR^N$.
+
+  
+\paragraph{Sobolev prior.}
+
+A prior energy assigns small values to images in the target class $\Theta$ and larger values, possibly $+\infty$, to images that depart from that model. The smoothness classes described in Section \ref{subsec-smooth-class} motivate Sobolev priors. The simplest such energy is
+\eql{\label{eq-dfn-sob-energy}
+	\Jsob(f)  = \frac{1}{2}|f|_{H^1}^2 = \frac{1}{2} \int \norm{\nabla f(x)}^2 \d x,
+}
+where $\nabla f$ is the distributional gradient and the integral is over $[0,1]^2$. The energy is one half of the squared $H^1$ seminorm and vanishes on constant functions. We set it to $+\infty$ when the gradient is not square integrable.
+
+  
+\paragraph{Total variation prior.}
+
+To accommodate discontinuities in images, we use the total variation energy introduced in Section \ref{subsec-bv-model}. Rudin, Osher, and Fatemi introduced its use in image denoising \cite{rudin-tv}.
+
+The total variation of a smooth image $f$ is defined as 
+\eql{\label{eq-dfn-tv-energy}
+	\Jtv(f) = \normTV{f} = \int \norm{\nabla_x f} \d x.
+}
+This energy extends to functions of bounded variation $f \in \text{BV}([0,1]^2)$, which may be discontinuous. This class includes indicator functions $f=1_{\Om}$ of sets $\Om$ with finite perimeter $|\partial \Om|$.
+
+The total variation seminorm can also be computed using the coarea formula \eqref{eq-tv-coaera}, which shows in particular that $\normTV{1_{\Om}} = |\partial \Om|$.
+
+
+                                                                      
+\subsection{Discrete Priors}
+\label{subsec-disc-priors}
+
+An acquisition device discretizes a continuous-domain image $f \in \Ldeux([0,1]^2)$ into a pixel array $f \in \RR^N$. To process these data, we need priors defined on finite-dimensional image spaces.
+
+  
+\paragraph{Discrete gradient.}
+
+Discrete Sobolev and total variation priors use finite-difference approximations to derivatives. For example, the forward differences are
+\eqm{
+	\de_1 f_{n_1,n_2} &= f_{n_1+1,n_2}- f_{n_1,n_2} \\
+	\de_2 f_{n_1,n_2} &= f_{n_1,n_2+1}- f_{n_1,n_2},
+}
+where the image has $n\times n$ pixels and $N=n^2$. Higher-order schemes give more accurate approximations for smooth functions.
+Boundary conditions require care. For simplicity, we use periodic boundary conditions, computing the indices $n_i+1$ modulo $n$. Symmetric boundary conditions can also be used to avoid boundary artifacts.
+
+With the grid-spacing factor absorbed into the energy scaling, the discrete gradient at each pixel is
+\eq{
+	\nabla f_n = ( \de_1 f_n,\de_2 f_n ) \in \RR^{2}
+}
+and the gradient operator maps images to vector fields:
+\eq{
+	\nabla : \RR^N \longrightarrow \RR^{N \times 2}.
+}
+Figure \ref{fig-grad-discrete} shows discrete gradient vectors approximating the local direction of steepest intensity increase. Figure \ref{fig-discrete-operators} displays the gradient field and its magnitude. Large magnitudes indicate rapid intensity variations, typically at edges or in textured regions.
+
+\myfigure{
+\tabtrois{
+\image{variational}{.3}{grad-discrete}&
+\image{variational}{.3}{grad-discrete-zoom-1}&
+\image{variational}{.3}{grad-discrete-zoom-2}
+}
+}{ 
+	Discrete gradient vectors.
+}{fig-grad-discrete}
+
+\paragraph{Discrete divergence.}
+
+One can also use backward differences,
+\eqm{
+	\tilde\de_1 f_{n_1,n_2} &= f_{n_1,n_2}- f_{n_1-1,n_2} \\
+	\tilde\de_2 f_{n_1,n_2} &= f_{n_1,n_2}- f_{n_1,n_2-1}.
+}
+The adjoint relation between backward and forward differences is
+\eq{
+	\de_i^* = -\tilde \de_i,
+} 
+which means that
+\eq{
+	\foralls f,g \in \RR^N, \quad
+	\dotp{\de_i f}{g} = - \dotp{f}{\tilde \de_i g},
+}
+This is the discrete counterpart of integration by parts,
+\eq{
+	\int_0^1 f' g = - \int_0^1 f g'
+}
+for smooth periodic functions on $[0,1]$.
+
+We define the discrete divergence using backward differences:
+\eq{
+	\diverg(v)_n = \tilde \de_1 v_{1,n} + \tilde \de_2 v_{2,n},
+}
+This operator maps vector fields to images:
+\eq{
+	\diverg : \RR^{N \times 2} \longrightarrow \RR^{N}.
+}
+It is the negative adjoint of the gradient:
+\eq{
+	\diverg = - \nabla^*
+}
+which means that
+\eq{
+	\foralls f \in \RR^N, \;
+	\foralls v \in \RR^{N \times 2}, \quad
+	\dotp{\nabla f}{v}_{\RR^{N \times 2}} = -\dotp{f}{\diverg(v)}_{\RR^N}
+}
+This identity is a discrete version of the divergence theorem.
+
+\myfigure{
+\tabtrois{
+\image{variational}{.3}{discrete-operators-image}&
+\image{variational}{.3}{discrete-operators-grad}&
+\image{variational}{.3}{discrete-operators-gradnorm}\\
+Image $f$ & $\nabla f$ & $\norm{\nabla f}$
+}
+}{ 
+	Discrete operators.
+}{fig-discrete-operators}
+
+  
+\paragraph{Discrete Laplacian.}
+
+The Laplacian is the divergence of the gradient:
+\eq{
+	\Delta f= \diverg( \nabla f ),
+}
+This operator is negative semidefinite because $\Delta=-\nabla^*\nabla$.
+
+With the discrete gradient and divergence defined above, the Laplacian is the local high-pass filter
+\eql{\label{eq-discrete-lapl}
+	\Delta f_n = \sum_{ p \in V_4(n) } f_p - 4 f_n,
+}
+which, after scaling by the grid spacing, approximates the continuous Laplacian:
+\eq{
+	\pdd{f}{x_1}(x) + \pdd{f}{x_2}(x) \approx n^2 \Delta f_{k} \qforq x = k/n.
+}
+
+Laplacian operators thus act as filters. With the Fourier convention $\hat f(\omega)=\int f(x)e^{-\imath\la

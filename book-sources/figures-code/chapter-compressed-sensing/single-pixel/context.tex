@@ -1,0 +1,79 @@
+% Context from chapters/compressed-sensing.tex; for mathematical reference, not compilation.
+\section{Motivation and Potential Applications}
+
+
+                                    
+\subsection{Single-Pixel Camera}
+
+We illustrate compressed acquisition with the \guill{single-pixel camera} developed at Rice University~\cite{DuarteSinglePixel}, shown in Figure~\ref{fig-single-pixel} (left).
+ 
+A central idea is to combine acquisition and compression in a single device. Conventional acquisition first samples the analog scene $\tilde f_0$ at high resolution to obtain an image $f_0\in\RR^Q$, then compresses it to $M$ significant coefficients using~\eqref{eq-nonlinear-approx}. Compressed acquisition instead records a vector $y\in\RR^P$ directly. The aim is to keep the measurement count $P$ close to the sparsity level $M$, typically with a logarithmic overhead, while retaining enough information for accurate reconstruction.
+
+The scene $\tilde f_0$, represented by the letter \guill{R} in Figure~\ref{fig-single-pixel}, is modeled as a light-intensity function. Its value $\tilde f_0(s)$ gives the intensity at position $s \in \RR^2$ in the camera's focal plane.
+ 
+Light is focused onto an array of $Q$ micromirrors in the focal plane. Each mirror directs light either toward the sensor or away from it; the mirrors themselves record no information.
+ 
+The device cycles rapidly through $P$ mirror configurations. For $p=1,\ldots,P$, the entry $\Phi_{p,q}\in\{0,1\}$ indicates whether mirror $q$ is off or on during exposure $p$.
+ 
+A single sensor integrates the light directed toward it during each exposure, producing one measurement $y_p\in\RR$.
+ 
+Let $c_q$ be the region occupied by mirror $q$ in the focal plane, and define its integrated intensity by $f_{0,q}=\int_{c_q}\tilde f_0(s)\,\mathrm{d}s$. The discrete image $f_0\in\RR^Q$ and the measurements $y\in\RR^P$ are then related by
+
+\eq{
+	\foralls p = 1,\ldots,P, \quad
+	y_p \approx \sum_{q=1}^Q \Phi_{p,q} \int_{c_q} \tilde f_0(s) \text{d} s = (\Phi f_0)_p,
+}
+The symbol $\approx$ accounts for acquisition noise.
+We therefore use the usual inverse-problem model
+\eq{
+	y = \Phi f_0 + w \in \RR^P
+}
+where $w$ is the noise vector. 
+ 
+The intermediate image $f_0$ is never recorded: the device measures $y$ directly from the analog scene $\tilde f_0$.
+ 
+Binary mirror patterns are not centered random variables. Centered signed measurements can be formed by subtracting an appropriate total-intensity measurement or by differencing complementary exposures, followed by normalization. This distinction matters when applying the random-matrix assumptions below.
+
+Recovering the ideal discrete image $f_0$ from $y$ requires inverting the acquisition model while accounting for the noise $w$.
+
+\begin{figure} \centering
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+\includegraphics[width=.45\linewidth]{cs/single-pixel/single-pixel-schema}&
+\includegraphics[width=.25\linewidth]{cs/single-pixel/reconstruction-1}&
+\includegraphics[width=.25\linewidth]{cs/single-pixel/reconstruction-6}\\
+Diagram of the device & $f_0$ & $f_0^\star$, $Q/P = 6$
+\end{tabular}
+\caption{Left: diagram of the single-pixel acquisition method.
+ 
+Center: ideal image $f_0\in\RR^Q$ in the micromirror focal plane.
+ 
+Right: reconstruction $f_0^\star = \Psi x^\star$ from measurements $y \in \RR^P$, with compression factor $Q / P = 6$, using $\ell^1$ regularization.
+\label{fig-single-pixel}}
+\end{figure}
+
+
+                                    
+\subsection{Sparse Recovery}
+
+Following Section~\ref{sec-sparse-ip}, write $f_0=\Psi x_0$, where $\Psi\in\RR^{Q\times N}$ is a dictionary and $x_0$ is sparse. Denoting $A\eqdef\Phi\Psi\in\RR^{P\times N}$, this leads us to consider the usual $\ell^1$ regularized problem~\eqref{eq-lasso-lagr-ip}
+\eql{\label{eq-lasso-lagr-ip-cs}\tag{$\Pp_\la(y)$}
+	x_\la \in \uargmin{x \in \RR^N} \frac{1}{2\la} \norm{y-Ax}^2 + \norm{x}_1, 
+} 
+so that the reconstructed image is $f_\la = \Psi x_\la$. We also sometimes consider the constrained problem
+\eql{\label{eq-lasso-lagr-constr-cs}\tag{$\Pp^\epsilon(y)$}
+	x_\epsilon \in \uargmin{\norm{Ax-y} \leq \epsilon} \norm{x}_1, 
+} 
+Assume that a noise bound $\norm{w}\leq\epsilon$ is known, so that the true coefficient vector is feasible. Convex optimality conditions relate the two formulations through suitable Lagrange multipliers. The parameter correspondence depends on $y$ and need not be one-to-one; a range of parameter values may produce the same solution. The endpoint $\epsilon=0$ may require a limiting parameter value.
+
+The distribution of $A=\Phi\Psi$ depends on both the acquisition matrix and the dictionary. If $\Psi$ is square and orthogonal and $\Phi$ has independent centered Gaussian entries with a common variance, right orthogonal invariance gives $\Phi\Psi$ the same distribution as $\Phi$. For a general dictionary, this simplification fails. The results below therefore impose distributional assumptions directly on $A$.
+
+                                    
+                                    
+                                    
+\section{Dual Certificate Theory and Non-Uniform Guarantees}
+\label{sec-cs-certif}
+
+                                    
+\subsection{Random Projection of Polytopes}
+
+For noiseless data, $w=0$, we can use the geometric characterization of $(\Pp^0(Ax_0))=(\Pp_0(Ax_0))$ from Section~\ref{sec-polytope-proj}. Proposition~\ref{prop-polytope-proj} relates identifiable $s$-sp

@@ -1,0 +1,64 @@
+% Context from chapters/variational-priors.tex; for mathematical reference, not compilation.
+\section{Regularization for Denoising}
+
+The flow-based approach in Section \ref{subsec-pde-denoise} defines the estimator by choosing a stopping time. Alternatively, we can define it as the minimizer of an objective that balances data fidelity and a prior. This formulation also accommodates nonsmooth priors such as total variation $\Jtv$ and sparsity $\Ju$. Chapter \ref{chap-invpbm} extends it to general inverse problems.
+
+
+\myfigure{
+\tabtrois{
+\image{variational}{.32}{denoising-cameraman-noisy}&
+\image{variational}{.32}{denoising-cameraman-heat}&
+\image{variational}{.32}{denoising-cameraman-tvflow}\\
+Noisy $f$ & Sobolev flow & TV flow \\
+\image{variational}{.32}{denoising-cameraman-sobreg}&
+\image{variational}{.32}{denoising-cameraman-tvreg}&
+\image{variational}{.32}{denoising-cameraman-wavti}\\
+Sobolev reg & TV reg & TI wavelets
+}
+}{ 
+	Denoising using PDE flows and regularization.
+}{fig-denoising-cameraman}
+
+\myfigure{
+\tabdeux{
+\image{variational}{.4}{denoising-cameraman-heat-snr}&
+\image{variational}{.4}{denoising-cameraman-tvflow-snr}\\
+Sobolev flow & TV flow \\
+\image{variational}{.4}{denoising-cameraman-sobreg-snr}&
+\image{variational}{.4}{denoising-cameraman-tvreg-snr}\\
+Sobolev regularization & TV regularization
+}
+}{ 
+	SNR as a function of time $t$ for flows (top) and $\la$ for regularization (bottom).
+}{fig-denoising-cameraman-snr}
+
+                                                                      
+\subsection{Regularization}
+
+For a noisy image $f= f_0 + w$ with $N$ pixels and a prior $J$, consider
+\eql{\label{eq-regul-denoising}
+	f^\star_\la \in \uargmin{ g \in \RR^N } \frac{1}{2} \norm{f-g}^2 + \la J(g),
+}
+where the regularization parameter $\la > 0$ balances the data fidelity term $\norm{f-g}^2$ against the penalty $J(g)$.
+
+If a clean reference image $f_0$ is available, one can choose the parameter by minimizing the denoising error $\norm{f^\star_\la-f_0}$. Such a reference is rarely available in practice, so parameter selection must account for the noise level and the regularity of the unknown image $f_0$.
+
+For a proper lower semicontinuous convex prior $J$, the quadratic fidelity makes the objective strongly convex, so it has a unique minimizer. For nonconvex priors, minimizers need not be unique; properness, lower semicontinuity, and a lower bound for $J$ suffice for existence.
+
+The resulting estimator is
+\eq{
+	\tilde f = f^\star_\la
+} 
+with $\la$ chosen according to the noise level and prior.
+
+For a differentiable convex prior $J$, gradient descent for \eqref{eq-regul-denoising} takes the form
+\eql{\label{eq-grad-desc-regul}
+	f^{(k+1)} = f^{(k)} - \tau \pa{ f^{(k)}-f + \la \grad J(f^{(k)}) }
+}
+where $\tau>0$ is chosen according to the smoothness of the objective. The iteration adds a data fidelity force to the time-discretized flow~\eqref{eq-gradmin-flow}, counteracting the prior's tendency to smooth the image toward a constant.
+
+Total variation $\Jtv$ and the sparsity prior $\Ju$ are nondifferentiable; the ideal sparsity prior $\Jz$ is also nonconvex. Classical gradient descent therefore cannot be applied directly to \eqref{eq-regul-denoising}. Computing $f^\star_\la$ then requires smoothing the prior or using algorithms adapted to nonsmooth objectives, as developed later in the book.
+
+
+                                                                      
+\subsection{Sobolev Regu

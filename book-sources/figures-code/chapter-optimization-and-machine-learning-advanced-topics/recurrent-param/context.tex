@@ -1,0 +1,158 @@
+% Context from chapters/sec-autodiff.tex; for mathematical reference, not compilation.
+ully connected network without biases, use
+\eql{\label{eq-mlp-func}
+	\foralls x_{k-1} \in \RR^{n_{k-1}}, \quad
+	f_k(x_{k-1},\th_{k-1}) = \rho( \th_{k-1} x_{k-1} )
+} 
+where $\th_{k-1}\in\RR^{n_k\times n_{k-1}}$ contains the weights and $\rho$ acts coordinatewise; see Figure~\ref{fig-mlp-param}. The derivative formulas below apply where $\rho$ is differentiable. At a ReLU kink, a chosen derivative convention defines the computed update, but the classical derivative need not exist.
+ 
+For an adjoint vector $z_k \in \RR^{n_k}$, typically $\nabla_{x_{k}} f$,
+\eq{
+	\left\{
+	\begin{matrix}
+	[\partial_x f_k(x_{k-1},\th_{k-1})]^\top (z_k) = \th_{k-1}^\top w_k z_k, \\
+	[\partial_\th f_k(x_{k-1},\th_{k-1})]^\top (z_k) =(w_kz_k)x_{k-1}^\top
+	\end{matrix}
+	\right.
+	\qwhereq
+	w_k \eqdef \diag(\rho'(\th_{k-1} x_{k-1})).
+}
+
+\begin{figure}
+\centering
+\includegraphics[width=.6\linewidth]{auto-diff/network-mlp} 
+\caption{\label{fig-mlp-param}
+Multilayer-perceptron parameterization.
+}
+\end{figure}
+
+
+
+   
+\paragraph{Link with adjoint state method.}
+
+A residual form of~\eqref{eq-feednets} can be interpreted as a time discretization of an ordinary differential equation.
+ 
+Keep the state dimension fixed, $n_k=n$, and interpret $x_k$ as an approximation of a continuous trajectory $x(t)$ at time $t=k\tau$. The formal continuum limit takes $\tau\downarrow0$ with $k\tau$ approaching a fixed time.
+ 
+Impose the residual structure
+\eql{\label{eq-flow-eq}
+	f_k(x_{k-1},\th_{k-1}) = x_{k-1} + \tau u(x_{k-1},\th_{k-1}, k\tau)
+}
+with a parameterized vector field $u(x,\th,t) \in \RR^n$. Formally, as $\tau \rightarrow 0$, this approaches the nonlinear ODE
+\eql{\label{eq-ode-structure}
+	\dot x(t) = u(x(t),\th(t),t)
+}
+with $x(t=0)=x_0$.
+
+Writing $z(t) = \nabla_{x(t)} f(\th)$ for the adjoint, the discrete relations~\eqref{eq-backprop-discr} become a linear backward ODE:
+\eq{
+	\dot z(t)  =  - [\partial_x u(x(t),\th(t),t)]^\top z(t)
+	\qandq
+	\nabla_{\th(t)} f(\th) = [\partial_\th u(x(t),\th(t),t)]^\top z(t).
+}
+The adjoint has terminal condition $z(T)=\nabla L(x(T))$. The parameter derivative is interpreted as the $L^2$ functional gradient with respect to the time-dependent control. Its discrete normalization is $\frac{1}{\tau} \nabla_{\th_{k-1}} f  \rightarrow \nabla_{\th(t)} f(\th)$.
+
+                                                   
+\subsection{Recurrent Architectures}
+
+A recurrent architecture reuses the parameter $\th=\th_k$ and map $f_k=h$ at every step of~\eqref{eq-feednets}:
+\eql{\label{eq-feednets-recur}
+	\foralls k=1, \ldots, t, \quad x_{k} = h(x_{k-1},\th).
+}
+Consider a scalar objective
+\eq{
+	f(\th) = L(x_t,\th)
+}
+The loss now depends explicitly on $\th$, extending~\eqref{eq-loss-feedf}. Figure~\ref{fig-recur} shows the corresponding graph.
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.6\linewidth]{auto-diff/archi-recurrent}
+\caption{\label{fig-recur}
+Computational graph for a recurrent architecture.
+}
+\end{figure}
+
+Backpropagation gives
+\eql{\label{eq-backprop-recurrent}
+	\nabla_{x_{k-1}} f = [\partial_x h(x_{k-1},\th)]^\top \nabla_{x_{k}} f
+	\qandq
+	\nabla_{\th} f = 
+		\nabla_\th L(x_t,\th) + 
+		\sum_k [\partial_\th h(x_{k-1},\th)]^\top \nabla_{x_{k}} f.
+}
+Similarly, with $h(x,\th) = x + \tau u(x,\th)$, the formal limit $(k,k\tau) \rightarrow (+\infty,t)$ gives a forward nonlinear ODE with a time-independent vector field:
+\eq{
+	\dot x(t) = u(x(t),\th)
+}
+and the following linear backward adjoint equation, for $f(\th)=L(x(T),\th)$
+\eql{\label{eq-jacobian-mlp}
+	\dot z(t)  =  - [\partial_x u(x(t),\th)]^\top z(t)
+	\qandq
+	\nabla_{\th} f(\th) = \nabla_\th L(x(T),\th) + \int_0^T[\partial_\th u(x(t),\th)]^\top z(t) \d t.
+}
+with terminal condition $z(T)=\nabla_xL(x(T),\th)$.
+
+     
+\paragraph{Residual recurrent networks. }
+
+A residual recurrent network uses the update
+\eq{
+	h(x,\th) = x + W_2^\top \rho( W_1 x )
+}
+as illustrated in Figure~\ref{fig-recurrent-param}. Here $\th = (W_1, W_2) \in (\RR^{q\times n})^2$ contains the weights and $\rho$ is a pointwise activation. Increasing the hidden width $q$ enlarges the class of representable residual maps.
+ 
+When $W_2=-\tau W_1$ and $\rho=\psi'$, this update is a gradient step for $\Ee(x,\th)=\sum_i\psi((W_1x)_i)$. Repeating it gives an iterative implementation of the argmin layer~\eqref{eq-argmin-layer}, provided the iterations converge to a minimizer.
+ 
+The Jacobians $\partial_\th h$ and $\partial_x h$ follow from the layer formulas in the \hyperref[sec-autodiff-mlp]{multilayer-perceptron discussion}.
+
+\begin{figure}
+\centering
+\includegraphics[width=.5\linewidth]{auto-diff/network-recur} 
+\caption{\label{fig-recurrent-param}
+Recurrent residual perceptron parameterization.
+}
+\end{figure}
+
+
+     
+\paragraph{Mitigating Memory Requirements. }
+
+Backpropagation requires access to the iterates $(x_k)_{k=0}^t$, whose storage can dominate memory use. Checkpointing stores selected states and reruns parts of the forward computation to reconstruct missing values. Recursive schedules can use $O(\log t)$ stored states with an $O(\log t)$ computational overhead.
+
+If the forward computation is invertible, stored states can sometimes be reconstructed instead. Assume maps $g_k$ satisfy
+\eq{
+	x_{k} = g_k(x_{k+1},\ldots,x_t).
+}
+These inverse updates may amplify numerical errors, so algebraic invertibility alone does not ensure stable reconstruction. In practice, the inverse can also depend on a few extra variables, in particular on the input values $(x_0,\ldots,x_s)$.
+
+For example, split the continuous state as $x(t)=(r(t),s(t))$ and suppose the vector field in~\eqref{eq-ode-structure} has the separated form $u((r,s),\th,t)=(F(s,\th,t),G(r,\th,t))$. An invertible staggered update is
+\eq{
+	r_{k+1} = r_k + \tau F(s_k,\th_k,\tau k)
+	\qandq
+	s_{k+1} = s_k + \tau G(r_{k+1},\th_{k+1/2},\tau (k+1/2)).
+}
+In exact arithmetic, these updates can be inverted as
+\eq{
+	s_k = s_{k+1} - \tau G(r_{k+1},\th_{k+1/2},\tau (k+1/2)).
+	\qandq
+	r_k = r_{k+1}  - \tau F(s_k,\th_k,\tau k). 
+}
+
+     
+\paragraph{Fixed point maps}
+
+If $h$ is continuous and the iterates converge to $x^\star(\th)$, their limit is a fixed point:
+\eq{
+	x^\star(\th) = h(x^\star(\th),\th). 
+}
+Backpropagation differentiates the finite computation $f(\th) = L(x_t,\th)$. For the limiting objective $f^\star(\th) = L(x^\star(\th),\th)$, the implicit function theorem gives an alternative:
+\eql{\label{eq-impl-func-formula}
+	\nabla f^\star(\th) = [\partial x^\star(\th)]^\top( \nabla_x L(x^\star(\th),\th) )
+		 + \nabla_\th L(x^\star(\th),\th).
+}
+Assume $h$ is continuously differentiable and $\Id-\partial_xh$ is invertible at the fixed point. The implicit function theorem then gives
+\eq{
+	\partial x^\star(\th)=\left(\Id-\partial

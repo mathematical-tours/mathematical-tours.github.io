@@ -1,0 +1,103 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+\section{Fast Wavelet Transform}\label{sec-fast-wavelet-transform}
+
+   
+\subsection{Discretization}
+
+We now work over $\RR/\ZZ$.
+ 
+We assume access to a discrete signal $a_J \in \RR^N$ with $N = 2^{-J}$ at a fixed scale $2^J$, whose entries are inner products with the scaling functions, i.e.
+\eql{\label{eq-hyp-wav-samples}
+	\foralls n\in \{0,\ldots,N-1\}, \quad a_{J,n} = \dotp{f}{\phi_{J,n}^P} \approx 2^{J/2}f(2^Jn),
+}
+for the underlying continuous function $f$. The approximation uses the normalization $\int\phi=1$. The equality assumes that acquisition gives exact access to $P_{V_J}f$, much as Shannon sampling assumes bandlimiting. This model is reasonable when the scaling functions $(\phi_{J,n})_n$ approximate the acquisition device's point-spread function. Preprocessing the measurements can sometimes improve agreement with~\eqref{eq-hyp-wav-samples}.
+
+Starting from $a_J$, the discrete wavelet transform computes the coefficients
+\eq{
+	\foralls j \in \{J+1,J+2, \ldots, 0\}, \quad
+	\foralls n \in \range{0,2^{-j}-1}, \quad
+	a_{j,n} \eqdef \dotp{f}{\phi_{j,n}^P}, \qandq
+	d_{j,n} \eqdef \dotp{f}{\psi_{j,n}^P}
+}
+in order of increasing $j$. After an approximation vector $a_j$ has been used to compute the next scale, it can be discarded; the detail vectors $d_j$ are retained.
+
+The forward discrete wavelet transform on a bounded domain is thus the orthogonal finite-dimensional map
+\eq{
+	a_J \in \RR^N \longmapsto
+	\enscond{ d_{j,n} }{ J<j\leq0,\ 0\leq n<2^{-j} } \cup \{a_0 \in \RR\}.
+}
+By orthogonality, the inverse transform is the adjoint.
+
+
+Figure~\ref{fig-wavcoef-1d} shows examples of wavelet coefficients. For each scale $2^j$, there are $2^{-j}$ coefficients.
+
+\myfigure{
+\tabun{
+\image{wavelets}{.9}{wavcoef-1d-all}\\
+Wavelet coefficients $\{d_{j,n}\}_{j,n}$
+}
+\tabdeux{
+\image{wavelets}{.48}{wavcoef-1d-0}&
+\image{wavelets}{.48}{wavcoef-1d-1}\\
+Signal $f$ & $d_{-7}$ \\
+\image{wavelets}{.48}{wavcoef-1d-2}&
+\image{wavelets}{.48}{wavcoef-1d-3}\\
+$d_{-6}$ & $d_{-5}$ 
+}
+}{ 
+	Wavelet coefficients. Top: the complete decomposition. Below: enlarged views of individual scales. 
+}{fig-wavcoef-1d}
+
+
+   
+\subsection{Forward Fast Wavelet Transform (FWT)}
+
+The algorithm applies a sequence of elementary operators
+\eql{\label{eq-wavelet-step}
+	\foralls j = J+1, \ldots, 0, \quad 
+	(a_{j},d_{j}) = \Ww_j(a_{j-1})
+	\qwhereq
+	\Ww_j : \RR^{2^{-j+1}} \rightarrow \RR^{2^{-j}} \times \RR^{2^{-j}}
+}
+There are $|J|=\log_2(N)$ steps. Each $\Ww_j$ changes coordinates between orthonormal bases and is therefore orthogonal.
+
+To describe the algorithm for $\Ww_j$, we introduce the filter coefficients $h,g \in \RR^\ZZ$
+\eql{\label{eq-dfn-h-g}
+	h_n \eqdef \frac{1}{\sqrt{2}} \dotp{ \phi(\cdot/2) }{\phi(\cdot-n)}
+	\qandq
+	g_n \eqdef \frac{1}{\sqrt{2}} \dotp{ \psi(\cdot/2) }{\phi(\cdot-n)}.
+}
+Figure~\ref{fig-haar-inner} illustrates the computation of these weights for the Haar system.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/wavelets-haar-inner-products}
+\caption{Haar filter weights as inner products.}
+\label{fig-haar-inner}
+\end{figure}
+
+
+We denote by $\downarrow_2 : \RR^K \rightarrow \RR^{K/2}$ the subsampling operator by a factor of 2, i.e.
+\eq{
+	u\downarrow_2 \eqdef (u_0,u_2,u_4,\ldots,u_{K-2}).
+}
+Throughout the following derivation, the scaling function, wavelet, and filters are real, and the filters decay sufficiently fast. The notation $\bar h_n=h_{-n}$ and $\bar g_n=g_{-n}$ denotes reflection. Complex filters would require conjugation as well.
+
+\begin{prop}
+One has
+\eql{\label{eq-convol-subsample}
+	\Ww_j(a_{j-1})= ( (\bar h \star a_{j-1})\downarrow_2, (\bar g \star a_{j-1})\downarrow_2 ),
+}
+where $\star$ denotes periodic convolutions on $\RR^{2^{-j+1}}$.
+\end{prop}
+
+\begin{proof}
+We note that $\phi(\cdot/2)$ and $\psi(\cdot/2)$ belong to $V_0$, so one has the decompositions
+\eql{\label{eq-phipsi-recurse-1}
+	\frac{1}{\sqrt{2}} \phi(t/2) = \sum_n h_n \phi(t-n)
+	\qandq
+	\frac{1}{\sqrt{2}} \psi(t/2) = \sum_n g_n \phi(t-n)
+}
+Making the substitution $t \mapsto \frac{t-2^j p}{2^{j-1}}$ in~\eqref{eq-phipsi-recurse-1}, one obtains
+\eq{
+	\frac{1}{\sqrt{2}} \phi\pa{ \frac{t-2^j 

@@ -1,0 +1,138 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+ier series of the filter $h \in \RR^\ZZ$:
+\eql{\label{eq-fourier-tr-infi}
+	\forall \om \in \RR/2\pi\ZZ, \quad
+	\hat h(\om) \eqdef \sum_{n \in \ZZ} h_n e^{-\imath n \om }.
+}
+If $h \in \ell^1(\ZZ)$, this defines a continuous periodic function $\hat h \in \Cc^0(\RR/2\pi\ZZ)$, and the definition extends to $h \in \ell^2(\ZZ)$ to give $\hat h \in L^2(\RR/2\pi\ZZ)$.
+
+\begin{thm}\label{thm-multires-approx}
+	If an integrable real scaling function $\phi$ defines a multiresolution analysis and its filter $h$ is summable, then~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-2} hold for $h$ defined in~\eqref{eq-dfn-h-g}.
+	 
+	Conversely, if a finitely supported real filter $h$ satisfies~\eqref{eq-cond-h-1},~\eqref{eq-cond-h-2}, and~\eqref{eq-cond-h-star}, then there exists a $\phi$ defining multi-resolution approximation spaces whose associated filter is $h$ as defined in~\eqref{eq-dfn-h-g}.
+\end{thm}
+
+\begin{proof} We prove the forward implication. The converse requires a separate construction.
+
+  
+We now prove condition~\eqref{eq-cond-h-1}.
+ 
+The refinement equation convolves a function on the real line with a discrete filter, represented by a sum of Dirac masses:
+\eql{\label{eq-wav-proof-refine}
+	\frac{1}{\sqrt{2}} \phi\pa{\frac{t}{2}} = \sum_{n \in \ZZ} h_n \phi(t-n).
+}
+ 
+Writing $h \star \phi$ for this convolution and assuming $h \in \ell_1(\ZZ)$ and $\phi \in L^1(\RR)$, Fubini's theorem shows that $h \star \phi \in L^1(\RR)$ and gives
+\begin{align*}
+	\Ff( \sum_{n \in \ZZ} h_n \phi(t-n) )(\om) &= \int_\RR \sum_{n \in \ZZ} h_n \phi(t-n) e^{-\imath \om t} \d t
+	= \sum_{n \in \ZZ} h_n \int_\RR \phi(t-n) e^{-\imath \om t} \d t \\
+	& = \sum_{n \in \ZZ} h_n e^{-\imath n \om } \int_\RR \phi(x) e^{-\imath \om x} \d x
+	= \hat \phi(\om) \hat h(\om)
+\end{align*}
+where we substituted $x = t-n$. Here $\hat h(\om)$ is the $2\pi$-periodic Fourier series of the filter, defined in~\eqref{eq-fourier-tr-infi}, while $\hat\phi(\om)$ is the continuous Fourier transform of the scaling function. The product therefore combines a $2\pi$-periodic factor $\hat h$ with a generally nonperiodic factor $\hat \phi$.
+ 
+We recall that $\Ff(f(\cdot/s)) = s \hat f(s \cdot)$.
+ 
+In the Fourier domain, equation~\eqref{eq-wav-proof-refine} thus reads
+\eql{\label{eq-wav-proof-refine-fourier}
+	\hat\phi(2\om) = \frac{1}{\sqrt{2}}\hat h(\om) \hat \phi(\om).
+}
+One can show that $\hat \phi(0) \neq 0$ (actually, $|\hat \phi(0)| = 1$), so that this relation implies the first condition~\eqref{eq-cond-h-1}.
+
+
+  
+We now prove condition~\eqref{eq-cond-h-2}.
+ 
+The orthogonality of $\{\phi(\cdot-n)\}_n$ can be expressed as a continuous convolution (see also Proposition~\ref{prop-spectral-ortho})
+\eq{
+	\foralls n \in \ZZ, \quad (\phi\star\bar\phi)(n)=\delta_{n,0}
+}
+where $\bar \phi(x) = \phi(-x)$, 
+and thus in the Fourier domain, using~\eqref{eq-wav-proof-refine-fourier} which shows $\hat\phi(\om) = \frac{1}{\sqrt{2}}\hat h(\om/2) \hat \phi(\om/2)$
+\eq{
+	1 = \sum_k |\hat \phi(\om+2k\pi)|^2 = \frac{1}{2}\sum_k |\hat h(\om/2+k\pi)|^2 |\hat \phi(\om/2+k\pi)|^2.
+}
+Since $\hat h$ is $2\pi$-periodic, one can separate even and odd indices $k$ and obtain
+\eq{
+	2 = |\hat h(\om/2)|^2 \sum_k |\hat \phi(\om/2+2k\pi)|^2 +
+	    |\hat h(\om/2+\pi)|^2 \sum_k |\hat \phi(\om/2+2k\pi+\pi)|^2
+}
+To obtain condition~\eqref{eq-cond-h-2}, apply $\sum_k |\hat \phi(\om+2k\pi)|^2=1$ at $\om'=\om/2$ instead of $\om$:
+\eq{
+	|\hat h(\om')|^2+|\hat h(\om'+\pi)|^2 = 2.
+}
+
+  
+The converse requires constructing a scaling function $\phi$ from the filter $h$; we do not prove it here. Iterating~\eqref{eq-wav-proof-refine-fourier} suggests the infinite-product construction
+\eql{\label{eq-dfn-cascade-inf}
+	\hat \phi(\om) = \prod_{k=1}^{\infty}\frac{\hat h(\om/2^k)}{\sqrt{2}}.
+}
+Condition~\eqref{eq-cond-h-star} can be shown to imply that this infinite product converges and defines a (non-periodic) function in $L^2(\RR)$.
+\end{proof}
+
+
+Condition~\eqref{eq-cond-h-star} prevents zeros of $\hat h$ on the central half-period. It is a sufficient nondegeneracy condition for the converse construction used here.
+
+                                   
+\subsection{High-pass Filter Constraints}
+
+We now introduce the following two conditions on a pair of filters $(g,h)$
+\begin{align}
+	\label{eq-cond-g-1}\tag{$C_3$}  |\hat g(\om)|^2 + |\hat g(\om+\pi)|^2&=2  \\
+	\label{eq-cond-g-2}\tag{$C_4$}   \hat g(\om) \hat h(\om)^* + \hat g(\om+\pi) \hat h(\om+\pi)^*&=0.
+\end{align}
+Figure~\ref{fig-filter-constr} illustrates these filter constraints.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/wavelets-filter-constraints}
+\caption{Constraints on low-pass and high-pass filters.}
+\label{fig-filter-constr}
+\label{fig-filters-complements}
+\end{figure}
+
+
+
+\begin{thm}\label{thm-wave-h}
+	If $(\phi,\psi)$ defines a multi-resolution analysis, then~\eqref{eq-cond-g-1} and~\eqref{eq-cond-g-2} hold for $(h,g)$ defined in~\eqref{eq-dfn-h-g}.
+	 
+	Conversely, if the finitely supported real low-pass filter satisfies~\eqref{eq-cond-h-1}--\eqref{eq-cond-h-star}, and a summable real filter $g$ satisfies~\eqref{eq-cond-g-1}--\eqref{eq-cond-g-2}, then there is a multiresolution wavelet pair $(\phi,\psi)$ whose associated filters are $(h,g)$ as defined in~\eqref{eq-dfn-h-g}. Furthermore,
+	\eql{\label{eq-rel-psi-phi}
+		\hat \psi(\om) = \frac{1}{\sqrt{2}} \hat g(\om/2) \hat \phi(\om/2).
+	}
+\end{thm}
+
+\begin{proof}
+We prove the forward implication, beginning with condition~\eqref{eq-cond-g-1}.
+ 
+The refinement equation for the wavelet reads
+\eq{
+	\frac{1}{\sqrt{2}} \psi\pa{\frac{t}{2}} = \sum_{n \in \ZZ} g_n \phi(t-n)
+}
+and thus in the Fourier domain
+\eql{\label{eq-ref-fourier-wav}
+	\hat\psi(2\om) = \frac{1}{\sqrt{2}}\hat g(\om) \hat \phi(\om).
+}
+Orthogonality of the translates $\{ \psi(\cdot-n) \}_n$ gives
+\eq{
+	\foralls n \in \ZZ, \quad  (\psi\star\bar\psi)(n)=\delta_{n,0}
+}
+and thus in the Fourier domain (using Poisson's formula, see also Proposition~\ref{prop-spectral-ortho})
+\eq{
+	\sum_k |\hat \psi(\om+2k\pi)|^2 = 1.
+}
+Apply the Fourier refinement equation~\eqref{eq-ref-fourier-wav} and separate the even and odd terms, as in the proof of condition~\eqref{eq-cond-h-2} in Theorem~\ref{thm-multires-approx}. This gives condition~\eqref{eq-cond-g-1}.
+ 
+Figure~\ref{fig-filter-constr} shows the squared Fourier magnitudes of a pair of filters satisfying this complementarity condition.
+
+
+
+We now prove condition~\eqref{eq-cond-g-2}.
+ 
+The orthogonality between $\{ \psi(\cdot-n) \}_n$ and $\{ \phi(\cdot-n) \}_n$ is written as
+\eq{
+	\foralls n \in \ZZ, \quad \psi \star \bar \phi(n)=0
+}
+and hence in the Fourier domain (using Poisson's formula, similarly to Proposition~\ref{prop-spectral-ortho})
+\eq{
+	\sum_k \hat \psi(\om+2k\pi)\hat \phi^*(\

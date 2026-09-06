@@ -1,0 +1,140 @@
+% Context from chapters/sec-stochastic-optim.tex; for mathematical reference, not compilation.
+\section{Stochastic Optimization}
+\label{sec-stochastic-optim}
+
+We study stochastic gradient methods for large datasets of size $n$ and for objectives defined as expectations.
+
+                                                                                                                                                                  
+
+                                                        
+\subsection{Minimizing Sums and Expectations}
+
+Many learning objectives are finite averages:
+\eql{\label{eq-min-sums}
+	\umin{x \in \RR^p} f(x) \eqdef \frac{1}{n} \sum_{i=1}^n f_i(x)
+}
+or expectations:
+\eql{\label{eq-min-int}
+	\umin{x \in \RR^p}  f(x) \eqdef \EE_{\zp \sim \pi}( f(x,\zp) ) = \int_{\Zz} f(x,z) \d\pi(z).
+}
+A finite average is an expectation under the uniform measure $\pi=\frac1n\sum_{i=1}^n\de_i$, with $f(x,i)=f_i(x)$. Conversely, drawing $(z_i)_i$ i.i.d. from $\pi$ and setting $f_i(x)=f(x,z_i)$ gives an empirical approximation of~\eqref{eq-min-int}. Under integrability, the empirical objective converges pointwise by the law of large numbers. Convergence of minima or minimizers requires additional assumptions.
+
+For example, empirical risk minimization with linear predictors uses
+\eql{\label{eq-stochastic-erm}
+	f_i(x) = \ell(\dotp{a_i}{x},y_i)
+	\qandq
+	f(x,z) = \ell(\dotp{a}{x},y)
+}
+for $z=(a,y) \in \Zz = (\Aa=\RR^p) \times \Yy$ (typically $\Yy=\RR$ or $\Yy=\{-1,+1\}$ for regression and classification), where $\ell$ is some loss function. 
+ 
+We illustrate the methods with binary logistic classification, using
+\eql{\label{eq-stoch-logistic}
+	\loss(s,y) \eqdef \log( 1+\exp(-sy) ).
+}
+The same computational approach extends to general parametric models, including deep neural networks.
+
+The stochastic methods below apply both to finite sums~\eqref{eq-min-sums} and to expectations~\eqref{eq-min-int}, under the corresponding unbiasedness and moment assumptions. We present them for finite sums. When $n$ is large, the aim is to make each iteration inexpensive without evaluating every summand.
+
+When the summands $f_i(x)$ are similar, a single gradient can approximate the average well: $\nabla f_i \approx \nabla f$. Evaluating $\nabla f_i$ is typically $n$ times cheaper than forming the full gradient.
+ 
+Stochastic optimization is nevertheless not always faster than batch gradient descent.
+ 
+For moderate $n$, a deterministic method may use the available computation more effectively.
+ 
+When $n$ is too large for a full pass to be practical, stochastic methods divide the work into small updates and begin improving the model immediately. Mini-batches also permit parallel computation.
+
+
+                                                        
+\subsection{Batch Gradient Descent (BGD)}
+
+Batch gradient descent (BGD), analyzed in Section~\ref{sec-grad-desc-basic}, iterates
+\eq{
+	x_{k+1} = x_k - \tau_k \nabla f(x_k)
+}
+For a convex objective with an $L$-Lipschitz gradient and a minimizer, the condition $0<\tau_{\min}\leq\tau_k\leq\tau_{\max}<2/L$ ensures convergence. Strong convexity strengthens this to a linear rate.
+
+For a finite-sum objective, the gradient is
+\eql{\label{eq-full-grad}
+	\nabla f(x) = \frac{1}{n} \sum_{i=1}^n \nabla f_i(x)
+}
+Its cost is typically $O(np)$ when each $\nabla f_i$ can be evaluated in time linear in $p$.
+
+For an ERM summand of the form~\eqref{eq-stochastic-erm}, Taylor expansion gives
+\begin{align*}
+	f_i(x+\epsilon) &= \ell(\dotp{a_i}{x} + \dotp{a_i}{\epsilon},y_i)
+	= \ell(\dotp{a_i}{x},y_i) + \ell'(\dotp{a_i}{x},y_i)\dotp{a_i}{\epsilon} + o(\norm{\epsilon}) \\
+	&= f_i(x) + \dotp{\ell'(\dotp{a_i}{x},y_i)a_i}{\epsilon} + o(\norm{\epsilon}),
+\end{align*}
+Here $\ell'(s,y)$ denotes differentiation with respect to the score $s$, with the response $y$ fixed. Consequently,
+\eql{\label{eq-grad-formula}
+	\nabla f_i(x) =  \ell'( \dotp{a_i}{x},y_i ) a_i.
+}
+For the logistic loss, one has 
+\eq{
+	\loss'(s,y)=-y \frac{e^{-sy}}{ 1+e^{-sy} }.
+}
+
+
+
+\begin{figure}
+\centering
+\begin{tabular}{cc}
+\includegraphics[width=.45\linewidth]{ml/sgd/error-bgd-1} &
+\includegraphics[width=.45\linewidth]{ml/sgd/error-bgd-2} \\
+$f(x_k)$ & $\log_{10}(f(x_k)-f(x^\star))$ 
+\end{tabular}
+\caption{\label{fig-bgd}
+Objective-error evolution for batch gradient descent in logistic classification.
+}
+\end{figure}
+
+
+
+                                                        
+\subsection{Stochastic Gradient Descent (SGD)}
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/advanced-unbiased-gradient}\hfill
+\BookPanel{.485}{2}{tikz/advanced-sgd-trajectory}
+\caption{Unbiased stochastic gradient estimate (panel 1) and a schematic SGD trajectory (panel 2).}
+\label{fig-review-advanced-unbiased-gradient}
+\label{fig-review-advanced-sgd-trajectory}
+\end{figure}
+For very large $n$, computing the full gradient $\nabla f$ as in~\eqref{eq-full-grad} is prohibitive.  
+ 
+SGD replaces the full gradient by the gradient of one summand $f_{i}$, with $i$ sampled uniformly. This gives an unbiased estimate:
+\eql{\label{eq-unbiased-grad}
+	\EE_{\ip}{ \nabla f_{\ip}(x) } = \nabla f(x)
+}
+where $\ip$ is a random variable distributed uniformly in $\{1,\ldots,n\}$.
+
+
+Starting from $x_0$, stochastic gradient descent (SGD) iterates
+\eq{
+	x_{k+1} = x_k - \tau_k \nabla f_{i(k)}(x_k)
+}
+where, for each iteration index $k$, $i(k)$
+is drawn independently of previous draws, uniformly from $\{1,\ldots,n\}$.
+ 
+The iterates $x_{k+1}$ are random. We therefore study convergence to a minimizer of $f$ in a probabilistic sense, such as mean square or probability, together with the corresponding rates.
+
+A batch-gradient step costs $O(np)$,
+whereas an SGD step costs $O(p)$. This makes SGD attractive
+when $n$ is large and repeated passes through the data are costly.
+Redundancy between observations can sometimes yield
+accurate predictions after only $k \ll n$ updates, before all
+observations have been used.
+
+The step-size schedule $\tau_k$ must balance two requirements: it
+usually needs to decrease to suppress stochastic noise,
+but not so quickly that the method stops making progress
+before reaching a minimizer.
+
+
+A common schedule has asymptotic behavior $\tau_k \sim k^{-1}$
+as $k\rightarrow +\infty$. One such schedule is
+\eql{\label{eq-stepsize-sgd}
+	\tau_k \eqdef \frac{\tau_0}{1 + k/k_0}
+}
+where $\tau_0>0$ sets the in

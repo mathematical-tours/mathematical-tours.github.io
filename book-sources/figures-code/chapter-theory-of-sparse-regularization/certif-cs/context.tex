@@ -1,0 +1,138 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+osing $\lambda$ proportional to this quantity with a sufficiently large constant gives an $O(\norm{w})$ error as the noise tends to zero.
+\end{thm}
+
+\begin{proof}
+    Let $T \eqdef \min_{i \in I} |x_{0,i}|$ be the smallest nonzero signal amplitude, and let $\de \eqdef \norm{A^* w}_\infty$
+    measure the noise after correlation with the measurement columns.
+	 
+    Set $s \eqdef \sign(x_0)$ and use~\eqref{eq-explicit-lownoise} to define the candidate
+	\eql{
+		\hat x_{I} \eqdef x_{0,I} + A_I^+ w - \la (A_I^*A_I)^{-1} s_I, 
+	}
+	and $\hat x_{I^c}=0$. The goal is to show that $\hat x$ is indeed the unique solution of~\eqref{eq-lasso-lagr}. 
+	
+	
+    \noindent\textit{Step 1.} Sign consistency means $\sign(\hat x)=s$. It follows from $\norm{x_{0,I}-\hat x_I}_\infty < T$, for which a sufficient condition is
+	\eql{\label{eq-supp-stab-proof-1}
+		\norm{x_{0,I}-\hat x_I}_\infty \leq K \norm{A_I^* w}_\infty + K \la < T
+		\qwhereq
+		K \eqdef \norm{(A_I^*A_I)^{-1}}_{\infty}, 
+	}
+	where we used the fact that $A_I^+ = (A_I^*A_I)^{-1} A_I^*$.
+	
+    \noindent\textit{Step 2.} We verify the strict off-support bound in Proposition~\ref{sec-prop-uniquness-lagr}: $\norm{\hat \eta_{I^c}}_\infty < 1$, where $\la \hat \eta = A^* (y-A \hat x)$. Together with sign consistency and injectivity, this proves that $\hat x$ is the unique solution of~\eqref{eq-lasso-lagr}. Compute
+	\begin{align*}
+		\la \hat \eta &= A^*\big(A_Ix_{0,I}+w-A_I\hat x_I\big) \\
+			&=  A^* ( \Id - A_I A_I^+ ) w + \la \eta_F.
+	\end{align*}
+The residual formula also gives $\hat\eta_I=s_I$. Write $\delta=\norm{A^*w}_\infty$, $L=\norm{A_{I^c}^*A_I}_\infty$, $R=KL+1$, and $S=1-\norm{\eta_{F,I^c}}_\infty>0$. Then
+\eql{\label{eq-supp-stab-proof-2}
+ \lambda\norm{\hat\eta_{I^c}}_\infty
+ \leq R\delta+\lambda\norm{\eta_{F,I^c}}_\infty
+ <\lambda\quad\text{if}\quad R\delta<S\lambda.
+}
+Together with sign consistency and injectivity of $A_I$, this strict inequality proves uniqueness.
+
+    \noindent\textit{Conclusion.} Combining~\eqref{eq-supp-stab-proof-1} and~\eqref{eq-supp-stab-proof-2}, we obtain uniqueness of $\hat x$ whenever the parameters $(\la,w)$ satisfy
+	\eq{
+		\Rr = \enscond{
+				(\de,\la)}{\de + \la < \frac{T}{K}
+				\qandq
+				R \de - S \la <0
+		}
+	}
+	
+	
+    The triangular region $\Rr$ contains the simpler triangle
+	\eql{\label{eq-critrion-sign-stability}
+		\tilde\Rr = \enscond{
+				(\de,\la)}{
+				\frac{\de}{\la} < \frac{S}{R}
+				\qandq
+				\la < \la_{\max} 
+		}
+		\qwhereq
+		\la_{\max} \eqdef \frac{T(KL+1)}{K(R+S)}.
+	}
+	                                                                                 
+\end{proof}
+
+	\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/sparse-theory-recovery-region}
+\caption{Region in the $(\la,\de)$ plane where sign consistency holds.}
+\label{fig-review-sparse-theory-recovery-region}
+\end{figure}
+	
+Theorem~\ref{thm-support-stable} requires small correlated noise $\norm{A^*w}_\infty$ and a small $\lambda$, with their ratio controlled, so that regularization does not eliminate the nonzero coefficients of $x_0$. Theorem~\ref{thm-linrate-l1}, by contrast, applies at any noise level $\norm{w}$, but gives neither support control nor uniqueness of $x_\la$, and its constants can be less favorable.
+
+The proof provides explicit constants in terms of three parameters $K,L,S$:
+\begin{rs}
+	\item $K$ accounts for the conditioning of the operator on the support $I$;
+	\item $L$ is the largest sum of absolute correlations between an off-support atom and all atoms on the support;
+    \item $S$ measures the margin by which $\eta_F$ avoids saturation outside the support.
+\end{rs}
+The bounds on $\norm{A^*w}_\infty/\la$ and on $\la$ are given by~\eqref{eq-critrion-sign-stability}. For fixed $\gamma>0$ and sufficiently small $\delta>0$, choosing $\lambda=(1+\gamma)R\delta/S$ gives
+\eq{
+ \norm{x_0-x_\lambda}_\infty\leq K\left(1+(1+\gamma)\frac{R}{S}\right)\delta.
+}
+The strict factor $1+\gamma$ ensures the required strict inequality. Such a choice is primarily theoretical because its constants involve the unknown support.
+
+For a class of signals $x_0$, analyzing $\ell^1$ support recovery therefore starts with testing the Fuchs precertificate $\eta_F$: feasibility requires $\norm{\eta_F}_\infty \leq 1$, and support stability requires a strict bound outside the support.
+ 
+Figure~\ref{fig-certif-cs} illustrates the behavior for random $A$: the precertificate $\eta_F$ becomes nondegenerate when $P$ is sufficiently large. Section~\ref{sec-cs-certif} analyzes this phenomenon.
+
+
+
+\begin{figure}
+\centering
+  
+\begin{tabular}{@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-64}&
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-32}\\
+$P=4$ & $P=8$ \\
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-16}&
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-8}\\
+$P=16$ & $P=32$
+\end{tabular}
+  
+\caption{\label{fig-certif-cs}
+Fuchs precertificate $\eta_F$ for a Gaussian matrix $A \in \RR^{P \times N}$ with $N=64$ and increasing measurement count $P$.
+}
+\end{figure}
+
+
+                                        
+\subsection{Sparsistency for Arbitrary Noise}
+
+The small-noise theorem fixes the sign of the solution in advance. To obtain support containment for arbitrary noise levels, one can instead control all sign patterns on a prescribed support $I$. This gives the exact recovery coefficient of Tropp~\cite{Tropp2006JustRelax}:
+\eq{
+ \operatorname{ERC}(I)=1-\max_{j\notin I}\norm{A_I^+a_j}_1.
+}
+The maximum over an empty complement is taken to be zero. Assume $A_I$ is injective and $\operatorname{ERC}(I)>0$. Let $P_I=A_IA_I^+$ and choose $\lambda>0$ so that
+\eq{
+ \norm{A_{I^c}^*(\Id-P_I)y}_\infty
+ <\lambda\operatorname{ERC}(I).
+}
+Then the Lasso has a unique solution supported within $I$; some coefficients may vanish, so equality of supports is not asserted.
+
+Indeed, minimize the Lasso objective over vectors supported on $I$. The resulting vector $\hat x_I$ is unique, since $A_I$ is injective. Its optimality condition gives $q_I\in\partial\norm{\cdot}_1(\hat x_I)$ and
+\eq{
+ y-A_I\hat x_I=(\Id-P_I)y+\lambda A_I(A_I^*A_I)^{-1}q_I.
+}
+For $j\notin I$, the corresponding dual coefficient is bounded by
+\eq{
+ \frac{|\langle a_j,(\Id-P_I)y\rangle|}{\lambda}
+ +\norm{A_I^+a_j}_1<1.
+}
+Thus the restricted minimizer satisfies the full optimality conditions with strict inequality outside $I$, and injectivity proves uniqueness. If $y=Ax_0+w$ and $\supp(x_0)\subset I$, the orthogonal residual above is $(\Id-P_I)w$. The condition therefore states explicitly how large $\lambda$ must be relative to the noise.
+
+                                        
+                                        
+                                        
+\section{Sparse Deconvolution Case Study}
+
+For random $A$, Chapter~\ref{chap-cs} gives probabilistic conditions under which $\eta_F$ is a valid certificate.
+
+Super-resolution exposes a limitation of the Fuchs construction. The columns $(a_i)_i$ of $A$ are often samples of a smooth kernel, so nearby columns are highly correlated

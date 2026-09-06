@@ -1,0 +1,145 @@
+% Context from chapters/compression.tex; for mathematical reference, not compilation.
+\Qq_T(f)}^2 \leq \norm{f-f_M}^2 + M T^2/4
+		\qwhereq
+		M = \#\enscond{m}{ \tilde a_m \neq 0}.
+	}
+\end{prop}
+
+\begin{proof}
+The reconstruction rule~\eqref{eq-de-quantization} gives, for $|a_m|\geq T$,
+\eq{
+	|a_m-\tilde a_m| \leq \frac{T}{2}.
+}
+By orthogonality,
+\eq{
+	\norm{f-\Qq_T(f)}^2 = \sum_m (a_m-\tilde a_m)^2 \leq
+	\sum_{ |a_m|<T } |a_m|^2 + 
+	\sum_{ |a_m| \geq T } \pa{\frac{T}{2}}^2, 
+}
+The first sum is $\norm{f-f_M}^2$, and the second contains $M$ terms, proving the bound.
+\end{proof}
+
+
+                                        
+\subsection{Support Coding}
+\label{subsec-support-coding}
+
+To express the error bound~\eqref{eq-error-compression} in terms of a bit budget, we must relate $M$ and $T$ to the cost of encoding the coefficients.
+
+At high compression ratios, only a small number $M$ of the $N$ coefficients remain nonzero. Their support
+\eq{
+	I_M = \enscond{m}{\tilde a_m \neq 0}
+}
+can be encoded separately from the nonzero values $q_m \neq 0$ for $m \in I_M$.
+
+The following theorem gives a rate bound for this support-and-value coding strategy.
+
+\begin{thm}\label{thm-compression}
+Assume that $f\in L^2$ has best $M$-term approximation error $\norm{f-f_M}^2\leq C M^{-\alpha}$ for some $\alpha>0$. Suppose that, for each sufficiently small $T>0$, all coefficients of magnitude at least $T$ occur among a known first $N(T)$ basis elements, with $N(T)\leq C_0T^{-\gamma}$ for some $\gamma>0$. Then $\Qq_T(f)$ admits a binary description of length $R(T)$ such that, as $R(T)\to\infty$,
+\eq{\norm{f-\Qq_T(f)}^2=O\!\left(\left(\frac{\log R(T)}{R(T)}\right)^\alpha\right).}
+The decoder is assumed to know the basis and quantization step; describing these parameters adds any required finite header.
+\end{thm}
+
+\begin{proof}
+\par\smallskip\noindent\textbf{Coefficient and quantization bounds.}\quad
+By Proposition~\ref{prop-equiv-comp-decay}, the ordered magnitudes satisfy
+\eql{\label{hyp-compression-1}
+ d_m\leq C_1m^{-(\alpha+1)/2}.
+}
+Put $K=T^{-2/(\alpha+1)}$. At most $M=O(K)$ coefficients have magnitude at least $T$. Summing the squared errors of the zero and nonzero quantization cells gives
+\eql{\label{eq-compression-error}
+ \norm{f-\Qq_T(f)}^2
+ \leq\sum_{m\geq1}\min(d_m^2,T^2)
+ \leq\lceil K\rceil T^2+\sum_{m>\lceil K\rceil}d_m^2
+ =O(K^{-\alpha}).
+}
+An upper approximation bound is enough for this estimate.
+
+\par\smallskip\noindent\textbf{Finite computation.}\quad
+The finite-access assumption is
+\eql{\label{eq-compression-lincond}
+ \forall m\geq N(T),\qquad |\dotp{f}{\psi_m}|<T.
+}
+For a bounded signal on the unit cube with periodic boundary conditions, using periodized compactly supported $d$-dimensional wavelets, the coefficient bound is $O(2^{jd/2})$ at fine scales $j\to-\infty$. There are $O(2^{-Jd})$ coefficients at scales coarser than $J$. Retaining scales down to $J$ with $2^{Jd/2}$ proportional to $T$ therefore suffices, and one may choose
+\eql{\label{eq-scale-t-n}N(T)=O(T^{-2}).}
+More generally, the hypothesis gives
+\eql{\label{hyp-compression-2}
+ N(T)=O(K^{\gamma(\alpha+1)/2}).
+}
+The ordering here is a fixed computable ordering of basis elements, not the unknown ordering by coefficient magnitude.
+
+\par\smallskip\noindent\textbf{Support and value coding.}\quad
+Encode each of the $M$ nonzero indices with $\lceil\log_2N\rceil$ bits:
+\eql{\label{eq-nbits-1}
+ R_{\mathrm{ind}}=M\lceil\log_2N\rceil=O(K\log K).
+}
+Since $|a_m|\leq\norm{f}_2$, every quantized value lies in $[-A,A]\cap\ZZ$ with $A\leq\norm{f}_2/T$. Thus
+\eql{\label{eq-nbits-2}
+ R_{\mathrm{val}}\leq M\lceil\log_2(2A+1)\rceil=O(K\log K).
+}
+A header encoding $M$, $N$, and the integer amplitude bound $A$ has logarithmic size and is absorbed in this bound. Consequently,
+\eql{\label{eq-bound-bits}R=O(K\log K).}
+Because the inverse of $x\mapsto x\log x$ is asymptotic to $r/\log r$, this implies
+\eql{\label{eq-compression-bits}K\geq cR/\log R}
+for large $R$. Combining this with~\eqref{eq-compression-error} proves the claim.
+\end{proof}
+
+
+The theorem links compression rates to nonlinear approximation rates and motivates choosing a basis adapted to the signal model $\Th$.
+ 
+A practical compression algorithm operates on a discrete signal or image of size $N$. It computes $N$ transform coefficients $\{\dotp{f}{\psi_m}\}_{0\leq m<N}$ from these data. Section~\ref{sec-fast-wavelet-transform} describes the discrete wavelet transform and gives a compatibility condition~\eqref{eq-hyp-wav-samples} under which these discrete coefficients coincide with the continuous inner products.
+
+
+\myfigure{
+\tabquatre{
+\image{approximation}{.24}{compression-original}&
+\image{approximation}{.24}{compression-original-zoom}&
+\image{approximation}{.24}{compression-support}&
+\image{approximation}{.24}{compression-result}\\
+Original $f$ & Zoom & Wavelet support & Compressed $\Qq_T(f)$
+}
+}{ 
+	Image compression using wavelet support coding.  
+}{fig-compression}
+
+
+
+                                                                 
+\section{Entropy Coding}
+\label{subsec-entropic-coding}
+
+Entropy coding exploits the uneven distribution of the quantized coefficients to reduce the expected file size: zeros are frequent, while large values are rare. Shannon's coding theory \cite{shannon-information} quantifies the resulting savings.
+
+We refer to Section~\ref{sec-shannon-source} for the theoretical foundations of the methods described below.
+
+
+  
+\paragraph{Probabilistic modeling.}
+
+The quantized coefficients $q_m \in \{-A,\ldots,A\}$ take values in an alphabet of $Q=2A+1$ elements.
+A code maps the coefficient sequence to a binary string:
+\eq{
+	\{q_m\}_m \longmapsto \{0,1,1,\ldots,0,1\} \in \{0,1\}^R.
+}
+We first model the $q_m$ as independent draws from a known probability distribution:
+\eq{
+	\PP(q_m=i)=p_i \in [0,1].
+}
+
+  
+\paragraph{Huffman code.}
+
+A Huffman code assigns a variable-length binary string to each symbol:
+\eq{
+	q_m=i \in \{-A,\ldots,A\} \longmapsto c_i \in \{0,1\}^{|c_i|}
+}
+where $|c_i|$ is the codeword length. Codeword lengths are assigned so that a less probable symbol receives no shorter a codeword than a more probable symbol.
+Huffman coding minimizes the expected length among binary prefix codes. Shannon's construction gives lengths $\lceil-\log_2p_i\rceil$ for positive-probability symbols, so optimality of Huffman's code implies
+\eq{\mathbb E R=N\sum_i p_i|c_i|\leq N(\Ee(p)+1),}
+where $\Ee$ is the entropy of the distribution, defined as
+\eq{
+	\Ee(p) = -\sum_i p_i \log_2(p_i).
+}
+Figure~\ref{fig-entropy} illustrates how entropy depends on the distribution. Concentrated distributions have low entropy, as is often the case for quantized wavelet coefficients because many are zero.
+
+Symbol-by-symbol Huffman coding uses an integer number of bits per symbol. This constraint can cause a substantial gap above entropy when one symbol is very probable. Arithmetic coding encodes whole sequences and can achieve an expected 

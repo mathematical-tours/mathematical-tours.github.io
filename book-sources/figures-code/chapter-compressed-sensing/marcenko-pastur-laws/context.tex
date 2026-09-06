@@ -1,0 +1,120 @@
+% Context from chapters/compressed-sensing.tex; for mathematical reference, not compilation.
+\section{Dual Certificate Theory and Non-Uniform Guarantees}
+\label{sec-cs-certif}
+
+                                    
+\subsection{Random Projection of Polytopes}
+
+For noiseless data, $w=0$, we can use the geometric characterization of $(\Pp^0(Ax_0))=(\Pp_0(Ax_0))$ from Section~\ref{sec-polytope-proj}. Proposition~\ref{prop-polytope-proj} relates identifiable $s$-sparse vectors to $(s-1)$-dimensional faces of the $\ell^1$ ball $B_1$ that survive projection onto $AB_1$. Recovery thus becomes a problem of counting faces of random polytopes. For Gaussian projections, the asymptotic analysis of Donoho and Tanner distinguishes two thresholds, described by functions $C_A$ and $C_M$. In the proportional-growth regime, with probability tending to one as the dimensions increase,
+\begin{rs}
+	\item Every vector $x_0$ with $\norm{x_0}_0 \leq C_A(P/N)P$ is identifiable.
+	\item A typical support/sign pattern with sparsity at most $C_M(P/N)P$ is identifiable.
+\end{rs}
+For illustration, at $P/N=1/4$, the weak threshold is roughly one quarter of $P$. Strong thresholds require recovery for every support/sign pattern; weak thresholds concern a typical pattern. Their precise values depend on the asymptotic regime. Figure~\ref{fig-phase-trans} illustrates the two transitions numerically.
+ 
+Above the weak threshold $C_M(P/N)P$, a typical support/sign pattern fails to be identifiable with high probability. The sharp transition between these regimes is called a phase transition.
+ 
+ 
+The function $C_M$ can be computed numerically and has inverse-logarithmic decay, $C_M(r)\asymp1/\log(1/r)$, as $r\to0$. Thus, in the high-compression regime, typical sparse vectors remain recoverable when their sparsity is proportional to the number of measurements, up to a logarithmic factor.
+
+
+                                    
+\subsection{Random Matrices}
+\label{sec-random-matrix}
+
+To prove recovery guarantees, we need quantitative control of the singular values of random column submatrices. The Gaussian ensemble provides a useful starting point.
+
+Let $I$ contain $s$ column indices and set $B=A_I\in\RR^{P\times s}$. Throughout this subsection, the entries of $A$ are independent $\Nn(0,1/P)$ variables. The Gram matrix $B^*B$ is a scaled Wishart matrix; when it is invertible, its inverse has the corresponding inverse-Wishart distribution. We need to control both matrices.
+ 
+For fixed $s$, the law of large numbers gives $B^*B\to\Id_s$ almost surely as $P\to\infty$. Compressed sensing also requires estimates when $s$ grows with $P$.
+
+   
+\paragraph{Proportional growth.}
+
+Suppose $s,P\to\infty$ with $s/P\to\beta\in(0,1)$. The empirical eigenvalue distribution of $B^*B$ converges almost surely to the Marchenko--Pastur law:
+\eq{
+ \frac1s\sum_{j=1}^s\delta_{\lambda_j(B^*B)}
+ \rightharpoonup f_\beta(\lambda)\,\mathrm{d}\lambda,
+ \qquad
+ f_\beta(\lambda)=\frac{\sqrt{(\lambda_+-\lambda)(\lambda-\lambda_-)}}
+ {2\pi\beta\lambda}\,1_{[\lambda_-,\lambda_+]}(\lambda),
+}
+where $\lambda_\pm=(1\pm\sqrt\beta)^2$. For Gaussian matrices, the extreme eigenvalues also converge to these endpoints. When $\beta<1$ there is no atom at zero; such an atom appears when $s>P$.
+Figure~\ref{fig-marcenko-pastur} illustrates this convergence.
+
+\begin{figure}
+\centering
+  
+\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
+\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-2}&
+\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-4}\\
+$\be=1/2$ & $\be=1/4$ \\
+\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-10}&
+\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-50}\\
+$\be=1/10$ & $\be=1/50$ 
+\end{tabular}
+  
+\caption{\label{fig-marcenko-pastur}
+Empirical eigenvalue distributions approaching the Marchenko--Pastur law.
+}
+\end{figure}
+
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.5\linewidth]{cs/marcenko-pastur/mp-laws.eps}
+  
+\caption{\label{fig-marcenko-pastur-laws}
+Marchenko--Pastur densities $f_\be$ for several aspect ratios $\be$.
+}
+\end{figure}
+
+
+   
+\paragraph{Finite-sample concentration.}
+
+For a fixed support $I$ of size $s$, Gaussian singular-value concentration gives, for $t>0$, probability at least $1-2e^{-Pt^2/2}$ that
+\eql{\label{eq-talagrand}
+ 1-\sqrt{s/P}-t\leq\sigma_{\min}(A_I)
+ \leq\sigma_{\max}(A_I)\leq1+\sqrt{s/P}+t.
+}
+In particular, writing $a=\sqrt{s/P}+t$, on this event
+\eq{
+ \norm{A_I^*A_I-\Id_s}_{\mathrm{op}}\leq2a+a^2.
+}
+Thus the singular-value bounds also control the deviation of the Gram matrix from the identity. They show how increasing the measurement count $P$ relative to the support size $s$ improves conditioning.
+
+                                    
+                            
+
+                                                                       
+
+                                    
+\subsection{Dual Certificates}
+
+We seek both a small $\ell^2$ reconstruction error and exact support recovery at low noise levels. Section~\ref{sec-sparsistency} gives a sufficient condition: the Fuchs precertificate~\eqref{eq-fuchs-precertif} must be nondegenerate, meaning
+\eql{\label{eq-cond-fuchs}
+	\norm{\eta_{F,I^c}}_\infty<1
+	\qwhereq 
+	\eta_F = A^* A_I (A_I^*A_I)^{-1} \sign(x_{0,I}).
+}
+Figure~\ref{fig-certif-cs} suggests nondegeneracy when $P$ is sufficiently large relative to $\norm{x_0}_0$. We now quantify this observation.
+
+
+      
+\paragraph{Coherence-based analysis.}
+
+We begin with a bound based on the coherence of $A=(a_j)_{j=1}^N$. Assume that each column $a_j\in\RR^P$ has unit norm. The coherence is
+\eql{
+	\mu\eqdef\max_{i\neq j}|\langle a_i,a_j\rangle|
+}
+This is an entrywise maximum, not the induced $\ell^\infty$ matrix norm used below.
+ 
+An orthogonal matrix has coherence $0$. In general, coherence is at most $1$, so $\mu \in [0,1]$.
+ 
+Small coherence controls the conditioning of submatrices with few columns and gives a sufficient condition for nondegeneracy of $\eta_F$.
+
+\begin{prop}\label{prop-bound-coh}
+	Let $I=\supp(x_0)$ and $s=|I|\geq1$. If $(s-1)\mu<1$, then
+	\eql{\label{eq

@@ -1,0 +1,91 @@
+% Context from chapters/optim-nonsmooth.tex; for mathematical reference, not compilation.
+\section{Proximal Algorithm}
+
+For a nonsmooth objective $f$, an explicit gradient step may be undefined. An implicit step remains available even when $f$ is nonsmooth.
+
+
+                                                
+\subsection{Proximal Map}
+
+For a step size $\tau>0$, define the proximal map by
+\eql{\label{eq-defn-proximal}
+	\foralls x, \quad
+	\Prox_{\tau f}(x) \eqdef \uargmin{x'} \frac{1}{2}\norm{x-x'}^2+\tau f(x').
+}
+It balances a decrease in $f$ against a quadratic penalty for moving away from $x$.
+ 
+Since $f\in\Ga_0(\Hh)$, the objective $\frac12\norm{x-\cdot}^2+\tau f$ is strongly convex and coercive, so $\Prox_{\tau f}$ is well defined and single-valued.
+
+For an indicator $f=\iota_\Cc$, the proximal map is the projection $\Prox_{\iota_\Cc}=\Proj_{\Cc}$. It therefore generalizes projection to convex functions. For each fixed input, the proximal point is also the projection onto a suitable sublevel set of $f$. Like an orthogonal projection, the proximal map is nonexpansive.
+
+\begin{prop}
+	One has $\norm{ \prox_{f}(x)-\prox_{f}(y) } \leq \norm{x-y}$.
+\end{prop}
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/optim-nonsmooth-prox-projection}
+\caption{Proximal map and projection map.}
+\label{fig-prox-proj}
+\end{figure}
+
+
+   
+\paragraph{Examples}
+
+Several common proximal maps have closed forms.
+
+\begin{prop}
+One has
+\eql{\label{eq-prox-l2-l1}
+	\Prox_{\frac{\tau}{2} \norm{\cdot}^2}(x) =  \frac{x}{1+\tau}, 
+	\qandq
+	\Prox_{\tau\norm{\cdot}_1}(x)=\Ss_\tau^1(x),
+}
+where the soft-thresholding is defined as
+\eq{
+	\Ss_\tau^1(x) \eqdef ( S_\tau(x_i) )_{i=1}^p \qwhereq
+	S_\tau(r)\eqdef\sign(r)(|r|-\tau)_+,
+}
+(see also~\eqref{eq-soft-thresh}). For $A \in \RR^{P \times N}$, one has
+\eql{\label{eq-prox-quad}
+	\Prox_{\frac{\tau}{2}\norm{A \cdot-y}^2}(x) = (\Id_N + \tau A^* A)^{-1} ( x + \tau A^* y ).
+	                                                                 
+}
+\end{prop}
+\begin{proof}
+	The proximal map of $\norm{\cdot}_1$ was derived informally in Proposition~\ref{prop-equiv-sparse-thresh}.
+	 
+	For a rigorous proof, use separability to reduce to a scalar input $r$. The optimality condition for its proximal point $z$ is $0 \in z-r + \tau \partial |\cdot|(z)$.
+	The candidate $z=0$ is optimal precisely when $0 \in -r + [-\tau,\tau]$, or equivalently $r \in [-\tau,\tau]$.
+	 
+	For $z \neq 0$, optimality requires $z = r - \tau \sign(z)$. When $r \notin [-\tau,\tau]$,
+	the candidate $z = r - \tau \sign(r)$ has the same sign as $r$, so it is the unique minimizer.
+	 
+	For the quadratic case
+	\eq{
+		z = \Prox_{\frac{\tau}{2}\norm{A \cdot-y}^2}(x) 
+		\quad\Leftrightarrow\quad 
+		z-x + \tau A^*( A z - y ) = 0
+		\quad\Leftrightarrow\quad
+		(\Id_N + \tau A^* A) z = x + \tau A^* y.
+	}
+\end{proof}
+
+
+For some nonconvex functions, the proximal minimization also has solutions, but they may be nonunique. For example,
+$\Prox_{\tau \norm{\cdot}_0}$ is hard thresholding at $\sqrt{2\tau}$; see Proposition~\ref{prop-equiv-sparse-thresh}. At $|x_i|=\sqrt{2\tau}$, both $0$ and $x_i$ are minimizers.
+
+
+                                          
+\subsection{Basic Properties}
+
+The following identities simplify proximal computations.
+
+\begin{prop}
+One has
+\eq{
+	\Prox_{f+\dotp{y}{\cdot}}=\Prox_f(\cdot-y), \quad
+	\Prox

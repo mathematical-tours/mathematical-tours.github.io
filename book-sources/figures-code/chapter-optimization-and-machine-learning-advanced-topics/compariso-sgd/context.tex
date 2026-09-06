@@ -1,0 +1,126 @@
+% Context from chapters/sec-stochastic-optim.tex; for mathematical reference, not compilation.
+conditional expectation, then average over the history. With $e_k=\EE\norm{x_k-x^\star}^2$,
+\eql{\label{eq-sgd-proof-2}
+e_{k+1}\leq(1-2\mu\tau_k)e_k+\tau_k^2C^2.
+}
+The claim holds at $k=0$ by the definition of $R$. Set $m=k+2\geq2$. Since $1-2/m\geq0$, the induction hypothesis gives
+\eq{e_{k+1}\leq\left(1-\frac2m\right)\frac Rm+\frac R{m^2}
+=\frac{R(m-1)}{m^2}\leq\frac R{m+1}.}
+The objective bound follows from $L$-smoothness at the minimizer.
+\end{proof}
+
+The preceding SGD bound, and the averaging scheme below, give sublinear rates even when $f$ is strongly convex. By contrast, batch gradient descent has a linear rate under the assumptions of Theorem~\ref{thm-gradsec-non-strong-conv}.
+
+Figure~\ref{fig-sgd} compares the objective values $f(x_k)$.
+The black dashed curve shows batch gradient descent, with the iteration
+axis rescaled to reflect the $n$-fold cost of a batch update.
+
+
+\begin{figure}
+\centering
+\begin{tabular}{cc}
+\includegraphics[width=.45\linewidth]{ml/sgd/error-sgd-1} &
+\includegraphics[width=.45\linewidth]{ml/sgd/error-sgd-2} \\
+$f(x_k)$ & $\log_{10}(f(x_k)-f(x^\star))$ 
+\end{tabular}
+\caption{\label{fig-sgd}
+Objective-error evolution for SGD in logistic classification; the dashed curve shows batch gradient descent.
+}
+\end{figure}
+
+
+
+
+                                                        
+\subsection{Stochastic Gradient Descent with Averaging (SGA)}
+\label{sec-sga}
+
+Diminishing steps can slow SGD as
+$\tau_k$ approaches zero.
+ 
+Averaging reduces fluctuations in the estimate. Run SGD on auxiliary
+iterates $( \tilde x_k)_k$,
+\eq{
+	 \tilde x_{k+1}=\tilde x_k - \tau_k \nabla f_{i(k)}(\tilde x_k)
+}
+and return their Cesàro average:
+\eq{
+	x_k \eqdef \frac{1}{k} \sum_{\ell=1}^k \tilde x_{\ell}.
+}
+This gives stochastic gradient descent with averaging (SGA),
+also called averaged SGD.
+
+The average can be maintained without storing the full trajectory,
+using the recursive update
+\eq{
+	x_{k+1}=\frac{1}{k+1}\tilde x_{k+1}+\frac{k}{k+1}x_k.
+}
+
+
+A typical step-size schedule is
+\eq{
+	\tau_k \eqdef \frac{\tau_0}{1 + \sqrt{k/k_0}}.
+}
+These steps decrease more slowly, at rate $k^{-1/2}$.
+
+
+Averaging can reduce sensitivity to the tuning parameters
+$(k_0,\tau_0)$, although their choice still affects performance.
+
+                                       
+
+Bach proves that for logistic classification, 
+averaging can adapt to local curvature under suitable regularity and step-size assumptions. This is a problem-dependent result, rather than a universal improvement of every constant over SGD.
+
+
+
+                                                        
+\subsection{Stochastic Averaged Gradient Descent (SAG)}
+
+                                 
+For a finite dataset with $n$ samples of total size $n \times p$,
+one can trade additional memory for reduced gradient noise
+by storing past gradient evaluations. This yields
+the stochastic averaged gradient (SAG) method.
+
+Store the latest gradient of each summand in a table $(G^i)_{i=1}^n$, requiring $O(np)$ memory. Maintain its average $g$ as an approximation to the full gradient.
+
+Initialize $G^i=0$ for all $i$ and $g=0$, so that $g=n^{-1}\sum_iG^i$ is the stored average. At each iteration, update the table and then $x$:
+\eq{
+	x_{k+1} = x_k - \tau g
+	\qwhereq
+	\choice{
+	h\leftarrow\nabla f_{i(k)}(x_k), \\
+	g\leftarrow g+\frac1n(h-G^{i(k)}),   \\
+	G^{i(k)} \leftarrow h.
+	}
+}
+Because most entries were evaluated at earlier iterates, the table average is generally biased conditional on the current history. Its convergence analysis therefore differs from the unbiased-SGD proof above. SAG uses a fixed step size $\tau$. As for batch gradient descent,
+choose $\tau$ on the scale of $1/L$,
+where $L$ bounds the Lipschitz constants of the individual gradients $\nabla f_i$; the admissible numerical constant depends on the convergence theorem.
+
+For smooth convex finite sums with a minimizer and a suitable step size, SAG admits an $O(1/k)$ expected objective bound for averaged iterates.
+Furthermore, in the presence of strong convexity (for instance after adding a positive quadratic penalty to logistic regression), it has a linear convergence rate,
+i.e. 
+ \eq{
+	\EE( f(x_k) ) - f(x^\star) = O\pa{ \rho^k },
+}
+for some $0 < \rho < 1$. 
+
+These improvements exploit the finite-sum structure:
+SAG stores information about each of the $n$ summands. SGD and averaged SGD
+also extend beyond finite $n$ to general
+expectations~\eqref{eq-min-int}.
+
+Figure~\ref{fig-compariso-sgd} shows a comparison of SGD, SGA and SAG.
+
+\begin{figure}
+\centering
+\includegraphics[width=.5\linewidth]{ml/sgd/sg-comparison}
+\caption{\label{fig-compariso-sgd}
+Evolution of $\log_{10}(f(x_k)-f(x^\star))$ for SGD, SGA and SAG.
+}
+\end{figure}
+
+
+

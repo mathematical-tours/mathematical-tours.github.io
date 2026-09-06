@@ -1,75 +1,46 @@
 # Mathematical Foundations of Data Sciences
 
-The active `\include{chapters/...}` lines in `FundationsDataScience.tex` define
-the book's contents and the list of standalone chapters. Commented-out chapters
-and archived material are not part of the build.
+The active `\include{chapters/...}` lines in `FundationsDataScience.tex` define the book and its 19 standalone chapters. Commented-out chapters and archived material are not included.
 
 ## Build
 
-Install Python 3 and a full TeX Live distribution (MacTeX on macOS), with
-`pdflatex` and `bibtex` on your path. No Python packages are required.
+Install a full TeX Live distribution with `pdflatex` and `bibtex`, Python 3.12 or later, and the figure-generation dependencies:
 
 ```sh
-make                 # book, all standalone chapters, and figure comparisons
-make book            # book and figure comparisons
+python3 -m venv build/figure-runtime
+build/figure-runtime/bin/python -m pip install -r figures-code/requirements.txt
+make                    # book, all chapters, and complete figure audit
+make book               # book and figure audit
 python3 scripts/build_book.py --chapter fourier
 ```
 
-The outputs are `FundationsDataScience.pdf`, `chapters-pdf/<chapter>.pdf`, and
-`figure-processing/figure-comparisons.pdf`.
-The selected-chapter command also rebuilds the book to obtain current reference
-numbers. Each standalone chapter contains its own references, retains the book's
-chapter/equation/theorem numbering, and links references to other chapters to
-`../FundationsDataScience.pdf`. Keep that relative layout when distributing the
-PDFs. Standalone page numbers start at 1.
+The builder uses the isolated figure runtime automatically, or the interpreter specified by `FIGURE_PYTHON`. Python figure dependencies are pinned in `figures-code/requirements.txt`.
 
-After editing the book, run the full `make` before distributing the PDFs together.
-The book-only and selected-chapter commands leave other chapter PDFs unchanged;
-their reference numbers and link destinations may then be out of date.
+Outputs are `FundationsDataScience.pdf`, `chapters-pdf/<chapter>.pdf`, and `figure-processing/figure-comparisons.pdf`. Standalone chapters retain the book's chapter/equation/theorem numbering, contain their own references, and link to other chapters through `../FundationsDataScience.pdf`. Keep this relative layout when distributing the files.
 
-The build runs in `build/`, without deleting or overwriting source-folder auxiliary
-files. It reruns LaTeX until references stabilize and checks the final logs for
-warnings, missing characters, and overfull or underfull boxes. A build with any
-remaining diagnostics does not publish PDFs. The machine-readable report is
-`build/build-report.json`; detailed logs are retained below `build/book/` and
-`build/chapters/`. `--allow-warnings` is available for development previews.
+The build works in `build/`, checks all final LaTeX logs, and stabilizes references before publishing. Warnings, missing characters and overfull/underfull boxes block publication. `build/build-report.json` records the result. Development previews may use `--allow-warnings`.
 
-All active chapter sources use UTF-8. The shared design is in `book-preamble.tex`;
-mathematical commands are in `mystyle.sty`. See `corrections.md` for the editorial
-and mathematical revision record.
+After an editorial change, run the full `make` before distributing the PDFs together. A selected-chapter build leaves other independent PDFs unchanged.
 
-The corrected classification-loss, Poisson variance-stabilization, and wavelet-support
-figures have editable vector sources beside their PDFs. The build regenerates them
-when their sources change; the Poisson data are computed by `scripts/variance_stabilization.py`.
+## Figures and author audit
 
-The Gaussian-maximum standard-deviation plot uses a corrected PDF with its axis
-label moved below the curve. The original empirical plot is preserved. Optional
-regeneration uses `scripts/correct_max_gaussian_std.py` and requires `pypdf`;
-the normal build uses the included PDF and needs no additional Python package.
+All active figures have reproducible Python and/or TikZ sources in:
 
-## Reviewing the hand-drawn figures
+```text
+figures/chapter-<chapter-title>/<figure-name>/
+figures-code/chapter-<chapter-title>/<figure-name>/
+```
 
-The comparisons are collected in
-[`figure-processing/figure-comparisons.pdf`](figure-processing/figure-comparisons.pdf).
-The book and standalone chapters contain no trailing comparison sections.
-Each landscape comparison page places the original scan beside an editable TikZ
-reconstruction, with the **exact figure number and full caption from the compiled
-main book**, a link to its book page, and notes explaining the mathematical
-interpretation. Components of a shared figure have an additional panel number.
-All 105 reconstructed illustrations now appear in the book and standalone chapters.
-The original scans are retained in this separate comparison volume. Larger panel
-sequences continue under the same figure number, with explicit panel identifiers.
+**All 145 reviewed reconstructions are integrated into the book and all 19 independent chapters.** The 81 previously accepted TikZ displays are retained, along with the original cover, Figures 11.3 and 11.7, and Figures 15.8–15.15. Old Figure 6.6 is removed; old Figures 7.9 and 7.10 share one figure.
 
-There are 105 comparisons across 17 chapters. The sources, shared drawing style,
-and inventory are in [`figures/tikz/`](figures/tikz/README.md). The normal build
-compiles changed TikZ sources, builds the main book, then regenerates the separate
-comparison volume using its current labels and captions. The comparison PDF's
-bookmarks and stable footer identifiers make individual drawings easy to refer to.
-`figure-processing/figure-index.json` records the mapping. Keep the comparison PDF
-in its subdirectory so its links to `../FundationsDataScience.pdf` keep working.
-This uses TikZ, PGFPlots, and `standalone`, included in a full
-TeX Live installation. The figure-by-figure correction record is in
-[`corrections.md`](corrections.md#hand-drawn-figure-reconstruction-pass).
+No figure comparisons remain pending. The [review status PDF](figure-processing/figure-comparisons.pdf) records completion; the [previous comparison volume](figure-processing/archive/2026-09-06-reviewed-figures/figure-comparisons.pdf) is archived with its matching book snapshot and numbering index. The complete inventory retains 239 entries in 236 figure folders, including the removed and merged entries.
 
-Chapter-opening dates appear only in the independent chapter PDFs. The complete
-book retains its cover date. Publication details are shared in `book-metadata.tex`.
+Figures 5.20–5.22 use smoothly varying image regions and triangles elongated along their boundary. The mesh is nearly equilateral away from the edge, and its tangential alignment is checked numerically. Figure 8.2 uses stronger red/blue contrast while preserving the numerical gradient. Photographic inputs remain the supplied flower, the explicitly requested mandrill, and the documented 1919 Felix the Cat frame. New reconstructions do not use Lena.
+
+See [generation instructions](figures-code/README.md), [audit instructions](figure-processing/README.md), and the [figure index](figure-processing/figure-index.md). `figure-processing/figure-project.json` is the detailed inventory; `figure-index.json` maps figure numbers to comparison pages and source directories. Source data are in `data/`; numerical provenance, seeds and checks accompany generated assets. Run `make figures` to regenerate figure assets and `make figure-audit` to verify the published project after a full build.
+
+## Editorial conventions
+
+All active chapter sources use UTF-8. The shared design is in `book-preamble.tex`, mathematical commands in `mystyle.sty`, and publication details in `book-metadata.tex`. Dates appear on the book cover and only on standalone chapter openings. The book-title/author/affiliation mastheads remain on independent chapter PDFs.
+
+See the [final integration record](figure-processing/final-integration.md) and per-figure source guides for the figure corrections, acceptance decisions and validation results.

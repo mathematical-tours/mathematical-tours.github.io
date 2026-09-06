@@ -1,0 +1,160 @@
+% Context from chapters/sparse-regularization.tex; for mathematical reference, not compilation.
+m}$ have small magnitude, so retaining the few large coefficients captures much of the image.
+
+\myfigure{
+\tabdeux{
+\image{variational}{.3}{sparsity-image}&
+\image{variational}{.3}{sparsity-wav}\\
+Image $f$ & Coefficients $\dotp{f}{\psi_m}$
+}
+}{ 
+    Most wavelet coefficients of a natural image have small magnitude.
+}{fig-sparsity-wav}
+
+
+                                                                      
+\subsection{Convex Relaxation}
+
+The ideal sparsity prior $\Jz$ is nonconvex, which makes optimization difficult. For example, if $f$ and $g$ have disjoint nonempty coefficient supports in $\Bb$, then $\Jz( (f+g)/2 ) = \Jz(f)+\Jz(g)$, violating convexity of $\Jz$.
+
+In a general inverse problem, minimizing $\Jz$ entails a combinatorial search over possible coefficient supports.
+
+To approximate the ideal prior $\Jz$, consider the $\ell^q$ family with $q>0$:
+\eq{
+	J_q(f) = \displaystyle \sum_m |\dotp{f}{\psi_m}|^q.
+}
+As shown in Figure \ref{fig-sparsity-lq}, the unit balls in $\RR^2$ become concentrated near the coordinate axes as $q\downarrow0$. For each fixed finite-dimensional vector, $J_q(f)\to\Jz(f)$; the limiting shape of these bounded unit balls should not be confused with the unbounded set $\{x:\norm{x}_0\leq1\}$. Small values of $q$ favor sparsity.
+
+
+\myfigure{
+\image{variational}{1}{sparsity-lq-balls}
+}{ 
+	$\ell^q$ balls $\enscond{x}{J_q(x) \leq 1}$ for varying $q$.
+}{fig-sparsity-lq}
+
+
+The prior $J_q$ is convex exactly when $q \geq 1$. The smallest exponent yielding a convex prior, $q=1$, gives the $\lun$ prior $\Ju$:
+\eql{\label{eq-dfn-lun-prior}
+	\Ju(f) = \norm{(\dotp{f}{\psi_m})}_1 = \sum_m |\dotp{f}{\psi_m}|.
+}
+In the following, we consider discrete orthonormal bases $\Bb = \{\psi_m\}_{m=0}^{N-1}$ of $\RR^N$.
+
+
+                                                                      
+\subsection{Sparse Regularization and Thresholding}
+
+Given an orthonormal basis $\{\psi_m\}_m$ of $\RR^N$, regularization-based denoising \eqref{eq-regul-denoising} can be written using the sparsity priors $\Jz$ and $\Ju$ as
+\eq{
+	f^\star \in \uargmin{g \in \RR^N} \frac{1}{2} \norm{f-g}^2 + \la J_q(g)
+}
+for $q=0$ or $q=1$, writing $J_0=\Jz$. Orthonormality separates the objective into coefficientwise terms:
+\eq{
+	f^\star = \sum_m x^\star_m \psi_m
+}
+\eq{
+	\qwhereq
+	x^{\star} \in \uargmin{y \in \RR^N} \sum_m \frac{1}{2} |x_m-y_m|^2 + \la |y_m|^q
+}
+Here $x_m \eqdef \dotp{f}{\psi_m}$ and $y_m \eqdef \dotp{g}{\psi_m}$. For $q=0$, we adopt the convention
+\eq{
+	\foralls u \in \RR, \quad
+	|u|^0=
+	\choice{
+		0 \qifq u=0, \\ 1 \quad \text{otherwise.} 
+	}
+}
+Each coefficient of the denoised image solves a one-dimensional optimization problem
+\eql{\label{eq-var-1D-spars}
+	x_m^\star \in \uargmin{u \in \RR}  \frac{1}{2} |x_m-u|^2 + \la |u|^q
+}
+The following proposition gives a closed-form solution by thresholding.
+
+\begin{prop}\label{prop-equiv-sparse-thresh}
+One may choose the minimizer
+\eql{\label{eq-equiv-sparse-thresh}
+	x^{\star}_m = S_T^q( x_m )
+	\qwhereq 
+	\choice{
+		T = \sqrt{2 \la} \qforq q=0,\\
+		T = \la \qforq q=1,
+	}
+}
+where 
+\eql{\label{eq-hard-thresh}
+	\foralls u \in \RR, \quad
+	S_T^0(u) \eqdef
+	\choice{
+		0 \qifq |u| < T, \\
+		u \quad\text{otherwise}	
+	}
+} 
+is hard thresholding, with the alternative tie convention discussed below, and
+\eql{\label{eq-soft-thresh}
+	\foralls u \in \RR, \quad
+	S_T^1(u) \eqdef  \sign(u) ( |u|-T )_+
+} 
+is the soft thresholding introduced in~\eqref{eq-soft-thresh-denoise}. For hard thresholding at $|u|=T$, both $0$ and $u$ minimize the objective; the displayed rule selects $u$. Soft thresholding gives the unique minimizer.
+\end{prop}
+
+	
+\begin{proof}
+For $q=0$, a zero input is minimized at zero. For a nonzero input, the best nonzero candidate is $u=x_m$, with cost $\lambda$, whereas $u=0$ has cost $|x_m|^2/2$. Comparing the two costs gives the threshold $\sqrt{2\lambda}$ and the stated tie.
+For $q=1$, the optimality condition is $0\in u-x_m+\lambda\partial|u|$. If $u>0$, this gives $u=x_m-\lambda$; if $u<0$, it gives $u=x_m+\lambda$; and $u=0$ is optimal exactly when $|x_m|\leq\lambda$. These cases give soft thresholding.
+
+\end{proof}
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/sparse-regularization-hard-objective}\hfill
+\BookPanel{.485}{2}{tikz/sparse-regularization-soft-objective-1}
+\caption{Panel 1: the objective $\norm{\cdot-y}^2+T^2 \norm{\cdot}_0$.
+    Panels 2--5: the scalar objective $F(x) \eqdef \frac{1}{2}|x-y|^2+\la |x|$ for increasing $\la$.}
+\label{fig-varspars}
+\end{figure}
+\begin{figure}[tbp]
+\BookContinuedFigure
+\centering
+\BookPanel{.315}{3}{tikz/sparse-regularization-soft-objective-2}\hfill
+\BookPanel{.315}{4}{tikz/sparse-regularization-soft-objective-3}\hfill
+\BookPanel{.315}{5}{tikz/sparse-regularization-soft-objective-4}
+\caption{Panel 1: the objective $\norm{\cdot-y}^2+T^2 \norm{\cdot}_0$.
+    Panels 2--5: the scalar objective $F(x) \eqdef \frac{1}{2}|x-y|^2+\la |x|$ for increasing $\la$.}
+\label{fig-varspars-continued}
+\end{figure}
+
+
+
+
+Transforming the thresholded coefficients back to the image domain gives
+\eq{
+	f_{\la,q} = \sum_m S_T^q( \dotp{f}{\psi_m} ) \psi_m.
+}
+For Gaussian white noise $w$ of variance $\si^2$, thresholds can be chosen from the noise level; see Section \ref{sec-nl-denoising-thresh}. The universal threshold $T=\sigma\sqrt{2\log N}$ controls the largest noise coefficients and gives asymptotic risk guarantees under the signal assumptions of Section \ref{subsec-minimax-denoise}. Common empirical choices are $T \approx 3\si$ for hard thresholding ($\lzero$ regularization) and $T \approx 3\si/2$ for soft thresholding ($\lun$ regularization); see Figure \ref{fig-wavthresh-2d}.
+
+
+
+                                                                                  
+
+
+                                                                
+                                                                
+                                                                
+\section{Sparse Regularization of Inverse Problems}
+\label{sec-sparse-ip}
+
+Using the $\lun$ prior in an orthonormal basis $\{\psi_m\}_m$ of $\RR^N$, with $\Ju$ defined in \eqref{eq-dfn-lun-prior}, gives the convex inverse problem
+\eql{\label{eq-bpdn}
+	f_\la \in \uargmin{f \in \RR^N} \frac{1}{2}\norm{y-\Phi f}^2 + \la \sum_m |\dotp{f}{\psi_m}|.
+}
+Chen, Donoho, and Saunders introduced this basis pursuit denoising formulation in \cite{chen-basis-pursuit}. Section \ref{subsec-proximal-ip} derives an iterative thresholding algorithm for~\eqref{eq-bpdn}.
+
+   
+\paragraph{Analysis vs. synthesis priors.}
+
+For a nonorthogonal dictionary $\Psi=\{\psi_m\}_{m=1}^Q$, which is redundant if $Q>N$, there are two distinct extensions of~\eqref{eq-bpdn}. Each uses a convex prior $J$ in
+\eql{\label{eq-regul-generic}
+	f_\la \in \uargmin{f \in \RR^N} \frac{1}{2}\norm{y-\Phi f}^2 + \la J(f).
+}
+We also use the dictionary symbol for its synthesis operator; its adjoint is the analysis operator:
+\eq{
+	\Psi : x \in \RR^Q \mapsto \Psi x = \sum_m x_m \psi_m

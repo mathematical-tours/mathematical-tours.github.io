@@ -1,0 +1,102 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+\section{A Bit of Spectral Theory}
+
+On a general domain $\XX$, the group-theoretic approach applies when $\XX=G$ is a group or when a group acts transitively on $\XX$. Another approach defines Fourier-like basis functions as eigenfunctions of a differential operator, following the characterization in Section~\ref{sec-fourier-pdes}. The Laplacian is particularly useful: it is second order, rotation invariant, and has natural counterparts on surfaces and graphs.
+
+
+                                                
+\subsection{On a Surface or a Manifold}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-laplacian-surface}
+\caption{Computing the Laplacian on a surface.}
+\label{fig-review-fourier-laplacian-surface}
+\end{figure}
+Let $\XX$ be a smooth compact connected Riemannian manifold of dimension $d$, without boundary. The Laplace--Beltrami operator can be characterized, for smooth $f$, by the small-ball mean-value expansion
+\eq{
+ (\Delta f)(x)=\lim_{\epsilon\to0}\frac{2(d+2)}{\epsilon^2}
+ \left(\frac{1}{\mathrm{Vol}(B_\epsilon(x))}\int_{B_\epsilon(x)}f(y)\,\d\mu(y)-f(x)\right).
+}
+Here $\mu$ is Riemannian volume and $B_\epsilon(x)$ is the geodesic ball centered at $x$. The factor $\epsilon^{-2}$ is essential.
+
+The operator $\Delta$ is unbounded and self-adjoint on its natural domain in $L^2(\XX)$; its resolvent is compact. It has a complete orthonormal family of eigenfunctions $(\phi_n)_{n\geq0}$, with eigenvalues, counted with multiplicity,
+\eq{0=\lambda_0>\lambda_1\geq\lambda_2\geq\cdots\longrightarrow-\infty.}
+The constant eigenfunction is $\phi_0=\mathrm{Vol}(\XX)^{-1/2}$, and the inner product is $\dotp{f}{g}_\XX=\int_\XX f(x)\overline{g(x)}\,\d\mu(x)$. Boundary conditions must be specified if the manifold has a boundary.
+
+On the flat unit torus $\XX=(\RR/\ZZ)^d$,
+\eq{
+ \Delta f=\sum_{s=1}^d\frac{\partial^2f}{\partial x_s^2},
+ \qquad\phi_n(x)=e^{2\pi\imath\dotp{n}{x}},
+ \qquad\lambda_n=-4\pi^2\norm{n}^2,\quad n\in\ZZ^d.
+}
+
+                                                
+\subsection{Spherical Harmonics}
+\label{sec-spherical-harm}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-spherical-coordinates}
+\caption{Spherical coordinates.}
+\label{fig-review-fourier-spherical-coordinates}
+\end{figure}
+Consider the $(d-1)$-dimensional sphere $\SS^{d-1} = \enscond{x \in \RR^d}{\norm{x}_{\RR^d}=1}$.
+  
+The Laplacian has explicit eigenfunctions. For $d=3$, they are indexed by $n=(\ell,m)$:
+\eq{
+	\foralls \ell \in \NN, \quad
+	\foralls m=-\ell,\ldots,\ell, \quad
+	\phi_{\ell,m}(\th,\phi) = e^{\imath m \phi} P_{\ell}^m( \cos(\th) )
+}
+The corresponding eigenvalue is $\la_{\ell,m} = -\ell(\ell+1)$. Here $P_{\ell}^m$ are associated Legendre functions (polynomials multiplied by $(1-x^2)^{|m|/2}$). Normalization makes the eigenfunctions orthonormal. We use spherical coordinates $x=(\sin\th\cos\phi,\sin\th\sin\phi,\cos\th)\in\mathbb S^2$ for $(\th,\phi) \in [0,\pi] \times [0,2\pi]$.
+ 
+The index $\ell$ plays the role of the magnitude of a two-dimensional Fourier frequency.
+ 
+For a fixed $\ell$, the space $V_\ell = \text{span}( \phi_{\ell,m} )$ is an eigenspace of $\Delta$, and is also invariant under rotation. 
+	
+
+                                                
+\subsection{On a Graph}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-weighted-graph}
+\caption{Weighted graph.}
+\label{fig-review-fourier-weighted-graph}
+\end{figure}
+Let $\XX$ be a graph with $N$ vertices indexed by $\{1,\ldots,N\}$. Its geometry is encoded by the weight matrix $W=(w_{i,j})_{1\leq i,j\leq N}$. The notation $i \sim j$ means that $(i,j)$ is an edge, for $(i,j) \in \XX^2$. Set the weights to zero on nonedges and assume nonnegative, symmetric weights: $w_{i,j}=w_{j,i}$.
+
+The graph Laplacian $\Delta:\RR^N\to\RR^N$ sums weighted differences between neighboring values
+\eq{
+	\foralls f \in \RR^N, \quad
+	(\Delta f)_i \eqdef \sum_{j \sim i} w_{i,j} f_j - (\sum_{j \sim i} w_{i,j}) f_i 
+	\qarrq 
+	\Delta = W-D
+}
+where $D \eqdef \diag_i(\sum_{j \sim i} w_{i,j})$. In particular, note that $\Delta\ones=0$.
+
+For instance, if $\XX = \ZZ/N\ZZ$ with the graph $i \sim i-1$ and $i \sim i+1$ (modulo $N$), then $\De$ is the finite difference Laplacian operator $\Delta=N^{-2}D_2$ for unit edge weights defined in~\eqref{eq-disc-diff-2}. This extends to any dimension by tensorization.
+
+\begin{prop}
+Define the graph-gradient operator $G : f \in \RR^N \mapsto ( \sqrt{w_{i,j}} (f_i-f_j) )_{(i,j)\in E}$, with one component per undirected edge. Then
+\eq{
+	-\Delta = G^\top G
+	\qarrq
+	\foralls f \in \RR^N, \quad 
+	\dotp{ \Delta f }{f}_{\RR^N} = -\dotp{Gf}{Gf}_{\RR^{P}}.
+}
+where $P$ is the number of undirected edges $E=\enscond{(i,j)}{i \sim j, i<j}$.
+\end{prop}
+\begin{proof}
+By symmetry of $W$ and counting each undirected edge once,
+\begin{align*}
+ \norm{Gf}^2
+ &=\sum_{i<j}w_{ij}(f_i-f_j)^2\\
+ &=\sum_i f_i^2\sum_jw_{ij}-\sum_{i,j}w_{ij}f_if_j\\
+ &=\dotp{Df}{f}-\dotp{Wf}{f}=-\dotp{\Delta f}{f}.
+\end{align*}
+Equality of these quadratic forms proves $G^\top G=-\Delta$.
+\end{proof}
+
+Thus $\Delta$ is symmetric negative semidefinite and has an orthonormal eigenbasis. One can take $\phi_1=N^{-1/2}\ones$, with $0=\lambda_1\geq\lambda_2\geq\cdots\geq\lambda_N$. The multiplicity of zero is the number of connected components of the graph formed by the positive-weight edges; for a connected graph with $N>1$, $\lambda_2<0$. On a uniform periodic grid, the F

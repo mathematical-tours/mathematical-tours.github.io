@@ -1,0 +1,61 @@
+{
+  "source": "figures-code/chapter-compressed-sensing/single-pixel/generate.py",
+  "notes": "Simulates compressed sensing of the supplied flower with three nested measurement counts. The sensing rows are orthonormal Walsh-Hadamard patterns with a fixed random pixel permutation; signed measurements can be formed by complementary exposures. Every reconstruction solves the stated wavelet-synthesis l1 problem from its own measurements using the same lambda and iterations. The operator and adjoint are exact, with norm one. These are simulated acquisitions, not new camera measurements.",
+  "parameters": {
+    "seed": 20260906,
+    "side": 64,
+    "Q": 4096,
+    "P": [
+      512,
+      1024,
+      2048
+    ],
+    "lambda": 0.0005,
+    "iterations": 2200,
+    "wavelet": "db2",
+    "levels": 3
+  },
+  "data_sources": [
+    {
+      "path": "data/flower.png",
+      "sha256": "34633f2c7f92f362d29f862c80613463f9eee41aa2465efa7c473c1dd6c1cad4"
+    }
+  ],
+  "checks": {
+    "runs": [
+      {
+        "P": 512,
+        "snr_db": 7.808932778374049,
+        "relative_data_residual": 0.0007549340603635534,
+        "adjoint_residual": 7.105427357601002e-15
+      },
+      {
+        "P": 1024,
+        "snr_db": 10.096257022348292,
+        "relative_data_residual": 0.0008659003804423057,
+        "adjoint_residual": 3.552713678800501e-15
+      },
+      {
+        "P": 2048,
+        "snr_db": 13.966572601892,
+        "relative_data_residual": 0.000996426414545647,
+        "adjoint_residual": 2.4868995751603507e-14
+      }
+    ]
+  },
+  "image_preprocessing": [
+    {
+      "source": "data/flower.png",
+      "native_size": [
+        502,
+        502
+      ],
+      "output_size": [
+        64,
+        64
+      ],
+      "channels": "Rec. 709 luminance",
+      "resampling": "Lanczos"
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+% Context from chapters/sparse-regularization.tex; for mathematical reference, not compilation.
+to guarantee convergence. Figure \ref{fig-spikes-ista-decay} shows convergence of both the objective values and the iterates. Objective convergence alone would not ensure convergence of the iterates when minimizers are nonunique; the forward--backward convergence theorem provides the latter guarantee here.
+
+
+\myfigure{
+\tabdeux{
+\image{invpbm}{.4}{spikes-ista-decay-conv}&
+\image{invpbm}{.4}{spikes-ista-decay-energy} \\
+                                        
+$\log_{10}( E(f^{(k)})/E(f^\star)-1 )$ &
+$\log_{10}( \norm{f^{(k)}-f^\star}/\norm{f_0} )$
+}
+}{ 
+	Convergence of the energy and iterates under iterative soft thresholding.  
+}{fig-spikes-ista-decay}
+
+
+                                                                
+\subsection{Sparse Wavelets Deconvolution}
+
+
+Camera images can be blurred by defocus, motion during exposure, or diffraction. Assuming spatial invariance, we model the blur operator $\Phi$ by convolution:
+\eq{
+	y = f_0 \star h + w.
+}
+We use a Gaussian filter $h$ of width $\mu > 0$. On a fixed $d$-dimensional domain, the number of effectively transmitted frequencies scales roughly as $\mu^{-d}$, with a threshold-dependent factor, because higher frequencies are strongly attenuated.
+
+Figures~\ref{fig-deconvolution-1d} and~\ref{fig-deconvolution-2d} show examples of signal and image acquisition with Gaussian blur.
+
+Sobolev regularization~\eqref{eq-quad-regul-convol} suppresses high-frequency noise more strongly than the squared-norm penalty~\eqref{eq-regul-normsq}. Both can blur sharp transitions. TV regularization and sparsity in a wavelet basis are better adapted to signals with edges.
+
+Figure \ref{fig-deconvolution-1d} compares wavelet and Sobolev regularization for a one-dimensional signal; Figure \ref{fig-deconvolution-2d} shows the corresponding image-deblurring results. Replacing an orthogonal wavelet basis in \eqref{eq-ista} by a translation-invariant tight frame~\eqref{eq-ti-wavframe} can reduce artifacts. For a redundant frame, synthesis ISTA acts in coefficient space with $A=\Phi\Psi$. Simply analyzing, thresholding, and synthesizing is generally not the proximal map of the analysis penalty.
+
+\myfigure{
+\tabdeux{
+                                             
+\image{invpbm}{.4}{deconv1d-signal}&
+\image{invpbm}{.4}{deconv1d-filter} \\
+Signal $f_0$ & Filter $h$ \\
+\image{invpbm}{.4}{deconv1d-observations}&
+\image{invpbm}{.4}{deconv1d-l1}\\
+Observation $y=h\star f_0+w$ & $\lun$ recovery $f^\star$
+}
+}{ 
+	One-dimensional deconvolution with sparsity in an orthogonal wavelet basis.  
+}{fig-deconvolution-1d}
+
+                                  
+
+  
+
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{deconv2d-image}&
+\image{invpbm}{.3}{deconv2d-observations}&
+\image{invpbm}{.3}{deconv2d-l2}\\
+Image $f_0$ & Observations $y=h\star f_0+w$ & $\ldeux$ regularization \\
+\image{invpbm}{.3}{deconv2d-sob}&
+\image{invpbm}{.3}{deconv2d-l1}&
+\image{invpbm}{.3}{deconv2d-l1inv}\\
+Sobolev regularization & $\lun$ regularization & $\lun$ invariant \\
+
+}
+}{ 
+	Image deconvolution.   
+}{fig-deconvolution-2d}
+
+Figure \ref{fig-deconvolution-2d-snr} plots the SNR against $\la$. Computing the SNR requires the clean reference image $f_0$; the reported experiments use the maximizing value of $\la$.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{deconv2d-l2-snr}&
+\image{invpbm}{.3}{deconv2d-sob-snr}&
+\image{invpbm}{.3}{deconv2d-l1-snr}\\
+$\ldeux$ regularization  &
+Sobolev regularization  &
+$\lun$ regularization  
+}
+}{ 
+	SNR as a function of $\la$.   
+}{fig-deconvolution-2d-snr}
+
+
+                                
+   
+                                                                                                                                                                                                                                          
+                  
+
+
+
+                                      
+\subsection{Sparse Inpainting}
+
+This section continues the discussion in Section~\ref{sec-inpainting-variational}.
+
+For noiseless inpainting, a small $\lambda>0$ approximates constrained $\ell^1$ minimization. Exact interpolation is obtained in the limit under the assumptions of Proposition~\ref{prop-gamma-conv-regul}.
+For an orthonormal basis, the iterative thresholding algorithm~\eqref{eq-ista} takes the following form for $\tau=1$:
+\eq{
+	f^{(k+1)} = \sum_m S_{\la}^{1}( \dotp{ P_y(f^{(k)}) }{\psi_m} )  \psi_m
+}
+Figure \ref{fig-inpainting-lena} compares Sobolev inpainting with wavelet sparsity priors, including a translation-invariant frame.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{inpainting-lena-image}&
+\image{invpbm}{.3}{inpainting-lena-observations}& \\
+Image $f_0$ & Observation $y=\Phi f_0$ & \\
+\image{invpbm}{.3}{inpainting-lena-sob}&
+\image{invpbm}{.3}{inpainting-lena-wavortho}&
+\image{invpbm}{.3}{inpainting-lena-wavti}\\
+Sobolev $f^\star$ & Ortho. wav $f^\star$ & TI. wav $f^\star$ \\
+
+}
+}{ 
+    Inpainting with Sobolev and wavelet sparsity priors.  
+}{fig-inpainting-lena}
+

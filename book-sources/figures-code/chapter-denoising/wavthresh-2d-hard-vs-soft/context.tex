@@ -1,0 +1,121 @@
+% Context from chapters/denoising.tex; for mathematical reference, not compilation.
+\section{Nonlinear Denoising by Thresholding}
+\label{sec-nl-denoising-thresh}
+
+                                                     
+\subsection{Hard Thresholding}
+\label{subsec-denoise-hard}
+
+We consider a real orthonormal basis $\{\psi_m\}_m$ of $\RR^N$, for instance a discrete wavelet basis.
+ 
+The noisy coefficients satisfy
+\eql{\label{eq-noisy-transformed}
+	\dotp{f}{\psi_m} = \dotp{f_0}{\psi_m} + \dotp{w}{\psi_m}.
+}
+Orthogonal transforms preserve Gaussian white noise, so the coefficients $\dotp{w}{\psi_m}$ remain independent centered Gaussians with variance $\si^2$. If the basis $\{\psi_m\}_m$ represents $f_0$ sparsely, most clean coefficients $ \dotp{f_0}{\psi_m}$ are small, leaving many noisy coefficients dominated by noise; see Figure \ref{fig-wavthresh}. Donoho and Johnstone systematically developed thresholding estimators based on this observation~\cite{donoho-shrinkage}.
+
+\myfigure{
+\tabquatre{
+\image{denoising}{.24}{wavthresh-noisy}&
+\image{denoising}{.24}{wavthresh-coefs-noisy}&
+\image{denoising}{.24}{wavthresh-coef-denoised}&
+\image{denoising}{.24}{wavthresh-denoised}\\
+$f$ & $\dotp{f}{\psi_{j,n}^\om}$ & $S_T(\dotp{f}{\psi_{j,n}^\om})$ & $\tilde f$
+}
+}{ 
+	Denoising using thresholding of wavelet coefficients.   
+}{fig-wavthresh}
+
+Hard thresholding retains only coefficients whose magnitude exceeds the threshold $T$:
+\eq{
+		\tilde f = \sum_{ |\dotp{f}{\psi_m}|>T } \dotp{f}{\psi_m} \psi_m
+		 = \sum_{ m } S_T(\dotp{f}{\psi_m}) \psi_m.
+}
+where $S_T$ is defined in~\eqref{eq-hard-thresh-approx}. Retaining the $M$ largest noisy coefficients gives the approximation $\tilde f = f_M$ of $f$. Figure \ref{fig-wavthresh} illustrates how a suitable $T$ removes much of the noise while preserving sharp features.
+
+                                                                                                             
+
+                                      
+                                                                                                                                                                              
+
+                                                     
+\subsection{Soft Thresholding}
+
+We recall that the hard thresholding operator is defined as
+\eql{\label{eq-hard-thresh-denoise}
+	S_T(x) = S_T^0(x) = \choice{ x \qifq |x|>T, \\ 0 \qifq |x|\leq T. }
+}
+Hard thresholding makes a discontinuous keep-or-discard decision, which can create artifacts. Soft thresholding is a continuous alternative:
+\eql{\label{eq-soft-thresh-denoise}
+	 S_T^1( x ) = \max( 1-T/|x|, 0 ) x.
+}
+Set $S_T^1(0)=0$ by continuity. Figure~\ref{fig-thresholding-hard-vs-soft} compares the two nonlinear maps.
+
+\myfigure{
+\BookDrawing{tikz/denoising-hard-soft-threshold}
+}{ 
+	Hard and soft thresholding functions.   
+}{fig-thresholding-hard-vs-soft}
+
+For $q=0$ and $q=1$, these thresholding rules define two different estimators
+\eql{\label{eq-hard-soft-thresh}
+	\tilde f^q = \sum_m S_T^q( \dotp{f}{\psi_m} ) \psi_m
+}
+
+\myfigure{
+\image{denoising}{.6}{wavthresh-2d-hard-vs-soft}
+}{ 
+	SNR as a function of $T/\si$ for hard and soft thresholding. 
+}{fig-wavthresh-2d-hard-vs-soft}
+
+
+  
+\paragraph{Preserving coarse-scale coefficients.}
+
+Soft thresholding $S_T^1$ biases retained coefficients by reducing their magnitudes.
+Shrinking coarse wavelet coefficients can introduce unwanted low-frequency artifacts. At a coarsest scale $2^{j_0}$, it is therefore common to retain the approximation coefficients unchanged. In one dimension, this gives
+\eq{
+	\tilde f^1 = \sum_{0 \leq n < 2^{-j_0}} \dotp{f}{\phi_{j_0,n}} \phi_{j_0,n}
+	+ \sum_{j=J+1}^{j_0}\sum_{0\leq n<2^{-j}}S_T^1(\dotp{f}{\psi_{j,n}})\psi_{j,n}.
+}
+                                                                                                 
+
+                                       
+                                                                                                                                                                               
+
+
+  
+\paragraph{Empirical choice of the threshold.}
+
+Figure \ref{fig-wavthresh-2d-hard-vs-soft} plots SNR against the threshold $T$ for a fixed natural image $f_0$. In this experiment, hard thresholding performs best near $T \approx 3\si$, and soft thresholding near $T\approx 3\si/2$. The best soft-thresholded estimate has a slightly higher SNR.
+
+\myfigure{
+\tabdeux{
+\image{denoising}{.3}{wavthresh-2d-hard}&
+\image{denoising}{.3}{wavthresh-2d-soft}\\
+20.9dB & 21.8dB
+}
+}{ 
+	Comparison of hard (left) and soft (right) thresholding.  
+}{fig-wavthresh-2d}
+
+These values describe the displayed experiments; the best threshold depends on the image, basis, noise level, and loss function.
+
+
+                                                     
+\subsection{Minimax Optimality of Thresholding}
+\label{subsec-minimax-denoise}
+
+  
+\paragraph{Estimating sparse coefficients.}
+
+To analyze the estimator and guide the choice of $T$, we first assume that the coefficients
+\eq{
+	a_{0,m}=\dotp{f_0}{\psi_m}\in\RR,\qquad a_0\in\RR^N
+}
+are sparse: most entries $a_{0,m}$ vanish, so the $\lzero$ count
+\eq{
+	\norm{a_0}_0 = \#\enscond{m}{a_{0,m} \neq 0}
+}
+is small. 
+As sh

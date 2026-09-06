@@ -1,0 +1,105 @@
+% Context from chapters/sec-optim-smooth.tex; for mathematical reference, not compilation.
+\section{Basics of Convex Analysis}
+
+                                                                                  
+\subsection{Existence of Solutions}
+
+Problem~\eqref{eq-general-pbm} need not have a minimizer. An objective $f$ may be unbounded below: for $f(x)=-x^2$, the infimum is $-\infty$. The objective $f$ can also have a finite unattained infimum: for $f(x)=e^{-x}$, it is $\inf f=0$.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-minimizer-examples}
+\caption{Left: no minimizer. Middle: multiple minimizers. Right: a unique minimizer.}
+\label{fig-minimizer-exists}
+\end{figure}
+
+A continuous function attains its minimum on a nonempty compact set $\Om\subset\RR^p$. In finite dimensions, compactness means that $\Om$ is closed and bounded. Lower semicontinuity suffices for attainment, but we use continuity here. For unconstrained minimization, coercivity provides a compact set to which the search can be restricted: $f(x) \rightarrow +\infty$ as $\norm x\rightarrow+\infty$. For any $x_0 \in \RR^p$, consider the sublevel set
+\eq{
+	\Om = \enscond{x \in \RR^p}{f(x) \leq f(x_0)}
+}
+Coercivity makes this set bounded, and continuity of $f$ makes it closed. For a continuous convex function, coercivity is in fact equivalent to a nonempty bounded minimizer set. Convexity matters: $f(x)=\min(1,x^2)$ has a unique minimizer but is not coercive.
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/smooth-least-squares-coercive}\hfill
+\BookPanel{.485}{2}{tikz/smooth-least-squares-flat}
+\caption{Coercivity condition for least squares.}
+\label{fig-least-square}
+\end{figure}
+
+\begin{exmp}[Least squares]
+The least-squares objective $f(x)=\frac{1}{2}\norm{Ax-y}^2$ is coercive exactly when $\ker(A)=\{0\}$, meaning the design has full column rank. If $\ker(A) \neq \{0\}$ and $x^\star$ is a minimizer, then $x^\star+u$ is also a minimizer for every $u \in \ker(A)$, so the minimizer set is unbounded.
+ 
+Conversely, if $\ker(A) = \{0\}$, we will show later that the minimizer is unique, see Fig.~\ref{fig-least-square}.
+ 
+For classification, strict convexity of $\ell$ and injectivity of $A$ imply strict convexity of the objective, but do not ensure coercivity or existence. Separable logistic regression is a counterexample.
+\end{exmp}
+
+                                                                                  
+\subsection{Convexity}
+
+Convexity is central to optimization because every local minimizer is global, and many convex problems admit efficient algorithms. A function is convex if, for every pair $(x,y) \in (\RR^p)^2$,
+\eql{\label{eq-convexity-def}
+	\foralls t \in [0,1], \quad
+		f((1-t)x + t y) \leq (1-t)f(x) + t f(y)
+}
+The graph lies below each secant, and above each tangent when differentiable; see Figure~\ref{fig-cvx-vs-noncvx}.
+ 
+If $x^\star$ is a local minimizer of a convex $f$, then $x^\star$ is a global minimizer, i.e. $x^\star \in \argmin f$.  
+
+
+Convexity is preserved by several useful operations. If $f$ and $g$ are convex and $a, b$ are positive, then $a f + b g$ and $\max(f,g)$ are convex. If $g : \RR^q \rightarrow \RR$ is convex and $B \in \RR^{q \times p}, b \in \RR^q$, then the affine composition $f(x) = g(B x+b)$ is convex.
+ 
+Thus the squared loss~\eqref{eq-least-square} is convex, since $\norm{\cdot}^2/2$ is a sum of convex squares.
+ 
+Similarly, convexity of $\ell$ implies convexity of $L$ and of the classification objective~\eqref{eq-classif}.
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.235}{1}{tikz/smooth-secant-nonconvex}\hfill
+\BookPanel{.235}{2}{tikz/smooth-secant-convex}\hfill
+\BookPanel{.235}{3}{tikz/smooth-strict-convexity}\hfill
+\BookPanel{.235}{4}{tikz/smooth-nonstrict-convexity}
+\caption{Convex and nonconvex functions; strictly convex and convex but not strictly convex functions. Here $x_t=(1-t)x+ty$ and $\ell_t=(1-t)f(x)+tf(y)$, with $0<t<1$.}
+\label{fig-cvx-vs-noncvx}
+\label{fig-cvx-vs-noncvx-continued}
+\end{figure}
+
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-convex-examples}
+\caption{Comparison of convex functions $f : \RR^p \rightarrow \RR$ (for $p=1$) and convex sets $C \subset \RR^p$ (for $p=2$).}
+\label{fig-cvx-set}
+\end{figure}
+
+   
+\paragraph{Strict convexity.}
+
+When $f$ is convex, one can strengthen the condition~\eqref{eq-convexity-def} and impose that the inequality is strict for distinct $x,y$ and $t\in]0,1[$ (see Figure~\ref{fig-cvx-vs-noncvx-continued}, panels 3 and 4), i.e.
+\eql{\label{eq-strict-convexity-def}
+	\foralls t \in ]0,1[, \quad
+		f((1-t)x + t y) < (1-t)f(x) + t f(y).
+}
+A minimizer $x^\star$ is then unique if it exists. Otherwise, two minimizers $x_1^\star \neq x_2^\star$ would satisfy $f(\frac{x_1^\star+x_2^\star}{2}) < f(x_1^\star)$ by strict convexity, contradicting optimality.
+
+\begin{exmp}[Least squares]
+	For the quadratic loss function $f(x)=\frac{1}{2}\norm{Ax-y}^2$, strict convexity is equivalent to $\ker(A)=\{0\}$.
+	Its Hessian is $\partial^2 f(x)=A^\top A$, which is positive definite exactly when $A$ is injective, since $\dotp{A^\top A z}{z}=\norm{Az}^2$. Positive definiteness implies strict convexity. Conversely, a nonzero vector in $\ker(A)$ gives a line along which $f$ is constant, ruling out strict convexity.
+\end{exmp}
+
+                                                                                  
+\subsection{Convex Sets}
+
+A set $\Om \subset \RR^p$ is convex if every pair $(x,y) \in \Om^2$ satisfies $(1-t)x + t y \in \Om$ for all $t \in [0,1]$.
+ 
+A function $f$ is convex exactly when its epigraph $\text{epi}(f) \eqdef \enscond{(x,t) \in \RR^{p+1}}{t \geq f(x)}$ is a convex set.
+
+\begin{rem}[Convexity of the minimizer set]
+A minimizer $x^\star$ need not be unique; see Figure~\ref{fig-least-square}.
+ 
+For convex $f$, the set $\argmin(f)$ is itself convex.
+ 
+Indeed, if $x_1^\star$ and $x_2^\star$ are minimizers, so that in particular $f(x_1^\star)=f(x_2^\star)=\min(f)$, then $f( (1-t)x_1^\star + t x_2^\star ) \leq (1-t) f

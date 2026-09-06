@@ -1,0 +1,130 @@
+% Context from chapters/sec-optim-smooth.tex; for mathematical reference, not compilation.
+s a global minimizer.
+If $f$ is differentiable and convex, 
+\eq{
+	x^\star \in \uargmin{x} f(x) 
+	\quad\Longleftrightarrow\quad
+	\nabla f(x^\star)=0.
+}
+\end{prop}
+\begin{proof}
+Fix $x$ and choose $0<t<1$ so that $tx+(1-t)x^\star$ lies in the neighborhood where $x^\star$ is minimal. Local optimality and convexity then give
+\eq{
+	f(x^\star) \leq f(tx + (1-t)x^\star) \leq t f(x) + (1-t) f(x^\star)
+	\qarrq
+	f(x^\star) \leq f(x)
+}
+proving that $x^\star$ is a global minimizer.
+
+For the second part, we already saw in Proposition~\ref{prop-cs-min} the $\Rightarrow$ implication. We assume that $\nabla f(x^\star)=0$. Since the graph of $f$ is above its tangent by convexity (as stated in Proposition~\ref{prop-above-tgt}),
+\eq{
+	f(x) \geq f(x^\star) + \dotp{\nabla f(x^\star)}{x-x^\star} = f(x^\star).
+}
+\end{proof}
+
+For a differentiable convex objective, minimization is therefore equivalent to solving $\nabla f(x)=0$, a system of $p$ equations in $p$ unknowns.
+ 
+An explicit solution is often unavailable, but the equation still characterizes the minimizers $x^\star$.
+
+
+
+                                                                                  
+\subsection{Least Squares}
+
+The gradient of the least-squares objective~\eqref{eq-least-square} follows by expanding the squared norm:
+\begin{align*}
+	f(x+\epsilon) &= \frac{1}{2}\norm{Ax-y+A\epsilon}^2 = \frac12\norm{Ax-y}^2+\dotp{Ax-y}{A\epsilon} + \frac{1}{2}\norm{A\epsilon}^2 \\
+		&=f(x) + \dotp{\epsilon}{A^\top(Ax-y)} + o(\norm{\epsilon}).
+\end{align*} 
+We used $\norm{A\epsilon}^2 = o(\norm{\epsilon})$ and the transpose $A^\top$.
+ 
+The transpose exchanges rows and columns, $A^\top = (A_{j,i})_{i=1,\ldots,n}^{j=1,\ldots,p}$. Its essential role in gradient calculations is the adjoint identity
+\eq{
+	\foralls (u,v) \in \RR^{p} \times \RR^n, \quad
+	\dotp{A u}{v}_{\RR^n} = \dotp{u}{A^\top v}_{\RR^p}. 
+}
+Computing gradients of functions involving linear operators requires such a transposition step.
+ 
+This computation shows that
+\eql{\label{eq-grad-ls}
+	\nabla f(x) = A^\top (A x - y). 
+}
+Hence every minimizer $x^\star$ of $f(x)$ satisfies the normal equations $(A^\top A) x^\star = A^\top y$.
+ 
+If $A^\star A \in \RR^{p \times p}$ is invertible, then $f$ has a single minimizer, namely  
+\eql{\label{eq-sol-leastsquare}
+	x^\star = (A^\top A)^{-1} A^\top y.
+}
+Thus $x^\star$ depends linearly on $y$. The operator $(A^\top A)^{-1} A^\star$ is the Moore--Penrose pseudoinverse of $A$; an ordinary inverse is unavailable when $p \neq n$.
+ 
+The condition that $A^\top A$ is invertible is equivalent to $\ker(A)=\{0\}$, since 
+\eq{
+	A^\top A x = 0 \qarrq \norm{Ax}^2 = \dotp{A^\top A x}{x} = 0 \qarrq A x= 0.
+}
+When $n<p$, the system is underdetermined and injectivity is impossible. If $n\geq p$ and the entries of $A$ have a joint density, then $\ker(A)=\{0\}$ almost surely. In general, injectivity is equivalent to the feature vectors $a_i$ spanning $\RR^p$.
+ 
+                                                                                  
+\subsection{Link with PCA}
+
+Assume the feature vectors are centered, $\sum_i a_i=0$. Otherwise, replace each $a_i$ by $a_i-m$, where $m\eqdef n^{-1}\sum_i a_i$ is the empirical mean. Write $C\eqdef A^\top A$. Then $C/n$ is the empirical covariance matrix of the point cloud. With $a_i=(a_{i,1},\ldots,a_{i,p})^\top$ and $A=(a_{i,j})_{i,j}$, its entries are
+ \eq{
+ 	\foralls (k,\ell) \in \{1,\ldots,p\}^2, \quad
+ 	\frac{C_{k,\ell}}{n} = \frac{1}{n} \sum_{i=1}^n a_{i,k} a_{i,\ell}. 
+ }
+ In particular, $C_{k,k}/n$ is the variance along the axis $k$. More generally, for any unit vector $u \in \RR^p$, $\dotp{C u}{u}/n \geq 0$ is the variance along the axis $u$.
+ 
+For instance, in dimension $p=2$, 
+\eq{
+	\frac{C}{n} = 
+	\frac{1}{n}
+	\begin{pmatrix}
+		 \sum_{i=1}^n a_{i,1}^2 & \sum_{i=1}^n a_{i,1} a_{i,2} \\
+		\sum_{i=1}^n a_{i,1}a_{i,2} & \sum_{i=1}^n a_{i,2}^2
+	\end{pmatrix}.
+}
+
+Since $C$ is symmetric, choose an orthogonal matrix $U=(u_1,\ldots,u_p)$ whose columns are eigenvectors of $C/n$. If $(C/n)u_k=\la_k u_k$, then $C/n=U\diag(\la_k)U^\top$ and $U^{-1}=U^\top$. In these coordinates, the quadratic form is a weighted sum of squares:
+\eql{\label{eq-pca-decomp}
+	\frac{1}{n}  \dotp{Cx}{x} = \dotp{U \diag(\la_k) U^\top x}{x}
+	= \dotp{\diag(\la_k) (U^\top x)}{(U^\top x)}
+	= \sum_{k=1}^p \la_k \dotp{x}{u_k}^2.
+} 
+Here $( U^\top x )_k = \dotp{x}{u_k}$ is the coordinate $k$ of $x$ in the basis $U$. Since $\dotp{Cx}{x}=\norm{Ax}^2$, this shows that all eigenvalues are nonnegative.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-pca-quadratic-geometry}
+\caption{Left: point clouds $(a_i)_i$ and their principal directions. Right: the quadratic part of $f(x)$.}
+\label{fig-link-pca}
+\end{figure}
+
+Order the eigenvalues as $\la_1 \geq \la_2 \geq \ldots \geq \la_p$. Projection of $a_i$ onto the leading $m$ eigenvectors gives principal component analysis (PCA), the optimal linear reconstruction in squared error. It is used for compression, dimensionality reduction, and visualization in two dimensions ($m=2$) or three dimensions ($m=3$).
+
+When $C$ is positive definite, its covariance ellipsoid has principal axes $(u_k)_k$ and semiaxes proportional to the standard deviations $\sqrt{\la_k}$.
+ 
+This ellipsoid closely describes a Gaussian cloud with density proportional to $\exp(-\frac n2\dotp{C^{-1}a}{a})$.
+ 
+For the quadratic objective $\frac{1}{2}\dotp{Cx}{x}$ in $f(x)$, the level ellipsoid $\enscond{x}{\frac{1}{n}\dotp{Cx}{x} \leq 1}$ has the same principal axes but reciprocal widths $1/\sqrt{\la_k}$.
+ 
+Figure~\ref{fig-link-pca} shows the reciprocal axis widths in dimension $p=2$. If $C$ is singular, the covariance ellipsoid is degenerate and the quadratic sublevel sets are unbounded along $\ker(C)$.
+
+
+
+                                                                                  
+\subsection{Classification}
+
+For the classification objective~\eqref{eq-classif}, assume $L$ is differentiable and apply~\eqref{eq-grad-dfn} at $-\diag(y) Ax$:
+\begin{align*}
+	f(x+\epsilon) &= L( -\diag(y) Ax -\diag(y)  A\epsilon) \\
+	&= L(-\diag(y) Ax) + \dotp{\nabla L( -\diag(y) Ax)}{ -\diag(y)  A\epsilon } + o(\norm{\diag(y)  A\epsilon}).
+\end{align*} 
+Using the fact that $o(\norm{\diag(y)  A\epsilon}) = o(\norm{\epsilon})$, one obtains
+\begin{align*}
+	f(x+\epsilon) &= f(x) + \dotp{\nabla L( -\diag(y) Ax)}{-\diag(y)  A\epsilon} + o(\norm{\epsilon}) \\
+		 &=  f(x) + \dotp{-A^\top \diag(y) \nabla L( -\diag(y) Ax)}{\epsilon} + o(\norm{\epsilon}), 
+\end{align*} 	
+Using $(AB)^\top = B^\top A^\top$ and $\diag(y)^\top=\diag(y)$ gives
+\eq{
+	\nabla f(x) = -A^\top \diag(y) \nabla L( -\diag(y) Ax). 
+}
+Since $L(z)=\sum_i\ell(z_i)$, its gradient is $\nabla L(z)=(\ell'(z_i))_{i=1}^n$. For th

@@ -1,0 +1,113 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+\section{Hilbert Spaces and Fourier Transforms}
+
+                                                
+\subsection{Orthonormal Bases}
+
+Many methods in data science begin by expanding the input signal in a basis. An orthonormal basis gives a simple reconstruction formula and preserves energy, which simplifies the analysis. We first describe these properties in a Hilbert space, such as $\Hh=L^2([0,1]^d)$ for signals on a continuous domain or $\Hh=\RR^N$ for discrete signals.
+
+A complex Hilbert space $(\Hh,\dotp{\cdot}{\cdot})$ is complete for the norm induced by its Hermitian inner product. We take this inner product to be linear in the first argument and conjugate-linear in the second. A separable Hilbert space admits an orthonormal basis $(\phi_k)_k$ (finite in finite dimension), so every $f\in\Hh$ has the expansion
+\eq{
+	f = \sum_{k} \dotp{f}{\phi_k} \phi_k 
+}
+where the norm is determined by $\norm{f}^2 \eqdef \dotp{f}{f}$. Convergence means that $\norm{ f - \sum_{k=0}^N \dotp{f}{\phi_k} \phi_k } \rightarrow 0$ as $N \rightarrow +\infty$. Parseval\textquotesingle s identity expresses conservation of energy:
+\eq{
+	\norm{f}^2 = \sum_k |\dotp{f}{\phi_k}|^2.
+}
+
+The Gram--Schmidt procedure constructs such a basis from a linearly independent family $(\bar\phi_k)_k$ with dense span. Set $\phi_0=\bar\phi_0/\norm{\bar\phi_0}$ and $\phi_k=\tilde\phi_k/\norm{\tilde\phi_k}$, where $\tilde\phi_k$ is the orthogonal residual $\tilde\phi_k=\bar\phi_k - \sum_{i<k} a_i \phi_i$. Orthogonality requires $a_i = \dotp{\bar \phi_k}{\phi_i}$.
+
+On $L^2([-1,1])$ with the usual inner product, orthogonalizing the monomials gives the Legendre polynomials. Their conventional normalization differs from unit $L^2$ norm:
+\eq{
+	\phi_0(x)=1, \quad \phi_1(x)=x, \quad \phi_2(x) = \frac{1}{2}(3x^2-1), \quad \text{etc.}
+}
+On $L^2(\RR,e^{-x^2/2}\,\d x)$, this construction gives the probabilists' Hermite polynomials $P_0(x)=1$, $P_1(x)=x$, $P_2(x)=x^2-1$, up to normalization. Multiplying normalized polynomials by $e^{-x^2/4}$ instead gives orthonormal Hermite functions for Lebesgue measure. A degree-$k$ orthogonal polynomial has exactly $k$ distinct real zeros in the interior of the support of the measure.
+
+The Shannon interpolation theorem gives another example: $( \sinc(x-k) )_k$ is an orthonormal basis of the subspace $\enscond{f\in L^2(\RR)}{\supp(\hat f) \subset [-\pi,\pi]}$. Using the continuous representative of $f$, the reconstruction formula $f=\sum_k f(k) \sinc(x-k)$ identifies the coefficients as $\dotp{f}{\sinc(x-k)} = f(k)$. The series converges in $L^2$ and pointwise; the previous chapter proves the pointwise formula under additional decay assumptions.
+
+
+Orthogonal bases can also arise as complete families of eigenvectors of self-adjoint operators. Below, we explain how translation-invariant operators (convolutions) characterize Fourier bases.
+
+
+                                                
+\subsection{Fourier Basis on \texorpdfstring{$\RR/2\pi\ZZ$}{the Circle}}
+
+Fourier analysis takes different forms on different domains. On the circle, it gives a countable orthonormal basis. On the real line, frequencies form a continuum, and the Fourier transform is not an expansion in a countable basis of exponential functions.
+
+On $L^2(\TT)$ where $\TT=\RR/2\pi\ZZ$, equipped with $\dotp{f}{g} \eqdef \frac{1}{2\pi}\int_\TT f(x) \bar g(x) \d x$, one can use the Fourier basis 
+\eql{\label{eq-fourier-basis-1d}
+	\phi_k(x) \eqdef e^{\imath k x}
+	\qforq
+	k \in \ZZ. 
+}
+One thus has
+\eql{\label{eq-defn-fourier-coeffs}
+	f = \sum_{k\in\ZZ} \hat f_k e^{\imath k \cdot}
+	\qwhereq
+	\hat f_k \eqdef \frac{1}{2\pi}\int_0^{2\pi} f(x) e^{-\imath k x} \d x, 
+}
+with convergence in $L^2(\TT)$. Pointwise convergence is delicate; see Section~\ref{subsec-sampling}.
+
+Figure \ref{fig-fourier-wav}, left, shows examples of the real parts of Fourier atoms.
+
+\myfigure{
+	\image{orthobases}{.4}{atoms-fourier}
+	\image{orthobases}{.5}{atoms-wavelets}
+}{ 
+	Examples of 1-D Fourier atoms (real parts, left) and wavelets (right).  
+}{fig-fourier-wav}
+
+
+We recall that for $f \in L^1(\RR)$, its Fourier transform is defined as
+\eq{
+	\foralls \om \in \RR, \quad
+	\hat f(\om) \eqdef \int_\RR f(x) e^{-\imath x \om} \d x.
+}
+The transform extends to $L^2(\RR)$ by density.
+
+The following diagram relates the Fourier transform on $\RR$ to Fourier coefficients on $\TT$:
+\eq{
+	\begin{array}{rcccl}
+						& f(x)  &  \overset{\Ff}{\longrightarrow} &  \hat f(\om) &\\
+		\text{sampling}& \downarrow & & \downarrow &\text{periodization} \\
+						& (f(n))_n  &  \overset{\text{Fourier series}}{\longrightarrow} &  \sum_n f(n) e^{-\imath \om n} &\\
+	\end{array}.
+}
+The two routes through the diagram give the identity
+\eql{\label{eq-poisson-bis}
+	\sum_n f(n) e^{-\imath \om n} = \sum_n \hat f(\om-2\pi n)
+}
+which is Poisson's summation formula (Proposition~\ref{prop-poisson}).
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-four-settings}
+\caption{Four settings for Fourier analysis, linked by sampling and periodization.}
+\label{fig-fourier-transforms}
+\end{figure}
+
+
+
+                                                
+                                                
+                                                
+\section{Convolution on \texorpdfstring{$\RR$ and $\TT$}{the Line and the Circle}}
+
+                                                
+\subsection{Convolution}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-convolution}
+\caption{Convolution on $\RR$. The dashed curve is $f\star g$; the marked value $(f\star g)(x)$ equals the shaded integral.}
+\label{fig-review-fourier-convolution}
+\end{figure}
+On $\XX=\RR$ or $\TT$, one defines 
+\eql{\label{eq-convol-1d}
+	f \star g(x) = \int_\XX f(t) g(x-t) \d t. 
+}
+Here and throughout this section, integrals use Lebesgue measure on $\RR$ and normalized Haar measure $\d t/(2\pi)$ on $\TT$. With this convention, Young's inequality states that, for $1\leq p,q,r\leq\infty$ and $(f,g)\in L^p(\XX)\times L^q(\XX)$,
+\eql{\label{eq-young-convol}
+	\frac{1}{p}+\frac{1}{q}=1+\frac{1}{r} \qa

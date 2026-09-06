@@ -1,0 +1,126 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+oximation error decay \eqref{eq-approximation-error-wav-2d}. 
+
+Implementing this construction requires estimating the edges. This is particularly difficult for blurred cartoon images with an unknown smoothing kernel $h$.
+
+Practical methods use heuristics or greedy rules to select sample points and triangulate them from discrete or noisy data.
+Figure~\ref{fig-triangulation-peppers} illustrates compression with one such greedy construction.
+
+\myfigure{
+\tabtrois{
+\image{approximation}{.32}{triangulation-peppers}&
+\image{approximation}{.32}{triangulation-peppers-triangles}&
+\image{approximation}{.32}{triangulation-peppers-jpeg2k}\\
+Adapted triangulation & $\tilde f_M$ & JPEG-2000
+}
+}{ 
+	Comparison of adaptive triangulation and JPEG-2000, with the same number of bits.   
+}{fig-triangulation-peppers}
+
+                                        
+\subsection{Curvelet Approximation}
+
+A fixed family of oriented, anisotropic atoms offers an alternative to adaptive triangulations. Cand\`es and Donoho introduced the curvelet frame for this purpose~\cite{candes-tight-frame}.
+
+  
+\paragraph{Curvelets.}
+
+At fine scales $j\leq0$, the geometry can be illustrated by applying parabolic scaling to a horizontally oriented mother function $c$,
+\eq{
+	c_{2^j}(x_1,x_2) \approx 2^{-3j/4} c(2^{-j/2} x_1, 2^{-j} x_2),
+} 
+followed by translation and rotation,
+\eq{
+	c_{2^j,u}^\th(x_1,x_2) = c_{2^j}(R_{-\th}(x-u))
+}
+where $R_\th$ is the rotation of angle $\th$.
+
+The atom $c_{2^j,u}^\th$ is localized near $u$ and oriented at angle $\th$. Its dimensions obey ``width $\approx$ length$^2$'', the same relation used for adaptive triangles near edges. This scaling matches the contour geometry of the cartoon model~\eqref{eq-cartoon-model} with $\al=2$.
+
+\myfigure{
+\image{approximation}{.36}{curvelet-spacial}
+\image{approximation}{.4}{curvelet-fourier}
+}{ 
+	A curvelet $c_m$ in space (left) and its localization in the Fourier domain (right). 
+}{fig-curvelet}
+
+Figure \ref{fig-curvelet} illustrates this localization in space and frequency.
+
+  
+\paragraph{Parameter discretization.}
+
+To build an image representation, one needs to sample the position $u$ and orientation $\theta$.
+The angular sampling interval depends on the scale:
+\eq{
+	\foralls 0 \leq k < 2^{-\lceil j/2 \rceil+2}, \quad
+	\th_{k}^{(j)} = k \pi 2^{ \lceil j/2 \rceil -1 }  
+}
+and the spatial grid depends on both scale and orientation:
+\eq{
+	\foralls m=(m_1,m_2) \in \ZZ^2, \quad
+	u_m^{(j,\th)} = R_\th( 2^{j/2} m_1, 2^j m_2 ).
+}
+Figure \ref{fig-curvelet-discretization} shows this sampling pattern.
+
+\myfigure{
+\image{approximation}{.8}{curvelet-discretization}
+}{ 
+	Sampling pattern for the curvelet positions.  
+}{fig-curvelet-discretization}
+
+  
+\paragraph{Curvelet tight frame.}
+
+The scaling and sampling formulas above describe the geometry of curvelets. An exact tight frame additionally requires carefully chosen frequency windows and a low-frequency family; an arbitrary mother function $c$ does not suffice. With this construction, write the complete family as $(C_\lambda)_{\lambda\in\Lambda}$, where $\Lambda$ includes the fine-scale indices $(j,m,k)$ and the low-frequency indices. Then
+\eq{
+ \norm{f}^2=\sum_{\lambda\in\Lambda}|\dotp{f}{C_\lambda}|^2,
+ \qquad f=\sum_{\lambda\in\Lambda}\dotp{f}{C_\lambda}C_\lambda.
+}
+The reconstruction converges in $L^2$. These are the Parseval-frame identities; the family is redundant and its atoms are not mutually orthogonal.
+
+One discrete construction for an image with $N$ pixels uses $\approx 5 N$ atoms~\cite{candes-discrete-curvelet}.
+
+  
+\paragraph{Curvelet approximation.}
+
+A nonlinear $M$-term approximation in curvelets is defined as
+\eq{
+	f_M = \sum_{\lambda\in\Lambda:\,|\dotp{f}{C_\lambda}| > T} \dotp{f}{C_\lambda} C_\lambda
+}
+The complete index set $\Lambda$ includes the low-frequency family, and the threshold $T$ determines the number $M$ of retained coefficients. As before, ties require a selection rule if an exact coefficient count is prescribed. Because the frame is not orthogonal, $f_M$ need not be the best $M$-term curvelet approximation.
+
+Far from an edge, at locations $u_m^{(j,\th)}$, cancellation makes the coefficients $\dotp{f}{C_{j,m,k}}$ small. When $u_m^{(j,\th)}$ lies near an edge with tangent direction $\tilde\th$, the coefficient $\dotp{f}{C_{j,m,k}}$ rapidly decreases as the orientation mismatch $|\th-\tilde \th|$ grows. Figure \ref{fig-curvelets-vs-wavelets} compares this adaptation to edges with the square supports of directional wavelets.
+
+
+\myfigure{
+\image{approximation}{.8}{curvelets-vs-wavelets}
+}{ 
+	Wavelet (left) and curvelet (right) approximation of a cartoon image. 
+}{fig-curvelets-vs-wavelets}
+
+Combining spatial cancellation, directional selectivity, and scale-dependent sampling gives the approximation bound
+\eq{
+	\norm{f-f_M}^2 = O(\log^3(M) M^{-2})
+}
+for images in the cartoon model \eqref{eq-cartoon-model} for $\al=2$.
+This nearly matches the adaptive-triangulation rate~\eqref{eq-error-triangulation}, while allowing $f_M$ to be computed in $O(N \log(N))$ operations for an image of $N$ pixels.
+
+Redundancy complicates the use of curvelets for compression, but their approximation properties are useful for denoising geometric images and textures. Figure \ref{fig-curvelet-denoising} compares curvelet and wavelet denoising using the thresholding method of Section \ref{subsec-denoise-hard}.
+
+
+\myfigure{
+\tabtrois{
+\image{approximation}{.3}{curvelet-denoising-noisy}&
+\image{approximation}{.3}{curvelet-denoising-wav}&
+\image{approximation}{.3}{curvelet-denoising-curvelets}\\
+Noisy $f$ & Wavelet $\tilde f$ & Curvelets $\tilde f$
+}
+}{ 
+	Comparison of translation-invariant wavelet denoising and curvelet denoising.  
+}{fig-curvelet-denoising}
+
+
+
+
+
+

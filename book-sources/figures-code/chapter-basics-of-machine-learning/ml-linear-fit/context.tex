@@ -1,0 +1,100 @@
+% Context from chapters/machine-learning.tex; for mathematical reference, not compilation.
+\section{Supervised Learning: Regression}
+\label{sec-regression}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-joint-model}
+\caption{Probabilistic modeling.}
+\label{fig-review-ml-joint-model}
+\end{figure}
+In supervised learning, the training data consist of pairs $(x_i,y_i)\in\Xx\times\Yy$, with $\Xx=\RR^p$ here for simplicity. We seek a function $f:\Xx\rightarrow\Yy$ that captures the relationship $y_i\approx f(x_i)$ and predicts an output $f(x)$ for a new input $x$.
+
+When $\Yy$ is finite and discrete, the task is supervised classification, studied in Section~\ref{sec-classif}. Binary classification uses $\Yy=\{0,1\}$; for example, in a medical application, $y_i=0$ may indicate a healthy subject and $y_i=1$ a subject with the condition of interest.
+ 
+When $\Yy$ is continuous, typically $\Yy=\RR$, the task is regression.
+
+                                                  
+\subsection{Linear Regression}
+\label{sec-linear-models}
+
+For regression, we specialize empirical risk minimization to $\Yy=\RR$ with the quadratic loss $\loss(y,y')=\frac{1}{2}|y-y'|^2$.
+
+Nonlinear regression can be formulated using a dictionary of features, such as polynomials. This lifts the data into a higher-dimensional space and leads to the kernel methods of Section~\ref{sec-kernel-methods}.
+
+   
+\paragraph{Least squares and conditional expectation.}
+
+If $f$ ranges over measurable functions and $\EE(\yp^2)<\infty$, a population minimizer $\bar f$ in~\eqref{eq-consistency-estim} is the conditional mean of the response given the input. It is defined up to equality almost everywhere under the input distribution.
+ 
+Suppose for simplicity that $\pi$ has density $\frac{\d \pi}{\d x \d y}$ with respect to a product measure $\d x \d y$, such as Lebesgue measure. Then
+\eq{
+	\foralls x \in \Xx, \quad
+	\bar f(x) = \EE( \yp | \xp=x) = 
+	\frac{ 
+		\int_{\Yy} y \frac{\d \pi}{\d x \d y}(x,y) \d y 
+	}{ 
+		\int_{\Yy} \frac{\d \pi}{\d x \d y}(x,y) \d y
+	 }
+}
+where $(\xp,\yp)$ has law $\pi$ and the formula applies where the denominator is positive.
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-conditional-expectation}
+\caption{Conditional expectation.}
+\label{fig-bound-regul}
+\end{figure}
+
+If $\Xx$ and $\Yy$ are discrete, let $\pi_{x,y}$ denote the probability of $(\xp=x,\yp=y)$. Then
+\eq{
+	\foralls x \in \Xx, \quad
+	\bar f(x) = \frac{ \sum_{y}  y \pi_{x,y} }{ \sum_{y} \pi_{x,y} }
+}
+with no prescribed value when the marginal of $\pi$ on $\Xx$ vanishes at $x$.
+
+Replacing $\pi$ by the empirical distribution averages responses at each observed input but leaves predictions unspecified elsewhere. Generalization therefore requires assumptions on regularity or model complexity.
+
+
+   
+\paragraph{Penalized linear models.}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-linear-fit}
+\caption{Linear regression.}
+\label{fig-review-ml-linear-fit}
+\end{figure}
+A linear model constrains $f$ to have the form $f(x,\be)=\dotp{x}{\be}$ with parameters $\be \in \Bb=\RR^p$. Affine predictors are included through the identity $\dotp{x}{\be}+\be_0=\dotp{(x,1)}{(\be,\be_0)}$, by appending a constant coordinate to $x$ to form $(x,1)$. We therefore use the linear notation below.
+
+Under the square loss, the regularized ERM~\eqref{eq-erm-param} is conveniently rewritten as 
+\eql{\label{eq-erm-lin}
+	\hat \be \in \uargmin{\be \in \Bb} \frac{1}{2} \dotp{\hat C \be}{\be} - \dotp{\hat u}{\be} + \la_n J(\be)
+}
+where we introduced the empirical second-moment matrix (equal to the covariance~\eqref{eq-emp-cov} for centered data) and cross-moment vector
+\eq{
+	\hat C \eqdef \frac{1}{n} X^* X = \frac{1}{n} \sum_{i=1}^n x_i x_i^*
+	\qandq
+	\hat u \eqdef \frac{1}{n} \sum_{i=1}^n y_i x_i = \frac{1}{n} X^* y \in \RR^p.
+}
+As $n\to+\infty$, suitable moment assumptions on $\pi$ give the following almost sure limits by the law of large numbers:
+\eql{\label{eq-empirical-conver}
+	\hat C \rightarrow C \eqdef \EE(\xp\xp^*)
+	\qandq
+	\hat u \rightarrow u \eqdef \EE(\yp \xp).
+}
+For appropriately chosen $\la_n \rightarrow 0$, the estimator can converge as $n \rightarrow +\infty$ to the population parameter
+\eq{
+	\bar \be \in \uargmin{\be} \enscond{ J(\be) }{ C\be=u }.
+}
+
+Problem~\eqref{eq-erm-lin} is equivalent to the regularized resolution of inverse problems~\eqref{eq-regul-inv}, with $X/\sqrt n$ in place of $\Phi$ and $y/\sqrt n$ as the observation vector.
+ 
+Random design introduces sampling error into the operator as well: $\hat C$ estimates $C$. The typical scale is $1/\sqrt{n}$, in the sense that
+\eq{
+	\EE(\norm{\hat C-C}) =O(n^{-1/2})
+	\qandq
+	\EE(\norm{\hat u-u}) =O(n^{-1/2}),
+}
+assuming $\EE(\yp^4)<+\infty$ and $\EE(\norm{\xp}^4)<+\infty$, which give finite second moments for $\xp\xp^*$ and $\xp\yp$. Using a linear predictor does not require a correctly specified model $\yp=\dotp{\xp}{\be} + w$ with noise $w$ independent of $\xp$. The aim is to estimate 

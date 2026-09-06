@@ -1,0 +1,105 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+\section{Approximation}
+
+                                           
+\subsection{Approximation in an Orthonormal Basis}
+
+Let $\Bb = \{ \psi_m \}_m$ be an orthonormal basis of $\Ldeux([0,1]^d)$, with $d=1$ for signals or $d=2$ for images.
+The complete expansion in this basis,
+\eq{
+	f = \sum_{m \in \ZZ} \dotp{f}{\psi_m} \psi_m
+}
+reconstructs the signal exactly. Approximation and processing methods modify the coefficients $\dotp{f}{\psi_m}$, introducing a reconstruction error.
+
+The simplest approximation reconstructs the signal from a subset $I_M \subset \ZZ$ of $M$ coefficients:
+\eq{
+	f_M \eqdef \sum_{m \in I_M} \dotp{f}{\psi_m} \psi_m, 
+	\qwhereq M = |I_M|.
+}
+The reconstructed signal $f_M$ is the orthogonal projection of $f$ onto the space
+\eq{
+	V_M \eqdef \Span\enscond{\psi_m}{m \in I_M}.
+}
+If the selected space $V_M$ depends on $f$, the overall approximation map $f \mapsto f_M$ may be nonlinear, even though projection onto each fixed space is linear.
+
+Since the basis is orthogonal, the approximation error is 
+\eq{
+	\norm{f-f_M}^2 = \sum_{m \notin I_M} |\dotp{f}{\psi_m}|^2.
+}
+The central choice is the retained index set $I_M$, which may depend on the signal $f$.
+
+                                           
+\subsection{Linear Approximation}
+
+Fixing $I_M$ independently of the input gives a linear approximation: the same coefficients are retained for every $f$. The map $f \mapsto f_M$ is then orthogonal projection onto a fixed space $V_M$, and it satisfies
+\eq{
+	(f+g)_M = f_M + g_M
+}
+For the Fourier basis and an even coefficient budget, one usually selects the low-frequency atoms
+\eq{
+	I_M = \{-M/2+1,\ldots,M/2\}.
+}
+For a 1-D wavelet basis, one usually selects the coarse wavelets
+\eq{
+	I_M=\{\text{coarsest scaling atoms and wavelets }(j,n)\text{ with }j\geq j_0\}
+}
+where $j_0$ is selected such that $|I_M|=M$.
+
+\myfigure{
+\tabtrois{
+\image{approximation}{.32}{approximation-original}&
+\image{approximation}{.32}{approximation-linear}&
+\image{approximation}{.32}{approximation-non-linear}\\
+Original $f$ & Linear $f_M^\ell$ & Nonlinear $f_M^n$
+}
+}{ 
+	Linear versus nonlinear wavelet approximation.  
+}{fig-approximation}
+
+Figure \ref{fig-approximation}, center, illustrates linear wavelet approximation. Discarding all fine-scale details blurs singularities, where the approximation is least accurate.
+
+                                           
+\subsection{Nonlinear Approximation}
+
+Allowing $I_M$ to depend on $f$ gives a nonlinear approximation. To choose $I_M$ that minimizes $\norm{f-f_M}$, orthogonality reduces the problem to retaining the $M$ coefficients of largest magnitude:
+\eq{
+	I_M= \{ M \text{ largest coefficients } |\dotp{f}{\psi_m}| \}.
+}
+When there are no ties at the cutoff, this can be obtained by thresholding
+\eq{
+	I_M = \enscond{m}{ |\dotp{f}{\psi_m}|>T }
+}
+where $T$ depends on the number of coefficients $M$, 
+\eq{
+	M = \#\enscond{m}{|\dotp{f}{\psi_m}|>T}.
+}
+
+  
+\paragraph{Computation of the threshold.}
+
+Order the coefficient magnitudes in nonincreasing order. For a finite vector, write
+\eql{\label{eq-dfn-ordered-coefs}
+	d_1\geq\cdots\geq d_N\geq0,\qquad\{d_m\}_{m=1}^{N}=\{|\dotp{f}{\psi_m}|\}_{m=1}^{N}
+	.
+}
+If $d_M>d_{M+1}$, any threshold $d_{M+1}\leq T<d_M$ retains exactly $M$ coefficients. At a tie, a deterministic rule must select among equal coefficients. Thus the threshold $T$ and coefficient count $M$ do not determine each other uniquely. Figure~\ref{fig-decay-coefs} illustrates the relationship.
+
+The following proposition shows that the decay of the ordered coefficients governs the decay of the nonlinear approximation error.
+
+\begin{prop}\label{prop-equiv-comp-decay}
+For $\alpha>0$, with $(d_m)_{m\geq1}$ in nonincreasing order, one has
+\eql{\label{eq-decay-coef-approx}
+	d_m = O( m^{-\frac{\al+1}{2}} )
+	\quad\Longleftrightarrow\quad
+	\norm{f-f_M}^2 = O(M^{-\al}).
+}
+\end{prop}
+
+\begin{proof}
+One has
+\eq{
+	\norm{f-f_M}^2 = \sum_{m>M} d_m^2
+}
+The forward implication follows from $\sum_{m>M}m^{-\alpha-1}\leq\alpha^{-1}M^{-\alpha}$. For the converse, taking $M$ even (integer rounding changes only constants),
+\eq{
+	d_M^2 \leq \frac{2}{M} \sum_{m=M/2+1}^{M} d_m^2 \leq 

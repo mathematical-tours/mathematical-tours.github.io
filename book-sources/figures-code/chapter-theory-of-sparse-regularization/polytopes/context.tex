@@ -1,0 +1,144 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+}_1.
+} 
+where $A \in \RR^{P \times N}$, and $\Ll_y \eqdef \enscond{x \in \RR^N}{Ax=y}$.
+
+Recall that we observe noisy measurements
+\eq{
+	y=A x_0 + w
+}
+We seek conditions ensuring that $x_0$ solves $\Pp_0(Ax_0)$ in the noiseless case, and quantitative bounds on its distance to solutions of $\Pp_\lambda(Ax_0+w)$ when $\lambda$ is chosen according to the noise level.
+
+The objective in~\eqref{eq-lasso-lagr} is continuous and coercive because $\norm{\cdot}_1$ is coercive, so a minimizer exists.
+ 
+Uniqueness is not automatic: $A$ may have a nontrivial kernel, and $\norm{\cdot}_1$ is not strictly convex.
+ 
+If $y \in \Im(A)$, the constraint set in~\eqref{eq-lasso-constr} is nonempty. A constrained minimizer also exists but need not be unique.
+
+
+
+\begin{figure}
+\centering
+  
+\begin{tabular}{@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s3}&
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s6}\\
+$s=3$  & $s=6$ \\
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s13}&
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s25}\\
+$s=13$  & $s=25$ 
+\end{tabular}
+  
+\caption{\label{fig-homotopy}
+Solution paths $\la \mapsto x_\la$ for~\eqref{eq-lasso-lagr}.
+}
+\end{figure}
+
+Figure~\ref{fig-homotopy} shows how the recovered coefficients change with $\lambda$, illustrating the effect of regularization on sparsity and reconstruction accuracy.
+
+
+
+
+
+                                                                                  
+\subsection{Polytope Projection for the Constrained Problem}
+\label{sec-polytope-proj}
+
+The next proposition characterizes noiseless $\ell^1$ recovery geometrically.
+
+\begin{prop}\label{prop-polytope-proj}
+	We denote $B \eqdef \enscond{x \in \RR^N}{\norm{x}_1 \leq 1}$. For $x_0\neq0$, assuming $\Im(A)=\RR^P$,
+	\eql{\label{eq-polytop-ident} 
+		x_0 \text{ is a solution to } \Pp_0(Ax_0)
+		\quad\Longleftrightarrow\quad
+		A \frac{x_0}{\norm{x_0}_1} \in \partial (AB)
+	} 
+	where ``$\partial$'' denotes the boundary and $AB=\enscond{Ax}{x\in B}$.
+\end{prop}
+
+\begin{proof}
+Set $r=\norm{x_0}_1>0$ and $q=Ax_0/r$. If $x_0$ is not optimal, there is $z$ with $Az=Ax_0$ and $\norm{z}_1<r$. Since $A$ is onto, $A^+$ is a bounded right inverse. For sufficiently small $h\in\RR^P$,
+\eq{
+ \norm{z/r+A^+h}_1\leq\norm{z}_1/r+\norm{A^+h}_1<1,
+}
+and $q+h=A(z/r+A^+h)\in AB$. Thus $q$ is an interior point of $AB$.
+
+Conversely, if $q\neq0$ is interior, then $(1+t)q\in AB$ for some $t>0$. Choose $u\in B$ with $Au=(1+t)q$. The vector $z=ru/(1+t)$ satisfies $Az=Ax_0$ and $\norm{z}_1<r$, so $x_0$ is not optimal. If $q=0$, the zero vector is already a better feasible point. These two implications prove the equivalence.
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/sparse-theory-polytope-proof}
+\caption{Geometry of the polytope characterization of exact recovery.}
+\label{fig-polytope-proof}
+\end{figure}
+\end{proof}
+
+For a nonzero recovered vector $x_0$, its measurement $Ax_0$ lies on the boundary of the scaled polytope $\norm{x_0}_1 A B$. When $P$ is much smaller than $N$, projection can remove faces and prevent $\ell^1$ recovery. Chapter~\ref{chap-cs} studies random projections that preserve enough of the geometry of the $\ell^1$ ball in $\RR^N$ to allow recovery from $\RR^P$.
+
+Identifiability is unchanged by positive scaling: if $x_0$ is identifiable, so is $\rho x_0$ for every $\rho>0$. More generally, the relevant face of $B$, and hence condition~\eqref{eq-polytop-ident}, depends only on $\sign(x_0)$.
+ 
+For this geometric discussion, assume uniqueness and let $\Aa : y \mapsto x^\star$ map each datum $y$ to the solution of~\eqref{eq-lasso-constr}.
+ 
+By~\eqref{eq-polytop-ident}, $A$ and $\Aa$ are inverse maps between the cones $\Cc_s = \enscond{x}{\sign(x)=s}$ and $A\Cc_s$ for recoverable sign patterns $s$. Including the lower-dimensional cones and the origin, their images $A\Cc_s$ partition $\RR^P$. Suppose that the columns $(a_j)_j$ of $A$ have unit norm. For $P=3$, intersecting the cones $A\Cc_s$ with the unit sphere in $\RR^3$ gives a spherical Delaunay subdivision, which is a triangulation under a general-position assumption; see Figure~\ref{fig-delaunay}. In higher dimensions, simplices replace triangles. The subdivision satisfies the empty-cap property: the spherical cap bounded by a triangle's circumcircle contains no signed column $\pm a_j$ in its interior.
+ 
+Figure~\ref{fig-polytopes} illustrates these conclusions in $\RR^2$ and $\RR^3$.
+
+
+\begin{figure}
+\centering
+  
+\begin{tabular}{@{}c@{}c@{\hspace{3mm}}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/polytopes/polytopes-32-1}&
+\includegraphics[width=.35\linewidth]{sparse-theory/polytopes/polytopes-32-2}&
+\includegraphics[width=.25\linewidth]{sparse-theory/polytopes/polytopes-3d}\\
+$A\in \RR^{2\times 3}$& $A\in \RR^{2\times 3}$ & $A\in \RR^{3\times N}$
+\end{tabular}
+  
+\caption{\label{fig-polytopes}
+The linear map $A$ projects the $\ell^1$ ball $B$; the nonlinear recovery map $\Aa$ selects solutions of~\eqref{eq-lasso-constr}.
+}
+\end{figure}
+
+                                                                                  
+\subsection{Optimality Conditions}
+
+For an index set $I \subset \{1,\ldots,N\}$, write $A=(a_i)_{i=1}^N$ for the columns of $A$ and $A_I \eqdef (a_i)_{i \in I} \in \RR^{P \times |I|}$ for the corresponding submatrix. For a vector $x \in \RR^N$, write $x_I \eqdef (x_i)_{i \in I} \in \RR^{|I|}$ for its restriction.
+
+The following proposition rephrases the first-order optimality conditions in a convenient form.
+
+\begin{prop}\label{prop-first-order-lagr}
+	$x_\la$ is a solution to~\eqref{eq-lasso-lagr} for $\la>0$ if and only if
+	\eq{
+		\eta_{\la,I} = \sign(x_{\la,I})
+		\qandq
+		\norm{\eta_{\la,I^c}}_\infty \leq 1
+	}
+	where we define
+	\eql{\label{eq-defn-eta-lamb}
+		I\eqdef \supp(x_\la) \eqdef \enscond{i}{ x_{\la,i} \neq 0 }, 
+		\qandq	\eta_\la \eqdef \frac{1}{\la}A^*(y-Ax_\la).
+	}
+\end{prop}
+\begin{proof}
+The objective in~\eqref{eq-lasso-lagr} is the sum of a differentiable convex function and a continuous convex penalty. The subdifferential sum rule gives
+\eq{
+	\partial f_\la(x) = \frac{1}{\la}A^*(Ax-y)  + \partial\norm{\cdot}_1(x).
+} 
+Thus $x_\la$ is a solution to~\eqref{eq-lasso-lagr} if and only if $0 \in \partial f_\la(x_\la)$, which gives the desired result.
+\end{proof}
+
+In particular, $\supp(x_\la) \subset \sat(\eta_\la)$, where $\sat(\eta)=\{i:|\eta_i|=1\}$ is the saturation set.
+
+For the constrained case $\la=0$, the next proposition introduces dual certificates arising from the Lagrange multipliers associated with $\Ll_y$.
+
+\begin{prop}\label{prop-first-order-constr}
+	$x^\star$ solves~\eqref{eq-lasso-constr} if and only if $Ax^\star=y$ and
+	\eql{\label{eq-defn-dual-certif}
+		\exists \eta \in \Dd_0(y,x^\star) \eqdef \Im(A^*) \cap \partial \norm{\cdot}_1(x^\star).
+	}
+\end{prop}
+\begin{proof}
+The norm penalty in~\eqref{eq-lasso-constr} is continuous, so the subdifferential sum rule gives
+\eq{
+	\partial f_0(x) = \partial \iota_{\Ll_y}(x) + \partial\norm{\cdot}_1(x).
+}
+If $x \in \L

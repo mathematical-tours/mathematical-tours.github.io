@@ -1,0 +1,94 @@
+% Context from chapters/machine-learning.tex; for mathematical reference, not compilation.
+\section{Supervised Learning: Classification}
+\label{sec-classif}
+
+For classification, the labels are discrete: $y_i \in \Yy = \{1,\ldots,k\}$.
+ 
+We study two standard methods: nearest neighbors and logistic classification.
+ 
+Both methods provide useful baselines for assessing more elaborate models.
+ 
+Nearest-neighbor methods also apply to regression.
+
+                                                                                                            
+\subsection{Nearest-Neighbor Classification}
+\label{sec-nn-classif}
+
+The $R$-nearest-neighbor method ($R$-NN) classifies an input using the labels of its $R$ nearest training observations. Increasing $R$ reduces sensitivity to individual noisy labels, but excessive smoothing can obscure class boundaries. For consistency, a standard asymptotic choice has $R=R_n\to\infty$ and $R_n/n\to0$.
+ 
+Nearest-neighbor classification is a useful baseline, especially when the feature dimension $p$ is small.
+
+The prediction $\hat f(x)\in\Yy$ is the most frequent label among those $R$ observations, with a fixed rule for breaking ties. The method is nonparametric: its representation depends on the training sample rather than on a fixed-dimensional parameter vector.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-nearest-neighbors}
+\caption{Nearest neighbors.}
+\label{fig-review-ml-nearest-neighbors}
+\end{figure}
+First compute the Euclidean distance from the query $x$ to each training observation $x_i$.
+ 
+Sorting the distances generates an indexing $\si$ (a permutation of $\{1,\ldots,n\}$) such that 
+\eq{
+ 	\norm{x-x_{\si(1)}} \leq \norm{x-x_{\si(2)}} \leq \ldots \leq \norm{x-x_{\si(n)}}. 
+}
+For a given $R$, one can compute the ``local'' histogram of classes around $x$
+\eq{
+	h_\ell(x)\eqdef\frac1R\#\{i\in\{1,\ldots,R\}:y_{\si(i)}=\ell\}.
+}
+The predicted class at $x$ is an index attaining the largest histogram value:
+\eq{
+	\hat f(x) \in \uargmax{\ell} h_\ell(x).
+}
+
+Choose $R$ by validation or cross-validation. For classification, the validation risk~\eqref{eq-valid-risk} typically uses the 0--1 loss, giving the fraction of misclassified observations
+\eq{
+	R_{\bar n}\eqdef\frac1{\bar n}\sum_{j=1}^{\bar n}\de(\bar y_j-\hat f(\bar x_j))
+}
+where $\de(0)=0$ and $\de(s)=1$ if $s \neq 0$. 
+ 
+The method also applies to features in a general metric space in place of $\RR^p$.
+ 
+Fast nearest-neighbor search can avoid explicitly sorting every distance.
+	
+\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{}}
+\includegraphics[width=.22\linewidth]{ml/pca-nn/knn-1}&
+\includegraphics[width=.22\linewidth]{ml/pca-nn/knn-5}&
+\includegraphics[width=.22\linewidth]{ml/pca-nn/knn-10}&
+\includegraphics[width=.22\linewidth]{ml/pca-nn/knn-40}\\
+$R=1$ & $R=5$ & $R=10$ & $R=40$
+\end{tabular}
+\caption{\label{fig-hist-classif}
+Classification boundaries produced by $R$-nearest neighbors.
+}
+\end{figure}
+
+Figure~\ref{fig-hist-classif} shows the predicted class regions $\enscond{x}{\hat f(x)=\ell}$, for $\ell=1,\ldots,k$, in a two-dimensional projection of the Iris dataset.
+ 
+Increasing $R$ leads to smoother class boundaries.
+
+                                                  
+\subsection{Binary Logistic Classification}
+\label{sec-two-class-logit}
+
+Logistic classification is a widely used baseline for binary and multiclass prediction. It outputs a probability for each class, providing a richer prediction than a class label alone. The accuracy of these probabilities must still be assessed on held-out data.
+ 
+The standard name for this model is logistic regression, even when the prediction task is classification.
+
+Support vector machines provide another common approach. Their hinge loss is nonsmooth, and their scores are not probabilities without an additional calibration step. The choice between these methods depends on the task and evaluation criterion.
+
+For the binary formulas below, use labels $y_i \in \Yy = \{-1,1\}$. In logistic classification, the prediction $f(\cdot,\be) \in [0,1]$ is a probability for the positive class rather than a class label. We retain the notation $f$ for this probability predictor.
+
+
+    
+\paragraph{Approximate risk minimization.}
+
+A linear score $\dotp{x}{\be}$ defines the classifier $\sign(\dotp{x}{\be})$, with either class assigned when the score is zero. The empirical 0--1 objective counts classification errors, leading to the minimization problem
+\eql{\label{eq-ideal-classif}
+	\umin{\be} \sum_{i=1}^n \ell_0(-y_i \dotp{x_i}{\be})
+} 
+where $\ell_0=1_{[0,+\infty)}$ counts zero margins as errors. Away from ties, misclassification corresponds to $\dotp{x_i}{\be}$ and $y_i$ having different signs, so that in this case $\ell_0(-y_i \dotp{x_i}{\be})=1$ (and 0 otherwise for correct classification).
+
+The loss $\ell_0$ is nonconvex, and solving~\eqref{eq-ideal-classif} globally is NP-hard in general. Convex upper bounds on $\ell_0$ provide tr

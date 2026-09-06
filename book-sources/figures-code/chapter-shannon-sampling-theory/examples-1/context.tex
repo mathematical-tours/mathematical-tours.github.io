@@ -1,0 +1,69 @@
+% Context from chapters/shannon.tex; for mathematical reference, not compilation.
+\section{Continuous and Discrete Signals}
+
+To analyze signal-processing methods, we often begin with a continuous model of the physical input to a sensor.
+ 
+Examples include microphones, digital cameras, and medical imaging devices.
+ 
+For example, a one-dimensional signal can be modeled by $f_0\in\Ldeux([0,1])$, where $[0,1]$ is the acquisition interval, often representing time. A grayscale image can be modeled by $f_0\in\Ldeux([0,1]^2)$ on the unit square.
+
+Although sound and natural images provide many of our examples, most of the methods extend to multidimensional data. After normalizing the signal values, these data can be represented by mappings
+\eq{
+	f_0 : [0,1]^d \rightarrow [0,1]^s
+}
+Here $d$ is the dimension of the acquisition domain and $s$ is the number of channels. Grayscale images have $(d,s)=(2,1)$, grayscale videos have $(d,s)=(3,1)$, and RGB color images have $(d,s)=(2,3)$. Multispectral images have $d=2$ and many channels, each recording a different wavelength range. Figures~\ref{fig-examples-1} and~\ref{fig-examples-2} illustrate these types of data.
+
+
+\myfigure{
+	\image{orthobases}{.35}{example-sound}
+	\image{orthobases}{.28}{example-image}
+	\image{orthobases}{.3}{example-video}
+}{ 
+	Examples of sound ($d=1$), an image ($d=2$), and a video ($d=3$).  
+}{fig-examples-1}
+
+\myfigure{
+	\image{orthobases}{.4}{example-color}
+	\image{orthobases}{.5}{example-multispectral}
+}{ 
+	A color image ($s=3$) and a multispectral image ($s=32$).  
+}{fig-examples-2}
+
+
+                                           
+\subsection{Acquisition and Sampling}
+
+Signal acquisition maps a continuous signal to a finite-dimensional vector of measurements. A microphone records samples along a time axis, whereas a digital camera records samples on a two-dimensional pixel grid. Abstractly, an acquisition operator maps
+\eq{
+	f_0 \in \Ldeux([0,1]^d) \mapsto f \in \CC^N
+}
+
+\myfigure{
+	\image{orthobases}{.4}{discretization-image}
+	\image{orthobases}{.5}{discretization-sound}
+}{ 
+	Image and sound discretization.   
+}{fig-discretization}
+
+Figure \ref{fig-discretization} shows examples of discretized signals.
+
+                                           
+\subsection{Linear Translation-Invariant Sampling}
+
+To model translation-invariant sampling, extend the signal outside its acquisition domain according to the chosen boundary convention, convolve it with a fixed impulse response $h$, and sample the result:
+\eql{\label{eq-linear-sampling}
+	f_n = \int_{\RR} f_0(x) h(n/N-x)\,\d x = (f_0\star h)(n/N).
+}
+The impulse response $h(x)$ depends on the device. It is typically a smooth low-pass kernel concentrated near $x=0$. Its effective width $S$ controls spatial resolution: a wide kernel blurs the signal, whereas a narrow kernel may fail to suppress frequencies that cause aliasing. A width of order $1/N$ balances these effects at the sampling scale.
+
+Section~\ref{subsec-sampling} explains when a bandlimited signal can be reconstructed from its samples. Smoothness alone does not guarantee exact recovery.
+
+
+                                                                    
+                                                                    
+                                                                    
+\section{Shannon Sampling Theorem}
+\label{subsec-sampling}
+
+   
+\paragraph{T

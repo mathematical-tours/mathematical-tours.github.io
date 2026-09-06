@@ -1,0 +1,162 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+{.2}{2d-extension-fourier-3}
+}{ 
+	2D Fourier orthogonal bases.   
+}{fig-2d-fourier-extension}
+
+
+   
+\paragraph{On \texorpdfstring{$(\RR/2\pi\ZZ)^d$}{the Torus}.}
+
+Given an orthonormal basis $(\phi_{n_1})_{n_1 \in \NN}$ of $L^2(\XX)$, one constructs an orthonormal basis of $L^2(\XX^d)$ by tensorization
+\eql{\label{eq-tensor-product}
+	\foralls k=(k_1,\ldots,k_d) \in \NN^d, \quad
+	\foralls x \in \XX^d, \quad
+	\phi_k(x) = \phi_{k_1}(x_1) \ldots \phi_{k_d}(x_d).
+}
+Fubini's theorem gives orthogonality. Completeness gives convergence of the rectangular partial sums $\sum_{\norm{k}_\infty \leq N} \dotp{f}{\phi_k} \phi_k \rightarrow f$ in $L^2(\XX^d)$.
+
+           
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-torus}
+\caption{The two-dimensional torus $\TT^2=(\RR/2\pi\ZZ)^2$.}
+\label{fig-review-fourier-torus}
+\end{figure}
+   
+For the multidimensional torus $(\RR/2\pi\ZZ)^d$, using the Fourier basis~\eqref{eq-fourier-basis-1d}, this gives the basis
+\eq{
+	\foralls k \in \ZZ^d, \quad \phi_k(x) = e^{\imath \dotp{x}{k}}
+} 
+which is indeed a Hilbertian orthonormal basis for the inner product $\dotp{f}{g} \eqdef \frac{1}{(2\pi)^d} \int_{\TT^d} f(x)\bar g(x)\d x$. 
+ 
+This defines the Fourier transform and the reconstruction formula on $L^2(\TT^d)$
+\eq{
+	\hat f_k \eqdef \frac{1}{(2\pi)^d} \int_{\TT^d} f(x) e^{-\imath \dotp{x}{k}}  \d x
+	\qandq
+	f = \sum_{k \in \ZZ^d} \hat f_k e^{\imath \dotp{x}{k}}.
+}
+
+                                                
+\subsection{On Discrete Domains}
+\label{sec-fft-2d}
+
+    
+\paragraph{Discrete Fourier Transform.}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-torus-discrete}
+\caption{Discrete 2-D torus.}
+\label{fig-review-fourier-torus-discrete}
+\end{figure}
+On a $d$-dimensional discrete domain of the form
+\eq{
+	n = (n_1,\ldots,n_d) \in \YY_d \eqdef \range{1,N_1} \times \ldots \times \range{1,N_d}
+}
+(we denote $\range{a,b} \eqdef \enscond{i \in \ZZ}{a \leq i \leq b}$)
+of $N=N_1\ldots N_d$ points, with periodic boundary conditions, one defines an orthogonal basis $(\phi_k)_k$ by the same tensor product formula as~\eqref{eq-tensor-product} but using the 1-D discrete Fourier basis~\eqref{eq-dft}
+\eql{\label{eq-exp-four-disc-multid}
+	\foralls (k,n) \in \YY_d^2, \quad
+	\phi_k(n) = \phi_{k_1}(n_1) \ldots \phi_{k_d}(n_d) 
+	= \prod_{\ell=1}^d e^{\frac{2\imath\pi}{N_\ell} k_\ell n_\ell}
+	= e^{ 2\imath\pi \dotp{k}{n}_{\YY_d} } 	
+} 
+where we used the (rescaled) inner product
+\eql{\label{eq-inner-prod-multi-d}
+	\dotp{k}{n}_{\YY_d} \eqdef \sum_{\ell=1}^d \frac{k_\ell n_\ell}{N_\ell}.
+}
+The pairing in~\eqref{eq-inner-prod-multi-d} acts on frequency and spatial index vectors. The basis $(\phi_k)_k$ is orthonormal for the signal inner product $N^{-1}\sum_n f_n\bar g_n$. As in one dimension, we define the Fourier coefficients without normalizing by $(N_\ell)_\ell$:
+\begin{align*}
+	\foralls k \in \YY_d, \quad 
+	\hat f_k &\eqdef \sum_{n \in \YY_d} f_n e^{-2\pi\imath\dotp{k}{n}_{\YY_d}}, \\
+	\foralls n \in \YY_d, \quad 
+	f_n &= \frac{1}{N} \sum_{k \in \YY_d} \hat f_k e^{2\pi\imath\dotp{k}{n}_{\YY_d}}.
+\end{align*}
+
+
+
+    
+\paragraph{Fast Fourier Transform.}
+
+We describe the algorithm for $d=2$; the same construction works in any finite dimension.
+ 
+A fast algorithm for orthogonal decompositions in two 1-D bases $(\phi_{k_1}^{1})_{k_1=1}^{N_1}$, $(\phi_{k_2}^{2})_{k_2=1}^{N_2}$ also gives a fast decomposition in the tensor product basis
+$(\phi_{k_1}^{1} \otimes \phi_{k_2}^{2})_{k_1,k_2}$: apply the algorithm first to the rows and then to the columns of the matrix $(f_n)_{n=(n_1,n_2)} \in \RR^{N_1 \times N_2}$. Either order gives the same result.
+ 
+Indeed
+\eq{
+	\foralls k=(k_1,k_2), \quad
+	\dotp{f}{\phi_{k_1}^{1} \otimes \phi_{k_2}^{2}}
+	= \sum_{n=(n_1,n_2)} f_n\overline{\phi_{k_1}^{1}(n_1)}\,\overline{\phi_{k_2}^{2}(n_2)} =
+	\sum_{n_1} \pa{
+		\sum_{n_2} f_{n_1,n_2}\overline{\phi_{k_2}^{2}(n_2)}
+	}\overline{\phi_{k_1}^{1}(n_1)}.
+}
+If $C(N_1)$ is the cost of the 1-D algorithm on $\RR^{N_1}$, the resulting 2-D transform costs $N_2 C(N_1)+N_1 C(N_2)$. For the FFT, this is $O(N_1 N_2 \log(N_1 N_2))=O(N \log(N))$, where $N=N_1 N_2$.
+
+Represent $f \in \RR^{N_1 \times N_2}$ as a matrix, and write $F_N=(e^{-2\imath\pi kn/N})_{k,n}$ for the Fourier matrix, whose rows are the $\phi_k^*$. The 2-D transform can then be expressed as matrix products:
+\eq{
+	\hat f = F_{N_1} \times f \times F_{N_2}^{\top}\in\CC^{N_1\times N_2}.
+}
+In practice, the FFT performs these operations without explicit matrix multiplication.
+
+\myfigure{
+\tabquatre{
+\image{fourier}{.238}{fourier-2d-image}&
+\image{fourier}{.238}{fourier-2d-fft}&
+\image{fourier}{.238}{fourier-2d-masked}&
+\image{fourier}{.238}{fourier-2d-masked-fft}
+}
+}{ 
+	2-D Fourier analysis of an image (left), and attenuation of the periodicity artifact using masking (right).  
+}{fig-fourier-2d}
+
+
+\texttt{Associated code: coding/test\_fft2.m}
+
+
+                                                
+\subsection{Shannon sampling theorem.}
+
+Theorem~\ref{thm-shannon-sampling} extends to sampling on a uniform Cartesian grid in $\RR^d$ by tensorization. Use the continuous representative of the bandlimited function $f$. In two dimensions, if $\supp(\hat f) \subset [-\pi/s_1,\pi/s_1] \times [-\pi/s_2,\pi/s_2]$ and $f$ decays sufficiently fast,
+\eq{
+		\foralls x \in \RR^2, \quad 
+		f(x) = \sum_{n \in \ZZ^2} f(n_1 s_1,n_2 s_2) \sinc(x_1/s_1-n_1) \sinc(x_2/s_2-n_2) \qwhereq
+		\sinc(u) = \frac{\sin(\pi u)}{\pi u}.
+}
+	
+
+                                                
+\subsection{Convolution in higher dimension.}
+
+Convolution on $\XX^d$, for $\XX=\RR$ or $\XX=\RR/2\pi\ZZ$, is defined as in one dimension:
+\eq{
+	f \star g(x) = \int_{\XX^d} f(t) g(x-t) \d t. 
+}
+Similarly, finite discrete convolution of vectors $f \in \RR^{N_1 \times N_2}$ extends formula~\eqref{eq-finite-convol} as
+\eq{
+	\foralls n \in \range{0,N_1-1} \times \range{0,N_2-1}, \quad
+	(f \star g)_n \eqdef \sum_{k_1=0}^{N_1-1} \sum_{k_2=0}^{N_2-1} f_k g_{n-k}  
+}
+where additions and subtractions of vectors are performed modulo $(N_1,N_2)$.
+
+The Fourier-convolution identity $\Ff(f \star g)=\hat f \odot \hat g$ holds in each of these settings. In the finite case, it yields an $O(N \log(N))$ convolution algorithm even when $f$ and $g$ have large support.
+
+
+                                                
+                                                
+                                                
+\section{Application to ODEs and PDEs}
+\label{sec-fourier-pdes}
+
+                                                
+\subsection{On Continuous Domains}
+
+We give the main calculations, leaving analytic details of existence and regularity aside.
+
+On $\XX=\RR$ or $\TT$, one has
+\eq{
+	\Ff( f^{(k)} )(\om) = (\imath \om)^k \hat f(\om). 
+}
+Intuitively, $f^{(k)} = f \star \de^{(k)}$ where $\de^{(k)}$ is a distribution with Fourier t

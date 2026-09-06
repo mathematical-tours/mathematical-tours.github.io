@@ -11,7 +11,7 @@ import re
 import shutil
 import subprocess
 import sys
-from tikz_reviews import build_reviews, prepare_comparisons
+from figure_tex import book_labels
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build"
@@ -84,7 +84,9 @@ def build_chapter(name, number):
         if chapter != name and path.exists():
             labels.extend(s for s in path.read_text().splitlines() if s.startswith("\\newlabel{"))
     external = directory / "book-external.aux"
-    external.write_text("\n".join(labels) + "\n")
+    # xr-hyper must recognize the already complete five-field label records;
+    # otherwise \hyperref links acquire spurious compatibility fields.
+    external.write_text("\\HyperFirstAtBeginDocument{}\n" + "\n".join(labels) + "\n")
     driver = directory / "driver.tex"
     definitions = [rf"\def\StandaloneChapter{{{name}}}", rf"\def\StandaloneNumber{{{number}}}",
                    rf"\def\BookExternalReferences{{{external.with_suffix('').relative_to(ROOT)}}}"]
@@ -93,25 +95,23 @@ def build_chapter(name, number):
     driver.write_text("\n".join(definitions) + f"\n\\input{{{MAIN}.tex}}\n")
     return compile_document(name, driver.relative_to(ROOT), directory)
 
-def build_figures():
-    directory = BUILD / "figures"
-    directory.mkdir(parents=True, exist_ok=True)
-    run([sys.executable, "scripts/variance_stabilization.py"], directory / "variance-data.txt")
-    for relative in ("figures/ml/classif/losses-corrected", "figures/denoising/variance-stabilization-corrected",
-                     "figures/wavelets/wavelets-2d-support-corrected"):
-        source = ROOT / (relative + ".tex")
-        destination = source.with_suffix(".pdf")
-        dependencies = [source]
-        if source.with_suffix(".dat").exists():
-            dependencies.append(source.with_suffix(".dat"))
-        if destination.exists() and destination.stat().st_mtime >= max(p.stat().st_mtime for p in dependencies):
-            continue
-        run(["pdflatex", "-interaction=nonstopmode", "-halt-on-error",
-             f"-output-directory={directory.relative_to(ROOT)}", str(source)], directory / f"{source.stem}.txt")
-        log = (directory / f"{source.stem}.log").read_text(errors="replace")
-        if any(DIAGNOSTIC.match(line) for line in log.splitlines()):
-            raise RuntimeError(f"Figure diagnostics in {directory / (source.stem + '.log')}")
-        shutil.copy2(directory / destination.name, destination)
+def build_figures(jobs=4):
+    directory=BUILD/'figure-regeneration';directory.mkdir(parents=True,exist_ok=True)
+    python=os.environ.get('FIGURE_PYTHON')
+    if not python:
+        local=BUILD/'figure-runtime/bin/python'
+        python=str(local) if local.exists() else sys.executable
+    run([python,'scripts/regenerate_figures.py','--jobs',str(jobs)],directory/'regeneration-console.txt')
+
+def check_reading_assets():
+    items=json.loads((ROOT/'figure-processing/figure-project.json').read_text())
+    for item in items:
+        if item.get('in_book') and item.get('review_state')!='accepted':raise RuntimeError('Only author-accepted reconstructions may be integrated: '+item['id'])
+        for asset in item['published_assets']:
+            path=ROOT/'figures'/asset['published']
+            if not path.exists() or hashlib.sha256(path.read_bytes()).hexdigest()!=asset['sha256']:
+                raise RuntimeError(f'Preserved reading asset changed or missing: {path}')
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -123,15 +123,16 @@ def main():
     for program in ("pdflatex", "bibtex"):
         if not shutil.which(program):
             parser.error(f"{program} is required; install TeX Live")
-    build_figures()
-    build_reviews(ROOT, BUILD, chapter_list(), run, DIAGNOSTIC, args.jobs)
+    check_reading_assets()
+    build_figures(args.jobs)
     print("Building the complete book...", flush=True)
     book = compile_document(MAIN, ROOT / f"{MAIN}.tex", BUILD / "book")
     print(f"Book: {book['pages']} pages, {len(book['diagnostics'])} diagnostics", flush=True)
-    prepare_comparisons(ROOT, BUILD, chapter_list())
+    book_labels(ROOT, BUILD, chapter_list())
     print("Building the separate figure comparison volume...", flush=True)
-    comparisons = compile_document("figure-comparisons", ROOT / "figure-processing/figure-comparisons.tex",
-                                   BUILD / "figure-processing")
+    from build_figure_comparator import build_comparisons
+    comparisons=build_comparisons(preview=True)
+    comparisons["name"]="figure-comparisons"
     reports = [book, comparisons]
     print(f"Comparisons: {comparisons['pages']} pages, {len(comparisons['diagnostics'])} diagnostics", flush=True)
     if not args.book_only:
@@ -154,7 +155,7 @@ def main():
         if report["name"] == "figure-comparisons":
             destination = ROOT / "figure-processing/figure-comparisons.pdf"
         shutil.copy2(report["pdf"], destination)
-    shutil.copy2(BUILD / "figure-processing/figure-index.json", ROOT / "figure-processing/figure-index.json")
+    shutil.copy2(BUILD / "figure-regeneration/complete-figure-index.json", ROOT / "figure-processing/figure-index.json")
     print(f"Published {len(reports)} PDFs. Report: {report_path}")
     return 0
 

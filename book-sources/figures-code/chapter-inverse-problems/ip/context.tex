@@ -1,0 +1,95 @@
+% Context from chapters/inverse-problems.tex; for mathematical reference, not compilation.
+\section{Regularization of Inverse Problems}
+
+We extend the convex regularization introduced in Chapter \ref{chap-variational} to linear measurement operators.
+
+We consider a bounded linear map $\Phi : \Ss \rightarrow \Hh$, where the signal space $\Ss$ is a Hilbert space or, more generally, a Banach space. The data space $\Hh$ is a Hilbert space.
+ 
+The operator models acquisition: an unknown high-resolution signal $f_0 \in \Ss$ gives rise to the noisy observation
+\eq{
+	y = \Phi f_0 + w \in \Hh
+}
+where $w \in \Hh$ represents acquisition noise. Here the noise is deterministic; we assume only that $\norm{w}_\Hh$ is bounded.
+
+An acquisition device records finitely many observations, so applications usually take $\Hh=\RR^P$. The number $P$ may be small relative to the desired reconstruction dimension.
+ 
+For numerical implementation, we discretize the signal space as $\Ss=\RR^N$, where $N$ is the number of grid points. Usually the grid is much finer than the measurement set, so $N \gg P$.
+ 
+Infinite-dimensional function spaces remain useful for modeling the unknown $f_0$ and analyzing recovery, particularly when choosing the signal space $\Ss$.
+
+Direct inversion may be impossible because $\Phi$ is not injective or the data do not lie in its range. Even when an inverse exists on the range, it may have a large norm or be unbounded. Applying it to noisy data amplifies the perturbation: formally, $\Phi^{-1}y=f_0+\Phi^{-1}w$.
+
+We now give a few representative examples of forward operators $\Phi$.
+
+   
+\paragraph{Denoising.}
+
+The identity operator $\Phi=\Id_\Ss$ with $\Ss=\Hh$ gives the denoising problem studied in Chapters \ref{chap-denoising} and \ref{chap-variational}.
+
+   
+\paragraph{De-blurring and super-resolution.}
+
+For a general operator $\Phi$, recovering $f_0$ requires both inversion and denoising. These goals often conflict because inversion amplifies noise.
+ 
+For example, in deblurring, $\Phi$ is a translation-invariant operator corresponding to low-pass filtering with a kernel $h$
+\eql{\label{eq-deblurring-operator}
+	\Phi f = f \star h.
+}
+A periodic model takes $\Ss=\Hh=L^2(\TT^d)$; see Proposition~\ref{prop-ti-convol-l2}.
+ 
+In practice, the blurred signal is sampled on a grid: $\Phi f = \enscond{(f \star h)(x_k)}{0 \leq k< P}$. Figure \ref{fig-ip}, middle, shows the resulting low-resolution image $\Phi f_0$.
+ 
+Inverting such operators is useful for increasing the resolution of digital photographs and videos.
+
+
+   
+\paragraph{Interpolation and inpainting.}
+
+Inpainting reconstructs missing pixels. We model the masking operation by an operator that is diagonal in the spatial domain:
+\eql{\label{eq-inp-operator}
+	(\Phi f)(x) = \choice{
+	0 \qifq x \in \Om,\\
+	f(x) \qifq x \notin \Om.
+	}
+}
+Here $\Omega$ is the missing region, either a subset of $[0,1]^d$ in the continuous model or a set of pixel indices in the discrete model.
+ 
+Figure \ref{fig-ip}, right, shows an example of a damaged image $\Phi f_0$.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{ip-sample-image}&
+\image{invpbm}{.3}{ip-sample-superresol}&
+\image{invpbm}{.3}{ip-sample-inpainting}\\
+Original $f_0$ & Low resolution $\Phi f_0$ & Masked $\Phi f_0$
+}
+}{ 
+	Examples of forward operators in inverse problems.  
+}{fig-ip}
+
+
+   
+\paragraph{Medical imaging.}
+
+Many medical imaging devices provide indirect access to the signal of interest, with acquisition processes that can be approximated by a linear operator $\Phi$.
+ 
+For a tomographic scanner, the Radon transform models acquisition. The Fourier slice theorem relates these measurements to Fourier data along radial lines.
+  
+An idealized magnetic resonance imaging (MRI) model also uses partial Fourier measurements:
+\eql{\label{eq-partial-fourier-operator}
+	\Phi f= \enscond{ \hat f(x) }{ x \in \Om }.
+}
+Here $\Om$ consists of radial lines for tomography or acquisition trajectories such as spirals for MRI.
+
+Electroencephalography (EEG) and magnetoencephalography (MEG) also infer internal activity from measurements at sensors outside the sources. Abstractly, such a linearized model can be written as $(\Phi f)(s)=\int K(s,x)f(x)\,\mathrm{d}x$, where the kernel depends on the geometry and physical model. Unlike a simple image blur, this kernel need not be translation invariant.
+
+   
+\paragraph{Regression for supervised learning.}
+
+Linear supervised learning is closely related to the imaging problems studied here, although it uses different notation. Section~\ref{sec-regression} develops the connection between regression and inverse problems.
+ 
+In statistical learning, the data are $n$ pairs $(x_i,y_i)_{i=1}^n$ with feature vectors $x_i \in \RR^p$. A linear prediction model has the form $y_i = \dotp{\be}{x_i}$, with unknown parameter $\be \in \RR^p$. Placing the vectors $x_i$ in the rows of $X \in \RR^{n \times p}$ gives the approximate system $X \be \approx y$. This corresponds to the inverse problem $\Phi f=y$ under the substitutions $\Phi \mapsto X$ and $f \mapsto \be$, with dimensions $(P,N) \rightarrow (n,p)$.
+ 
+In statistical learning, the model need not be correctly specified, and the design matrix $X$ is often random. Its sampling fluctuations must then be controlled as $n\to\infty$.
+
+Ridge regression estimates the parameter by solvi

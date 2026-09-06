@@ -1,0 +1,161 @@
+% Context from chapters/variational-priors.tex; for mathematical reference, not compilation.
+23}{flow-tv-2}&
+\image{variational}{.23}{flow-tv-1}
+}
+}{ 
+    Heat flow (top) and TV flow (bottom): images $f_t$ at increasing times $t$.
+}{fig-flow}
+
+                                                                      
+\subsection{Heat Flow}
+
+Heat flow results from applying \eqref{eq-pde-flow} to the Sobolev energy $\Jsob(f)$, defined in \eqref{eq-dfn-sob-energy} for functions and in \eqref{eq-discr-sobolev} for discrete images.
+
+Expanding the quadratic energy gives
+\eq{
+	J(f+\epsilon) = \frac{1}{2}\norm{\nabla f+\nabla \epsilon}^2 = J(f) - \dotp{\Delta f}{\epsilon} + \frac{1}{2}\norm{\nabla\epsilon}^2,
+}
+so that 
+\eq{
+	\grad \Jsob(f) = -\Delta f.
+}
+Figure \ref{fig-discrete-operators-lapl}, left, shows an image Laplacian. Its magnitude is typically large near edges, with either sign.
+
+The heat flow is thus 
+\eql{\label{eq-heat-flow-cont}
+	\pd{f_t}{t}(x) = - (\grad J(f_t))(x) = \De f_t(x)
+	\qandq
+	f_0 = f.
+}
+
+\myfigure{
+\tabdeux{
+\image{variational}{.3}{discrete-operators-lapl}&
+\image{variational}{.3}{discrete-operators-lapltv}\\
+$\diverg(\nabla f)$ & $\diverg(\nabla f / \norm{\nabla f})$ 
+}
+}{ 
+	Discrete Laplacian (left) and negative discrete TV gradient (right).
+}{fig-discrete-operators-lapl}
+
+  
+\paragraph{Continuous in space.}
+
+For continuous images on the unbounded domain $\RR^2$, the PDE \eqref{eq-heat-flow-cont} has an explicit solution: convolution with a Gaussian kernel whose variance grows with time
+\eql{\label{eq-heat-gaussian}
+	f_t = f \star h_t \qwhereq 
+	h_t(x) = \frac{1}{4 \pi t} e^{-\frac{\norm{x}^2}{4t}}.
+}	
+Convolution with this widening kernel progressively smooths the image.
+
+  
+\paragraph{Discrete in space.}
+
+The gradient flow of the discrete Sobolev energy \eqref{eq-discr-sobolev} is
+\eq{
+	\pd{f_{n,t}}{t} = - (\grad J(f_t))_n = (\De f_t)_n.
+}
+Discretizing time as in \eqref{eq-gradmin-flow} gives the fully discrete iteration
+\eq{	
+	f^{(k+1)}_n = f^{(k)}_n + \tau \Big( \sum_{p \in V_4(n)} f_p^{(k)} - 4 f_n^{(k)} \Big) = (f^{(k)} \star h)_n
+}
+where $V_4(n)$ denotes the four neighbors of pixel $n$. Each iteration convolves the current image with the same filter:
+\eq{
+	f^{(k)} = f \star h \star \ldots \star h  = f \star^k h.
+}
+The filter has coefficients $h_0=1-4\tau$ and $h_{\pm e_1}=h_{\pm e_2}=\tau$; all other entries vanish.
+
+This iteration is stable and converges if $0<\tau<1/4$.
+
+
+
+                                                                      
+\subsection{Total Variation Flows}
+
+  
+\paragraph{Total variation gradient.}
+
+The total variation energy $\Jtv$ is nonsmooth, both in its continuous form \eqref{eq-dfn-tv-energy} and in its discrete form \eqref{eq-discr-tv}. In the discrete case, $\Jtv$ is nondifferentiable at any image $f$ with a pixel $n$ where $\nabla f_n = 0$.
+
+If $\nabla f_n\neq0$ at every pixel, the gradient is
+\eq{
+	(\grad J(f))_n = -\diverg\pa{ \frac{ \nabla f}{ \norm{\nabla f} } }_n
+}
+The displayed quotient is undefined where the spatial gradient vanishes. Figure \ref{fig-discrete-operators-lapl}, right, shows the negative TV gradient; normalization by small gradient magnitudes makes it sensitive to perturbations in smooth regions.
+
+Nondifferentiability prevents the use of classical gradient descent at such images. A TV flow can nevertheless be defined through the subgradient inclusion $\partial_t f_t\in-\partial\Jtv(f_t)$. Here we first study a smooth approximation.
+
+  
+\paragraph{Regularized total variation.}
+	
+To obtain a differentiable energy, we smooth the TV prior as follows:
+\eql{\label{eq-tv-smoothed}
+	\Jtv^\epsilon(f) = \sum_n \sqrt{ \epsilon^2 + \norm{ \nabla f_n }^2 }
+}
+where $\epsilon>0$ controls the smoothing. Figure \ref{fig-regul-abs} illustrates the corresponding smoothing of the absolute value function.
+
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/variational-smoothed-absolute-1}\hfill
+\BookPanel{.485}{2}{tikz/variational-smoothed-absolute-2}
+\caption{Regularized absolute value $x \mapsto \sqrt{x^2+\epsilon^2}$.}
+\label{fig-regul-abs}
+\end{figure}
+
+The smoothed TV energy has gradient
+\eql{\label{eq-grad-tv-eps}
+	\grad \Jtv^\epsilon(f) = -\diverg\pa{ \frac{ \nabla f}{ \sqrt{\epsilon^2+\norm{\nabla f}^2} } }.
+}
+This smoothing interpolates between TV and a rescaled Sobolev energy. For fixed $f$,
+\eq{
+	\grad\Jtv^\epsilon(f) = -\Delta f/\epsilon + O(\epsilon^{-3}) \quad\text{when}\quad \epsilon \rightarrow +\infty.
+}
+Figure \ref{fig-discrete-operators-tveps} displays the regularized spatial-gradient magnitude for several smoothing parameters.
+
+\myfigure{
+\tabquatre{
+\image{variational}{.24}{discrete-operators-tveps-1}&
+\image{variational}{.24}{discrete-operators-tveps-2}&
+\image{variational}{.24}{discrete-operators-tveps-3}&
+\image{variational}{.24}{discrete-operators-tveps-4}\\
+$\epsilon=0.01$ & $\epsilon=0.05$ & $\epsilon=0.1$ & $\epsilon=0.5$
+}
+}{ 
+	Regularized gradient norm $\sqrt{ \norm{\nabla f(x)}^2 + \epsilon^2 }$.
+}{fig-discrete-operators-tveps}
+
+
+  
+\paragraph{Regularized total variation flow.}
+
+The smoothed total variation flow is then defined as
+\eql{\label{eq-tv-eps-flow}
+	\pd{f_t}{t} = \diverg\pa{ \frac{ \nabla f_t}{ \sqrt{\epsilon^2+\norm{\nabla f_t}^2} } }.
+}
+Choosing a small $\epsilon$ makes the flow approximate total variation minimization more closely, but requires smaller time steps in explicit discretizations.
+
+In practice, gradient descent~\eqref{eq-gradmin-flow} discretizes this flow in time. For the smoothed total variation flow to converge, a sufficient condition is $0<\tau<\epsilon/4$. Thus, a closer approximation to the TV energy requires smaller time steps and more iterations.
+
+Figure \ref{fig-flow} compares heat flow with smoothed TV flow for a small $\epsilon$. TV flow preserves edges better than heat diffusion, consistent with the ability of the TV energy to represent sharp transitions.
+
+                                                                                          
+
+                                
+                                                                                                                                                                                                                                                                                                               
+                            
+
+
+                                                                      
+\subsection{PDE Flows for Denoising}
+\label{subsec-pde-denoise}
+
+PDE flows can be used to remove noise from an observation $f= f_0 + w$. As detailed in Section \ref{subsec-image-formation}, a simple noise model assumes that each pixel is corrupted by Gaussian noise $w_n \sim \Nn(0,\si^2)$, and that these perturbations are independent (white noise).
+
+To denoise, we initialize the PDE flow at the observed image $f$ at time $t=0$:
+\eq{
+	\pd{f_t}{t} = - \grad_{f_t} J
+	\qandq
+	f_{t=0} = f.
+}
+Stopping the flow defines an estimator $\tilde f = f_{t_0}$, whose quality depends on the stopp

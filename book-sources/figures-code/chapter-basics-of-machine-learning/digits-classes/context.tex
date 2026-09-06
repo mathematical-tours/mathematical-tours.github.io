@@ -1,0 +1,164 @@
+% Context from chapters/machine-learning.tex; for mathematical reference, not compilation.
+{figure}
+
+Figure~\ref{fig-losses} compares the 0--1, logistic, and hinge losses.
+
+   
+\paragraph{Gradient descent method.}
+
+Write the objective as
+\eq{
+	 E(\be) = \Loss(X \be,y) \qwhereq \Loss(s,y)= \frac{1}{n}  \sum_i \loss(s_i,y_i), 
+}
+Its gradient is
+\eq{
+	 \nabla E(\be) = X^* \nabla \Loss(X \be,y)
+      \qwhereq
+      \nabla\Loss(s,y)=-\frac{y}{n}\odot\th(-y\odot s),
+}
+where $\odot$ is the pointwise multiplication operator, i.e. \texttt{.*} in Matlab.
+ 
+Once $\be^{(\ell=0)} \in \RR^{p}$ is initialized (for instance at $0_{p}$), one step of gradient descent~\eqref{eq-grad-desc} reads
+\eq{
+	 \iit{\be} = \it{\be} - \tau_\ell \nabla E(\it{\be}). 
+}
+
+\begin{figure}
+\centering
+\includegraphics[width=.4\linewidth]{ml/classif/classes-2-separation-influ}
+\caption{\label{fig-separation-influ}
+Effect of class separation on predicted classification probabilities.
+}
+\end{figure}
+
+Figure~\ref{fig-separation-influ} illustrates the method on samples from a Gaussian mixture, whose overlap is controlled by an offset $\omega$.
+ 
+Overlaying the data on the probability map highlights the separating hyperplane $\enscond{x}{\dotp{\be}{x}=0}$.
+
+
+
+
+                                                            
+\subsection{Multiclass Logistic Classification}
+\label{sec-multiclass-logit}
+
+For multiclass logistic classification, introduce one weight vector for each of the
+$k$ classes. Collect the vectors $\be = ( \be_\ell )_{\ell=1}^k$ as columns of $\be \in \RR^{p \times k}$.
+
+For an input $x \in \RR^p$, convert the class scores into probabilities
+using the softmax model:
+\eql{\label{eq-multiclass-logitmap}
+	 f(x,\be) = \pa{ \frac{ e^{\dotp{x}{\be_\ell}} }{ \sum_m e^{\dotp{x}{\be_m}} } }_\ell
+}
+The vector $f(x,\be)\in[0,1]^k$ gives the probabilities that $x$ belongs
+to each class, and satisfies $\sum_\ell f(x,\be)_\ell=1$.
+
+Estimate $\be$ by maximizing the log-likelihood
+over the training sample:
+ \eq{
+	 \umax{\be \in \RR^{p \times k}} \frac{1}{n} \sum_{i=1}^n \log( f(x_i,\be)_{y_i} ) 
+}
+where $y_i \in \Yy = \{1,\ldots,k\}$ is the label of
+observation $x_i$.
+
+This is conveniently rewritten as
+\eq{
+	 \umin{\be \in \RR^{p \times k}} \Ee(\be)\eqdef\frac1n\left(\sum_i\text{LSE}(X\be)_i-\dotp{X\be}{D}\right)
+}
+where $D \in \{0,1\}^{n \times k}$ is the one-hot class matrix
+\eq{
+	  D_{i,\ell} = \choice{
+          1 \qifq y_i=\ell, \\
+          0 \text{otherwise}.
+      }
+}
+and LSE is the log-sum-exp operator
+\eq{
+	 \text{LSE}(S)_i=\log\left(\sum_\ell\exp(S_{i,\ell})\right),\qquad\text{LSE}(S)\in\RR^n.
+}
+For $k=2$, identify the first class with label $+1$ and the second with label $-1$. The model then agrees with binary logistic classification in Section~\ref{sec-two-class-logit}, with parameter $\be_1-\be_2$. A single weight vector therefore suffices in that case.
+
+Direct evaluation of log-sum-exp can
+overflow when $S_{i,\ell}$ is large. A stable evaluation
+subtracts the largest entry in each row before exponentiation,
+using the identity
+\eq{
+	\text{LSE}(S+a)=\text{LSE}(S)+a
+} 
+for a rowwise constant $a$. This shift is especially useful for well-separated classes, whose parameter vectors $\be_\ell$ may grow large.
+
+
+The gradient of the sum of the rowwise log-sum-exp values is the softmax operator
+\eq{
+	  \nabla_S\sum_i\text{LSE}(S)_i = \text{SM}(S) \eqdef
+      \pa{
+          \frac{
+                  e^{S_{i,\ell}}
+              }{
+                  \sum_m e^{S_{i,m}}
+              } }   
+}
+As with log-sum-exp, subtract the largest entry in each row before evaluating the exponentials.
+
+\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{5mm}}c@{\hspace{5mm}}c@{}}
+\includegraphics[width=.25\linewidth]{ml/classif/digits}&
+\includegraphics[width=.25\linewidth]{ml/classif/digits-2d}&
+\includegraphics[width=.25\linewidth]{ml/classif/digits-3d}
+\end{tabular}
+\caption{\label{fig-digits}
+Digit images and their two- and three-dimensional PCA projections.
+}
+\end{figure}
+
+Once the matrix $D$ is computed, the gradient of $\Ee$ is computed as
+\eq{
+	 \nabla \Ee(\be) =  \frac{1}{n} X^* ( \text{SM}(X \be) - D ).  
+}
+The objective $\Ee$ can then be minimized by gradient descent.
+
+To illustrate the method, we use a dataset of $n$ images of size $p = 8 \times 8$, representing digits from 0
+to 9 (so there are $k=10$ classes).
+ 
+Figure~\ref{fig-digits} displays a few representative examples as well as 2-D and 3-D PCA projections.
+ 
+Figure~\ref{fig-digits-classes} visualizes the fitted class probabilities $f(x,\hat\be)$ by assigning colors on a regular image grid.
+
+\begin{figure}
+\centering
+\includegraphics[width=.35\linewidth]{ml/classif/digits-classes}
+\qquad
+\includegraphics[width=.44\linewidth]{ml/classif/digits-classes-single}
+\caption{\label{fig-digits-classes}
+Digit classification results.
+Left: probability $f(x,\hat\be)_\ell$ for each of the first nine classes, displayed in a 2-D PCA projection.
+Right: colors encode the class-probability vector $f(x,\hat\be)$.
+}
+\end{figure}
+
+
+
+
+                                                  
+                                                  
+                                                  
+\section{Kernel Methods}
+\label{sec-kernel-methods}
+
+Linear models may fail to capture the geometry needed for a regression or classification task. Moreover, inputs such as strings and graphs need not belong to a vector space.
+
+Kernel methods introduce a feature map into a richer space and apply linear prediction there. This produces nonlinear regression and classification rules while retaining linear-system solvers and convex optimization. The kernel trick expresses the computations through similarities between the $n$ observations, without constructing the feature vectors explicitly. Such methods are nonparametric when the number of fitted coefficients grows with $n$, allowing the model to become more expressive as data accumulate.
+
+Algorithms that use the observations $x_i$ only through inner products can often be kernelized. Examples include linear regression, nearest-neighbor methods, SVMs, logistic classification, and PCA. We introduce the construction through ridge regression and then extend it to other losses and distance-based methods.
+
+                                                  
+\subsection{Feature Map and Kernels}
+
+Let $\phi : \Xx \rightarrow \Hh$ be a feature map into a real Hilbert space $\Hh$, which may be infinite dimensional.
+ 
+The input space $\Xx$ need not be a vector space. When $\Xx=\RR^p$, the choice $\phi(x)=x$ recovers ordinary linear methods.
+ 
+For regression, we consider predictions which are linear functions over this lifted space, i.e. of the form $x \mapsto \dotp{\phi(x)}{\be}_\Hh$ for some weight vector $\be \in \Hh$. For binary classification, one uses $x \mapsto \sign(\dotp{\phi(x)}{\be}_\Hh)$.
+
+For scalar inputs ($p=1$), the feature map $\phi(x) = (1,x,x^2,\ldots,x^k)\in\RR^{k+1}$ gives polynomial regression. Multivariate monomials extend this construction to higher-dimens

@@ -1,0 +1,65 @@
+% Context from chapters/compression.tex; for mathematical reference, not compilation.
+\section{JPEG-2000}
+
+JPEG-2000 is a family of still-image compression standards based on wavelet transform coding and adaptive entropy coding. Its irreversible transform uses the biorthogonal CDF 9/7 filters; its reversible transform uses integer-to-integer 5/3 lifting for lossless coding. Symmetric boundary extension limits edge artifacts. Because the transform is biorthogonal, the orthonormal energy identities above are replaced by bounds involving the synthesis operator.
+
+\myfigure{
+\image{approximation}{.9}{jpeg-2k-architecture}
+}{ 
+	JPEG-2000 coding architecture.   
+}{fig-jpeg-2k-architecture}
+
+Figure~\ref{fig-jpeg-2k-architecture} outlines the JPEG-2000 architecture, and Figure~\ref{fig-compression-jpeg} compares its reconstructions with those of JPEG. JPEG uses a blockwise DCT and can exhibit visible block boundaries at low bit rates. JPEG-2000 uses a wavelet transform and supports features such as regions of interest, which allow selected parts of an image to be encoded more accurately.
+ 
+\myfigure{
+\tabdeux{
+\image{approximation}{.35}{compression-jpeg-boat}&
+\image{approximation}{.35}{compression-jpeg-lena}\\
+\image{approximation}{.35}{compression-jpeg2k-boat}&
+\image{approximation}{.35}{compression-jpeg2k-lena}
+}
+}{ 
+	Comparison of JPEG (top) and JPEG-2000 (bottom) coding. 
+}{fig-compression-jpeg}
+
+
+  
+\paragraph{Progressive coefficient refinement.}
+
+Bit-plane coding progressively reveals the binary digits of the quantized coefficient magnitudes. We describe this refinement schematically using thresholds $T_i = 2^{-i}T_0$: each new bit plane resolves coefficient values at a finer scale.
+
+  
+\paragraph{Rate allocation and quality layers.}
+The coder processes coefficient blocks $S_k$ independently, producing embedded streams $c_i^k$. The encoder selects coding-pass truncation points within these streams to balance rate against estimated distortion, then organizes the retained data into quality layers. Decoding additional layers improves image quality. This construction supports progressive transmission, with truncation at valid codestream boundaries. The allocation uses an additive distortion model; it does not guarantee the smallest reconstruction error for every possible bit budget.
+
+  
+\paragraph{Bit-plane coding.}
+
+At threshold $T_i$, consider a coefficient $d_j^\om[n]$ at scale $j$, orientation $\om\in\{V,H,D\}$, and position $n\in S_k$. Three types of bits describe its significance, sign, and magnitude. We suppress $(j,\om)$ in the notation for these bits.
+\begin{rs}
+	\item If $|d_j^\om[n]|<T_{i-1}$, the coefficient was not significant at bit-plane $i-1$. The encoder writes a significance bit
+		$b_i^1[n]$ indicating whether $|d_j^\om[n]|\geq T_i$.
+	\item If $b_i^1[n]=1$, the coefficient has just become significant, and the encoder writes its sign as a bit $b_i^2[n]$.
+	\item For every position $n$ that was previously significant, meaning $|d_j^\om[n]|\geq T_{i-1}$, the encoder writes a refinement bit
+		 $b_i^3[n]$ giving the next binary digit of the coefficient magnitude, namely $\lfloor|d_j^\om[n]|/T_i\rfloor\bmod2$.
+\end{rs}
+
+  
+\paragraph{Context modeling.}
+
+The bits $\{ b_i^s[n] \}_{s=1}^3$ for $n\in S_k$ are compressed using context-adaptive arithmetic coding to form the streams $c_i^k$. Contexts exploit spatial dependence, especially near edges, where large wavelet coefficients tend to cluster. The scan proceeds through stripes four samples high, visiting each stripe column by column; see Figure~\ref{fig-jpeg-2k-context}.
+
+\myfigure{
+\image{approximation}{.6}{jpeg-2k-context}
+}{ 
+	Coding order and context for JPEG-2000 coding.  
+}{fig-jpeg-2k-context}
+
+
+For a coefficient at position $n\in S_k$, the context index $v_i^s[n]$ summarizes its coding state and those of coefficients in its $3\times3$ neighborhood
+\eq{
+	w_n = \{(n_1+\epsilon_1,n_2+\epsilon_2):\epsilon_1,\epsilon_2\in\{-1,0,1\}\}.
+}
+The relevant states include whether neighboring coefficients have become significant, their known signs, and the coefficient's refinement history. Only information already available to the decoder may enter the context. The precise context rules differ for significance, sign, and refinement bits.
+
+An adaptive arithmetic coder estimates the conditional probability $\PP( b_i^s[n] | v_i^s[n] )$ and uses it to encode $b_i^s[n]$. Informative contexts can reduce the conditional entropy and hence the expected number of bits.

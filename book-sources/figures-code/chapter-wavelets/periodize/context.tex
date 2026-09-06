@@ -1,0 +1,72 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+\section{On Bounded Domains}
+
+On the periodic domain $\TT=\RR/\ZZ$, we use period 1 rather than the $2\pi$-period convention of the Fourier chapter. To obtain an orthonormal wavelet basis of $L^2(\TT)$, periodize the wavelets and restrict their translation points $2^j n$ to $[0,1]$, choosing $0 \leq n < 2^{-j}$. As in~\eqref{eq-periodizing}, the periodization of $f \in L^1(\RR)$ is
+\eq{
+	f^P = \sum_{n \in \ZZ} f(\cdot-n) \in L^1(\TT). 
+}
+For an integer coarsest level $j_0\leq0$, this gives the family
+\eq{
+	\enscond{\psi_{j,n}^P}{j \leq j_0, 0 \leq n < 2^{-j}} \cup 
+	\enscond{\phi_{j_0,n}^P}{0 \leq n < 2^{-j_0}}.
+}
+which is an orthonormal basis of $L^2(\TT)$, illustrated in Figure~\ref{fig-periodize}.
+ 
+One can also construct wavelet bases using Neumann (mirror) boundary conditions, but this is more involved.
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/wavelets-periodization}\hfill
+\BookPanel{.485}{2}{tikz/wavelets-periodic-translates}
+\caption{Periodized basis functions. Only the translations $0\leq n<2^{-j}$ are distinct, and $j_0=0$ is a common choice of coarsest scale.}
+\label{fig-periodize}
+\end{figure}
+
+
+
+                                                   
+\section{Fast Wavelet Transform}\label{sec-fast-wavelet-transform}
+
+   
+\subsection{Discretization}
+
+We now work over $\RR/\ZZ$.
+ 
+We assume access to a discrete signal $a_J \in \RR^N$ with $N = 2^{-J}$ at a fixed scale $2^J$, whose entries are inner products with the scaling functions, i.e.
+\eql{\label{eq-hyp-wav-samples}
+	\foralls n\in \{0,\ldots,N-1\}, \quad a_{J,n} = \dotp{f}{\phi_{J,n}^P} \approx 2^{J/2}f(2^Jn),
+}
+for the underlying continuous function $f$. The approximation uses the normalization $\int\phi=1$. The equality assumes that acquisition gives exact access to $P_{V_J}f$, much as Shannon sampling assumes bandlimiting. This model is reasonable when the scaling functions $(\phi_{J,n})_n$ approximate the acquisition device's point-spread function. Preprocessing the measurements can sometimes improve agreement with~\eqref{eq-hyp-wav-samples}.
+
+Starting from $a_J$, the discrete wavelet transform computes the coefficients
+\eq{
+	\foralls j \in \{J+1,J+2, \ldots, 0\}, \quad
+	\foralls n \in \range{0,2^{-j}-1}, \quad
+	a_{j,n} \eqdef \dotp{f}{\phi_{j,n}^P}, \qandq
+	d_{j,n} \eqdef \dotp{f}{\psi_{j,n}^P}
+}
+in order of increasing $j$. After an approximation vector $a_j$ has been used to compute the next scale, it can be discarded; the detail vectors $d_j$ are retained.
+
+The forward discrete wavelet transform on a bounded domain is thus the orthogonal finite-dimensional map
+\eq{
+	a_J \in \RR^N \longmapsto
+	\enscond{ d_{j,n} }{ J<j\leq0,\ 0\leq n<2^{-j} } \cup \{a_0 \in \RR\}.
+}
+By orthogonality, the inverse transform is the adjoint.
+
+
+Figure~\ref{fig-wavcoef-1d} shows examples of wavelet coefficients. For each scale $2^j$, there are $2^{-j}$ coefficients.
+
+\myfigure{
+\tabun{
+\image{wavelets}{.9}{wavcoef-1d-all}\\
+Wavelet coefficients $\{d_{j,n}\}_{j,n}$
+}
+\tabdeux{
+\image{wavelets}{.48}{wavcoef-1d-0}&
+\image{wavelets}{.48}{wavcoef-1d-1}\\
+Signal $f$ & $d_{-7}$ \\
+\image{wavelets}{.48}{wavcoef-1d-2}&
+\image{wave

@@ -1,0 +1,156 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+\section{Finite Fourier Transform and Convolution}
+\label{sec-dft}
+
+                                           
+\subsection{Discrete Orthonormal Bases}
+
+A discrete signal is a finite-dimensional vector $f \in \CC^N$, where $N$ is the number of samples and $f_n$ is the value at a specified location. For a 2-D image $f \in \CC^N \simeq \CC^{N_0 \times N_0}$, we have $N = N_0 \times N_0$, with $N_0$ pixels in each direction.
+
+The discrete inner product is the analogue of the continuous $\Ldeux$ inner product:
+\eq{
+	\dotp{f}{g} = \sum_{n=0}^{N-1} f_n \bar g_n.
+}
+The corresponding squared Euclidean distance is
+\eq{
+	\norm{f-g}^2 = \sum_{n=0}^{N-1} |f_n-g_n|^2.
+}
+
+Exactly as in the continuous case, a discrete orthonormal basis $\{ \psi_k \}_{0 \leq k < N }$ of $\CC^N$ satisfies
+\eql{\label{eq-orthobasis-disc}
+	\dotp{\psi_k}{\psi_{k'}} = \de_{k-k'}.
+}
+A signal expands in this orthonormal basis as
+\eq{
+	f = \sum_{k=0}^{N-1} \dotp{f}{\psi_k} \psi_k.
+}
+It preserves energy
+\eq{
+	\norm{f}^2 = \sum_{n=0}^{N-1} |f_n|^2 = 
+\sum_{k=0}^{N-1} |\dotp{f}{\psi_k}|^2
+}
+
+Computing the set of all inner products $\{\dotp{f}{\psi_k}\}_{0 \leq k < N}$ directly requires $O(N^2)$ operations.
+This cost is prohibitive when $N$ reaches millions of samples. Structured bases permit faster decompositions: Fourier and wavelet transforms require $O(N\log(N))$ and $O(N)$ operations, respectively.
+
+
+                                                
+\subsection{Discrete Fourier transform}
+
+We denote $f = (f_n)_{n=0}^{N-1} \in \RR^N$, and regard its entries as indexed by $n \in \ZZ/N\ZZ$, which is a finite abelian group under addition. This corresponds to using periodic boundary conditions.
+
+The discrete Fourier transform is defined as
+\eql{\label{eq-dft}
+	\foralls k=0,\ldots,N-1, \quad \hat f_k \eqdef \sum_{n=0}^{N-1} f_n e^{-\piN kn} = \dotp{f}{\phi_k}
+	\qwhereq
+	\phi_k \eqdef ( e^{\piN kn} )_{n=0}^{N-1} \in \CC^N
+}
+where the canonical inner product on $\CC^N$ is $\dotp{u}{v}=\sum_{n=0}^{N-1}u_n\bar v_n$ for $(u,v) \in (\CC^N)^2$.
+ 
+This definition is motivated by sampling the Fourier basis $x \mapsto e^{\imath k x}$ on $\RR/2\pi\ZZ$ at equally spaced points $( \frac{2\pi}{N}n )_{n=0}^{N-1}$.
+ 
+The next proposition establishes the orthogonality of the discrete Fourier atoms and the associated reconstruction formula.
+
+\begin{prop}
+	One has
+	\eq{
+		\dotp{\phi_k}{\phi_\ell} = \choice{
+			N \qifq k=\ell, \\
+			0 \quad\text{otherwise.}
+		}
+	}
+	In particular, this implies
+	\eql{\label{eq-dft-inv}
+		\foralls n=0,\ldots,N-1, \quad
+		f_n = \frac{1}{N}\sum_k \hat f_k e^{\piN kn}. 
+	}
+\end{prop}
+\begin{proof}
+	One has, if $k \neq \ell$
+	\eq{
+		\dotp{\phi_k}{\phi_\ell} = \sum_n e^{\piN (k-\ell) n} = 
+		\frac{ 1 - e^{\piN (k-\ell) N} }{ 1 - e^{\piN (k-\ell)} } = 0
+	}
+	which is the sum of a geometric series (equivalently, the sum of equispaced points on a circle). 
+	 
+	The inversion formula is simply $f = \sum_k \dotp{f}{\phi_k} \frac{\phi_k}{\norm{\phi_k}^2}$.
+\end{proof}
+
+
+                                                
+\subsection{Fast Fourier transform}
+
+Assuming $N=2N'$, one has 
+\begin{align*}
+	\hat f_{2k} &= \sum_{n=0}^{N'-1} (f_n + f_{n+N/2}) e^{ -\frac{2\imath\pi}{N'} k n } \\
+	\hat f_{2k+1} &= \sum_{n=0}^{N'-1} e^{ -\frac{2\imath\pi}{N} n } (f_n - f_{n+N/2}) e^{ -\frac{2\imath\pi}{N'} k n }.
+\end{align*}
+For the second line, we used the computation
+\eq{
+	e^{-\frac{2\imath\pi}{N}(2k+1)(n+N/2)} =
+	e^{-\frac{2\imath\pi}{N}(2kn+kN+n+N/2)} = - e^{ -\frac{2\imath\pi}{N} n } e^{ -\frac{2\imath\pi}{N'} k n }.
+}
+Let $\Ff_N(f)=\hat f$ denote the discrete Fourier transform on $\CC^N$. Introduce
+the vectors $f_e = (f_n + f_{n+N/2})_n \in \CC^{N'}$ and $f_o = (f_n - f_{n+N/2})_n \in \CC^{N'}$
+and the twiddle factors $\al_N=(e^{-2\imath\pi n/N})_{n=0}^{N'-1}\in\CC^{N'}$. The recursion becomes
+\eq{
+	\Ff_N(f) = \Ii_N( \Ff_{N/2}(f_e), \Ff_{N/2}(f_o \odot \al_N) )
+}
+where $\Ii_N$ is the ``interleaving'' operator, defined by $\Ii_N(a,b) \eqdef (a_0,b_0,a_1,b_1,\ldots,a_{N'-1},b_{N'-1})$.
+ 
+Recursing yields the radix-two fast Fourier transform (FFT) when $N$ is a power of two. Other FFT factorizations handle general lengths. Zero-padding to a power of two is also useful, although it changes the transform length and the sampled frequencies.
+
+This algorithm can also be interpreted as a factorization of the Fourier matrix into a product of $O(\log N)$ sparse matrices.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-fft}
+\caption{Diagram of one radix-two FFT step. Both halves of the input enter the sum and difference; the outputs of the two smaller transforms are interleaved into even and odd frequencies.}
+\label{fig-fft}
+\end{figure}
+ 
+
+Let $C(N)$ denote the number of elementary operations required to compute $\hat f$. The recursion gives
+\eql{\label{eq-cplx-fft}
+	C(N) = 2C(N/2)+NK
+}
+where $K N$ accounts for $N$ complex additions and $N/2$ multiplications. With the change of variable
+\eq{
+	\ell \eqdef \log_2(N)
+	\qandq 
+	T(\ell) \eqdef \frac{C(N)}{N}
+}
+i.e. $C(N)=2^\ell T(\ell)$, the relation~\eqref{eq-cplx-fft} becomes
+\eq{
+	2^\ell T(\ell) = 2 \times 2^{\ell-1} T(\ell-1) + 2^\ell K \qarrq
+	T(\ell) = T(\ell-1) + K \qarrq
+	T(\ell) = T(0) + K \ell
+} 
+and using the fact that $T(0)=C(1)/1=0$, one obtains
+\eq{
+	C(N) = K N \log_2(N).
+}
+Direct evaluation instead requires $O(N^2)$ operations to compute the $N$ coefficients~\eqref{eq-dft}, each involving a sum of size $N$.
+
+
+                                                
+\subsection{Finite convolution}
+
+For $(f,g) \in (\RR^{N})^2$, one defines $f\star g \in \RR^N$ as
+\eql{\label{eq-finite-convol}
+	\foralls n=0,\ldots,N-1, \quad
+	(f \star g)_n \eqdef \sum_{k=0}^{N-1} f_k g_{n-k} = \sum_{k+\ell=n} f_k g_\ell 
+}
+where $+$ and $-$ are interpreted modulo $N$ (vectors are defined on the group $\ZZ/N\ZZ$, or equivalently, one uses periodic boundary conditions).
+ 
+This defines a commutative algebra structure $(\RR^N,+,\star)$, with neutral element the ``Dirac'' $\de_0 \eqdef (1,0,\ldots,0)^\top \in \RR^N$. The following proposition shows that $\Ff : f \mapsto \hat f$ is an algebra isomorphism and an isometry (up to a scaling by $\sqrt{N}$ of the norm) from $(\CC^N,+,\star)$ onto $(\CC^N,+,\odot)$ with neutral element $\ones_N=(1,\ldots,1) \in \RR^N$.
+
+\begin{prop}\label{prop-tfd-conv}
+	One has $\Ff( f \star g ) = \hat f \odot \hat g$. 
+\end{prop}
+\begin{proof}
+	We denote $T : g \mapsto f \star g$. One has 
+	\eq{
+		(T \phi_\ell)_n = (f \star \phi_\ell)_n = \sum_p f_p e^{ \piN \ell(n-p) } = e^{ \piN \ell n } \hat f_\ell = \hat f_\ell (\phi_\ell)_n.
+	}
+	Thus $(\phi_\ell)_\ell$ form a basis of $N$ eigenvectors of $T$, with eigenvalues $\hat f_\ell$. The operator 

@@ -1,0 +1,71 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+\section{Sparse Deconvolution Case Study}
+
+For random $A$, Chapter~\ref{chap-cs} gives probabilistic conditions under which $\eta_F$ is a valid certificate.
+
+Super-resolution exposes a limitation of the Fuchs construction. The columns $(a_i)_i$ of $A$ are often samples of a smooth kernel, so nearby columns are highly correlated.
+
+We consider $a_i=\phi(z_i)$, where $(z_i)_i \subset \XX$ is a sampling grid in a domain $\XX$ and $\phi : \XX \rightarrow \Hh$ is a smooth map. One has
+\eq{
+	A x = \sum_i x_i \phi(z_i).
+}
+The coefficients of a sparse vector $x$ are the weights of the discrete measure $m_{x} \eqdef \sum_{i=1}^N x_i \de_{z_i}$, whose atoms lie on the reconstruction grid.
+
+
+The matrix $A$ discretizes an operator on Radon measures, $\Aa : m \in \Mm(\XX) \mapsto y = \Aa m \in \Hh$, defined by
+\eq{
+	\Aa(m) \eqdef \int_\XX \phi(x) \d m(x).
+}
+For a discrete measure, the two representations agree: $\Aa(m_x)=A x$.
+
+For example, take $\Hh=L^2(\XX)$ on $\XX=\RR^d$ or $\XX=\TT^d$ and let $\phi(z) = \tilde\phi(\cdot-z)$. The resulting operator is convolution:
+\eq{
+	(\Aa m)(z) = \int \tilde\phi(z-x) \d m(x) = (\tilde \phi \star m)(z).
+}
+The observation space $\Hh$ is infinite-dimensional in this example. Sampling the output instead gives $\phi(z) = (\tilde\phi(r_j-z))_{j=1}^P$. The observation grid $r \in \XX^P$ need not coincide with the reconstruction grid $z \in \XX^N$.
+
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/sparse-theory-convolution-spikes}
+\caption{Convolution operator.}
+\label{fig-spikes}
+\end{figure}
+
+
+
+A closely related example uses $\phi(z)=(e^{\imath k z})_{k=-f_c}^{f_c}$ on $\XX=\TT$, so that $\Aa$ corresponds to computing the $2f_c+1$ low-frequency coefficients of the Fourier transform of the measure
+\eq{
+	\Aa(m) = \pa{ \int_\TT e^{\imath k x} \d m(x) }_{k=-f_c}^{f_c}.
+}
+The operator $\Aa^*\Aa$ is a convolution against an ideal low-pass (Dirichlet) kernel. By weighting the Fourier coefficients, one can model low-pass filters on the torus.
+
+On $\XX=\RR^+$, another example is the Laplace transform:
+\eq{
+	\Aa(m) = z \mapsto \int_{\RR^+} e^{-x z} \d m(x).
+}
+
+Define the continuous covariance kernel by
+\eq{
+	\foralls (z,z') \in \XX^2, \quad
+	\Cc(z,z') \eqdef \dotp{\phi(z)}{\phi(z')}_{\Hh}.
+}
+The function $\Cc$ is the kernel of $\Aa^* \Aa$.
+ 
+The discrete covariance, defined on the computational grid, is $C=(\Cc(z_i,z_{i'}))_{i,i'} \in \RR^{N \times N}$, while its restriction to some support set $I$ is $C_{I,I}=(\Cc(z_i,z_{i'}))_{(i,i')\in I^2}\in\RR^{|I|\times|I|}$.
+
+By~\eqref{eq-eta-f-cov}, the vector $\eta_F$ samples the continuous precertificate $\tilde\eta_F$ on the grid:
+\eq{
+	\eta_F = ( \tilde\eta_F(z_i) )_{i=1}^N \in \RR^N, 
+}
+\eql{\label{eq-etaf-cont}
+	\qwhereq \tilde\eta_F(x) = \sum_{i \in I} b_i \Cc(x,z_i) \qwhereq b_I = C_{I,I}^{-1} \sign(x_{0,I}), 
+}
+Thus $\eta_F$ samples a linear combination of $|I|$ kernel functions $(\Cc(x,z_i))_{i \in I}$.
+
+The question is whether $\norm{\eta_F}_{\ell^\infty} \leq 1$. Along increasingly dense grids, continuity implies that a uniform bound on the sampled certificate requires $\norm{\tilde\eta_F}_{L^\infty}\leq1$. A finite grid may miss an overshoot between samples. The construction constrains $\tilde\eta_F$ only to interpolate $\sign(x_{0,i})$ at support points $z_i$; it does not prevent the function from leaving $[-1,1]$ nearby. Figure~\ref{fig-certif-convol} illustrates this fact.
+
+
+In one dimension, a certificate bounded in magnitude by one must satisfy $\eta'(z_i)=0$ at every interior support point $i \in I$, 

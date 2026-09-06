@@ -1,0 +1,128 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+he error linearly relative to the fixed noiseless signal $x_0$. It does not by itself establish pairwise Lipschitz continuity between arbitrary noisy solutions.
+
+
+Compare this linear rate with the sublinear rates for quadratic regularization in Theorem~\ref{thm-sublin-quad}.
+ 
+The source conditions for linear regularization~\eqref{eq-source-cond-init} and nonlinear regularization~\eqref{eq-sourcecond-l1} express different structural assumptions.
+ 
+In the quadratic case with $\be=1$, the source condition is $x_0\in\Im(A^*)=\ker(A)^\bot$ in finite dimension. The signal itself must have no component in $\ker(A)$ because squared-norm regularization cannot recover such a component.
+ 
+The nonlinear condition instead requires a subgradient $\eta$ to belong to $\Im(A^*)$. It can therefore permit recovery of signal components in $\ker(A)$ when the prior supplies sufficient structure.
+
+ 
+ 
+                                        
+\subsection{Sparsistency for Low Noise}
+\label{sec-sparsistency}
+
+Theorem~\ref{thm-linrate-l1} gives an abstract guarantee whose certificate assumptions may be difficult to verify.
+ 
+We now construct a candidate certificate explicitly. When it satisfies a strict off-support bound, it guarantees both a linear rate and support stability.
+
+
+For any solution $x_\la$ of $(\Pp_\la(y))$, define the dual certificate as in~\eqref{eq-defn-eta-lamb}. Uniqueness of the fitted data makes it independent of the chosen solution:
+\eq{
+	\eta_\la \eqdef A^* p_\la
+	\qwhereq
+	p_\la \eqdef \frac{y - A x_\la}{\la}.
+}
+The next proposition shows that $p_\la$ converges to the dual solution of minimum norm for the constrained problem.
+
+\begin{prop}
+	If $y = A x_0$ where $x_0$ solves $\Pp_0(y)$, one has
+	\eql{\label{eq-minnorm-certif}
+		p_\la \rightarrow p_0 \eqdef
+		\uargmin{p \in \RR^P} \enscond{\norm{p}}{ A^* p \in \Dd_0(y,x_0) }.
+	}
+	The vector $\eta_0\eqdef A^*p_0$ is called the minimum-norm certificate; the minimized norm is that of the data-space vector $p_0$.
+\end{prop}
+\begin{proof}
+	Write $\mathcal D=\{p:\norm{A^*p}_\infty\leq1\}$ and let $M$ be the maximum of $\langle y,p\rangle$ on $\mathcal D$. Optimality relative to the minimum-norm dual maximizer $p_0$ gives $0\leq M-\langle y,p_\lambda\rangle\leq\frac\lambda2(\norm{p_0}^2-\norm{p_\lambda}^2)$. Thus $\norm{p_\lambda}\leq\norm{p_0}$, every cluster point is a dual maximizer of no greater norm, and uniqueness of $p_0$ proves convergence as $\lambda\downarrow0$.
+\end{proof}
+
+The certificates in $\Dd_0(y,x_0)$ for $\la=0$ may be nonunique, but the limit $\la\rightarrow 0$ selects one of them. This selected certificate governs support stability when both the noise and $\la$ are small.
+
+The inequality constraint $\norm{\eta_0}_\infty\leq1$ makes the minimum-norm problem~\eqref{eq-minnorm-certif} difficult to solve explicitly. Dropping this $\ell^\infty$ constraint while retaining interpolation on the support gives the minimum-norm precertificate:
+\eql{\label{eq-fuchs-precertif}
+	\eta_F \eqdef A^* p_F
+	\qwhereq 
+	p_F \eqdef
+	\uargmin{p \in \RR^P} \enscond{\norm{p}}{ A_I^* p = \sign(x_{0,I}) }.
+}
+The notation ``$\eta_F$'' refers to the ``Fuchs'' certificate, named after J.-J. Fuchs, who first used it to study $\ell^1$ minimization.
+
+The vector $p_F$ may fail dual feasibility because $\norm{\eta_F}_\infty \leq 1$ need not hold. This is why the construction gives a precertificate.
+ 
+If the interpolation system is consistent, $p_F$ is its minimum-norm solution: $A_I^*p=\sign(x_{0,I})$. The pseudoinverse gives $p_F=A_I^{*,+} \sign(x_{0,I})$; see Proposition~\ref{prop-pseudo-inv}. Under $\ker(A_I)=\{0\}$, this simplifies to
+\eq{
+	p_F = A_I (A_I^*A_I)^{-1} \sign(x_{0,I}).
+}
+With the Gram matrix $C \eqdef A^* A$, the certificate becomes
+\eql{\label{eq-eta-f-cov}
+	\eta_F = C_{\cdot,I} C_{I,I}^{-1} \sign(x_{0,I}).
+}
+The next proposition relates $\eta_F$ to $\eta_0$: whenever $\eta_F$ is feasible, it equals $\eta_0$.
+
+\begin{prop}
+	If $\norm{\eta_F}_\infty \leq 1$, then $p_F=p_0$ and $\eta_F=\eta_0$.
+\end{prop}
+
+The condition $\norm{\eta_F}_\infty \leq 1$ implies that $x_0$ is a solution to~\eqref{eq-lasso-constr}.
+  
+A strict off-support bound on $\eta_F$ strengthens this recovery condition and gives both a linear error rate and support stability for small noise.
+
+The feasibility condition $\norm{\eta_F}_\infty \leq 1$ has the empty-cap interpretation shown in Figure~\ref{fig-delaunay}. We thank Charles Dossal for pointing out this connection to spherical Delaunay triangulations.
+
+\begin{figure}
+\centering
+  
+\includegraphics[width=.6\linewidth]{sparse-theory/polytopes/delaunay}
+  
+\caption{\label{fig-delaunay}
+For unit-norm columns, the supporting hyperplane defined by a valid certificate determines an empty spherical cap: its interior contains no signed column $\pm a_i$.
+}
+\end{figure}
+
+\begin{rem}[Operator norm]\label{rem-operator-norm}
+In the proof, we use the $\ell^p-\ell^q$ matrix operator norm, which is defined as
+\eq{
+	\norm{B}_{p,q} \eqdef \max \enscond{ \norm{B u}_q }{ \norm{u}_p \leq 1 }.
+}
+For $p=q$, we denote $\norm{B}_{p} \eqdef \norm{B}_{p,p}$.
+ 
+For $p=q=2$, $\norm{B}_2$ is the maximum singular value, and one has
+\eq{
+	\norm{B}_1 = \umax{j} \sum_i |B_{i,j}|
+	\qandq
+	\norm{B}_\infty = \umax{i} \sum_j |B_{i,j}|.
+}
+\end{rem}
+
+\begin{thm}\label{thm-support-stable}
+Let $I=\supp(x_0)\neq\emptyset$, assume $A_I$ is injective, and suppose $\norm{\eta_{F,I^c}}_\infty<1$. There exist $c_0,c_1>0$, depending on $A$, $I$, and $x_0$, such that if
+\eq{
+ 0<\lambda<c_0,\qquad \norm{A^*w}_\infty<c_1\lambda,
+}
+then the solution $x_\lambda$ of~\eqref{eq-lasso-lagr} is unique and has the same support and sign as $x_0$. It satisfies
+\eql{\label{eq-explicit-lownoise}
+ x_{\lambda,I}=x_{0,I}+A_I^+w-\lambda(A_I^*A_I)^{-1}\sign(x_{0,I}),
+ \qquad x_{\lambda,I^c}=0.
+}
+In particular, the error is $O(\norm{A^*w}_\infty+\lambda)$. When $\norm{A^*w}_\infty>0$, choosing $\lambda$ proportional to this quantity with a sufficiently large constant gives an $O(\norm{w})$ error as the noise tends to zero.
+\end{thm}
+
+\begin{proof}
+    Let $T \eqdef \min_{i \in I} |x_{0,i}|$ be the smallest nonzero signal amplitude, and let $\de \eqdef \norm{A^* w}_\infty$
+    measure the noise after correlation with the measurement columns.
+	 
+    Set $s \eqdef \sign(x_0)$ and use~\eqref{eq-explicit-lownoise} to define the candidate
+	\eql{
+		\hat x_{I} \eqdef x_{0,I} + A_I^+ w - \la (A_I^*A_I)^{-1} s_I, 
+	}
+	and $\hat x_{I^c}=0$. The goal is to show that $\hat x$ is indeed the unique solution of~\eqref{eq-lasso-lagr}. 
+	
+	
+    \noindent\textit{Step 1.} Sign consistency means $\sign(\hat x)=s$. It follows from $\norm{x_{0,I}-\hat x_I}_\infty < T$, for which a sufficient condition is
+	\eql{\label{eq-supp-stab-proof-1}
+		\norm{x_{0,I}-\hat x_I}_\infty \leq K \norm{A_I^* w}_\infty + K \la < T

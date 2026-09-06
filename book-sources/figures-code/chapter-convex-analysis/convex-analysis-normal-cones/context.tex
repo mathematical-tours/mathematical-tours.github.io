@@ -1,0 +1,179 @@
+% Context from chapters/convex-analysis.tex; for mathematical reference, not compilation.
+tion of half-spaces, it is a closed convex set.
+                                                      
+ 
+Thus $\partial f : \Hh \mapsto 2^{\Hh^*}$ is a set-valued operator, also written $\partial f : \Hh \hookrightarrow \Hh^*$.
+
+\begin{rem}[Maximally monotone operator]
+The subdifferential $\partial f$ is monotone: setting $U=\partial f$ gives
+\eq{
+	\foralls (u,v) \in U(x) \times U(y), \quad
+		\dotp{y-x}{v-u} \geq 0. 
+}
+For single-valued maps on the real line, monotonicity means being nondecreasing.
+ 
+Subdifferentials can also be shown to be maximally monotone, meaning that their graphs are not properly contained in the graph of another monotone operator.
+ 
+Conversely, a monotone map need not be a subdifferential; an example is $(x,y) \mapsto (-y,x)$.
+  
+Many results extend from subdifferentials to arbitrary maximally monotone operators. We restrict attention to subdifferentials here.
+\end{rem}
+
+For the absolute value $f(x)=|x|$, write $\partial f(x) = \partial |\cdot|(x)$. Its subdifferential is
+\eq{
+	\partial |\cdot|(x) = 
+	\choice{
+		\{-1\} \qifq x < 0, \\
+		\{1\} \qifq x > 0, \\
+		{[-1,1]} \qifq x=0.
+	}
+}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/convex-analysis-subdiff-l1}
+\caption{Subdifferential of the absolute value and a piecewise affine convex function.}
+\label{fig-subdiff-l1}
+\end{figure}
+
+
+
+
+
+
+
+   
+\paragraph{First-order conditions.}
+
+The subdifferential gives a necessary and sufficient optimality condition.
+
+\begin{prop}
+	$x^\star$ is a minimizer of $f$ if and only if $0 \in \partial f(x^\star)$.
+\end{prop}
+\begin{proof}
+	One has
+	\eq{
+		x^\star \in \argmin f
+		\quad\Leftrightarrow\quad
+		\pa{ \forall y, f(x^\star) \leq f(y) + \dotp{0}{x^\star-y} }
+		\quad\Leftrightarrow\quad
+		0 \in \partial f(x^\star).
+	}
+\end{proof}
+
+   
+\paragraph{Subdifferential calculus.}
+
+Calculus rules simplify subdifferential computations. For a separable function $f(x_1,\ldots,x_K)=\sum_{k=1}^K f_k(x_k)$, the subdifferential is the Cartesian product
+\eq{
+	\partial f(x_1,\ldots,x_K) = \partial f_1(x_1) \times \ldots \times \partial f_K(x_K).
+}
+Applying this rule to the $\ell^1$ norm $\norm{x}_1=\sum_{k=1}^N |x_k|$ gives
+\eq{
+	\partial \norm{\cdot}_1(x) = \prod_{k=1}^N \partial |\cdot|(x_k)
+}
+a hyperrectangle. With $I = \supp(x)$, the condition $u \in \partial \norm{\cdot}_1(x)$ is equivalent to
+\eq{
+	u_I = \sign(x_I)
+	\qandq
+	\norm{u_{I^c}}_\infty \leq 1.
+}
+
+A sum rule requires a domain qualification. If one function is finite and continuous at a point in the domain of the other, then for every $x\in\dom(f)\cap\dom(g)$,
+\eq{
+	\partial (f+g)(x) = \partial f(x) \oplus \partial g(x) = \enscond{u+v}{(u,v) \in \partial f(x) \times \partial g(x)}
+}
+where $\oplus$ denotes the Minkowski sum. In particular, if $f$ is differentiable at $x$, then
+\eq{
+	\partial (f+g)(x) = \nabla f(x) + \partial g(x) = \enscond{\nabla f(x) + v }{ v \in \partial g(x) }.
+}
+Positive scaling gives
+\eq{
+	\foralls \la >0, \quad
+	\partial (\la f)(x) = \la (\partial f(x)). 
+}
+
+General compositions need not preserve convexity, so no unrestricted chain rule is available.
+ 
+Composition with a linear map does preserve convexity. For $A \in \RR^{P \times N}$ and $f \in \Ga_0(\RR^P)$, assume $\Im(A)\cap\relint(\dom(f))\neq\emptyset$. Then $f \circ A \in \Ga_0(\RR^N)$ and
+\eq{
+	\partial (f \circ A)(x) = A^* (\partial f)(Ax) \eqdef \enscond{A^* u}{ u \in \partial f(Ax) }. 
+}
+
+\begin{rem}[Application to the Lasso]
+For $F(x)=\frac12\norm{Ax-y}^2+\lambda\norm{x}_1$ with $\lambda>0$, the sum rule gives
+\eq{0\in A^*(Ax-y)+\lambda\partial\norm{\cdot}_1(x).}
+Writing $r=y-Ax$, optimality is equivalent to $(A^*r)_i=\lambda\sign(x_i)$ on $\supp(x)$ and $|(A^*r)_i|\leq\lambda$ elsewhere. These conditions are useful both for analysis and for checking a numerical solution.
+\end{rem}
+
+   
+\paragraph{Normal cone.}
+
+
+For a nonempty closed convex set $\Cc$, the subdifferential of its indicator is the normal cone:
+\eq{
+	\foralls x \in \Cc, \quad \partial \iota_\Cc(x) = \Nn_\Cc(x) \eqdef \enscond{ v }{ \foralls z \in \Cc, \dotp{z-x}{v} \leq 0 }.
+}
+Outside the set, $x \notin \Cc$ implies $\partial  \iota_\Cc(x) = \emptyset$.
+ 
+For an affine space $\Cc = a+\Vv$ with direction space $\Vv \subset \Hh$, the normal cone at each of its points is $\Nn_\Cc(x)=\Vv^\bot$, the orthogonal complement of $\Vv$. More generally, at an interior point $x \in \inter(\Cc)$ of $\Cc$, we have $\Nn_\Cc(x)=\{0\}$. At a boundary point, the normal cone describes the supporting directions of $\Cc$ at $x$.
+
+
+
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/convex-analysis-normal-cones}
+\caption{Normal cones}
+\label{fig-review-convex-analysis-normal-cones}
+\end{figure}
+The normal cone expresses first-order optimality for the constrained problem
+\eq{
+	\umin{x \in \Cc} f(x)
+}
+If $f$ is finite and continuous at a point of $\Cc$, the sum rule gives the optimality condition
+\eq{
+	0 \in \partial f(x) + \partial \iota_{\Cc}(x)
+	\quad\Leftrightarrow\quad
+	\exists \xi \in \partial f(x), - \xi \in \Nn_\Cc(x)
+	\quad\Leftrightarrow\quad
+	\partial f(x) \cap (-\Nn_\Cc(x)) \neq \emptyset.
+}
+If $f$ is differentiable, it reads $-\nabla f(x) \in \Nn_\Cc(x)$.
+
+
+
+                                                                                  
+                                                                                  
+                                                                                  
+\section{Legendre--Fenchel Transform}
+
+The Legendre--Fenchel transform provides a dual representation of a convex function. It makes many Lagrange-duality calculations systematic by expressing inner minimizations through conjugates.
+
+                                                                                  
+\subsection{Legendre Transform}
+
+For $f \in \Ga_0(\Hh)$, we define its Legendre--Fenchel transform, or convex conjugate, by
+\eql{\label{eq-fenchel-transf}
+	f^*(u) \eqdef \usup{x} \dotp{x}{u} - f(x).
+}
+As a supremum of continuous affine functions, $f^*$ is convex and lower semicontinuous; in fact, $f^\star \in \Ga_0(\Hh^*)$. The following biconjugacy theorem recovers the original function.
+
+\begin{thm}
+One has
+\eq{
+	\foralls f \in \Ga_0(\Hh), \quad (f^{*})^* = f. 
+}
+\end{thm}
+
+Even when $f$ is not convex, $f^*$ is convex. If $f$ admits an affine minorant, $f^{**}$ is its lower semicontinuous convex envelope: the largest lower semicontinuous convex function below $f$.
+
+
+The subdifferentials of $f$ and $f^*$ satisfy the following inverse relation.
+
+\begin{prop}
+We have $\partial f^* = (\partial f)^{-1}$, where the inverse of a set-valued map is defined in~\eqref{eq-inv-setvalued}. The Fenchel--Young inequality states that
+\eq{
+	\foralls (

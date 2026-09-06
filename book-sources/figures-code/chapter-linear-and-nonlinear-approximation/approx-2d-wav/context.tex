@@ -1,0 +1,130 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+f scales allow us to define a comparison approximation
+\eql{\label{eq-hand-made-approx}
+	\tilde f_M=P_{V_0}f+\sum_{j_2\leq j\leq0} \sum_{n \in \Cc_j} \dotp{f}{\psi_{j,n}} \psi_{j,n} +  \sum_{j_1\leq j\leq0} \sum_{n \in \Cc_j^c} \dotp{f}{\psi_{j,n}} \psi_{j,n}.
+}
+The error of the comparison $M$-term approximation $\tilde f_M$ bounds the best $M$-term error from above:
+\eqml{\label{eq-wavapprox-1d-1}
+	\norm{f-f_M}^2 &\leq \norm{f-\tilde f_M}^2 \leq \sum_{j<j_2, n \in \Cc_j} |\dotp{f}{\psi_{j,n}}|^2 + 
+\sum_{j<j_1, n \in \Cc_j^c} |\dotp{f}{\psi_{j,n}}|^2 \\
+	& \leq \sum_{j < j_2} (K |\Ss|) \times C^2 2^{j} + \sum_{j < j_1} 2^{-j} \times  C^2 2^{j(2\al+1)} \\
+	& = O( 2^{j_2} + 2^{2\al j_1} ) = O( T^2 + T^{ \frac{2\al}{\al+1/2} } ) = O( T^{ \frac{2\al}{\al+1/2} } ).
+}
+
+  
+\paragraph{Step 3. Counting the Coefficients.}
+The number of coefficients needed to build the approximating signal $\tilde f_M$ is
+\eqml{\label{eq-wavapprox-1d-2}
+	M &\leq1+\sum_{j_2\leq j\leq0} |\Cc_j| +
+\sum_{j_1\leq j\leq0} |\Cc_j^c| \leq
+1+\sum_{j_2\leq j\leq0} K |\Ss| +
+\sum_{j_1\leq j\leq0} 2^{-j} \\
+	&= O( |\log(T)| + T^{\frac{-1}{\al+1/2}} ) 
+=  O(T^{\frac{-1}{\al+1/2}} ).
+}
+  
+\paragraph{Step 4. Putting everything together.}
+Given a coefficient budget $M$, choose $T$ to be a sufficiently large constant times $M^{-(\alpha+1/2)}$. The coefficient-count bound then uses at most $M$ terms, and the error bound is $O(M^{-2\alpha})$.
+\end{proof}
+
+For piecewise Lipschitz signals, the wavelet rate is faster than the jump-limited $O(M^{-1})$ Fourier bound in~\eqref{eq-fourier-piecewisesmooth}. It also matches the smooth-signal rate~\eqref{eq-sovolev-signal-decay}: finitely many singularities do not worsen the asymptotic exponent in one dimension. The rate~\eqref{eq-decay-piecewav} is asymptotically optimal for this class.
+
+\myfigure{
+\image{approximation}{.6}{wav-approx-1d-1}\\
+\image{approximation}{.6}{wav-approx-1d-2}\\
+\image{approximation}{.6}{wav-approx-1d-3}
+}{ 
+	1-D wavelet approximation.  
+}{fig-wav-approx-1d}
+
+Figure \ref{fig-wav-approx-1d} shows examples of wavelet approximation of singular signals. 
+
+
+                                        
+\subsection{2-D Piecewise Smooth Approximation}
+
+We now give the counterpart of Theorem~\ref{thm-approx-piecesmooth-1d} for 2-D functions.
+
+\begin{thm}\label{thm-approx-piecesmooth-2d}
+Let $f$ belong to the piecewise smooth image model~\eqref{eq-model-piece-smooth-2d}, with $\alpha\geq1$ and finitely many rectifiable edge curves. For compactly supported orthonormal wavelets with at least $\alpha$ vanishing moments and compatible boundary treatment, the best $M$-term error satisfies
+\eql{\label{eq-approximation-error-wav-2d}
+	\norm{f-f_M}^2 = O(M^{-1}).
+}
+\end{thm}
+
+\begin{proof}
+For an image in the model~\eqref{eq-model-piece-smooth-2d}, define the singular index set $\Cc_j$ as in~\eqref{eq-singsupport-1d}. Unlike the 1-D case, its cardinality grows as the scale $2^j$ decreases:
+\eq{
+	|\Cc_j^\om| \leq 2^{-j} K |\Ss|,
+}
+where $|\Ss|$ is the total length of the singular curves $\Ss$, and $\om \in \{V,H,D\}$ is the wavelet orientation.
+Using \eqref{eq-wavcoef-decay-1} for $d=2$, the decay of regular coefficients is bounded as
+\eq{
+	\foralls n \in (\Cc_j^{\om})^c, \quad \abs{\dotp{f}{\psi_{j,n}^\om}} \leq  C2^{j(\alpha+1)}.
+}
+Using \eqref{eq-wavcoef-decay-2} for $d=2$, the decay of singular coefficients is bounded as
+\eq{
+	\foralls n \in \Cc_j^\om, \quad \abs{\dotp{f}{\psi_{j,n}^\om}} \leq  C 2^{j}.
+}
+After fixing $T$, the cut-off scales are defined as 
+\eq{
+	2^{j_1} = (T/C)^{\frac{1}{\al+1}}
+	\qandq
+	2^{j_2} = T/C.
+}
+We define, as in \eqref{eq-hand-made-approx}, a comparison approximation.
+Similarly to \eqref{eq-wavapprox-1d-1}, we bound the approximation error as
+\eq{
+	\norm{f-f_M}^2 \leq \norm{f-\tilde f_M}^2 
+	= O( 2^{j_2} + 2^{2\al j_1} ) = O( T + T^{ \frac{2\al}{\al+1} } ) = O( T )
+}
+and the number of coefficients as 
+\eq{
+	M=O(T^{-1}+T^{-2/(\alpha+1)}) = O(T^{-1} ).
+}
+Since $\alpha\geq1$, choose $T$ of order $M^{-1}$ with a sufficiently large constant. This meets the coefficient budget and gives the asserted error. For $0<\alpha<1$, the same argument gives $O(M^{-\alpha})$ instead.
+\end{proof}
+
+The wavelet rate improves on the $O(M^{-1/2})$ Fourier rate~\eqref{eq-fourier-decay-2d}, but it still fails to exploit the full $\Cal$ regularity away from the edge curves.
+
+This rate also holds for the broader bounded-variation model~\eqref{eq-model-tv}, for which wavelet approximation is asymptotically optimal.
+
+\myfigure{
+\tabtrois{
+\image{approximation}{.32}{approx-2d-wav-1}&
+\image{approximation}{.32}{approx-2d-wav-2}&
+\image{approximation}{.32}{approx-2d-wav-3}
+}
+}{ 
+	2-D wavelet approximation.  
+}{fig-approx-2d-wav}
+
+Figure \ref{fig-approx-2d-wav} shows wavelet approximations of a bounded variation image. 
+
+                                                                                                                                                                 
+
+
+                                        
+                                                                                                                                                                                                                             
+
+                                           
+                                                                                                                                                                                               
+
+                                        
+                                        
+\section{Approximation of Cartoon Images}
+
+The isotropic, compactly supported wavelets considered here occupy squares that do not follow the smooth contours of geometric images~\eqref{eq-cartoon-model}. These contours have more structure than the finite-length level sets allowed by the bounded-variation model~\eqref{eq-model-tv}.
+
+                                        
+\subsection{Wavelet Approximation of Cartoon Images}
+
+The bound~\eqref{eq-approximation-error-wav-2d} gives a wavelet approximation rate of $O(M^{-1})$ for cartoon images~\eqref{eq-cartoon-model}. Even the simple indicator $f=1_\Om$, where $\Om$ is a disk, can attain this slow rate: isotropic wavelets do not efficiently follow its curved boundary. The smoothed cartoon model~\eqref{eq-cartoon-model-smooth} can behave similarly when the coefficient budget $M$ is too small to resolve the blur.
+
+Figure \ref{fig-cartoon-wav} shows that many large coefficients are located near edge curves, and retaining only a small number leads to a poor approximation with visually unpleasant artifacts.
+
+
+\myfigure{
+\tabtrois{
+\image{approximation}{.32}{cartoon-wav-image}&
+\image{approximation}{.

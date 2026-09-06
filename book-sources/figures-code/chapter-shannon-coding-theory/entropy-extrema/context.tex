@@ -1,0 +1,123 @@
+% Context from chapters/shannon-coding.tex; for mathematical reference, not compilation.
+\section{Source Coding}
+\label{sec-shannon-source}
+
+\newcommand{\Symb}{s}
+
+   
+\paragraph{Uniform coding.}
+
+We consider an alphabet $(\Symb_1,\ldots,\Symb_K)$ of $K$ symbols. For signal samples $0 \leq f_0 < 1$ quantized into $K$ bins, the symbols label the bins. For text, they may represent letters, punctuation marks, and spaces.
+ 
+A fixed-length binary code uses $\lceil \log_2(K) \rceil$ bits per symbol.
+For example, if $K=4$ and the symbols are $\{0,1,2,3\}$, one possible code is $(c_0=00,c_1=01,c_2=10,c_3=11)$.
+
+When some symbols are much more frequent than others, variable-length codes can reduce the average number of bits per symbol by assigning shorter codewords to frequent symbols.
+
+   
+\paragraph{Prefix coding.}
+ 
+
+A binary code assigns each symbol $\Symb_k$ a finite word $c_k=c(\Symb_k)\in\bigcup_{\ell\geq0}\{0,1\}^{\ell}$ of length $|c_k|$. An empty word is allowed only for a one-symbol alphabet, with the message length supplied separately.
+ 
+A code is a prefix code if no codeword is a prefix of another. Equivalently, the codewords correspond to leaves of a binary tree $T$: starting at the root, traversing an edge to the left appends 0, and traversing an edge to the right appends 1.
+ 
+We write $c=\text{Leaves}(T)$ for this tree representation.
+
+
+\myfigure{
+\image{1-shannon}{.35}{tree/prefix-coding}
+\qquad
+\image{1-shannon}{.35}{tree/tree-example}
+}{ 
+Left: the complete tree of binary words of length 3. Right: a prefix code.
+}{fig-tree-prefix}
+
+To decode a binary stream, follow its bits down the tree. Upon reaching a leaf, output the corresponding symbol and return to the root. The prefix property makes this decoding unambiguous.
+
+
+  
+\paragraph{Probabilistic modeling.}
+
+We seek a code with the smallest expected length.
+ 
+Let $p=(p_1,\ldots,p_K)\in\RR_+^K$ be the symbol probability vector, with $\sum_kp_k=1$.
+ 
+In practice, one often estimates $p_k$ from the relative frequency of $\Symb_k$ in the data. The decoder must also know the resulting code, either from a shared model or from a transmitted description.
+
+\wrapf{1-shannon/entropie/entropie-fonction}{The concave function $h(u)=-u\log_2u$ underlying entropy.}
+
+The entropy of the probability distribution $p$ is
+\eq{
+	H(p) \eqdef -\sum_k p_k \log_2(p_k)
+}
+with the convention $0\log_2(0)=0$. 
+
+For $h(u)=-u\log_2u$ and $u>0$, one has $h'(u)=-(\ln u+1)/\ln2$ and $h''(u)=-1/(u\ln2)<0$. Thus $H$ is strictly concave on the probability simplex.
+
+For a probability density $f$ with respect to a reference measure $\d x$, such as Lebesgue measure on $\RR^d$, differential entropy is defined by $H(f)\eqdef-\int f(x)\log_2(f(x))\,\d x$, whenever this integral is defined. Unlike discrete entropy, it can be negative and depends on the reference measure.
+
+\myfigure{
+\tabtrois{
+\includegraphics[width=.25\linewidth]{1-shannon/entropie/histo-1}&
+\includegraphics[width=.25\linewidth]{1-shannon/entropie/histo-3}&
+\includegraphics[width=.25\linewidth]{1-shannon/entropie/histo-sub}\\
+$H(p)=0$ & $H(p)=\log_2(4)=2$ &  $H(p) \approx 1.62$
+}
+}{Three examples of probability distributions with corresponding entropies in bits.}{fig-histo-entropy}
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/coding-entropy-extrema}
+\caption{Entropy is minimized at a point mass and maximized at the uniform distribution. Left: level sets of the entropy formula in the positive quadrant and the constraint $p_1+p_2=1$. Middle: its restriction to that constraint. Right: entropy level sets on the three-symbol probability simplex.}
+\label{fig-entropy-extrema}
+\end{figure}
+
+
+
+\begin{lem} For every probability vector $p$,
+\eq{
+	0 = H(\de_i) \leq H(p) \leq H(1/K) = \log_2(K)
+}
+where $\de_i$ is the point mass at symbol $i$, and $1/K$ denotes the uniform probability vector.
+\end{lem}
+
+
+\begin{proof}
+For $u\in[0,1]$, $-u\log_2u\geq0$, so $H(p)\geq0$, with equality precisely for a point mass.
+For probability vectors $p,q$ with $q_i>0$ whenever $p_i>0$, the inequality $\ln u\leq u-1$ gives
+\eq{
+ \sum_{i:p_i>0}p_i\log_2\frac{q_i}{p_i}
+ \leq\frac{1}{\ln2}\left(\sum_{i:p_i>0}q_i-1\right)\leq0.
+}
+Consequently $H(p)\leq-\sum_i p_i\log_2q_i$. Taking $q_i=1/K$ yields $H(p)\leq\log_2K$, with equality precisely when $p$ is uniform.
+\end{proof}
+
+The quantity $\mathrm{KL}(p\mid q)\eqdef\sum_i p_i\log_2(p_i/q_i)\geq0$ is called the Kullback--Leibler divergence, or relative entropy between $p$ and $q$. The conventions are $0\log_2(0/q_i)=0$ and $p_i\log_2(p_i/0)=+\infty$ for $p_i>0$. Although it vanishes exactly when $p=q$, it is not a metric: it is generally asymmetric and does not satisfy the triangle inequality. Minimizing the cross-entropy between an empirical distribution and a model is equivalent to maximizing the likelihood, and to minimizing their relative entropy. Cross-entropy is therefore a common objective in classification.
+
+
+                                                                    
+\section{Shannon Source Coding Theorem}
+
+For a symbol distribution $p$, the expected codeword length of a code $c$ is
+\eq{
+	L(c) \eqdef \sum_k p_k |c_k|. 
+}
+We seek a prefix code minimizing $L(c)$.
+ 
+Shannon's source coding theorem bounds the optimal expected length in terms of entropy.
+
+\begin{thm}\label{thm-shannon-source-coding}
+Assume $p_k>0$ for every symbol in the alphabet. Symbols of zero probability may be omitted.
+	(i) If $c=\text{Leaves}(T)$ for some tree $T$, then 
+	\eq{
+		L(c) \geq H(p).
+	}
+	(ii) Conversely, there exists a code $c$ with $c=\text{Leaves}(T)$ such that 
+	\eq{
+		L(c) < H(p)+1.
+	}
+\end{thm} 
+
+Kraft's inequality characterizes t

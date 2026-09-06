@@ -1,0 +1,23 @@
+% Context from chapters/shannon-coding.tex; for mathematical reference, not compilation.
+\section{Exploiting Statistical Dependence}
+
+A memoryless code based on the marginal distribution cannot have expected length below the marginal entropy. Dependent data, however, can be coded more efficiently by modeling their joint distribution. An invertible transformation of the discrete symbols can make the dependence easier to encode while preserving their joint entropy. For example, consecutive samples of a smooth signal often have small differences. Figure~\ref{fig-codage-differences} illustrates coding these differences instead of the original values. The initial sample must also be retained to make the transformation invertible.
+
+\myfigure{
+\includegraphics[width=.8\linewidth]{1-shannon/differences/differences}
+ 
+\tabtrois{
+\includegraphics[width=.25\linewidth]{1-shannon/differences/histo-pix}&
+\includegraphics[width=.25\linewidth]{1-shannon/differences/histo-diff}&
+\includegraphics[width=.2\linewidth]{1-shannon/differences/arbre-difference}\\
+$H(p) \approx 1.54, L(c) \approx 1.67 $ & $H(p) \approx 0.61, L(c) \approx 1.16 $ & Code tree
+}
+}{Top: transformation by successive differences.
+ 
+Bottom: comparison of histograms of pixel values and differences, and a code tree for these differences.
+ 
+}{fig-codage-differences}
+
+Another way to exploit temporal redundancy is run-length coding: each maximal run of identical symbols is represented by the symbol and the run length, which can itself be entropy-coded. Its performance depends on how the run lengths and transitions are modeled.
+
+For a stationary finite-state Markov chain with stationary probabilities $\pi_i$ and transition probabilities $P_{ij}$, the entropy rate is $-\sum_{i,j}\pi_iP_{ij}\log_2P_{ij}$. Coding with the conditional transition probabilities, or coding sufficiently long blocks, can approach this rate. Run-length coding alone does not guarantee this performance.

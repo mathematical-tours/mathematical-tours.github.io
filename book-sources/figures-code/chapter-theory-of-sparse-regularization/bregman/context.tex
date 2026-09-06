@@ -1,0 +1,63 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+\section{Consistency and Sparsistency}
+
+                                        
+\subsection{Bregman Divergence Rates for General Regularizations}
+
+Consider the more general regularized problem
+\eql{\label{eq-lagr-J}
+	\umin{x \in \RR^N} \frac{1}{2\la}\norm{Ax-y}^2+J(x)
+}
+for a proper convex regularizer $J$ and $\lambda>0$. We state estimates for any minimizer, without assuming uniqueness.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/sparse-theory-bregman}
+\caption{Visualization of Bregman divergences.}
+\label{fig-bregman}
+\end{figure}
+
+For $x_0$ with nonempty subdifferential and a chosen $\eta \in \partial J(x_0)$, define the Bregman divergence
+\eq{
+	D_\eta(x|x_0) \eqdef J(x)-J(x_0)-\dotp{\eta}{x-x_0}.
+}
+One has $D_\eta(x_0|x_0)=0$ and, by convexity, $D_\eta(x|x_0)\geq0$; see Figure~\ref{fig-bregman}.
+
+If $J$ is differentiable, then $\partial J(x_0)=\{\nabla J(x_0)\}$, and the divergence becomes
+\eq{
+	D(x|x_0) \eqdef J(x)-J(x_0)-\dotp{\nabla J(x_0)}{x-x_0}.
+}
+If $J$ is strictly convex, then $D(x|x_0)=0$ exactly when $x=x_0$. Thus $D(\cdot|\cdot)$ separates points, although it need not be symmetric or satisfy the triangle inequality.
+
+If $J=\norm{\cdot}^2$, then $D(x|x_0) = \norm{x-x_0}^2$ is the squared Euclidean distance.
+ 
+For the negative-entropy functional $J(x)=\sum_i x_i(\log x_i-1)+\iota_{\RR_+^N}(x)$, one obtains
+\eq{
+	D(x|x_0)  = \sum_i x_i \log\pa{ \frac{x_i}{x_{0,i}} } + x_{0,i}-x_i
+}
+This is the generalized Kullback--Leibler divergence for $x_0\in\RR_{++}^N$ and $x\in\RR_+^N$, with the convention $0\log0=0$. For probability vectors, the linear terms sum to zero.
+
+The following estimate, associated with the work of Burger and Osher, yields a linear noise rate measured by Bregman divergence.
+
+\begin{thm}\label{thm-bregman-rates}
+	If there exists 
+	\eql{\label{eq-sourcecond-J}
+		\eta  = A^* p \in \Im(A^*) \cap \partial J(x_0), 
+	}
+    then every solution $x_\la$ of~\eqref{eq-lagr-J} satisfies
+	\eql{\label{eq-bregman-rate}
+		D_\eta( x_\la|x_0 ) \leq \frac{1}{2}\pa{ \frac{\norm{w}}{\sqrt{\la}} + \sqrt{\la}\norm{p} }^2.
+	}
+    The measurement residual also satisfies
+	\eql{\label{eq-predict-source}
+		\norm{Ax_\la-y} \leq \norm{w} + 2\norm{p}\la.
+	}
+\end{thm}
+\begin{proof}
+	The optimality of $x_\la$ for~\eqref{eq-lagr-J} implies
+	\eq{
+		\frac{1}{2\la}\norm{Ax_\la-y}^2+J(x_\la) \leq \frac{1}{2\la}\norm{Ax_0-y}^2+J(x_0) = \frac{1}{2\la}\norm{w}^2+J(x_0).
+	}
+	Hence, using $\dotp{\eta}{x_\la-x_0} = \dotp{p}{Ax_\la-Ax_0} = \dotp{p}{A x_\la - y+w}$, one has
+	\begin{align*}
+		D_\eta(x_\la|x_0) &= J

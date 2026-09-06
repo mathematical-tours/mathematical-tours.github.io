@@ -1,0 +1,156 @@
+% Context from chapters/sec-optim-smooth.tex; for mathematical reference, not compilation.
+\section{Derivative and gradient}
+
+                                                                                  
+\subsection{Gradient}
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-gradient-field}
+\caption{The gradient as a vector field.}
+\label{fig-review-smooth-gradient-field}
+\end{figure}
+When all coordinate derivatives of $f$ exist, define
+\eq{
+	\nabla f(x) \eqdef \pa{\pd{f(x)}{x_1}, \ldots,\pd{f(x)}{x_p}}^\top \in \RR^p
+}
+as the gradient vector. The map $\nabla f : \RR^p \rightarrow \RR^p$ is a vector field, and its coordinate derivatives are defined by
+\eq{
+	\pd{f(x)}{x_k} \eqdef \lim_{\eta \rightarrow 0} \frac{f(x+\eta \de_k)-f(x)}{\eta} 
+}
+where $\de_k=(0,\ldots,0,1,0,\ldots,0)^\top \in \RR^p$ is the $k$th canonical basis vector.
+
+Existence of the coordinate derivatives, hence of $\nabla f(x)$, does not imply differentiability of $f$. Differentiability of $f$ at $x$ requires
+\eql{\label{eq-grad-dfn}
+	f(x+\epsilon) = f(x) + \dotp{\epsilon}{\nabla f(x)} + o(\norm{\epsilon}).
+} 
+ 
+The remainder notation $R(\epsilon) = o(\norm{\epsilon})$ means decay faster than the perturbation $\epsilon$ as it tends to $0$: $\frac{R(\epsilon)}{\norm{\epsilon}} \rightarrow 0$ as $\epsilon \rightarrow 0$. Coordinate derivatives concern the behavior of $f$ along the axes, whereas differentiability requires the expansion for every sequence $\epsilon\rightarrow 0$.
+ 
+For example, $f(x)=\frac{2 x_1 x_2 (x_1+x_2)}{x_1^2+x_2^2}$ with $f(0)=0$ has both coordinate derivatives equal to zero at the origin. Yet $f(t,t)=2t$, so the linear expansion with zero gradient fails.
+
+The vector $\nabla f(x)$ is uniquely determined by~\eqref{eq-grad-dfn}. To prove differentiability of $f$ and compute $\nabla f(x)$, it therefore suffices to establish an expansion
+\eq{
+	f(x+\epsilon) = f(x) + \dotp{\epsilon}{g} + o(\norm{\epsilon}), 
+}
+which identifies $\nabla f(x)=g$.
+
+For differentiable functions, convexity is equivalent to the graph lying above every tangent affine function.
+
+\begin{prop}\label{prop-above-tgt}
+	If $f$ is differentiable, then
+	\eq{
+		f \text{ convex} 
+		\quad\Leftrightarrow\quad
+		\forall (x,x'), \: f(x) \geq f(x') + \dotp{\nabla f(x')}{x-x'}.
+	}
+\end{prop}
+\begin{proof}
+	One can write the convexity condition as
+	\eq{
+		f((1-t)x+tx') \leq (1-t) f(x) + t f(x')
+		\qarrq
+		\frac{ f( x + t (x'-x) ) - f(x) }{t} \leq f(x')-f(x)
+	}
+	hence, taking the limit $t \rightarrow 0$ one obtains
+	\eq{
+		\dotp{\nabla f(x)}{x'-x} \leq f(x')-f(x).
+	}
+	Conversely, set $x_t\eqdef(1-t)x+tx'$. Apply the supporting-affine-function inequality at $x_t$ to $x$ and $x'$:
+	\begin{align*}
+		f(x)  & \geq f(x_t) + \dotp{\nabla f(x_t)}{x-x_t} =f(x_t)+t\dotp{\nabla f(x_t)}{x-x'} \\
+		f(x') & \geq f(x_t) + \dotp{\nabla f(x_t)}{x'-x_t} =f(x_t)-(1-t)\dotp{\nabla f(x_t)}{x-x'},
+	\end{align*}
+	Multiplying the first inequality by $1-t$ and the second by $t$, then adding, gives
+	\eq{
+		(1-t)f(x)+t f(x') \geq f(x_t).
+	}
+\end{proof}
+
+
+                                                                                  
+\subsection{First Order Conditions}
+
+A vanishing gradient is necessary for local optimality, and will also guide the algorithms developed below.
+
+\begin{prop}\label{prop-cs-min} 
+If $f$ is differentiable and $x^\star$ is a local minimizer, meaning that $f(x^\star)\leq f(x)$ throughout some neighborhood of $x^\star$, then
+\eq{
+	\nabla f(x^\star) = 0. 
+} 
+\end{prop}
+\begin{proof}
+Fix a direction $u$ and let $\epsilon\downarrow0$. Local optimality and differentiability give
+\eq{
+	f(x^\star) \leq f(x^\star+\epsilon u) = f(x^\star) + \epsilon \dotp{\nabla f(x^\star)}{u} + o(\epsilon) 
+	\qarrq
+	\dotp{\nabla f(x^\star)}{u} \geq o(1)
+	\qarrq
+	\dotp{\nabla f(x^\star)}{u} \geq 0.
+}	
+So applying this for $u$ and $-u$ in the previous equation shows that $\dotp{\nabla f(x^\star)}{u}=0$ for all $u$, and hence $\nabla f(x^\star)=0$.
+\end{proof}
+
+Note that the converse is not true in general, since one might have $\nabla f(x)=0$ but $x$ is not a local minimum. For instance $x=0$ for $f(x)=-x^2$ (here $x$ is a maximizer) or $f(x)=x^3$ (here $x$ is neither a maximizer nor a minimizer; it is a stationary inflection point), see Fig.~\ref{fig-first-order}.
+ 
+Stationarity alone therefore neither certifies a local minimum nor guarantees convergence of a numerical method to that point. Both depend on the local geometry.
+ 
+Convexity of $f$ makes stationarity sufficient as well as necessary.
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.315}{1}{tikz/smooth-stationary-extrema}\hfill
+\BookPanel{.315}{2}{tikz/smooth-stationary-inflection}\hfill
+\BookPanel{.315}{3}{tikz/smooth-stationary-convex}
+\caption{Local extrema (panel 1), a stationary inflection point (panel 2), and a global minimizer (panel 3).}
+\label{fig-first-order}
+\end{figure}
+
+
+\begin{prop} 
+If $f$ is convex and $x^\star$ is a local minimizer, then $x^\star$ is a global minimizer.
+If $f$ is differentiable and convex, 
+\eq{
+	x^\star \in \uargmin{x} f(x) 
+	\quad\Longleftrightarrow\quad
+	\nabla f(x^\star)=0.
+}
+\end{prop}
+\begin{proof}
+Fix $x$ and choose $0<t<1$ so that $tx+(1-t)x^\star$ lies in the neighborhood where $x^\star$ is minimal. Local optimality and convexity then give
+\eq{
+	f(x^\star) \leq f(tx + (1-t)x^\star) \leq t f(x) + (1-t) f(x^\star)
+	\qarrq
+	f(x^\star) \leq f(x)
+}
+proving that $x^\star$ is a global minimizer.
+
+For the second part, we already saw in Proposition~\ref{prop-cs-min} the $\Rightarrow$ implication. We assume that $\nabla f(x^\star)=0$. Since the graph of $f$ is above its tangent by convexity (as stated in Proposition~\ref{prop-above-tgt}),
+\eq{
+	f(x) \geq f(x^\star) + \dotp{\nabla f(x^\star)}{x-x^\star} = f(x^\star).
+}
+\end{proof}
+
+For a differentiable convex objective, minimization is therefore equivalent to solving $\nabla f(x)=0$, a system of $p$ equations in $p$ unknowns.
+ 
+An explicit solution is often unavailable, but the equation still characterizes the minimizers $x^\star$.
+
+
+
+                                                                                  
+\subsection{Least Squares}
+
+The gradient of the least-squares objective~\eqref{eq-least-square} follows by expanding the squared norm:
+\begin{align*}
+	f(x+\epsilon) &= \frac{1}{2}\norm{Ax-y+A\epsilon}^2 = \frac12\norm{Ax-y}^2+\dotp{Ax-y}{A\epsilon} + \frac{1}{2}\norm{A\epsilon}^2 \\
+		&=f(x) + \dotp{\epsilon}{A^\top(Ax-y)} + o(\norm{\epsilon}).
+\end{align*} 
+We used $\norm{A\epsilon}^2 = o(\norm{\epsilon})$ and the transpose $A^\top$.
+ 
+The transpose exchanges rows and columns, $A^\top = (A_{j,i})_{i=1,\ldots,n}^{j=1,\ldots,p}$. Its essential role in gradient calculations is the adjoint identity
+\eq{
+	\foralls (u,v) \in \RR^{p} \times \RR^n, \quad
+	\dotp{A u}{v}_{\RR^n} = \dotp{u}{A^\top v}_{\RR^p}. 
+}
+Computing gradients of functions involving line

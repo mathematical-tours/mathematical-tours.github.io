@@ -1,0 +1,67 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+\section{Discretization Issues}
+\label{sec-fourier-discretization}
+
+The FFT also approximates the continuous Fourier transform and its inverse. Reversing the roles of space and frequency leads to an efficient spectral interpolation method.
+
+
+                                                
+\subsection{Fourier approximation via spatial zero padding.}
+
+The discrete Fourier transform~\eqref{eq-dft} approximates samples of the continuous Fourier transform~\eqref{eq-fourier-transform}. For a sufficiently smooth $f$ supported on $[0,1]$, consider the vector $f^Q \eqdef (f(n/N))_{n=0}^{Q-1} \in \RR^Q$. Taking $Q\geq N$ pads the original samples with zeros, since continuity and the support condition give $f(n/N)=0$ for $n\geq N$.
+For signed frequency indices $-\lfloor Q/2\rfloor\leq k\leq\lceil Q/2\rceil-1$ and $T=Q/N$,
+\begin{align*}
+ \frac1N\hat f_k^Q
+ &=\frac1N\sum_{n=0}^{N-1}f(n/N)e^{-2\pi\imath nk/Q}\\
+ &\approx\int_0^1f(x)e^{-2\pi\imath kx/T}\,\d x
+ =\hat f(2\pi k/T).
+\end{align*}
+For a fixed physical frequency, the Riemann-sum error is $O(1/N)$ for $f\in C^1$. The bound need not be uniform over frequencies growing with $N$. Increasing $Q$ at fixed $N$ samples the same spectrum more densely; it does not increase the Nyquist frequency.
+                                                                                                                                                                                                                                                
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-padding-spatial}
+\caption{Fourier transform approximation by zero-padding in the spatial domain.}
+\label{fig-padding-spacial}
+\end{figure}
+
+
+                                                
+\subsection{Fourier interpolation via spectral zero padding.}
+
+One can reverse the roles of space and frequency in the previous construction. 
+ 
+Given $N$ uniform discrete samples $f^N=(f^N_n)_{n=0}^{N-1}$, one can compute their discrete Fourier transform $\Ff(f^N) = \hat f^N$ (in $O(N \log(N))$ operations with the FFT),
+\eq{
+	\hat f^N_k \eqdef \sum_{n=0}^{N-1} f^N_n e^{-\frac{2\imath\pi}{N} n k}, 
+}
+and then zero-pad the spectrum to obtain a vector of length $Q\geq N$.
+ 
+For simplicity, assume that $N=2N'+1$ is odd. Even lengths admit a similar, slightly more involved construction.
+ 
+With frequency indices $-N'\leq k\leq N'$, define the padded spectrum by
+\eq{
+	\tilde f_k^Q=\hat f_k^N\quad(-N'\leq k\leq N'),\qquad\tilde f_k^Q=0\quad\text{otherwise},\qquad\tilde f^Q\in\CC^Q
+} 
+
+The signed frequency indices are interpreted modulo $Q$ when calling an FFT routine.
+An inverse transform of size $Q$, multiplied by $Q/N$, then gives in $O(Q\log Q)$ operations
+\begin{align*}
+	\frac{Q}{N} \Ff^{-1}( \tilde f^Q )_\ell &= 
+	\frac{Q}{N} \times \frac{1}{Q} \sum_{k=-N'}^{N'} \hat f_k^N e^{ \frac{2\imath\pi}{Q} \ell k }
+	= \frac{1}{N} \sum_{k=-N'}^{N'} \sum_{n=0}^{N-1} f^N_n e^{-\frac{2\imath\pi}{N} n k} e^{ \frac{2\imath\pi}{Q} \ell k }  \\
+	&= \sum_{n=0}^{N-1} f^N_n \frac{1}{N} \sum_{k=-N'}^{N'} e^{ 2\imath\pi \pa{ -\frac{n}{N} + \frac{\ell}{Q} } k } 
+	=  \sum_{n=0}^{N-1} f^N_n 
+			\frac{ 
+				\sin\left[ \pi N \pa{ \frac{\ell}{Q} - \frac{n}{N} } \right]  
+			}{
+				N \sin\left[ \pi \pa{ \frac{\ell}{Q} - \frac{n}{N} } \right]
+			}  \\
+	&= \sum_{n=0}^{N-1} f^N_n \sinc_N\pa{ \frac{\ell}{T} - n }
+	\qwhereq
+	T \eqdef \frac{Q}{N} \qandq \sinc_N(u) \eqdef \frac{ \sin(\pi u) }{ N \sin(\pi u /N) }.
+\end{align*}
+We use the geometric-series identity with $\rho=e^{\imath \om}$, $a=-b$, $\om = 2\pi \pa{ -\frac{n}{N} + \frac{\ell}{Q} }$,
+\eq{
+	\sum_{i=a}^b \rho^i = \frac{ \rho^{a-\frac{1}{2}} - \rho^{b+\frac{1}{2}} }{ \rho^{-\frac{1}{2}} - \r

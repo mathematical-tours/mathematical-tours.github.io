@@ -1,0 +1,135 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+\section{Efficient Approximation}
+
+                                        
+\subsection{Decay of Approximation Error}
+\label{sec-linear-approx-error}
+
+To process signals in $\Theta$ efficiently, we seek an orthonormal basis in which the nonlinear approximation error $\norm{f-f_M}$ tends to $0$ as rapidly as possible when $M$ grows.
+
+
+  
+\paragraph{Polynomial error decay.}
+
+This error decay is measured using a power law
+\eql{\label{eq-approx-powerlaw}
+	\foralls f \in \Th, \; \foralls M, \quad \norm{f-f_M}^2 \leq C_f M^{-\al}
+}
+Here $\al$ is common to all signals in the model; larger values mean faster decay. The exponent depends on the basis and the model $\Th$, and measures how efficiently the basis represents that class. The constant $C_f$ may depend on the particular signal $f$.
+
+  
+\paragraph{Relevance for compression, denoising and inverse problems.}
+
+Approximation rates have practical consequences. Section \ref{sec-transform-coding} relates compression error to nonlinear approximation error, explaining why an effective approximation basis also supports efficient compression.
+
+Chapter \ref{chap-denoising} develops a similar connection for thresholding denoisers. Thresholding forms a nonlinear approximation of the noisy image, and the expected denoising error is controlled by how well the basis approximates the clean signal.
+
+Chapter \ref{chap-sparse-regul} uses compressibility in a chosen basis to address inverse problems such as super-resolution and inpainting. Efficient approximation of the unknown signal helps recover missing information, provided the measurement operator retains enough information about sparse combinations of basis atoms. Recovery performance therefore depends on both the basis and the measurements.
+
+
+
+    
+\paragraph{Comparison of signals.}
+
+With the basis fixed, the decay of $\norm{f-f_M}$ compares the approximation complexity of different images. Figure \ref{fig-approx-speed} illustrates how intricate geometry and textures slow down wavelet approximation.
+
+To reveal approximate power-law behavior, the error curves are displayed on logarithmic axes. An exact power law has the form
+\eq{
+	\log(\norm{f-f_M}^2) = \text{cst} - \al \log(M)
+}
+and appears as a straight line with slope $-\al$. For sampled data, this behavior is generally studied when $M \ll N$; as $M \approx N$, retaining nearly all coefficients drives the error to zero.
+
+
+\myfigure{
+\tabquatre{
+\image{approximation}{.24}{approx-speed-1}&
+\image{approximation}{.24}{approx-speed-2}&
+\image{approximation}{.24}{approx-speed-3}&
+\image{approximation}{.24}{approx-speed-4}\\
+Smooth & Cartoon & Natural \#1 & Natural \#2
+}
+}{ 
+	Test images with different types of structure. 
+}{fig-approx-speed-1}
+
+
+
+\myfigure{
+\image{approximation}{.4}{approx-speed-curves}
+}{ 
+	Wavelet approximation error for the images in Figure \ref{fig-approx-speed-1}. 
+}{fig-approx-speed}
+
+   
+\subsection{Comparison of bases.}
+
+For a fixed image $f$, the decay of $\norm{f-f_M}$ compares the efficiency of different bases. Figure \ref{fig-approx-effi} makes this comparison for an image containing contours and textures. The Fourier basis of Section \ref{sec-fourier-multiple-dim} performs poorly here: periodic boundaries create artifacts, and globally supported atoms do not follow local contours. The cosine basis removes the periodic boundary discontinuity through symmetric extension, but its atoms remain global. Local DCT bases use cosine atoms on small square patches, improving localization. At small coefficient budgets $M$, however, their block structure produces visible artifacts. The isotropic wavelet basis of Section \ref{sec-isotropic-wav} performs best in this example by combining localized atoms with a multiresolution organization.
+
+\myfigure{
+\tabquatre{
+\image{approximation}{.24}{approx-effi-fft}&
+\image{approximation}{.24}{approx-effi-dct}&
+\image{approximation}{.24}{approx-effi-locdct}&
+\image{approximation}{.24}{approx-effi-wav}\\
+Fourier & Cosine & Local DCT & Wavelets\\
+SNR=17.1dB & SNR=17.5dB & SNR=18.4dB & SNR=19.3dB
+}
+}{ 
+	Comparison of approximation errors for different bases using the same number $M=N/50$ of coefficients.  
+}{fig-approx-effi-1}
+
+\myfigure{
+	\image{approximation}{.4}{approx-effi-curves}
+}{ 
+	Comparison of approximation error decay for different bases.  
+}{fig-approx-effi}
+
+
+
+  
+     
+                                     
+
+                                                                                                                                                                                                                                                                                                                      
+
+               
+                         
+                                                              
+                                          
+   
+                                 
+                                                               
+                                                         
+   
+                                 
+                                                             
+                                                         
+   
+                                                                   
+             
+
+                                                                                                                                                        
+
+                                                                      
+
+                                                 
+        
+          
+
+             
+   
+                                              
+     
+                                                                                                                  
+  
+                                                                                                                                            
+ 
+                                            
+     
+                                              
+                                
+                                   
+  
+                                                                                                     
+ 
+                                  

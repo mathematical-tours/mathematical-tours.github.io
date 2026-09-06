@@ -1,0 +1,125 @@
+% Context from chapters/sec-optim-smooth.tex; for mathematical reference, not compilation.
+\section{Convergence Analysis}
+
+
+                                                                                  
+\subsection{Quadratic Case}
+
+   
+\paragraph{Convergence analysis for the quadratic case.}
+
+We first analyze gradient descent for the quadratic objective
+\eq{
+	f(x) = \frac{1}{2}\norm{Ax-y}^2 = \frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b} + \text{cst}
+	\qwhereq
+	\choice{
+		C \eqdef A^\top A \in \RR^{p \times p}, \\
+		b \eqdef A^\top y \in \RR^p. 
+	}	
+} 
+We already saw that in~\eqref{eq-sol-leastsquare} if $\ker(A)=\{0\}$, which is equivalent to $C$ being invertible, then there exists a single global minimizer $x^\star = (A^\top A)^{-1} A^\top y =C^{-1}b$.
+
+The quadratic $\frac{1}{2} \dotp{Cx}{x} - \dotp{x}{b}$ is convex exactly when the symmetric matrix $C$ is positive semidefinite, as follows from the spectral decomposition~\eqref{eq-pca-decomp}.
+
+\begin{prop}\label{prop-graddesc-quad}
+	Let $f(x)=\frac12\dotp{Cx}{x}-\dotp{b}{x}$, where $C$ is symmetric and its eigenvalues lie in $[\mu,L]$ with $0<\mu\leq L$. If the step sizes satisfy
+	\eq{
+		0 < \tau_{\min} \leq \tau_\ell \leq \tau_{\max} < \frac{2}{L}
+	}
+	then there exists $0 \leq \tilde\rho<1$ such that 
+	\eql{\label{eq-global-linrate-grad}
+		\norm{ x_k-x^\star } \leq \tilde\rho^k \norm{x_0-x^\star}.
+	} 
+	The smallest uniform one-step contraction bound based only on $\mu$ and $L$ is obtained with the constant step
+	\eql{\label{eq-best-rate-local}
+		\tau_\ell = \frac{2}{L+\mu}
+		\qarrq
+		\tilde\rho \eqdef \frac{L-\mu}{L+\mu} = 1 - \frac{2\epsilon}{1+\epsilon}
+		\qwhereq
+		\epsilon \eqdef \mu/L.
+	} 
+\end{prop}
+\begin{proof}
+	One iterate of gradient descent reads 
+	\eq{
+		x_{k+1}=x_k-\tau_k (C x_k-b).
+	}	
+	The minimizer $x^\star$ satisfies $Cx^\star=b$, so
+	\eq{
+		x_{k+1}-x^\star =x_k-x^\star-\tau_k C(x_k-x^\star) = (\Id_p-\tau_k C)(x_k-x^\star).
+	}	
+	  
+	If $S \in \RR^{p \times p}$ is a symmetric matrix, one has 
+	\eq{
+		\norm{Sz} \leq \norm{S}_{\text{op}}  \norm{z}
+		\qwhereq
+		\norm{S}_{\text{op}} \eqdef \max_k |\la_k(S)|, 
+	}
+	where $\la_k(S)$ are the eigenvalues of $S$ and $\si_k(S) \eqdef |\la_k(S)|$ are its singular values.
+	 
+	Indeed, $S$ can be diagonalized in an orthogonal basis $U$, so that $S=U \diag(\la_k(S)) U^\top$,
+	and $S^\top S = S^2 = U \diag(\la_k(S)^2) U^\top$ so that 
+	\begin{align*}
+		\norm{Sz}^2 &= \dotp{S^\top S z}{z} = \dotp{U\diag(\la_k^2)U^\top z}{z}
+		=\dotp{\diag(\la_k^2) U^\top z}{U^\top z} \\
+		&= \sum_k\la_k^2 (U^\top z)_k^2 \leq \max_k(\la_k^2) \norm{U^\top z}^2
+		= \max_k(\la_k^2) \norm{z}^2.
+	\end{align*}
+	
+	Applying this to $S = \Id_p-\tau C$ gives the contraction factor as a function of the step $\tau$:
+	\eq{
+		h(\tau) \eqdef \norm{\Id_p-\tau C}_{\text{op}} = \max_j |1-\tau\la_j(C)|
+		\leq H(\tau)\eqdef\max\bigl(|1-\tau L|,|1-\tau\mu|\bigr).
+	}
+	If $\mu$ and $L$ are the extreme eigenvalues, equality holds and Figure~\ref{fig-grad-desc-contract} plots $h=H$. In general, $H(\tau)<1$ for $0<\tau<2/L$. Continuity on $[\tau_{\min},\tau_{\max}]$ gives a common bound $\tilde\rho<1$, proving~\eqref{eq-global-linrate-grad}.
+	 
+	The bound $H$ is minimized at $\tau^\star = \frac{2}{L+\mu}$, giving
+	\eq{
+		H(\tau^\star) = \left|1 - \frac{2L}{L+\mu} \right| = \frac{L-\mu}{L+\mu}.
+	}
+\end{proof}
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-quadratic-contraction}
+\caption{Contraction constant $h(\tau)$ for a quadratic function.}
+\label{fig-grad-desc-contract}
+\end{figure}
+
+Note that when the inverse condition number $\xi\eqdef\mu/L\ll1$
+is small (which is the typical setup for ill-posed problems), then the contraction constant appearing in~\eqref{eq-best-rate-local} scales like 
+\eql{\label{eq-rate-strong-quad}
+	\tilde\rho \sim 1-2\xi.
+}
+ 
+We also use $\epsilon$ below for this inverse condition number. The condition number is the ratio of the largest to the smallest singular value, and its minimum value is $1$, attained by orthogonal matrices.
+
+The geometric decay $O(\rho^k)$ in~\eqref{eq-global-linrate-grad} is called linear convergence in optimization. The bound is global because it holds for every $k$, rather than only sufficiently large $k$.
+
+If $\ker(A) \neq \{0\}$, then $C$ has zero eigenvalues and the minimizer set is infinite.
+ 
+A linear rate still follows because the increments $x_{k+1}-x_k$ are orthogonal to $\ker(A)$, while the kernel component remains equal to that of $x_0$. The preceding proof applies on the orthogonal complement, with $\mu$ replaced by the smallest positive eigenvalue of $C$. This eigenvalue may be very small, giving a contraction factor close to one. The spectral argument also relies on the quadratic structure. We therefore give a different analysis that provides a sublinear bound on the objective value.
+
+\begin{prop}\label{prop-graddesc-quad-sublin}
+	Let $f(x)=\frac12\dotp{Cx}{x}-\dotp{b}{x}$ with $C\succeq0$, $b\in\Im(C)$, and eigenvalues at most $L>0$. For a constant step $0<\tau_k=\tau<1/L$ and $k\geq1$,
+	\eq{
+		f(x_k)-f(x^\star) \leq \frac{\text{\upshape dist}(x_0,\argmin f)^2}{\tau 8 k}.
+	}
+	where 
+	\eq{
+		\text{\upshape dist}(x_0,\argmin f) \eqdef \umin{x^\star \in \argmin f} \norm{x_0-x^\star}.
+	}
+\end{prop}
+\begin{proof}	
+	We have $C x^\star=b$ for any minimizer $x^\star$
+	and $x_{k+1}=x_k-\tau (C x_k-b)$ so that as before
+	\eq{
+		x_k-x^\star = (\Id_p-\tau C)^k(x_0-x^\star).
+	}
+	Now one has
+	\eq{
+		\frac{1}{2}\dotp{C(x_k-x^\star)}{x_k-x^\star} = 
+		\frac{1}{2}\dotp{Cx_k}{x_k} 
+		- \dotp{Cx_k}

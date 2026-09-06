@@ -1,0 +1,86 @@
+% Context from chapters/compressed-sensing.tex; for mathematical reference, not compilation.
+\section{RIP Theory for Uniform Guarantees}
+\label{sec-rip}
+
+                                    
+\subsection{Restricted Isometry Constants}
+
+For a positive integer $s$, the restricted isometry constant $\delta_s$ of $A\in\RR^{P\times N}$ is the smallest nonnegative number such that
+\eql{\label{eq-rip}
+	\foralls z \in \RR^N, \quad
+	\normz{z} \leq s \qarrq
+	(1-\de_{s}) \norm{z}^2 \leq \norm{A z}^2 \leq (1+\de_{s}) \norm{z}^2, 
+}
+A small $\delta_s$ therefore means that $A$ approximately preserves the Euclidean norm on every coordinate subspace of dimension at most $s$.
+
+A related quantity is the restricted orthogonality constant $\theta_{s,s'}$: the smallest nonnegative number such that, whenever $\norm{x}_0\leq s$, $\norm{x'}_0\leq s'$ and the supports are disjoint,
+\eq{
+	|\dotp{A x}{A x'}| \leq \th_{s,s'} \norm{x} \norm{x'}
+}
+The next lemma relates restricted isometry and restricted orthogonality.
+
+\begin{lem}\label{lemma-rip-roc}
+	One has
+	\eq{
+		\th_{s,s'} \leq \de_{s+s'} \leq \th_{s,s'} + \max(\de_s,\de_{s'}). 
+	}
+\end{lem}
+\begin{proof}
+For the first inequality, normalize nonzero disjointly supported vectors so that $\norm{z}=\norm{z'}=1$. RIP applied to $z+z'$ and $z-z'$ and polarization give
+\eq{
+ |\langle Az,Az'\rangle|
+ =\frac14\big|\norm{Az+Az'}^2-\norm{Az-Az'}^2\big|
+ \leq\delta_{s+s'}.
+}
+Rescaling gives the general claim. For the second inequality, split any vector supported on at most $s+s'$ indices as $x+x'$ with disjoint supports of sizes at most $s,s'$. Then
+\eq{
+ \big|\norm{A(x+x')}^2-\norm{x+x'}^2\big|
+ \leq\max(\delta_s,\delta_{s'})(\norm{x}^2+\norm{x'}^2)
+ +2\theta_{s,s'}\norm{x}\norm{x'},
+}
+and use $2\norm{x}\norm{x'}\leq\norm{x}^2+\norm{x'}^2$.
+\end{proof}
+
+
+\begin{figure}
+\centering
+  
+                                         
+\includegraphics[width=.35\linewidth]{cs/rip-const/delta-k}
+                                                                  
+              
+  
+\caption{\label{fig-rip-const}
+Evolution of lower bounds $\hat\delta_k$ on the RIP constant.
+                                                                        
+}
+\end{figure}
+
+The next theorem bounds the number of measurements needed to keep restricted isometry constants small at sparsity level $s$.
+ 
+
+\begin{thm}\label{thm-rip-random}
+	For $0<\delta<1$ and $1\leq s\leq N$, if $A$ is a normalized sub-Gaussian matrix and
+	\eql{
+		P \geq C \de^{-2} s \log(eN/s)
+	}
+	it satisfies $\de_s \leq \de$ with probability at least $1 - 2e^{ -\de^2 \frac{P}{2C} }$, where $C$ depends only on the sub-Gaussian parameters in~\eqref{eq-sub-gaussian}.
+\end{thm}
+
+
+The proof combines concentration on each support with a union bound over supports.
+ 
+The RIP condition~\eqref{eq-rip} is equivalent to the spectral bound $\text{eig}( A_I^* A_I ) \subset [1-\de_s,1+\de_s]$ for every column submatrix $A_I$ with $|I|\leq s$. Thus the proof reduces to controlling singular values uniformly over supports.
+ 
+For Gaussian matrices, Section~\ref{sec-random-matrix} provides these estimates for $B^*B\in\RR^{s\times s}$, where $B\in\RR^{P\times s}$ has independent $\Nn(0,1/P)$ entries. The concentration bound~\eqref{eq-talagrand} controls $\de_s$ on each support. Analogous nonasymptotic estimates hold under the stated sub-Gaussian assumptions; finite covariance alone would not suffice.
+ 
+For a fixed support, the smallest eigenvalue is close to $(1-\sqrt{s/P})^2$, a deficit of $2\sqrt{s/P}-s/P$ from $1$. Thus a fixed tolerance requires $P$ to scale with $s$. A union bound over all supports adds the logarithmic factor. This step requires nonasymptotic concentration, which the Marchenko--Pastur limit alone does not provide.
+
+
+                                    
+\subsection{RIP Implies Dual Certificates}
+
+The following theorem shows that a sufficiently small restricted isometry constant guarantees a valid dual certificate. Theorem~\ref{thm-linrate-l1} then yields stable recovery of sparse signals.
+
+\begin{thm}\label{thm-rip-dualcertif}
+Assume $\delta_{2s}+\theta_{s,s}+\theta_{s,2s}<1$. For every $x_0$ with $\norm{x_0}_0\leq s$, there is a certificate $\eta=A^*p$ satisfying $\et

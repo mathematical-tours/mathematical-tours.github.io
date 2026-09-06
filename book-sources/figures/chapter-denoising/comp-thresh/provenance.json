@@ -1,0 +1,49 @@
+{
+  "source": "figures-code/chapter-denoising/comp-thresh/generate.py",
+  "notes": "All three methods are run and independently oracle-tuned on one observation. Stationary block Stein averages all 4 by 4 block alignments within each undecimated subband, so the combined estimator is equivariant to integer pixel translations. This property is checked numerically; averaging only a few image shifts is not labeled fully translation invariant.",
+  "parameters": {
+    "seed": 20260906,
+    "sigma": 0.08,
+    "wavelet": "db4",
+    "levels": 4,
+    "stationary_block_alignment_average": 16
+  },
+  "data_sources": [
+    {
+      "path": "data/flower.png",
+      "sha256": "34633f2c7f92f362d29f862c80613463f9eee41aa2465efa7c473c1dd6c1cad4"
+    }
+  ],
+  "checks": {
+    "methods": {
+      "Stationary hard": {
+        "threshold_sigma": 2.652173913043478,
+        "snr_db": 20.34444523052944
+      },
+      "Orthogonal block Stein": {
+        "threshold_sigma": 1.1739130434782608,
+        "snr_db": 19.74942301239859
+      },
+      "Stationary block Stein": {
+        "threshold_sigma": 1.1739130434782608,
+        "snr_db": 20.831032114716464
+      }
+    },
+    "translation_equivariance_error": 4.440892098500626e-16
+  },
+  "image_preprocessing": [
+    {
+      "source": "data/flower.png",
+      "native_size": [
+        502,
+        502
+      ],
+      "output_size": [
+        256,
+        256
+      ],
+      "channels": "Rec. 709 luminance",
+      "resampling": "Lanczos"
+    }
+  ]
+}

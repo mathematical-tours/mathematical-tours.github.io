@@ -1,0 +1,46 @@
+% Context from chapters/sec-pca-theory.tex; for mathematical reference, not compilation.
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-pca-data-matrix}
+\caption{Rows of the centered data matrix are observations; columns are features.}
+\label{fig-review-ml-pca-data-matrix}
+\end{figure}
+We prove that PCA minimizes the $\ell^2$ reconstruction error among linear dimensionality-reduction methods.
+ 
+An optimal affine reconstruction space can be chosen to contain the empirical mean: for any fixed direction space, translating it to the mean cannot increase squared reconstruction error. After centering, we therefore assume $\hat m=0$, hence $X=\tilde X$.
+
+We recall that $X=\sqrt{n}U\diag(\si)V^\top$ with observations in rows, and $\hat C=X^\top X/n=V\diag(\si_i^2)V^\top$. We assume $1\leq k\leq p$ and extend $V$ to an orthogonal basis of $\RR^p$ when necessary.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-pca-compression-reconstruction}
+\caption{Linear compression followed by reconstruction.}
+\label{fig-review-ml-pca-compression-reconstruction}
+\end{figure}
+For the centered data, compare linear compression maps into dimension $k$ followed by reconstruction:
+\eql{\label{eq-pca-nonconvex}
+	\umin{R,S} \enscond{
+		f(R,S) \eqdef \sum_i \norm{x_i-R S^\top x_i}_{\RR^p}^2
+		}{ R,S \in \RR^{p \times k} }
+}
+Although $f(\cdot,S)$ and $f(R,\cdot)$ are convex separately, $f$ is not jointly convex. Alternating minimization in $R$ and $S$ therefore need not reach a global minimizer.
+ 
+Nevertheless, a global minimizer has a simple explicit form.
+
+\begin{thm}\label{thm-pca-optim}
+	A solution of~\eqref{eq-pca-nonconvex} is $S=R=V_{1:k} \eqdef [v_1,\ldots,v_k]$.
+\end{thm}
+
+The compressor $S^\top$ and decompressor $R=S$ give precisely the PCA maps in~\eqref{eq-pca-1} and~\eqref{eq-pca-2}.
+
+We first prove that one can restrict attention to orthogonal projection matrices.
+
+\begin{lem}
+	The minimization may be restricted to $S=R$ with $S^\top S = \Id_{k\times k}$.
+\end{lem}
+\begin{proof}
+	Fix an arbitrary pair $(R,S)$. The matrix $R S^\top$ has rank $k' \leq k$. Choose $W \in \RR^{p \times k'}$ whose columns form an orthonormal basis of $\Im(RS^\top)$, so that $W^\top W = \Id_{k' \times k'}$. Orthogonal projection gives
+	\eq{
+		\uargmin{z} \norm{x-Wz}^2 = W^\top x
+	}
+	

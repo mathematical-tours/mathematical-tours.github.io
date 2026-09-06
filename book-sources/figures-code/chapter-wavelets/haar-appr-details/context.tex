@@ -1,0 +1,148 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+\section{Multiresolution Detail Spaces}
+
+The detail spaces are the orthogonal complements associated with the inclusions $V_j \subset V_{j-1}$. Since these subspaces are closed,
+\eq{
+	\foralls j, \quad W_j \text{ is such that } V_{j-1} = V_j \oplus^\bot W_j. 
+}
+The following diagram shows these nested approximation spaces and their orthogonal complements:
+\begin{center}
+	\image{wavelets}{.8}{embeded-spaces-1d}
+\end{center}
+Suppose that $W_0$ admits an orthonormal basis of translates $\{\psi(\cdot-n)\}_n$. Scaling then gives
+\eq{
+	\{ \psi_{j,n} \}_n \text{ is a Hilbertian orthonormal basis of } W_j
+	\qwhereq
+	\psi_{j,n} \eqdef \frac{1}{2^{j/2}} \psi\pa{ \frac{\cdot - 2^j n}{2^j} }.
+}
+
+Orthogonal decomposition across all scales yields
+\eq{
+	L^2(\RR) = \bigoplus_{j=-\infty}^{j=+\infty} W_j
+	=V_{j_0}\oplus^\bot\bigoplus_{j\leq j_0}W_j.
+}
+For every $f \in L^2(\RR)$, the corresponding expansion converges in $L^2(\RR)$:
+\eq{
+	f = 
+	\lim_{(j_-,j_+) \rightarrow (-\infty,+\infty)} \sum_{j=j_-}^{j_+} P_{W_j} f
+	= 
+	\lim_{j_-\to-\infty}\left(P_{V_{j_0}}f+\sum_{j=j_-}^{j_0}P_{W_j}f\right).
+}
+This decomposition shows that 
+\eq{
+	\enscond{\psi_{j,n}}{(j,n) \in \ZZ^2}
+}
+is an orthonormal basis of $L^2(\RR)$, which is called a wavelet basis.
+ 
+Stopping at a coarsest scale gives the orthonormal basis
+\eq{
+	\enscond{\psi_{j,n}}{j \leq j_0, n \in \ZZ} \cup 
+	\enscond{\phi_{j_0,n}}{n \in \ZZ}.
+}
+
+The forward wavelet transform computes all inner products of a function $f$ with the elements of this basis.
+
+\myfigure{
+\tabdeux{
+\image{wavelets}{.48}{multires-1d-haar-0}&
+\image{wavelets}{.48}{multires-1d-haar-1}\\
+Signal $f$ & $j=-8$ \\
+\image{wavelets}{.48}{multires-1d-haar-2}&
+\image{wavelets}{.48}{multires-1d-haar-3}\\
+$j=-7$ & $j=-6$
+}
+}{ 
+	1-D Haar multiresolution projection $P_{V_j}f$ of a function $f$.  
+}{fig-haar-1d}
+
+
+
+  
+\paragraph{Haar wavelets.}
+
+For the Haar multiresolution~\eqref{eq-haar-multires}, one has
+\eql{\label{eq-haar-details}
+	W_j = \enscond{ f }{  \foralls n \in \ZZ, \; f \text{ constant on  } [2^{j-1}n,2^{j-1}(n+1)) \qandq
+	 \int_{n2^j}^{(n+1)2^j} f = 0 }.
+}
+One choice of mother wavelet is
+\eq{
+	\psi(t)=\choice{
+		1 \qforq 0 \leq t < 1/2, \\
+		-1 \qforq 1/2 \leq t < 1, \\
+		0 \quad \text{otherwise,}
+	}
+}
+as shown in Figure~\ref{fig-haard-scaling-wav}.
+
+
+\myfigure{
+\tabdeux{
+\image{wavelets}{.48}{multires-1d-haar-1}& \\
+$P_{V_j} f$ & \\
+\image{wavelets}{.48}{multires-1d-haar-2}&
+\image{wavelets}{.48}{multires-1d-haar-detail-1}\\
+$P_{V_{j+1}} f$ & $P_{W_{j+1}} f$ \\
+\image{wavelets}{.48}{multires-1d-haar-3}&
+\image{wavelets}{.48}{multires-1d-haar-detail-2} \\
+$P_{V_{j+2}} f$ & $P_{W_{j+2}} f$
+}
+}{ 
+	Successive Haar approximations (left) and the extracted details (right). Increasing the relative level from $j$ to $j+1$ and $j+2$ coarsens the approximation. 
+}{fig-haar-appr-details}
+
+Figure~\ref{fig-haar-appr-details} illustrates how subtracting consecutive approximation-space projections isolates the details at each scale.
+
+
+  
+\paragraph{Shannon and splines.}
+
+Figure~\ref{fig-spline-vs-shannon} compares the sharp frequency partitions of Shannon wavelets with the smooth transitions of spline wavelets. Shannon wavelets can be viewed as a limiting case as the spline degree increases.
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/wavelets-shannon-spline-bands}
+\caption{Spline and Shannon wavelet segmentation of the frequency axis.}
+\label{fig-spline-vs-shannon}
+\end{figure}
+
+
+
+                                                   
+\section{On Bounded Domains}
+
+On the periodic domain $\TT=\RR/\ZZ$, we use period 1 rather than the $2\pi$-period convention of the Fourier chapter. To obtain an orthonormal wavelet basis of $L^2(\TT)$, periodize the wavelets and restrict their translation points $2^j n$ to $[0,1]$, choosing $0 \leq n < 2^{-j}$. As in~\eqref{eq-periodizing}, the periodization of $f \in L^1(\RR)$ is
+\eq{
+	f^P = \sum_{n \in \ZZ} f(\cdot-n) \in L^1(\TT). 
+}
+For an integer coarsest level $j_0\leq0$, this gives the family
+\eq{
+	\enscond{\psi_{j,n}^P}{j \leq j_0, 0 \leq n < 2^{-j}} \cup 
+	\enscond{\phi_{j_0,n}^P}{0 \leq n < 2^{-j_0}}.
+}
+which is an orthonormal basis of $L^2(\TT)$, illustrated in Figure~\ref{fig-periodize}.
+ 
+One can also construct wavelet bases using Neumann (mirror) boundary conditions, but this is more involved.
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/wavelets-periodization}\hfill
+\BookPanel{.485}{2}{tikz/wavelets-periodic-translates}
+\caption{Periodized basis functions. Only the translations $0\leq n<2^{-j}$ are distinct, and $j_0=0$ is a common choice of coarsest scale.}
+\label{fig-periodize}
+\end{figure}
+
+
+
+                                                   
+\section{Fast Wavelet Transform}\label{sec-fast-wavelet-transform}
+
+   
+\subsection{Discretization}
+
+We now work over $\RR/\ZZ$.
+ 
+We assume ac

@@ -1,0 +1,90 @@
+% Context from chapters/convex-analysis.tex; for mathematical reference, not compilation.
+\section{Basics of Convex Analysis}
+
+We consider minimization problems of the form
+\eql{\label{eq-convex-function}
+	\umin{x \in \Hh} f(x)
+}
+over the finite-dimensional Hilbert space $\Hh \eqdef \RR^N$, with the canonical inner product $\dotp{\cdot}{\cdot}$.
+ 
+Many of these results extend to infinite-dimensional Hilbert spaces, with additional hypotheses where compactness is used.
+
+The objective $f : \Hh \longrightarrow \bar \RR \eqdef \RR \cup \{+\infty\}$ is convex. Allowing $f$ to take the value $+\infty$ encodes constraints directly in the objective; its effective domain is
+\eq{
+	\dom(f) \eqdef \enscond{x}{f(x)<+\infty}.
+}
+
+For a set $\Cc \subset \Hh$, define the indicator function
+\eq{
+	\iota_{\Cc}(x) \eqdef \choice{
+		0 \qifq x \in \Cc, \\
+		+\infty \quad\text{otherwise.}
+	}
+}
+
+
+                                                                                  
+\subsection{Convex Sets and Functions}
+
+A set $\Om \subset \Hh$ is convex if
+\eq{
+	\foralls (x,y,t) \in \Om^2 \times [0,1], \quad (1-t)x+ty \in \Om.
+}
+A function is convex if
+\eql{\label{eq-convex-defn}
+	\foralls (x,y,t) \in \Hh^2 \times [0,1], \quad f( (1-t)x+ty ) \leq (1-t)f(x) + t f(y)
+}
+Equivalently, its epigraph $\enscond{(x,r) \in \Hh \times \RR}{r \geq f(x)}$ is convex. The inequality is interpreted in the extended real line $\bar\RR$, with the convention $0\cdot(+\infty)=0$ at the endpoints $t=0,1$.
+ 
+The function $f$ is strictly convex if the inequality in~\eqref{eq-convex-defn} is strict whenever $x,y\in\dom(f)$ are distinct and $0<t<1$.
+ 
+A set $\Om$ is convex if and only if $\iota_{\Om}$ is a convex function.
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/convex-analysis-convex-examples}
+\caption{Convexity and strict convexity for functions and sets.}
+\label{fig-convex-examples}
+\end{figure}
+
+
+
+
+Throughout the chapter, convex functions $f$ are assumed proper, meaning $\dom(f) \neq \emptyset$, and lower semicontinuous (lsc), meaning that for every $x \in \Hh$,
+\eq{
+	\liminf_{y \rightarrow x} f(y)  \geq f(x).
+}
+For a convex function, lower semicontinuity is equivalent to the epigraph $\epi(f)$ being closed.
+ 
+We denote by $\Ga_0(\Hh)$ the set of proper convex lsc functions.
+
+                                                                                  
+\subsection{First-Order Conditions}
+
+   
+\paragraph{Existence of minimizers.}
+
+We first address existence. Lower semicontinuity and coercivity provide a useful sufficient condition.
+
+\begin{prop}
+	If $f$ is proper, lower semicontinuous, and coercive (i.e. $f(x)\rightarrow +\infty$ as $\norm{x}\rightarrow +\infty$), then there exists a minimizer $x^\star$ of $f$.
+\end{prop}
+
+\begin{proof}
+Choose $x_0\in\dom(f)$. The sublevel set $K=\{x:f(x)\leq f(x_0)\}$ is nonempty, closed by lower semicontinuity, and bounded by coercivity. It is therefore compact in finite dimensions. A lower semicontinuous function attains its infimum on $K$, at some $x^\star$. Since $f(x)>f(x_0)\geq f(x^\star)$ outside $K$, this point is a global minimizer.
+\end{proof}
+
+This compactness argument is known as the direct method in the calculus of variations.
+ 
+For $f$ in $\Ga_0(\Hh)$, the minimizer set $\argmin f$ is closed and convex, and every local minimizer is global. Strict convexity of $f$ implies that there is at most one minimizer.
+
+   
+\paragraph{Subdifferential.}
+
+The subdifferential at $x$ of $f$ is
+\eq{
+	\partial f(x) \eqdef \enscond{u \in \Hh^*}{ \forall y\in\Hh, f(y) \geq f(x) + \dotp{u}{y-x} },\qquad x\in\dom(f).
+}
+We set $\partial f(x)=\emptyset$ outside $\dom(f)$. Here $\Hh^*=\RR^N$ denotes the space of dual vectors. The inner product identifies the dual space with $\Hh$, but distinguishing primal and dual variables remains useful. The duality pairing itself is canonical; the identification of a linear functional with 

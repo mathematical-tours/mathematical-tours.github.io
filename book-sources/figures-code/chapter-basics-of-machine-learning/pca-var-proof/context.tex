@@ -1,0 +1,142 @@
+% Context from chapters/sec-pca-theory.tex; for mathematical reference, not compilation.
+s of the centered data matrix are observations; columns are features.}
+\label{fig-review-ml-pca-data-matrix}
+\end{figure}
+We prove that PCA minimizes the $\ell^2$ reconstruction error among linear dimensionality-reduction methods.
+ 
+An optimal affine reconstruction space can be chosen to contain the empirical mean: for any fixed direction space, translating it to the mean cannot increase squared reconstruction error. After centering, we therefore assume $\hat m=0$, hence $X=\tilde X$.
+
+We recall that $X=\sqrt{n}U\diag(\si)V^\top$ with observations in rows, and $\hat C=X^\top X/n=V\diag(\si_i^2)V^\top$. We assume $1\leq k\leq p$ and extend $V$ to an orthogonal basis of $\RR^p$ when necessary.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-pca-compression-reconstruction}
+\caption{Linear compression followed by reconstruction.}
+\label{fig-review-ml-pca-compression-reconstruction}
+\end{figure}
+For the centered data, compare linear compression maps into dimension $k$ followed by reconstruction:
+\eql{\label{eq-pca-nonconvex}
+	\umin{R,S} \enscond{
+		f(R,S) \eqdef \sum_i \norm{x_i-R S^\top x_i}_{\RR^p}^2
+		}{ R,S \in \RR^{p \times k} }
+}
+Although $f(\cdot,S)$ and $f(R,\cdot)$ are convex separately, $f$ is not jointly convex. Alternating minimization in $R$ and $S$ therefore need not reach a global minimizer.
+ 
+Nevertheless, a global minimizer has a simple explicit form.
+
+\begin{thm}\label{thm-pca-optim}
+	A solution of~\eqref{eq-pca-nonconvex} is $S=R=V_{1:k} \eqdef [v_1,\ldots,v_k]$.
+\end{thm}
+
+The compressor $S^\top$ and decompressor $R=S$ give precisely the PCA maps in~\eqref{eq-pca-1} and~\eqref{eq-pca-2}.
+
+We first prove that one can restrict attention to orthogonal projection matrices.
+
+\begin{lem}
+	The minimization may be restricted to $S=R$ with $S^\top S = \Id_{k\times k}$.
+\end{lem}
+\begin{proof}
+	Fix an arbitrary pair $(R,S)$. The matrix $R S^\top$ has rank $k' \leq k$. Choose $W \in \RR^{p \times k'}$ whose columns form an orthonormal basis of $\Im(RS^\top)$, so that $W^\top W = \Id_{k' \times k'}$. Orthogonal projection gives
+	\eq{
+		\uargmin{z} \norm{x-Wz}^2 = W^\top x
+	}
+	because the first-order optimality condition is $W^\top(Wz-x)=0$.
+	  
+	Hence, denoting $RS^\top x_i = Wz_i$ for some $z_i \in \RR^{k'}$
+	\eq{
+		f(R,S) = \sum_i \norm{x_i - RS^\top x_i}^2 = \sum_i \norm{x_i - W z_i}^2 \geq \sum_i \norm{x_i - W W^\top x_i}^2
+		\geq  f(\tilde W,\tilde W).
+	}
+	where $W$ has been extended to a matrix $\tilde W \in \RR^{p \times k}$ with orthonormal columns and $\tilde W_{1:k'}=W$.
+\end{proof}
+
+\begin{lem}
+	Denoting $C\eqdef X^\top X=\sum_i x_ix_i^\top\in\RR^{p\times p}$, an optimal $S$ is obtained by solving
+	\eq{
+		\umax{S \in \RR^{p \times k}} \enscond{\tr(S^\top C S)}{ S^\top S=\Id_{k} }.
+	}
+\end{lem}
+\begin{proof}
+	By the previous lemma, restrict to $R=S$ with $S^\top S=\Id_k$. Expanding the residual gives
+	\eq{
+		f(S,S) = \sum_i \norm{x_i-SS^\top x_i}^2
+		= \sum_i \left(\norm{x_i}^2 - 2 x_i^\top S S^\top x_i + x_i^\top S(S^\top S) S^\top x_i\right).
+	}
+	Using that $S^\top S=\Id_k$, one has
+	\eq{
+ f(S,S)=\sum_i\norm{x_i}^2-\sum_i\tr(S^\top x_ix_i^\top S)
+ =\norm{X}_{\mathrm{Fro}}^2-\tr(S^\top CS).
+}
+The first term is independent of $S$, giving the stated maximization problem.
+\end{proof}
+
+The next lemma bounds the objective by a linear program. We then show that PCA attains this bound, proving optimality.
+
+\begin{lem}\label{lem-upper-bound-pca}
+	Denoting $C=V\La V^\top=n\hat C$ with eigenvalues $\la_1\geq\cdots\geq\la_p\geq0$ (including zeros), one has
+	\eql{\label{eq-variational-pca}
+		\tr(S^\top C S) \leq \umax{\be \in \RR^p}
+			\enscond{ \sum_{i=1}^p \la_i \be_i }{ 0 \leq \be \leq 1, \sum_i \be_i \leq k }
+			= \sum_{i=1}^k \la_i
+	}
+	with a maximizing vector $\be=(1,\ldots,1,0,\ldots,0)$.
+\end{lem}
+\begin{proof}
+	Use the full orthogonal eigenbasis $V\in\RR^{p\times p}$ introduced above, including eigenvectors corresponding to zero eigenvalues. Thus $V^\top V=VV^\top=\Id_p$. One has
+	\eq{
+		\tr(S^\top C S) = \tr(S^\top V \La V^\top S)
+		= \tr(B^\top\La B)=\tr(\La BB^\top) = \sum_{i=1}^p \la_i \norm{b_i}^2
+		= \sum_i \la_i \be_i
+	}
+	Here $B\eqdef V^\top S \in \RR^{p \times k}$. The vectors $(b_i)_{i=1}^p$, with $b_i \in \RR^k$, are the rows of $B$, and $\be_i \eqdef \norm{b_i}^2 \geq 0$.
+	 
+	One has
+	\eq{
+		B^\top B = S^\top V V^\top S = S^\top S = \Id_k,
+	}
+	so the columns of $B$ are orthonormal. Consequently,
+	\eq{
+		\sum_i \be_i = \sum_i \norm{b_i}^2 = \norm{B}_{\text{Fro}}^2 =\tr(B^\top B)=k.
+	}		
+	
+	\begin{figure}[tbp]
+\centering
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/ml-pca-linear-program}\par\medskip
+\BookPanel{.485}{2}{tikz/ml-pca-row-norms}\hfill
+\BookPanel{.485}{3}{tikz/ml-pca-orthogonal-extension}
+\caption{Panel 1: the linear-program bound in~\eqref{eq-variational-pca}. Panel 2: matrix $B$. Panel 3: its orthogonal extension $\tilde B$.}
+\label{fig-pca-var-proof}
+\end{figure}
+
+
+	We extend the $k$ columns of $B$ into an orthogonal basis $\tilde B \in \RR^{p \times p}$ such that $\tilde B \tilde B^\top = \tilde B^\top\tilde B=\Id_p$, so that
+	\eq{
+		0 \leq \be_i = \norm{b_i}^2 \leq \norm{\tilde b_i}^2 = 1
+	}
+	Thus $(\be_i)_{i=1}^p$ is feasible for the linear program, so $\tr(S^\top C S)$
+	cannot exceed its maximum.
+	 
+	
+	For any feasible $\be$, use $\la_i\leq\la_k$ for $i>k$ and $\sum_i\be_i\leq k$ to obtain
+\eq{\sum_i\la_i\be_i\leq\sum_{i\leq k}\la_i\be_i+\la_k\left(k-\sum_{i\leq k}\be_i\right)
+\leq\sum_{i\leq k}\la_i.}
+The choice $\be_i=1$ for $i\leq k$ and $\be_i=0$ otherwise attains this value. Figure~\ref{fig-pca-var-proof} illustrates the argument.
+\end{proof}
+
+\begin{proof}[Proof of PCA optimality]
+	For $S=V_{1:k}=[v_1,\ldots,v_k]$, the eigenvector identities give $CS = V \La V^\top V_{1:k} = V_{1:k} \diag(\la_i)_{i=1}^k$ and hence
+	\eq{
+		\tr(S^\top C S) = \tr(S^\top S \diag(\la_i)_{i=1}^k) = \tr(\Id_k \diag(\la_i)_{i=1}^k) = \sum_{i=1}^k \la_i.
+	}
+	This attains the upper bound in Lemma~\ref{lem-upper-bound-pca}, proving that $S$ is optimal.
+\end{proof}
+
+
+             
+         
+      
+                                                                                                                                     
+   
+                                                                      
+           

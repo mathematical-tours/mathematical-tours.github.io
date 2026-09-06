@@ -1,0 +1,95 @@
+% Context from chapters/shannon-coding.tex; for mathematical reference, not compilation.
+\section{Shannon Source Coding Theorem}
+
+For a symbol distribution $p$, the expected codeword length of a code $c$ is
+\eq{
+	L(c) \eqdef \sum_k p_k |c_k|. 
+}
+We seek a prefix code minimizing $L(c)$.
+ 
+Shannon's source coding theorem bounds the optimal expected length in terms of entropy.
+
+\begin{thm}\label{thm-shannon-source-coding}
+Assume $p_k>0$ for every symbol in the alphabet. Symbols of zero probability may be omitted.
+	(i) If $c=\text{Leaves}(T)$ for some tree $T$, then 
+	\eq{
+		L(c) \geq H(p).
+	}
+	(ii) Conversely, there exists a code $c$ with $c=\text{Leaves}(T)$ such that 
+	\eq{
+		L(c) < H(p)+1.
+	}
+\end{thm} 
+
+Kraft's inequality characterizes the possible codeword lengths of a prefix code and is the key to the proof.
+
+\begin{lem}[Kraft inequality]\label{lem-kraft}
+	(i) For a code $c$, if there exists a tree $T$ such that $c=\text{Leaves}(T)$ then
+	\eql{\label{eq-kraft-ineg}
+		\sum_k 2^{-|c_k|} \leq 1.
+	}
+	(ii) Conversely, if $(\ell_k)_k$ are nonnegative integers such that
+	\eql{\label{eq-kraft-ineg-2}
+		\sum_k 2^{-\ell_k} \leq 1
+	}
+	then there exists a code $c=\text{Leaves}(T)$ such that $|c_k|=\ell_k$.
+\end{lem} 
+
+\begin{proof}
+	$\Rightarrow$ Suppose $c=\text{Leaves}(T)$ and put $m=\max_k |c_k|$. Complete $T$ to a full binary tree of depth $m$.
+	 
+	The subtree rooted at $c_k$ has height $m-|c_k|$ and $2^{m-|c_k|}$ leaves; see Figure~\ref{fig-kraft-trees}, panel 1. These subtrees are disjoint, and the full tree has $2^m$ leaves, so
+	\eq{
+		\sum_k 2^{m-|c_k|} \leq 2^m, 
+	}
+	which gives~\eqref{eq-kraft-ineg} after division by $2^m$.
+	
+	\begin{figure}[tbp]
+\centering
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/coding-kraft-necessity}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
+\BookDrawing{tikz/coding-kraft-sufficiency}
+\caption{Panel 1: full binary tree obtained by completing the tree associated with the code $(c_1=0, c_2=10, c_3=110, c_4=111)$.
+	Panel 2: subtrees with the prescribed codeword lengths packed from left to right.}
+\label{fig-kraft-trees}
+\end{figure}
+
+	
+	$\Leftarrow$ Conversely, assume~\eqref{eq-kraft-ineg-2} holds and order the lengths so that $\ell_1 \leq \ldots \leq \ell_K =: m$.
+	We construct full subtrees of height $m-\ell_k$, each with $2^{m-\ell_k}$ leaves, and place their leaf blocks consecutively from left to right.
+	 
+	The inequality $\sum_k 2^{m-\ell_k} \leq 2^m$ ensures that all blocks fit among the $2^m$ leaves.
+	 
+	Because the lengths $\ell_k$ are nondecreasing, the block sizes are nonincreasing powers of two. Each block therefore begins at a multiple of its own size and is the leaf set of a subtree; see Figure~\ref{fig-kraft-trees}, panel 2. The roots of these disjoint subtrees form the required prefix code.
+\end{proof}
+
+
+
+\begin{proof}[Proof of Shannon's theorem]
+(i) Put $\ell_k=|c_k|$, $Z=\sum_k2^{-\ell_k}\leq1$, and $q_k=2^{-\ell_k}/Z$. The nonnegativity of relative entropy gives
+\eql{\label{eq-proof-shannon}
+ L(c)-H(p)=\mathrm{KL}(p\mid q)-\log_2 Z\geq0.
+}
+Equality requires $Z=1$ and $q=p$, identifying the ideal real-valued code lengths $-\log_2p_k$.
+
+(ii) Choose $\ell_k=\lceil-\log_2p_k\rceil$. Then $\sum_k2^{-\ell_k}\leq\sum_kp_k=1$, so Lemma~\ref{lem-kraft} constructs a prefix code with these lengths. Moreover,
+\eq{
+ L(c)=\sum_kp_k\lceil-\log_2p_k\rceil
+ <\sum_kp_k(-\log_2p_k+1)=H(p)+1.
+}
+For a one-symbol alphabet, the empty word has length zero and the same conclusions hold.
+\end{proof}
+
+This proof is constructive: rounding the ideal lengths and using Kraft's lemma yields a Shannon code. It need not minimize $L(c)$. Huffman's greedy algorithm constructs an optimal binary prefix code by repeatedly merging the two least probable symbols. With a priority queue, its cost is $O(K\log K)$. Figure~\ref{fig-huff-code} illustrates the construction.
+
+
+\myfigure{
+\includegraphics[width=.8\linewidth]{1-shannon/huff-code}
+}{Successive merges in Huffman's coding algorithm.}{fig-huff-code}
+
+\texttt{Associated code: coding/test\_text.m}
+
+                                                            
+\secti

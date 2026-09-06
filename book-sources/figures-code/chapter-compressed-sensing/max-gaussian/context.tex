@@ -1,0 +1,131 @@
+% Context from chapters/compressed-sensing.tex; for mathematical reference, not compilation.
+1}{1 - (s-1)\mu} \times 1.
+	}
+	 
+	One has 
+	\eq{
+		\frac{ s\mu }{ 1-(s-1)\mu }<1 \quad\Longleftrightarrow\quad
+		2s\mu < 1+\mu
+	}
+	which gives the last statement.
+	 
+	One also has
+	\eq{
+		\norm{p_F}^2 = \dotp{(A_I^*A_I)^{-1}s_I}{s_I} \leq \norm{(A_I^*A_I)^{-1}}_\infty \norm{s_I}_1 \leq \frac{s}{1 - (s-1)\mu}
+	}
+\end{proof}
+
+The proof applies to every sign pattern on every support satisfying the coherence condition. It also yields support containment for arbitrary noise levels when $\lambda$ satisfies the noise-dependent ERC bound from the preceding chapter. An arbitrary choice of $\lambda$ need not preserve the support.
+
+For $N>P$, the Welch bound gives
+\eql{\label{eq-bound-cohe-mat}
+	\mu \geq \sqrt{\frac{N-P}{P(N-1)}}
+}
+which is equivalent to $1/\sqrt{P}$ for $N \gg P$.
+ 
+For Gaussian matrices with normalized columns $A \in \RR^{P \times N}$, a union bound gives, with high probability when $\log N$ is small relative to $P$,
+\eq{
+	\mu=O\!\left(\sqrt{\log N/P}\right)
+}
+Thus Gaussian matrices attain the Welch scale up to a factor of order $\sqrt{\log N}$ when $N\gg P$.
+ 
+Ignoring logarithmic factors, Proposition~\ref{prop-bound-coh} guarantees support stability for sparsities of order $\sqrt P$. This coherence bound is conservative: a direct probabilistic analysis permits sparsities of order $P$, again up to logarithmic factors.
+
+      
+\paragraph{Randomized analysis of the Fuchs certificate.}
+
+For the probabilistic analysis, we specify independent entries with a common variance and a uniform Gaussian-type tail bound.
+
+\begin{defn}[sub-Gaussian random matrix]
+A random matrix $A\in\RR^{P\times N}$ is called normalized sub-Gaussian if its entries are independent, $\EE(A_{i,j})=0$, $\EE(A_{i,j}^2)=1/P$, and, for some constants $\beta,\kappa>0$ and every $t>0$,
+\eql{\label{eq-sub-gaussian}
+	\PP(|\sqrt{P} A_{i,j}| \geq t) \leq \be e^{-\kappa t^2}.
+}
+The entries may have different distributions, but the tail constants $(\beta,\kappa)$ must be uniform over $(i,j)$.
+ 
+The normalization by $\sqrt{P}$ is consistent with unit expected squared column norm, $\EE(\norm{a_j}^2)=1$, where $a_j$ denotes a column of $A$.
+\end{defn}
+
+Examples include Gaussian matrices with entry variance $1/P$ and matrices with independent entries taking the values $\pm1/\sqrt P$ with equal probability.
+
+
+\begin{thm}\label{thm-cs-etaf}
+Fix a nonzero $x_0\in\RR^N$, independently of $A$, and write $s=\norm{x_0}_0$. For a normalized sub-Gaussian matrix, there is a constant $C$, depending only on the sub-Gaussian parameters, such that
+\eq{
+ P\geq C s\log(2N/\epsilon),\qquad0<\epsilon<1,
+}
+implies, with probability at least $1-\epsilon$, that $A_I$ is injective and $\norm{\eta_{F,I^c}}_\infty<1$. The support-stability conclusion of Theorem~\ref{thm-support-stable} then holds for sufficiently small $\lambda$ and sufficiently small $\norm{A^*w}_\infty/\lambda$.
+\end{thm}
+
+\begin{proof}
+We outline the concentration argument. With probability at least $1-\epsilon/2$, taking $P$ as in the theorem with a sufficiently large constant gives $\sigma_{\min}(A_I)\geq1/2$, hence
+\eql{\label{eq-estimate-pf-norm}
+ \norm{p_F}^2=\langle(A_I^*A_I)^{-1}s_I,s_I\rangle\leq4s,
+ \qquad s_I=\sign(x_{0,I}).
+}
+Conditioning on $A_I$ fixes $p_F$, while the off-support columns $a_j$ remain independent of this vector. The probability that $|\langle a_j,p_F\rangle|$ reaches or exceeds $1$ is bounded by $2\exp(-cP/\norm{p_F}^2)$. A union bound over at most $N$ columns gives the stated sample complexity and the strict off-support bound, by excluding $|\langle a_j,p_F\rangle|\geq1$.
+
+For Gaussian entries, conditional on $A_I$, these inner products are Gaussian with variance $\norm{p_F}^2/P$. When $s/P$ is small, $\norm{p_F}^2$ is close to $s$, so the largest of the $N-s$ absolute correlations is approximately $\sqrt{2s\log(N-s)/P}$. This gives the sharper leading-order Gaussian threshold $P\approx2s\log N$.
+
+Rotational invariance makes this statement more precise:
+\eq{
+ \frac{Ps}{\norm{p_F}^2}\sim\chi^2_{P-s+1}.
+}
+To see this, rotate the $s$ columns so that $s_I/\sqrt s$ becomes the first coordinate vector. The inverse of the corresponding diagonal entry of $(G^*G)^{-1}$, for $G=\sqrt P A_I$, is the squared distance of the first column of $G$ to the span of the remaining columns. This is a chi-square variable with $P-s+1$ degrees of freedom. Thus $\norm{p_F}\leq(1+\delta)\sqrt s$ with high probability when $s/P$ is sufficiently small and $P$ is large; the factor must exceed one.
+\end{proof}
+
+\begin{figure}
+\centering
+  
+\includegraphics[width=.6\linewidth]{cs/max-gaussian/max-gaussian}
+  
+\caption{\label{fig-max-gaussian}
+Maximum of $N$ independent standard Gaussian variables, compared with the dashed curve $\sqrt{2\log(N)}$.
+}
+\end{figure}
+ 
+In a Gaussian asymptotic regime with $s/P\to0$, the leading-order scaling is
+\eql{\label{eq-etaf-gaussiancase}
+ P\gtrsim2s\log(2N/\epsilon),
+}
+with slack needed for a finite-sample probability bound. The unspecified constant in Theorem~\ref{thm-cs-etaf} applies to general sub-Gaussian ensembles; it should not be identified with this Gaussian leading constant.
+
+This is a nonuniform guarantee: the vector $x_0$ is fixed before the matrix $A$ is drawn. The RIP theory in Section~\ref{sec-rip} gives a single event on which recovery holds for all sparse vectors simultaneously.
+
+
+\begin{figure}
+\centering
+  
+\begin{tabular}{@{}c@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{cs/phase/phase-transition-1}&
+\includegraphics[width=.28\linewidth]{cs/phase/phase-transition-2}&
+\includegraphics[width=.35\linewidth]{cs/phase/phase-transition-crit}
+\end{tabular}
+  
+\caption{\label{fig-phase-trans}
+Phase transitions. Right: empirical probabilities that recovery criteria hold as sparsity varies. Blue: weak ERC; black: ERC; green: $\norm{\eta_F}_\infty\leq1$; red: exact recovery.
+}
+\end{figure}
+
+
+
+                                    
+                                    
+                                    
+\section{RIP Theory for Uniform Guarantees}
+\label{sec-rip}
+
+                                    
+\subsection{Restricted Isometry Constants}
+
+For a positive integer $s$, the restricted isometry constant $\delta_s$ of $A\in\RR^{P\times N}$ is the smallest nonnegative number such that
+\eql{\label{eq-rip}
+	\foralls z \in \RR^N, \quad
+	\normz{z} \leq s \qarrq
+	(1-\de_{s}) \norm{z}^2 \leq \norm{A z}^2 \leq (1+\de_{s}) \norm{z}^2, 
+}
+A small $\delta_s$ therefore means that $A$ approximately preserves the Euclidean norm on every coordinate subspace of dimension at most $s$.
+
+A related quantity is the restricted orthogonality constant $\theta_{s,s'}$: the smallest nonnegative number such that, whenever $\norm{x}_0\leq s$, $\norm{x'}_0\leq s'$ and the supports are disjoint,
+\eq{
+	|\dotp

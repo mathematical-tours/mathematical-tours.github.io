@@ -1,0 +1,79 @@
+% Context from chapters/sec-optim-smooth.tex; for mathematical reference, not compilation.
+\section{Motivation in Machine Learning}
+
+                                                                                  
+\subsection{Unconstrained Optimization}
+
+Throughout most of this chapter, we consider unconstrained convex optimization problems of the form
+\eql{\label{eq-general-pbm} 
+	\uinf{x \in \RR^p} f(x),
+}
+and seek algorithms that approximate a minimizer, when one exists, with a low cost per iteration.
+ 
+The first-order methods studied here use gradient information. We write
+\eq{
+	\uargmin{x} f(x) \eqdef \enscond{x \in \RR^p}{ f(x) = \inf{f}}, 
+} 
+for the set of minimizers of $f$, which may contain several points or be empty: $\argmin f = \emptyset$. When a minimizer exists, we write the optimization problem as
+\eql{\label{eq-general-pbm-min} 
+	\umin{x \in \RR^p} f(x).
+}
+
+
+In learning, $f(x)$ is typically an empirical risk for regression or classification, and $p$ is the number of model parameters. For a linear model, the training sample is $(a_i,y_i)_{i=1}^n$ with feature vectors $a_i \in \RR^p$.
+ 
+Let $A \in \RR^{n \times p}$ be the matrix with feature vectors $a_i$ as its rows.
+
+
+\begin{figure}[tbp]
+\centering
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/smooth-linear-regression}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
+\BookDrawing{tikz/smooth-linear-classifier}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 3\par}\smallskip
+\BookDrawing{tikz/smooth-classification-losses}
+\caption{Panels 1 and 2: linear regression and a linear classifier. Panel 3: the 0-1 loss and its normalized logistic and hinge upper bounds, both tight at zero margin.}
+\label{fig-ml-ex}
+\end{figure}
+
+
+                                                                                  
+\subsection{Regression}
+
+For real-valued responses $y_i\in\RR$, the least-squares objective is
+\eql{\label{eq-least-square}
+	f(x) =  \frac{1}{2}\sum_{i=1}^n (y_i-\dotp{x}{a_i})^2 = \frac{1}{2}\norm{Ax-y}^2, 
+} 
+as illustrated in Figure~\ref{fig-ml-ex}.
+ 
+Here $\dotp{u}{v}=\sum_{i=1}^p u_i v_i$ is the canonical inner product in $\RR^p$ and $\norm{\cdot}^2=\dotp{\cdot}{\cdot}$. 
+
+
+                                                                                  
+\subsection{Classification}
+
+For classification, $y_i \in \{-1,1\}$, in which case
+\eql{\label{eq-classif}
+	f(x) = \sum_{i=1}^n \ell(-y_i \dotp{x}{a_i}) = L( - \diag(y) A x )
+}
+where $\ell$ is a smooth convex surrogate for the 0-1 loss $\mathbf{1}_{[0,\infty)}$, counting zero margin as an error.
+ 
+For instance, $\ell(u)=\log(1+\exp(u))/\log 2$ satisfies $\ell(u)\geq\mathbf{1}_{[0,\infty)}(u)$, with equality at $u=0$. The normalization makes this upper bound tight at the decision boundary. The matrix $\diag(y) \in \RR^{n \times n}$ is the diagonal matrix with $y_i$ along the diagonal (see Figure~\ref{fig-ml-ex}, panel 3). The separable loss function $L:\RR^n\rightarrow\RR$ is, for $z \in \RR^n$, $L(z)=\sum_i \ell(z_i)$.
+
+
+                                                                                  
+                                                                                  
+                                                                                  
+\section{Basics of Convex Analysis}
+
+                                                                                  
+\subsection{Existence of Solutions}
+
+Problem~\eqref{eq-general-pbm} need not have a minimizer. An objective $f$ may be unbounded below: for $f(x)=-x^2$, the infimum is $-\infty$. The objective $f$ can also have a finite unattained infimum: for $f(x)=e^{-x}$, it is $\inf f=0$.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-minimizer-examp

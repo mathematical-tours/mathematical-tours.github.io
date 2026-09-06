@@ -1,0 +1,137 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+{.5}{signal-model-sobolev}
+}{ 
+	Images with increasing Sobolev norm.  
+}{fig-signal-model-sobolev}
+
+
+                                           
+\subsection{Piecewise Regular Signals and Images}
+
+  
+\paragraph{Piecewise smooth signals.}
+
+A piecewise smooth 1-D signal $f \in \Ldeux([0,1])$ is $\Cal$ on the intervals separated by at most $K$ interior singular points:
+\eql{\label{eq-model-piece-smooth}
+	\Th = \enscond{f \in \Ldeux([0,1])}{ \exists\,0=t_0<t_1<\cdots<t_{K+1}=1,\quad\max_{0\leq i\leq K}\norm{f|_{(t_i,t_{i+1})}}_{\Cal}\leq C }
+}
+Here $f|_{(t_i,t_{i+1})}$ denotes the restriction of $f$ to the open interval $(t_i,t_{i+1})$.
+
+  
+\paragraph{Piecewise smooth images.}
+
+A piecewise smooth image is a function $f \in \Ldeux([0,1]^2)$ with $\Cal$ regularity away from at most $K$ rectifiable curves:
+\eql{\label{eq-model-piece-smooth-2d}
+	\Th = \enscond{f \in \Ldeux([0,1]^2)}{ \exists \, \Ga=\bigcup_{i=0}^{K-1}\ga_i, \;
+	\norm{f}_{\Cal(\Ga^c)} \leq C_1 \qandq
+	|\ga_i| \leq C_2
+	 }	 
+}
+Here $|\ga_i|$ denotes curve length. The $C^\alpha$ bound applies separately within each smooth region, with uniform one-sided regularity up to its edges.
+
+Segmentation methods such as the one proposed by Mumford and Shah \cite{mumford-shah} implicitly assume such a piecewise smooth image model.
+
+                                           
+\subsection{Bounded Variation Signals and Images}
+\label{subsec-bv-model}
+
+Bounded variation provides a more flexible model for signals with edges
+\eql{\label{eq-model-tv}
+	\Th=\enscond{f\in\Ldeux([0,1]^d)}{ \normi{f} \leq C_1 \qandq \normTV{f} \leq C_2 }.
+}
+For $d=1$ and $d=2$, this model includes the piecewise smooth signal and image models~\eqref{eq-model-piece-smooth} and~\eqref{eq-model-piece-smooth-2d} when $\alpha\geq1$, after adjusting the constants. Bounds on the derivatives, jump sizes, and total edge length then control the variation.
+
+The total variation of a smooth function is 
+\eq{
+	\int \norm{\nabla f(x)} \d x
+} 
+where 
+\eq{
+	\nabla f(x) = \pa{ \frac{\partial f}{\partial x_i}  }_{i=0}^{d-1} \in \RR^d
+} 
+is the gradient at $x$. Total variation also extends to discontinuous images, including those with jumps across edges. The coarea formula expresses the total variation of a piecewise smooth image as an integral of the perimeters of its superlevel sets:
+\eql{\label{eq-tv-coaera}
+	\normTV{f}=\int_{-\infty}^{\infty}\operatorname{Per}(\{f>t\};\Omega)\,\d t,\qquad\Omega=(0,1)^d.
+}	
+Here the perimeter is relative to the image domain. For smooth functions in two dimensions it agrees, for almost every $t$, with the length of the level curve. For a bounded set $\Om\subset\RR^2$ with piecewise smooth boundary, taking total variation on all of $\RR^2$ gives
+\eq{
+	\normTV{1_\Om} = |\partial \Om|.
+}
+The model of bounded variation was introduced in image processing by Rudin, Osher and Fatemi \cite{rudin-tv}.
+
+                                           
+\subsection{Cartoon Images}
+\label{subsec-cartoon-images}
+
+The bounded-variation model~\eqref{eq-model-tv} controls total perimeter but does not require individual edges to be smooth. For images with smooth contours, incorporating that additional geometry can improve approximation and processing.
+
+The $\Cal$ cartoon model consists of 2-D functions that are $\Cal$ away from at most $K$ smooth edge curves $\ga_i$:
+\eql{\label{eq-cartoon-model}
+	\Th = \enscond{f \in \Ldeux([0,1]^2)}{ \exists \, \Ga=\bigcup_{i=0}^{K-1}\ga_i, \;
+	\norm{f}_{\Cal(\Ga^c)} \leq C_1 \qandq
+	\norm{\ga_i}_{\Cal} \leq C_2
+	 }
+}
+Each curve is parameterized by arc length on $[0,A_i]$, with a uniform bound on $A_i$ and its $C^\alpha$ norm.
+Figure \ref{fig-image-model-cartoon} shows cartoon images with increasing total variation $\normTV{f}$.
+
+\myfigure{
+\image{approximation}{.5}{image-model-cartoon}
+}{ 
+	Cartoon images with increasing total variation. 
+}{fig-image-model-cartoon}
+
+Optical diffraction can blur these edges, motivating the blurred cartoon model
+\eql{\label{eq-cartoon-model-smooth}
+	\tilde\Th = \enscond{\tilde f = f \star h \in \Ldeux([0,1]^2)}{ f \in \Th \qandq h \in \Hh	}
+}
+where $\Th$ is the sharp-image model~\eqref{eq-cartoon-model} and $\Hh$ specifies the admissible blur kernels. For example, $h \geq 0$ may be required to be smooth and localized in both space and frequency.
+Unknown blur makes it difficult to first detect the edges $\Gamma$ and then process the smooth regions separately.
+
+Figure \ref{fig-sample-cartoon} shows examples of images in $\Th$ and $\tilde\Th$.
+
+\myfigure{
+\image{approximation}{.25}{sample-cartoon-1}
+\image{approximation}{.25}{sample-cartoon-2}
+\image{approximation}{.25}{sample-cartoon-3}
+}{ 
+	Examples of cartoon images: sharp discontinuities (left and center) and blurred edges (right).  
+}{fig-sample-cartoon}
+
+
+
+
+                                           
+\section{Efficient Approximation}
+
+                                        
+\subsection{Decay of Approximation Error}
+\label{sec-linear-approx-error}
+
+To process signals in $\Theta$ efficiently, we seek an orthonormal basis in which the nonlinear approximation error $\norm{f-f_M}$ tends to $0$ as rapidly as possible when $M$ grows.
+
+
+  
+\paragraph{Polynomial error decay.}
+
+This error decay is measured using a power law
+\eql{\label{eq-approx-powerlaw}
+	\foralls f \in \Th, \; \foralls M, \quad \norm{f-f_M}^2 \leq C_f M^{-\al}
+}
+Here $\al$ is common to all signals in the model; larger values mean faster decay. The exponent depends on the basis and the model $\Th$, and measures how efficiently the basis represents that class. The constant $C_f$ may depend on the particular signal $f$.
+
+  
+\paragraph{Relevance for compression, denoising and inverse problems.}
+
+Approximation rates have practical consequences. Section \ref{sec-transform-coding} relates compression error to nonlinear approximation error, explaining why an effective approximation basis also supports efficient compression.
+
+Chapter \ref{chap-denoising} develops a similar connection for thresholding denoisers. Thresholding forms a nonlinear approximation of the noisy image, and the expected denoising error is controlled by how well the basis approximates the clean signal.
+
+Chapter \ref{chap-sparse-regul} uses compressibility in a chosen basis to address inverse problems such as super-resolution and inpainting. Efficient approximation of the unknown signal helps recover missing information, provided the measurement operator retains enough information about sparse combinations of basis atoms. Recovery performance therefore depends on both the basis and the measurements.
+
+
+
+    
+\paragraph{Comparison of signals.}
+
+With the basis fixed, the decay of $\norm{f-f_M}$ compares the approximation complexity of different images. Figure \ref{fig-approx-speed} illustrates ho

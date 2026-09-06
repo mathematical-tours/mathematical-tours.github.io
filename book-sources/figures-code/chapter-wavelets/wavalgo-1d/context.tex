@@ -1,0 +1,199 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+}{wavcoef-1d-2}&
+\image{wavelets}{.48}{wavcoef-1d-3}\\
+$d_{-6}$ & $d_{-5}$ 
+}
+}{ 
+	Wavelet coefficients. Top: the complete decomposition. Below: enlarged views of individual scales. 
+}{fig-wavcoef-1d}
+
+
+   
+\subsection{Forward Fast Wavelet Transform (FWT)}
+
+The algorithm applies a sequence of elementary operators
+\eql{\label{eq-wavelet-step}
+	\foralls j = J+1, \ldots, 0, \quad 
+	(a_{j},d_{j}) = \Ww_j(a_{j-1})
+	\qwhereq
+	\Ww_j : \RR^{2^{-j+1}} \rightarrow \RR^{2^{-j}} \times \RR^{2^{-j}}
+}
+There are $|J|=\log_2(N)$ steps. Each $\Ww_j$ changes coordinates between orthonormal bases and is therefore orthogonal.
+
+To describe the algorithm for $\Ww_j$, we introduce the filter coefficients $h,g \in \RR^\ZZ$
+\eql{\label{eq-dfn-h-g}
+	h_n \eqdef \frac{1}{\sqrt{2}} \dotp{ \phi(\cdot/2) }{\phi(\cdot-n)}
+	\qandq
+	g_n \eqdef \frac{1}{\sqrt{2}} \dotp{ \psi(\cdot/2) }{\phi(\cdot-n)}.
+}
+Figure~\ref{fig-haar-inner} illustrates the computation of these weights for the Haar system.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/wavelets-haar-inner-products}
+\caption{Haar filter weights as inner products.}
+\label{fig-haar-inner}
+\end{figure}
+
+
+We denote by $\downarrow_2 : \RR^K \rightarrow \RR^{K/2}$ the subsampling operator by a factor of 2, i.e.
+\eq{
+	u\downarrow_2 \eqdef (u_0,u_2,u_4,\ldots,u_{K-2}).
+}
+Throughout the following derivation, the scaling function, wavelet, and filters are real, and the filters decay sufficiently fast. The notation $\bar h_n=h_{-n}$ and $\bar g_n=g_{-n}$ denotes reflection. Complex filters would require conjugation as well.
+
+\begin{prop}
+One has
+\eql{\label{eq-convol-subsample}
+	\Ww_j(a_{j-1})= ( (\bar h \star a_{j-1})\downarrow_2, (\bar g \star a_{j-1})\downarrow_2 ),
+}
+where $\star$ denotes periodic convolutions on $\RR^{2^{-j+1}}$.
+\end{prop}
+
+\begin{proof}
+We note that $\phi(\cdot/2)$ and $\psi(\cdot/2)$ belong to $V_0$, so one has the decompositions
+\eql{\label{eq-phipsi-recurse-1}
+	\frac{1}{\sqrt{2}} \phi(t/2) = \sum_n h_n \phi(t-n)
+	\qandq
+	\frac{1}{\sqrt{2}} \psi(t/2) = \sum_n g_n \phi(t-n)
+}
+Making the substitution $t \mapsto \frac{t-2^j p}{2^{j-1}}$ in~\eqref{eq-phipsi-recurse-1}, one obtains
+\eq{
+	\frac{1}{\sqrt{2}} \phi\pa{ \frac{t-2^j p}{2^j} }  = \sum_n h_n \phi\pa{ \frac{t}{2^{j-1}}-(n+2p)}
+}
+(similarly for $\psi$) and then reindexing $n \mapsto n-2p$, one obtains
+\eq{
+	\phi_{j,p} = \sum_{n \in \ZZ} h_{n-2p} \phi_{j-1,n}
+	\qandq 
+	\psi_{j,p}=\sum_{n\in\ZZ}g_{n-2p}\phi_{j-1,n}.
+}
+For periodized functions $(\phi_{j,n}^P,\psi_{j,p}^P)$, these identities remain valid after periodizing the filters modulo $2^{-j+1}$.
+ 
+Taking inner products with $f$ on both sides gives the fundamental recursion below; the decay of $h,g$ justifies exchanging the sum and inner product.
+\eql{\label{eq-recurse-formula-wav}
+	a_{j,p} = \sum_{n \in \ZZ} h_{n-2p} a_{j-1,n} = (\bar h \star a_{j-1})_{2p}
+	\qandq 
+	d_{j,p} = \sum_{n \in \ZZ} g_{n-2p} a_{j-1,n} = (\bar g \star a_{j-1})_{2p}
+}
+where $\bar u_n \eqdef u_{-n}$. 
+ 
+On the periodic domain $\TT=\RR/\ZZ$, the same recursion holds with $\star$ interpreted as convolution on $\ZZ/2^{-j+1}\ZZ$.
+\end{proof}
+
+Figure~\ref{fig-filterbank-fwd} shows two successive decomposition steps, each separating a coarse approximation from its details.
+
+\myfigure{
+\image{wavelets}{.95}{filterbank-fwd}
+}{ 
+	Forward filter bank decomposition.  
+}{fig-filterbank-fwd}
+
+The FWT thus operates as follows. The same real filters also act on complex-valued input signals:
+\begin{rs}
+	\item \textbf{Input:} signal $f \in \CC^N$.
+	\item \textbf{Initialization:} $a_J = f$.
+	\item \textbf{For} $j=J,\ldots,j_0-1$.
+		\eq{
+			a_{j+1} = (a_j \star \bar h) \downarrow 2 \qandq
+			d_{j+1} = (a_j \star \bar g) \downarrow 2
+		}
+	\item \textbf{Output:} the coefficients $\{d_j\}_{J<j\leq j_0} \cup \{ a_{j_0} \}$.
+\end{rs}
+
+If the supports of $h$ and $g$ each contain at most $C$ indices, then evaluating each $\Ww_j$ requires $(2C) 2^{-j}$ operations, so that the complexity of the whole wavelet transform is
+\eq{
+	\sum_{j=J+1}^{0}(2C)2^{-j}=2C(2^{-J}-1)<2CN.
+}
+This shows that the fast wavelet transform is a linear-time algorithm.
+ 
+Figure~\ref{fig-filterbank-pyramidal} shows the iterative extraction of the wavelet coefficients.
+ 
+Figure~\ref{fig-wavalgo-1d} illustrates the storage layout: at each step, the new vectors $a_j$ and $d_j$ occupy the left portion of the output array.
+
+\myfigure{
+\image{wavelets}{.4}{filterbank-pyramidal}
+}{ 
+	Pyramidal computation of wavelet coefficients.  
+}{fig-filterbank-pyramidal}
+
+\myfigure{
+\tabdeux{
+\image{wavelets}{.48}{wavalgo-1d-0}&
+\image{wavelets}{.48}{wavalgo-1d-1}\\
+\image{wavelets}{.48}{wavalgo-1d-2}&
+\image{wavelets}{.48}{wavalgo-1d-3}
+}
+}{ 
+	Wavelet decomposition algorithm.  
+}{fig-wavalgo-1d}
+
+
+  
+\paragraph{Fast Haar transform.}
+
+For the Haar wavelets, one has
+\eq{
+	\phi_{j,n} = \frac{1}{\sqrt{2}} ( \phi_{j-1,2n} + \phi_{j-1,2n+1} ),
+}
+\eq{
+	\psi_{j,n} = \frac{1}{\sqrt{2}} ( \phi_{j-1,2n} - \phi_{j-1,2n+1} ).
+}
+This corresponds to the filters
+\eq{
+	h = [\ldots,\;0,\;h[0]=\frac{1}{\sqrt{2}},\;\frac{1}{\sqrt{2}},\;0,\ldots],
+}
+\eq{
+	g = [\ldots,\;0,\;g[0]=\frac{1}{\sqrt{2}},\;-\frac{1}{\sqrt{2}},\;0,\ldots].
+}
+The Haar transform iterates normalized sums and differences:
+\begin{rs}
+	\item \textbf{Input:} signal $f \in \CC^N$.
+	\item \textbf{Initialization:} $a_J = f$.
+	\item \textbf{For} $j=J,\ldots,j_0-1$.
+		\eq{
+			a_{j+1,n} = \frac{1}{\sqrt{2}} (a_{j,2n}+a_{j,2n+1}) \qandq
+			d_{j+1,n} = \frac{1}{\sqrt{2}} (a_{j,2n}-a_{j,2n+1}).
+		}
+	\item \textbf{Output:} the coefficients $\{d_j\}_{J<j\leq j_0} \cup \{ a_{j_0} \}$.
+\end{rs}
+
+                                                            
+\subsection{Inverse Fast Transform (iFWT)}
+
+The inverse algorithm proceeds by inverting each step~\eqref{eq-wavelet-step}
+\eql{\label{eq-wavelet-inverse-step}
+	\foralls j=0,-1,\ldots,J+1, \quad
+	a_{j-1} = \Ww_j^{-1}(a_{j},d_{j}) = \Ww_j^*(a_{j},d_{j}), 
+}
+where $\Ww_j^{*}$ is the adjoint for the canonical inner product on $\RR^{2^{-j+1}}$; in matrix form, it is the transpose.
+
+Let $\uparrow_2 : \RR^{K/2} \rightarrow \RR^K$ denote up-sampling by inserting zeros:
+\eq{
+	a\uparrow_2 = (a_0,0,a_1,0,\ldots,a_{K/2-1},0) \in \RR^K.
+}
+
+\begin{prop}
+One has
+\eq{
+	\Ww_j^{-1}(a_{j},d_{j}) = (a_{j}\uparrow_2) \star h +  (d_{j}\uparrow_2) \star g.
+}
+\end{prop}
+
+\begin{proof}
+Since $\Ww_j$ is orthogonal, $\Ww_j^{-1} = \Ww_j^*$.
+ 
+We write the whole transform as 
+\eq{
+	\Ww_j = S_2 \circ C_{\bar h,\bar g} \circ \Dd
+	\qwhereq
+	\choice{
+		\Dd(a)=(a,a), \\
+		C_{\bar h,\bar g}(a,b)=(\bar h\star a,\bar g\star b), \\
+		S_2( a,b ) = (a\downarrow_2, b\downarrow_2).	
+	}
+}
+The adjoints are
+\eq{
+	\Dd^*(a,b)=a+b, \quad
+	C_{\bar h,\bar g}^*(a,b) = (h \star a, g \star b), \qandq
+	S_2^*(a,b)=(a\uparrow

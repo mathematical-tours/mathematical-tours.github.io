@@ -1,0 +1,43 @@
+% Context from chapters/sec-optim-smooth.tex; for mathematical reference, not compilation.
+\section{Basics of Convex Analysis}
+
+                                                                                  
+\subsection{Existence of Solutions}
+
+Problem~\eqref{eq-general-pbm} need not have a minimizer. An objective $f$ may be unbounded below: for $f(x)=-x^2$, the infimum is $-\infty$. The objective $f$ can also have a finite unattained infimum: for $f(x)=e^{-x}$, it is $\inf f=0$.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-minimizer-examples}
+\caption{Left: no minimizer. Middle: multiple minimizers. Right: a unique minimizer.}
+\label{fig-minimizer-exists}
+\end{figure}
+
+A continuous function attains its minimum on a nonempty compact set $\Om\subset\RR^p$. In finite dimensions, compactness means that $\Om$ is closed and bounded. Lower semicontinuity suffices for attainment, but we use continuity here. For unconstrained minimization, coercivity provides a compact set to which the search can be restricted: $f(x) \rightarrow +\infty$ as $\norm x\rightarrow+\infty$. For any $x_0 \in \RR^p$, consider the sublevel set
+\eq{
+	\Om = \enscond{x \in \RR^p}{f(x) \leq f(x_0)}
+}
+Coercivity makes this set bounded, and continuity of $f$ makes it closed. For a continuous convex function, coercivity is in fact equivalent to a nonempty bounded minimizer set. Convexity matters: $f(x)=\min(1,x^2)$ has a unique minimizer but is not coercive.
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/smooth-least-squares-coercive}\hfill
+\BookPanel{.485}{2}{tikz/smooth-least-squares-flat}
+\caption{Coercivity condition for least squares.}
+\label{fig-least-square}
+\end{figure}
+
+\begin{exmp}[Least squares]
+The least-squares objective $f(x)=\frac{1}{2}\norm{Ax-y}^2$ is coercive exactly when $\ker(A)=\{0\}$, meaning the design has full column rank. If $\ker(A) \neq \{0\}$ and $x^\star$ is a minimizer, then $x^\star+u$ is also a minimizer for every $u \in \ker(A)$, so the minimizer set is unbounded.
+ 
+Conversely, if $\ker(A) = \{0\}$, we will show later that the minimizer is unique, see Fig.~\ref{fig-least-square}.
+ 
+For classification, strict convexity of $\ell$ and injectivity of $A$ imply strict convexity of the objective, but do not ensure coercivity or existence. Separable logistic regression is a counterexample.
+\end{exmp}
+
+                                                                                  
+\subsection{Convexity}
+
+Convexity is central to optimization because every local minimizer is global, and many convex problems admit efficient algorithms. A function is convex if, for every pair $(x,y) \in (\RR^p)^2$,
+\eql{\label{eq-convexity-def}
+	\foral

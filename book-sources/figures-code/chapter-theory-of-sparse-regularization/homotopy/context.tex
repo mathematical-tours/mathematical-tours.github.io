@@ -1,0 +1,88 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+\section{Existence and Uniqueness}
+
+
+                                                                                  
+\subsection{Existence}
+
+We study the penalized problem~\eqref{eq-lasso-lagr-ip}, with $\lambda>0$, and its constrained counterpart~\eqref{eq-lasso-constr-ip}:
+\eql{\label{eq-lasso-lagr}\tag{$\Pp_\la(y)$}
+	\umin{x \in \RR^N} f_\la(x) \eqdef \frac{1}{2\la} \norm{y-Ax}^2 + \norm{x}_1
+} 
+and the limiting problem as $\la \rightarrow 0$,
+\eql{\label{eq-lasso-constr}\tag{$\Pp_0(y)$}
+	\umin{A x = y} \norm{x}_1
+	= \umin{x} f_0(x) \eqdef \iota_{\Ll_y}(x) + \norm{x}_1.
+} 
+where $A \in \RR^{P \times N}$, and $\Ll_y \eqdef \enscond{x \in \RR^N}{Ax=y}$.
+
+Recall that we observe noisy measurements
+\eq{
+	y=A x_0 + w
+}
+We seek conditions ensuring that $x_0$ solves $\Pp_0(Ax_0)$ in the noiseless case, and quantitative bounds on its distance to solutions of $\Pp_\lambda(Ax_0+w)$ when $\lambda$ is chosen according to the noise level.
+
+The objective in~\eqref{eq-lasso-lagr} is continuous and coercive because $\norm{\cdot}_1$ is coercive, so a minimizer exists.
+ 
+Uniqueness is not automatic: $A$ may have a nontrivial kernel, and $\norm{\cdot}_1$ is not strictly convex.
+ 
+If $y \in \Im(A)$, the constraint set in~\eqref{eq-lasso-constr} is nonempty. A constrained minimizer also exists but need not be unique.
+
+
+
+\begin{figure}
+\centering
+  
+\begin{tabular}{@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s3}&
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s6}\\
+$s=3$  & $s=6$ \\
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s13}&
+\includegraphics[width=.35\linewidth]{sparse-theory/homotopy/homotopy-s25}\\
+$s=13$  & $s=25$ 
+\end{tabular}
+  
+\caption{\label{fig-homotopy}
+Solution paths $\la \mapsto x_\la$ for~\eqref{eq-lasso-lagr}.
+}
+\end{figure}
+
+Figure~\ref{fig-homotopy} shows how the recovered coefficients change with $\lambda$, illustrating the effect of regularization on sparsity and reconstruction accuracy.
+
+
+
+
+
+                                                                                  
+\subsection{Polytope Projection for the Constrained Problem}
+\label{sec-polytope-proj}
+
+The next proposition characterizes noiseless $\ell^1$ recovery geometrically.
+
+\begin{prop}\label{prop-polytope-proj}
+	We denote $B \eqdef \enscond{x \in \RR^N}{\norm{x}_1 \leq 1}$. For $x_0\neq0$, assuming $\Im(A)=\RR^P$,
+	\eql{\label{eq-polytop-ident} 
+		x_0 \text{ is a solution to } \Pp_0(Ax_0)
+		\quad\Longleftrightarrow\quad
+		A \frac{x_0}{\norm{x_0}_1} \in \partial (AB)
+	} 
+	where ``$\partial$'' denotes the boundary and $AB=\enscond{Ax}{x\in B}$.
+\end{prop}
+
+\begin{proof}
+Set $r=\norm{x_0}_1>0$ and $q=Ax_0/r$. If $x_0$ is not optimal, there is $z$ with $Az=Ax_0$ and $\norm{z}_1<r$. Since $A$ is onto, $A^+$ is a bounded right inverse. For sufficiently small $h\in\RR^P$,
+\eq{
+ \norm{z/r+A^+h}_1\leq\norm{z}_1/r+\norm{A^+h}_1<1,
+}
+and $q+h=A(z/r+A^+h)\in AB$. Thus $q$ is an interior point of $AB$.
+
+Conversely, if $q\neq0$ is interior, then $(1+t)q\in AB$ for some $t>0$. Choose $u\in B$ with $Au=(1+t)q$. The vector $z=ru/(1+t)$ satisfies $Az=Ax_0$ and $\norm{z}_1<r$, so $x_0$ is not optimal. If $q=0$, the zero vector is already a better feasible point. These two implications prove the equivalence.
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/sparse-theory-polytope-proof}
+\caption{Geometry of the polytope characterization of exact recovery.}
+\label{fig-polytope-proof}
+\end{figure}
+\end{proof}
+
+For a nonzero recovered vector $x_0$, its measurement $Ax_0$ lies on the boundary of the scaled polytope $\norm{x_0}_1 A B$. When $P$ is much smaller than $N$, projection can remove faces and prevent $\ell^1$ recovery. Chapter~\ref{chap-cs} studies random projections that preserve enough of the geometry of the $\ell^1$ ball in $\RR^N

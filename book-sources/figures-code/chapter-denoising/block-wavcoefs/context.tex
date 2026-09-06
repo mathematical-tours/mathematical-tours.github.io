@@ -1,0 +1,167 @@
+% Context from chapters/denoising.tex; for mathematical reference, not compilation.
+ents.   
+}{fig-tiwav}
+
+Figure \ref{fig-tiwav-coefs-thresh} illustrates hard thresholding of these translated coefficients.
+
+\myfigure{
+\image{denoising}{.3}{tiwav-coefs}
+\image{denoising}{.3}{tiwav-coefs-thresh}
+}{ 
+	Left: translation invariant wavelet coefficients, for $j=-8, \om=H$, right: thresholded coefficients.  
+}{fig-tiwav-coefs-thresh}
+
+
+
+                                                     
+\subsection{Other Shrinkage Rules}
+
+Other shrinkage rules offer different compromises between retaining large coefficients and suppressing noise. We describe two examples whose performance depends on the coefficient distribution of $f$ in the chosen basis.
+
+  
+\paragraph{Semi-soft thresholding.}
+
+Semi-soft thresholding interpolates between hard and soft thresholding through a parameter $\mu>1$:
+\eq{
+	S_T^\th(x) = g_{\frac{1}{1-\th}}(x)
+	\qwhereq
+	g_\mu(x) = 
+	\choice{
+		0 \qifq |x|<T\\
+		x \qifq |x|>\mu T\\
+		\sign(x)\frac{\mu(|x|-T)}{\mu-1} \text{ otherwise.}
+	}
+}
+For $0<\theta<1$, set $\mu=1/(1-\theta)$. The limits $\theta\downarrow0$ and $\theta\uparrow1$ give hard and soft thresholding, respectively, away from the threshold boundary.
+Figure~\ref{fig-semisoft} shows an example of this nonlinearity.
+
+\myfigure{
+\image{denoising}{.45}{semisoft-thresholders}
+\image{denoising}{.45}{stein-thresholder}
+}{ 
+	Left: semi-soft thresholder, right: Stein thresholder.   
+}{fig-semisoft}
+
+Figure \ref{fig-semisoft-optimal} shows an SNR improvement for a suitable choice of $\mu$, although the visual difference from hard and soft thresholding is small.
+
+\myfigure{
+\image{denoising}{.45}{semisoft-optimal-image}
+\image{denoising}{.4}{semisoft-optimal-curve}
+}{ 
+	 Left: SNR as a function of $\mu$ and $T/\si$. Right: SNR versus $\mu$, with $T/\si$ optimized separately for each $\mu$.  
+}{fig-semisoft-optimal}
+
+  
+\paragraph{Stein thresholding.}
+
+Stein thresholding is defined using a quadratic attenuation of large coefficients
+\eq{
+ 	S_T^{\text{Stein}}(x) = \max\pa{1-\frac{T^2}{|x|^2},0}x.
+}
+The value at $x=0$ is defined to be zero. This should be compared with the linear attenuation of soft thresholding
+\eq{
+ 	S_T^1(x) = \max\pa{1-\frac{T}{|x|},0}x.
+}
+For large coefficients, Stein thresholding has the following shrinkage behavior:
+\eq{
+	|S_T^{\text{Stein}}(x)-x| \rightarrow 0
+	\quad\text{ whereas }\quad
+	|S_T^1(x)-x| \rightarrow T,
+}
+as $x \rightarrow \pm \infty$. Its deterministic shrinkage tends to zero, whereas soft thresholding retains a fixed shrinkage. This limiting property does not imply unbiased estimation at finite amplitudes.
+
+\myfigure{
+\image{denoising}{.45}{stein-optimal-curve}
+}{ 
+	 SNR as a function of $T/\si$ for Stein thresholding.  
+}{fig-stein-optimal-curve}
+
+Stein and hard thresholding give similar results in the translation-invariant natural-image experiments shown here.
+
+                                                     
+\subsection{Block Thresholding}
+
+The nonlinear thresholding methods above are diagonal estimators, since they attenuate each coefficient separately
+\eq{
+	\tilde f = \sum_m A_T^q(\dotp{f}{\psi_m}) \dotp{f}{\psi_m} \psi_m
+} 
+where 
+\eq{
+	A_T^q(x) = 
+	\choice{
+		\max(1-T^2/|x|^2,0) \qforq q=\text{Stein}\\
+		\max(1-T/|x|,0) \qforq q=1\text{ (soft)}\\
+		1_{|x|>T} \qforq q=0\text{ (hard)}
+	}
+}
+Define every attenuation factor to be zero at $x=0$ when $T>0$. Block thresholding shares an attenuation factor across a group of coefficients, exploiting their statistical dependence. This is useful for natural images, where edges create clusters of large wavelet coefficients. Grouping also helps suppress isolated noise coefficients in otherwise smooth regions.
+
+Partition the coefficients into disjoint blocks; for example, in a 2-D wavelet transform,
+\eq{
+	\{ (j,n,\om) \}_{j,n,\om} = \bigcup_k B_k,
+}
+where each $B_k$ contains $s\times s$ neighboring coefficients at a fixed scale and orientation. The block size $s$ is a parameter of the method.
+Figure \ref{fig-block-wavcoefs} shows an example of such a block.
+
+The mean squared coefficient magnitude in a block is
+\eq{
+	E_k=\frac{1}{|B_k|} \sum_{ m \in B_k } |\dotp{f}{\psi_m}|^2.
+}
+The block estimator
+\eq{
+	\tilde f = \sum_m S_T^{\text{block},q}(\dotp{f}{\psi_m}) \psi_m
+}
+applies the same attenuation to every coefficient in a block,
+\eq{
+	\foralls m \in B_k, \quad S_T^{\text{block},q} (\dotp{f}{\psi_m}) = A_T^q(\sqrt{E_k}) \dotp{f}{\psi_m},
+}
+for $q \in \{0,1,\text{stein}\}$.
+Figure \ref{fig-block-wavcoefs} shows the attenuated blocks and the reconstructed image.
+
+\myfigure{
+\image{denoising}{.32}{block-wavcoefs}
+\image{denoising}{.32}{block-wavcoefs-thresh}
+\image{denoising}{.32}{block-denoising}
+}{ 
+	 Left: wavelet coefficients, center: block thresholded coefficients, right: denoised image.   
+}{fig-block-wavcoefs}
+
+Figure \ref{fig-block-optimal-curves}, left, compares the rules for $q \in \{0,1,\text{stein}\}$. Stein block thresholding gives the highest SNR in this comparison.
+Figure \ref{fig-block-optimal-curves}, right, compares block sizes for Stein thresholding. The choice $s=4$ performs well in the displayed experiment.
+
+\myfigure{
+\image{denoising}{.45}{block-optimal-curves}
+\image{denoising}{.45}{block-sizeblock}
+}{ 
+	 SNR as a function of $T/\si$ (left) and comparison of different block sizes (right).  
+}{fig-block-optimal-curves}
+
+Figure \ref{fig-comp-thresh} compares the reconstructions. Stein block thresholding in an orthogonal wavelet basis approaches the quality of translation-invariant hard thresholding here, at lower computational cost.
+The block thresholding strategy can also be applied to wavelet coefficients in a translation invariant tight frame, which gives the best result among the methods compared in this experiment.
+
+The same block attenuation can be implemented directly after the wavelet transform.
+
+\myfigure{
+\tabtrois{
+\image{denoising}{.32}{wavthresh-2d-hard-ti}&
+\image{denoising}{.32}{wavthresh-2d-block}&
+\image{denoising}{.32}{wavthresh-2d-block-ti}\\
+SNR=23.4dB & 22.8dB & 23.8dB
+}
+}{ 
+	 Left: translation invariant wavelet hard thresholding, center: block orthogonal Stein thresholding, 
+	 right: block translation invariant Stein thresholding.   
+}{fig-comp-thresh}
+
+More advanced denoisers use richer statistical models to improve on the methods presented here; see, for instance, \cite{portilla-denoise}.
+
+
+                                  
+                                                                                                                                                                                                                
+
+
+                                                     
+                                                     
+                                                     
+\section{Signal-Dependent Noise}
+\label{se

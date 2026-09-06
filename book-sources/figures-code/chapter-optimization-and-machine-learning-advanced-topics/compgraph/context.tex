@@ -1,0 +1,80 @@
+% Context from chapters/sec-autodiff.tex; for mathematical reference, not compilation.
+                                       
+
+                                    
+
+
+
+Gradient evaluation $\nabla f(x)$ is the main operation in batch and stochastic gradient methods. For linear models and shallow networks, explicit formulas usually reduce it to matrix-vector products. For deeper or more elaborate computations, expanded derivative formulas become unwieldy and can duplicate work. Automatic differentiation organizes the chain rule recursively to reuse intermediate results.
+
+                                                                        
+\subsection{Finite Differences and Symbolic Calculus}
+
+For $f : \RR^p \rightarrow \RR$, we want to evaluate $\nabla f : \RR^p \mapsto \RR^p$. A finite-difference approximation with a small parameter $\epsilon>0$ is
+\eq{
+ 	\frac{1}{\epsilon}(f(x+\epsilon \de_1)-f(x), \ldots,f(x+\epsilon \de_p)-f(x))^\top	\approx \nabla f(x)
+}
+This requires $p+1$ evaluations of $f$. Here $\de_k=(0,\ldots,0,1,0,\ldots,0)$ is the coordinate vector with its $1$ at position $k$.
+ 
+For large $p$, repeated evaluations are expensive. Finite differences also balance truncation error against floating-point cancellation as $\epsilon$ decreases. Reverse-mode automatic differentiation computes the full gradient at a cost typically proportional to one evaluation of $f$.
+ 
+Like symbolic differentiation, automatic differentiation applies exact derivative rules, subject to floating-point error. It organizes those rules around the operations of the program that evaluates the function, preserving reuse of intermediate computations.
+
+
+                                                                        
+\subsection{Computational Graphs}
+
+Let $x=(x_1,\ldots,x_s)$ be the inputs to a program evaluating $f$. Number its intermediate variables $x_{s+1},\ldots,x_t$, with output $x_t=f(x)$, and let $x_k\in\RR^{n_k}$. We seek the Jacobian blocks $\pd{f(x)}{x_k}\in\RR^{n_t\times n_k}$ for $k=1,\ldots,s$. The scalar case $n_k=1$ is easiest to follow; the formulas also apply to vector variables if the matrix products retain the displayed order. The total input dimension is $p=\sum_{k=1}^s n_k$.
+
+\begin{figure}
+\centering
+\includegraphics[width=.7\linewidth]{auto-diff/comp-graph}
+\caption{\label{fig-compgraph}
+A computational graph.
+}
+\end{figure}
+
+Represent the computation as a sequence of elementary maps:
+\eq{
+	\foralls k=s+1,\ldots,t, \quad x_k = f_k( x_1,\ldots,x_{k-1} )
+}
+Each $f_k$ depends only on earlier variables; see Figure~\ref{fig-compgraph}. The directed acyclic graph (DAG) connects each argument used by $f_k$ to its output $x_k$. The indexing is a topological order: every edge points from a smaller to a larger index.
+ 
+Evaluating $f(x)$ is a forward traversal of the graph.
+  
+Automatic differentiation differentiates the supplied computational graph. It does not by itself choose an efficient implementation of the original formula; the derivative computation benefits from the efficiency and reuse already present in the forward program.
+
+
+
+                                                                        
+\subsection{Forward Mode of Automatic Differentiation}
+
+Forward mode propagates derivatives of each intermediate variable with respect to a chosen input block, here $x_1$. For scalar inputs, repeating the traversal for all $p$ coordinates gives the full derivative. The formulas below also propagate a block Jacobian when $n_1>1$.
+
+\newcommand{\bk}[1]{\left[#1\right]}
+\newcommand{\pdb}[2]{\bk{\pd{#1}{#2}}}
+
+\begin{figure}
+\centering
+\includegraphics[width=.4\linewidth]{auto-diff/forward-mode}
+\quad
+\includegraphics[width=.4\linewidth]{auto-diff/backward-mode}
+\caption{\label{fig-forward-backward}
+Derivative dependencies in forward mode (left) and reverse mode (right).
+}
+\end{figure}
+
+Initialize the input derivatives by
+\eq{
+	\pd{x_1}{x_1} = \Id_{n_1 \times n_1}, \quad 
+	\pd{x_2}{x_1} = 0_{n_2 \times n_1}, \ldots, \quad
+	\pd{x_s}{x_1} = 0_{n_s \times n_1}, 
+}
+These are one and zero for scalar inputs. Propagate the derivatives using
+\eq{
+	\foralls k=s+1,\ldots,t, \quad
+	\pd{x_k}{x_1} 
+	= \sum_{\ell \in \text{parent}(k)} \bk{\pd{x_k}{x_\ell}} \times \pd{x_\ell}{x_1}
+	= \sum_{\ell \in \text{parent}(k)} \pd{f_k}{x_\ell}(x_1,\ldots,x_{k-1}) \times \pd{x_\ell}{x_1}.
+}
+The notation ``$\text{parent}(k)

@@ -1,0 +1,131 @@
+% Context from chapters/machine-learning.tex; for mathematical reference, not compilation.
+\quad c_\ell \leftarrow \frac{
+		\sum_{i : y_i=\ell} x_i
+	}{
+		|\enscond{i}{y_i=\ell}|
+	}
+}
+If a cluster becomes empty, its centroid does not contribute to the objective for the current labels. One may leave it in place or reseed it at a data point before the next assignment step. The centroid formula applies only to nonempty clusters.
+
+Each step decreases or preserves $\Ee$. With a fixed tie-breaking rule that retains existing assignments at ties, and without indefinite reseeding, a changed assignment strictly decreases the objective. There are finitely many label assignments, so the algorithm terminates after finitely many such changes.
+
+Because the objective is nonconvex, $k$-means need not find globally optimal clusters.
+ 
+A reseeding heuristic moves centroids $c_\ell$ from redundant or low-contribution clusters to regions with high distortion. This can help the iterations escape a poor local configuration.
+
+Figure~\ref{fig-kmeans} shows an example of $k$-means iterations on the Iris dataset.
+
+\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{10mm}}c@{}}
+\includegraphics[width=.4\linewidth]{ml/pca-nn/kmeans-iter}&
+\includegraphics[width=.35\linewidth]{ml/pca-nn/kmeans-classif-scores}
+\end{tabular}
+\caption{\label{fig-kmeans}
+Left: iterations of the $k$-means algorithm. Right: class histograms after the $k$-means optimization.
+}
+\end{figure}
+
+
+    
+\paragraph{\texorpdfstring{$k$}{k}-means++}
+
+The result of $k$-means depends strongly on initialization. Well-separated initial centers tend to cover the data more effectively than tightly grouped centers.
+
+The randomized $k$-means++ initialization has an approximation guarantee even before Lloyd iterations are applied. In practice, Lloyd iterations usually improve the resulting centers. First choose $c_1$ uniformly among the sample points. After choosing $c_1,\ldots,c_\ell$, select $c_{\ell+1}$ from the sample according to a probability $\pi^{(\ell)}$ on $\{1,\ldots,n\}$ proportional to the squared distance from the nearest selected center
+\eq{
+	\foralls i \in \{1,\ldots,n\}, \quad 
+	\pi^{(\ell)}_i \eqdef \frac{d_i^2}{\sum_{j=1}^n d_j^2}
+	\qwhereq
+	d_i\eqdef\min_{1\leq r\leq\ell}\norm{x_i-c_r}.
+}
+Points far from the previously seeded centers are more likely to be chosen. If every $d_i=0$, the current centers already achieve zero distortion and the procedure can stop.
+
+The following theorem, due to David Arthur and Sergei Vassilvitskii, bounds the expected seeding cost by a logarithmic factor times the optimal cost. Computing a global optimum is NP-hard in general.
+
+\begin{thm}
+	Let $c^\star$ be the centroids selected by $k$-means++ and let $y^\star$ be their nearest-centroid labels, as in~\eqref{eq-kmeans-1}. Then
+	\eq{
+		\EE(\Ee(y^\star,c^\star)) \leq 8 (2+\log(k)) \umin{(y,c)}\Ee(y,c),
+	}
+	where the expectation is over the random choices made during initialization.
+\end{thm}
+
+
+
+
+    
+\paragraph{Lloyd algorithm and continuous densities.}
+
+The $k$-means iterations are also known as Lloyd's algorithm and are used in vector quantization for compression. The same alternating procedure applies to a probability measure $\mu$ on $\RR^p$ with finite second moment.
+ 
+The energy to minimize becomes
+\eq{
+	\umin{ (\Vv,c) } \sum_{\ell=1}^k \int_{\Vv_\ell} \norm{x-c_\ell}^2 \d \mu(x)
+}
+where $(\Vv_\ell)_\ell$ is a partition of the domain. 
+ 
+Step~\eqref{eq-kmeans-1} is replaced by the computation of a Voronoi cell
+\eq{
+	\foralls \ell \in \{1,\ldots,k\}, \quad 
+	\Vv_\ell \eqdef \enscond{x}{ \foralls \ell' \neq \ell, \norm{x-c_\ell} \leq \norm{x-c_{\ell'}} }.
+}
+For distinct centroids, the Voronoi cells are polyhedra bounded by perpendicular bisectors. Resolve distance ties consistently to obtain a partition; this matters if $\mu$ assigns positive mass to a boundary. In low dimensions, computational geometry provides efficient algorithms for constructing the cells.
+ 
+Step~\eqref{eq-kmeans-2} is then replaced by
+\eq{
+	\foralls \ell \in \{1,\ldots,k\}, \quad c_\ell \leftarrow \frac{
+		\int_{\Vv_\ell} x \d\mu(x)
+	}{
+		\int_{\Vv_\ell} \d\mu(x)
+	}.
+}
+The centroid update applies to cells of positive $\mu$-mass; zero-mass cells require a separate convention, as in the discrete algorithm. For a uniform planar density, hexagonal Voronoi patterns are characteristic of high-resolution quantization away from the boundary. They need not be exact finite-$k$ minimizers on a bounded domain.
+ 
+Figure~\ref{fig-lloyd} displays two examples of Lloyd iterations on 2-D densities on a square domain.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{ml/pca-nn/lloyd}
+\caption{\label{fig-lloyd}
+Continuous $k$-means (Lloyd) iterations for densities $\mu$. Top: uniform density. Bottom: nonuniform density, shown in grayscale as the density of $\mu$ with respect to Lebesgue measure.
+}
+\end{figure}
+
+
+
+
+                                                  
+                                                  
+                                                  
+\section{Empirical Risk Minimization}
+
+We first describe empirical risk minimization, a framework shared by regression and classification. For classification, predictions may represent class probabilities rather than labels.
+
+To make fitting $y_i \approx f(x_i)$ computationally tractable and obtain useful predictions, we restrict the admissible functions to a class of controlled complexity. The class may become richer as the sample size $n$ grows, but its complexity must remain compatible with the available data.
+
+                                                  
+\subsection{Empirical Risk}
+
+Let $\Ff_n$ be a class of functions that may depend on the sample size. A common learning procedure is empirical risk minimization (ERM)
+\eql{\label{eq-erm-1}
+	\hat f \in \uargmin{f \in \Ff_n} \frac{1}{n} \sum_{i=1}^n \loss(f(x_i),y_i).
+}
+The loss function $\loss : \Yy^2 \rightarrow \RR^+$ measures prediction error for the chosen task.  
+Classification and regression typically require different loss functions.
+ 
+We sometimes write $\hat f_n$ to emphasize the estimator's dependence on the sample size $n$.
+
+
+                                                  
+\subsection{Prediction and Consistency}
+
+For the analysis, assume the training pairs $(x_i,y_i)$ are i.i.d. with distribution $\pi$ on $\Xx \times \Yy$. The corresponding population optimization problem is
+\eql{\label{eq-consistency-estim}
+	\bar f \in \uargmin{f \in \Ff_\infty} \int_{\Xx \times \Yy} \loss(f(x),y) \d\pi(x,y) = \EE_{(\xp,\yp)\sim\pi}\bigl(\loss(f(\xp),\yp)\bigr).
+}
+The desired consistency property is $\hat f_n \rightarrow \bar f$ as $n \rightarrow +\infty$. One way to express this is through expected prediction error over the training samples $(x_i,y_i)_i$:
+\eq{
+	E_n \eqdef \EE( \tilde\loss(\hat f_n(\xp),\bar f(\xp)) ) \longrightarrow 0.
+}
+Here the expecta

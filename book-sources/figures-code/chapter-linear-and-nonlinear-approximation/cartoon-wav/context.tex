@@ -1,0 +1,61 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+\section{Approximation of Cartoon Images}
+
+The isotropic, compactly supported wavelets considered here occupy squares that do not follow the smooth contours of geometric images~\eqref{eq-cartoon-model}. These contours have more structure than the finite-length level sets allowed by the bounded-variation model~\eqref{eq-model-tv}.
+
+                                        
+\subsection{Wavelet Approximation of Cartoon Images}
+
+The bound~\eqref{eq-approximation-error-wav-2d} gives a wavelet approximation rate of $O(M^{-1})$ for cartoon images~\eqref{eq-cartoon-model}. Even the simple indicator $f=1_\Om$, where $\Om$ is a disk, can attain this slow rate: isotropic wavelets do not efficiently follow its curved boundary. The smoothed cartoon model~\eqref{eq-cartoon-model-smooth} can behave similarly when the coefficient budget $M$ is too small to resolve the blur.
+
+Figure \ref{fig-cartoon-wav} shows that many large coefficients are located near edge curves, and retaining only a small number leads to a poor approximation with visually unpleasant artifacts.
+
+
+\myfigure{
+\tabtrois{
+\image{approximation}{.32}{cartoon-wav-image}&
+\image{approximation}{.32}{cartoon-wav-approx}&
+\image{approximation}{.32}{cartoon-wav-coefs}\\
+$f$ & $f_M$ & $\{\dotp{f}{\psi_{j,n}^\om}\}$
+}
+}{ 
+	Wavelet approximation of a cartoon image.   
+}{fig-cartoon-wav}
+
+                                        
+\subsection{Finite Element Approximation}
+
+An adaptive triangulation can improve the approximation by using elongated triangles aligned with the edges.
+Figure \ref{fig-triangulation-image} shows an example of such a triangulation.
+
+\myfigure{
+\image{approximation}{.3}{triangulation-image}
+\image{approximation}{.3}{triangulation-triangles}
+}{ 
+	Left: cartoon image, right: adaptive triangulation.   
+}{fig-triangulation-image}
+
+Select $M$ points in the image domain $[0,1]^2$ and connect them into a triangulation. Define $\tilde f_M$ by piecewise affine interpolation on the resulting triangles.
+
+\myfigure{
+\image{approximation}{.3}{triangulation-aniso}\quad
+\image{approximation}{.3}{triangulation-iso}
+}{ 
+	Anisotropic triangles near an edge (left) and approximately isotropic triangles away from edges (right).  
+}{fig-triangulation-anisoiso}
+
+Figure \ref{fig-triangulation-anisoiso} illustrates a construction for $\Cdeux$ cartoon images~\eqref{eq-cartoon-model} with $\al=2$. In smooth regions, use $\approx M/2$ nearly equilateral triangles of width $\approx M^{-1/2}$. Near the edges, exploit the $\Cdeux$ contour regularity by placing $\approx M/2$ elongated triangles of length $\approx M^{-1}$ along the contours and width $\approx M^{-2}$ across them. Such a triangulation yields the error bound
+\eql{\label{eq-error-triangulation}
+	\norm{f-f_M}^2 = O(M^{-2}),
+}
+which improves over the wavelet approximation error decay \eqref{eq-approximation-error-wav-2d}. 
+
+Implementing this construction requires estimating the edges. This is particularly difficult for blurred cartoon images with an unknown smoothing kernel $h$.
+
+Practical methods use heuristics or greedy rules to select sample points and triangulate them from discrete or noisy data.
+Figure~\ref{fig-triangulation-peppers} illustrates compression with one such greedy construction.
+
+\myfigure{
+\tabtrois{
+\image{approximation}{.32}{triangulation-peppers}&
+\image{approximation}{.32}{

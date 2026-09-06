@@ -1,0 +1,90 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+\section{Fourier Linear Approximation of Smooth Functions}
+
+For integer $\alpha$, the smooth model~\eqref{eq-smooth-model} bounds all continuous derivatives through that order. Greater regularity of $f$, measured by a larger $\al$, permits faster approximation. Figure~\ref{fig-signal-model-sobolev} illustrates the related Sobolev measure of smoothness.
+
+                                        
+\subsection{1-D Fourier Approximation}
+
+A 1-D signal $f \in \Ldeux([0,1])$ is associated with a 1-periodic function $f(t+1)=f(t)$ defined for $t \in \RR$.
+
+  
+\paragraph{Low pass approximation.}
+
+For even $M$, consider the linear Fourier approximation that retains frequencies up to $M/2$:
+\eq{
+	f_M^{\text{lin}} = \sum_{m=-M/2}^{M/2} \dotp{f}{e_m}e_m
+}
+where we use the 1-D Fourier atoms
+\eq{
+	\foralls m\in\ZZ,\quad e_m(t) \eqdef e^{2 i \pi m t}.
+}
+This symmetric cutoff retains $M+1$ Fourier atoms; the extra coefficient does not affect the asymptotic rates below.
+
+Figure \ref{fig-ourier-approx-1d} shows these approximations for increasing $M$. The jumps in $f$ produce substantial error and ringing near the singularities.
+
+                                                                                                                                                               
+
+\myfigure{
+\tabdeux{
+\image{approximation}{.48}{fourier-approx-1d-0}&
+\image{approximation}{.48}{fourier-approx-1d-1}\\
+\image{approximation}{.48}{fourier-approx-1d-2}&
+\image{approximation}{.48}{fourier-approx-1d-3}
+}
+}{ 
+	Fourier approximation of a signal.  
+}{fig-ourier-approx-1d}
+
+                                       
+                                                                                                                                                                                                      
+
+                                          
+                                                                                                                                                                   
+
+
+This low-pass approximation is a convolution, since
+\eq{
+	f_M = \sum_{m=-M/2}^{M/2} \dotp{f}{e_m} e_m = f \star h_M
+	\qwhereq
+	\hat h_{M} \eqdef 1_{[-M/2,M/2]}.
+}
+The kernel $h_M$ is the Dirichlet kernel introduced in the Fourier chapter.
+
+The following elementary bound shows that this approximation error decays for $\Cc^\al$ signals.
+
+\begin{prop}
+	For integer $\alpha\geq1$ and $f\in C^\alpha(\RR/\ZZ)$
+	\eq{
+		\norm{ f-f_M^{\text{lin}} }^2 = O(M^{-2\al+1}).
+	}
+\end{prop}
+
+\begin{proof}
+Using integration by parts, one shows that for a $\Cal$ function $f$ in the smooth signal model~\eqref{eq-smooth-model},
+$\Ff(f^{(\ell)})_m = (2\imath m \pi)^\ell \hat f_m$, so that 
+Cauchy--Schwarz gives
+\eq{
+	|\dotp{f}{e_m}| \leq |2\pi m|^{-\al} \norm{f^{(\al)}}_2.
+}
+This implies
+\eq{
+	\norm{ f-f_M^{\text{lin}} }^2 = \sum_{|m|>M/2} |\dotp{f}{e_m}|^2
+	\leq \norm{f^{(\al)}}^2_2 \sum_{|m|>M/2} |2\pi m|^{-2\al} = O(M^{-2\al+1}).
+}
+\end{proof}
+
+Using the full energy of $f^{(\al)}$ gives a sharper bound under the same assumptions. The argument also applies to the larger Sobolev class.
+
+\begin{prop}\label{prop-sobol-fourier-lin}
+	For $\alpha>0$ and a periodic signal in the Sobolev model~\eqref{eq-sobolev-model}, one has
+	\eql{\label{eq-sovolev-signal-decay}
+		\norm{f-f^{\text{lin}}_M}^2 \leq C \norm{f}_{\mathrm{Sob}(\alpha)}^2  M^{-2\al}.
+	}
+\end{prop}
+\begin{proof}
+	One has
+	\eqml{
+		\norm{f}_{\mathrm{Sob}(\alpha)}^2 &= \sum_m |2 \pi m|^{2\al} |\dotp{f}{e_m}|^2
+		\geq \sum_{|m|>M/2} |2 \pi m|^{2\al} |\dotp{f}{e_m}|^2 \\ 
+		& \geq (\pi M)^{2\al} 

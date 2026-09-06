@@ -1,0 +1,164 @@
+% Context from chapters/sec-autodiff.tex; for mathematical reference, not compilation.
+erivative of the output node by
+\eq{
+	\pd{x_t}{x_t} = \Id_{n_t \times n_t}, 
+}
+and apply the following recursion from the last node to the first:
+\eq{
+	\foralls k=t-1,t-2,\ldots,1, \quad
+	\pd{x_t}{x_k} 
+	= \sum_{m \in \text{son}(k)}  \pd{x_t}{x_m} \times \bk{\pd{x_m}{x_k}}
+	= \sum_{m \in \text{son}(k)} \pd{x_t}{x_m} \times \pd{f_m(x_1,\ldots,x_{m-1})}{x_k}.
+}
+ 
+The set $\text{son}(k)$ contains the children $m>k$ that depend directly on $x_k$, as shown in Figure~\ref{fig-forward-backward}, right. Contributions from every child must be added.
+
+   
+\paragraph{Back-propagation.}
+
+For a scalar output $x_t \in \RR$, we have $\pd{x_t}{x_k} = [\nabla_{x_k} f(x)]^\top \in \RR^{1 \times n_k}$. The reverse recursion can then be written for gradient vectors:
+\eq{
+	\foralls k=t-1,t-2,\ldots,1, \quad
+	\nabla_{x_k} f(x) 
+	= \sum_{m \in \text{son}(k)} \pa{\pd{f_m(x_1,\ldots,x_{m-1})}{x_k}}^\top \pa{
+	 	\nabla_{x_m} f(x)
+	}.
+}
+Here $\pa{\pd{f_m(x_1,\ldots,x_{m-1})}{x_k}}^\top \in \RR^{n_k \times n_m}$ is the adjoint Jacobian of $f_m$. This adjoint recursion is called backpropagation and is the standard form used in machine learning.
+
+For a scalar output ($n_t=1$), reverse mode is usually the preferred way to compute the full gradient. It requires access to the intermediate variables $(x_k)_{k=s+1}^t$, which can be costly to store for a large graph. Checkpointing trades additional computation for reduced storage.
+
+   
+\paragraph{Simple example.}
+
+For the two-input example $f(x,y)$ in~\eqref{eq-simple-func-autodiff}, reverse mode gives
+\begin{align*}
+		\pd{f}{f} &= 1 &\\
+		\pd{f}{c} &= \pd{f}{f} \pdb{f}{c} = \pd{f}{f} 1 &
+			\{ c \mapsto f = b+c\}\\
+		\pd{f}{b} &= \pd{f}{c} \pdb{c}{b} + \pd{f}{f} \pdb{f}{b} = \pd{f}{c} \frac{1}{2\sqrt{b}} + \pd{f}{f} 1 & 
+			\{ b \mapsto c=\sqrt{b}, b \mapsto f=b+c\} \\
+		\pd{f}{a} &= \pd{f}{b} \pdb{b}{a} = \pd{f}{b} y & 
+			\{ a \mapsto b=y a\} \\
+		\pd{f}{y} &= \pd{f}{b} \pdb{b}{y} = \pd{f}{b} a & 
+			\{ y \mapsto b=ya\} \\
+		\pd{f}{x} &= \pd{f}{a} \pdb{a}{x} = \pd{f}{a} \frac{1}{x} & 
+			\{ x \mapsto a=\log(x)\}
+\end{align*}
+A single reverse traversal computes both derivatives with respect to $x$ and $y$, whereas coordinatewise forward mode requires two passes.
+
+     
+   
+                                 
+
+                                                                                                                   
+              
+                    
+                                    
+                     
+                          
+                                    
+                              
+                                                
+                                                    
+                             
+                                                           
+                                              
+                                                       
+                                                           
+                                                        
+                                                         
+                                                        
+                                                                
+                                                            
+                                                        
+                                              
+                                               
+            
+   
+
+
+                                                                        
+\subsection{Feed-forward Compositions}\label{sec-reversemode-simple}
+
+For a feedforward chain, the computed function is the composition
+\eql{\label{eq-simple-lin-dag}
+	f = f_{t} \circ f_{t-1} \circ \ldots \circ f_2 \circ f_1
+}
+for functions $f_k : \RR^{n_{k-1}} \rightarrow \RR^{n_{k}}$.
+
+The forward evaluation starts from $x_0=x \in \RR^{n_0}$ and computes
+\eq{
+	\foralls k=1, \ldots, t, \quad x_{k} = f_k(x_{k-1})
+}
+giving the output $f(x) = x_t$.
+
+Let $A_k \eqdef \partial f_k(x_{k-1}) \in \RR^{n_{k} \times n_{k-1}}$ be the Jacobian of the local map. The chain rule gives
+\eq{
+	\partial f(x) = A_{t} \times A_{t-1} \times \ldots A_2 \times A_1.
+}
+Forward mode multiplies the Jacobians from right to left, while reverse mode multiplies them from left to right
+\begin{align*}
+	\partial f(x) &= A_{t} \times \pa{  A_{t-1} \times \pa{ \ldots \times \pa{ A_3 \times \pa{ A_2 \times A_1 } } } }, \\
+	\partial f(x) &= \pa{ \pa{ \pa{ \pa{ A_{t} \times A_{t-1} }  \times A_{t-2} } \times \ldots } \times A_2 } \times A_1.
+\end{align*}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.42\linewidth]{auto-diff/matrix-forward} 
+\qquad
+\includegraphics[width=.45\linewidth]{auto-diff/matrix-backward} 
+\caption{\label{fig-matrix-mult}
+Matrix multiplication costs for forward mode (left) and reverse mode (right) along a chain.
+}
+\end{figure}
+
+We note that the computation of the product $A \times B$ of $A \in \RR^{n \times p}$ with $B \in \RR^{p \times q}$ requires $O(npq)$ arithmetic operations with the standard dense algorithm.
+ 
+As shown on Figure~\ref{fig-matrix-mult}, the arithmetic costs of the two parenthesizations are proportional to
+\eq{
+	n_0 \sum_{k=1}^{t-1} n_k n_{k+1}
+	\qandq
+	n_t \sum_{k=0}^{t-2} n_k n_{k+1}
+}
+For roughly comparable intermediate widths, these costs favor reverse mode when $n_t\ll n_0$. A scalar learning objective typically has $n_t=1$, making reverse mode a natural choice; the exact cost comparison depends on all the intermediate dimensions.
+
+
+                                                                        
+\subsection{Feed-forward Architecture}
+
+A parameterized feedforward architecture, such as a neural network, has the form
+\eql{\label{eq-feednets}
+	\foralls k=1, \ldots, t, \quad x_{k} = f_k(x_{k-1},\th_{k-1})
+}
+where $\th_{k-1}$ is the parameter vector for a layer and the input $x_0 \in \RR^{n_0}$ is fixed. The objective is
+\eql{\label{eq-loss-feedf}
+	f(\th) \eqdef L(x_t)
+}
+Here $L : \RR^{n_t} \rightarrow \RR$ is a loss, such as squared prediction error or logistic loss, and $\th=(\th_k)_{k=0}^{t-1}$ collects the parameters. Figure~\ref{fig-mlp} shows the computational graph.
+
+
+\begin{figure}
+\centering
+\includegraphics[width=.7\linewidth]{auto-diff/archi-feedforward} 
+\caption{\label{fig-mlp}
+Computational graph for a feedforward architecture.
+}
+\end{figure}
+
+
+Reverse mode computes the gradient of $f$ by propagating derivatives through the variables $(x_k,\th_k)$. Initialize
+\eq{
+	\nabla_{x_t} f = \nabla L(x_t) 	
+}
+and recurse from $k=t$ down to $1$:
+\eql{\label{eq-backprop-discr}
+	z_{k-1} = [\partial_x f_k(x_{k-1},\th_{k-1})]^\top z_k
+	\qandq
+	\nabla_{\th_{k-1}} f = [\partial_\th f_k(x_{k-1},\th_{k-1})]^\top (\nabla_{x_{k}} f)
+}
+where $z_k \eqdef \nabla_{x_{k}} f(\th)$ is the gradient with respect to $x_{k}$.
+
+   
+\paragraph{Multilayer perceptrons.}\label{sec-a

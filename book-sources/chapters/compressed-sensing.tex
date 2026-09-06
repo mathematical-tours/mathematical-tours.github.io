@@ -17,11 +17,11 @@ The main references for this chapter are~\cite{mallat2008wavelet,foucart2013math
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Single-Pixel Camera}
 
-We illustrate compressed acquisition with the \guill{single-pixel camera} developed at Rice University~\cite{DuarteSinglePixel}, shown in Figure~\ref{fig-single-pixel} (left).
+The \guill{single-pixel camera} developed at Rice University~\cite{DuarteSinglePixel} motivates compressed acquisition. Figure~\ref{fig-single-pixel} illustrates the reconstruction principle with simulated measurements of a flower image.
 %
 A central idea is to combine acquisition and compression in a single device. Conventional acquisition first samples the analog scene $\tilde f_0$ at high resolution to obtain an image $f_0\in\RR^Q$, then compresses it to $M$ significant coefficients using~\eqref{eq-nonlinear-approx}. Compressed acquisition instead records a vector $y\in\RR^P$ directly. The aim is to keep the measurement count $P$ close to the sparsity level $M$, typically with a logarithmic overhead, while retaining enough information for accurate reconstruction.
 
-The scene $\tilde f_0$, represented by the letter \guill{R} in Figure~\ref{fig-single-pixel}, is modeled as a light-intensity function. Its value $\tilde f_0(s)$ gives the intensity at position $s \in \RR^2$ in the camera's focal plane.
+The scene $\tilde f_0$ is modeled as a light-intensity function. Its value $\tilde f_0(s)$ gives the intensity at position $s \in \RR^2$ in the camera's focal plane.
 %
 Light is focused onto an array of $Q$ micromirrors in the focal plane. Each mirror directs light either toward the sensor or away from it; the mirrors themselves record no information.
 %
@@ -46,21 +46,13 @@ The intermediate image $f_0$ is never recorded: the device measures $y$ directly
 %
 Binary mirror patterns are not centered random variables. Centered signed measurements can be formed by subtracting an appropriate total-intensity measurement or by differencing complementary exposures, followed by normalization. This distinction matters when applying the random-matrix assumptions below.
 
-Recovering the ideal discrete image $f_0$ from $y$ requires inverting the acquisition model while accounting for the noise $w$.
+Recovering the ideal discrete image $f_0$ from $y$ requires inverting the acquisition model while accounting for the noise $w$. Figure~\ref{fig-single-pixel} uses nested subsets of signed Walsh--Hadamard patterns with a fixed random pixel permutation. Each reconstruction minimizes the same wavelet-$\ell^1$ objective with its own measurements. The examples are noiseless simulations; the signed measurements correspond to centered patterns, rather than individual binary exposures.
 
-\begin{figure} \centering
-\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
-\includegraphics[width=.45\linewidth]{cs/single-pixel/single-pixel-schema}&
-\includegraphics[width=.25\linewidth]{cs/single-pixel/reconstruction-1}&
-\includegraphics[width=.25\linewidth]{cs/single-pixel/reconstruction-6}\\
-Diagram of the device & $f_0$ & $f_0^\star$, $Q/P = 6$
-\end{tabular}
-\caption{Left: diagram of the single-pixel acquisition method.
-%
-Center: ideal image $f_0\in\RR^Q$ in the micromirror focal plane.
-%
-Right: reconstruction $f_0^\star = \Psi x^\star$ from measurements $y \in \RR^P$, with compression factor $Q / P = 6$, using $\ell^1$ regularization.
-\label{fig-single-pixel}}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-compressed-sensing/single-pixel/proposed.pdf}
+\caption{Simulated compressed sensing of the flower image, with $Q=4096$ pixels. The three wavelet-$\ell^1$ reconstructions use $P=512$, $1024$, and $2048$ orthonormal signed Walsh--Hadamard measurements, respectively.}
+\label{fig-single-pixel}
 \end{figure}
 
 
@@ -125,32 +117,20 @@ Suppose $s,P\to\infty$ with $s/P\to\beta\in(0,1)$. The empirical eigenvalue dist
 where $\lambda_\pm=(1\pm\sqrt\beta)^2$. For Gaussian matrices, the extreme eigenvalues also converge to these endpoints. When $\beta<1$ there is no atom at zero; such an atom appears when $s>P$.
 Figure~\ref{fig-marcenko-pastur} illustrates this convergence.
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-%%
-\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
-\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-2}&
-\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-4}\\
-$\be=1/2$ & $\be=1/4$ \\
-\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-10}&
-\includegraphics[width=.4\linewidth]{cs/marcenko-pastur/marcenko-pastur-50}\\
-$\be=1/10$ & $\be=1/50$ 
-\end{tabular}
-%%
-\caption{\label{fig-marcenko-pastur}
-Empirical eigenvalue distributions approaching the Marchenko--Pastur law.
-}
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-compressed-sensing/marcenko-pastur/proposed.pdf}
+\caption{Empirical eigenvalue distributions approaching the Marchenko--Pastur law.}
+\label{fig-marcenko-pastur}
 \end{figure}
 
 
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-\includegraphics[width=.5\linewidth]{cs/marcenko-pastur/mp-laws.eps}
-%%
-\caption{\label{fig-marcenko-pastur-laws}
-Marchenko--Pastur densities $f_\be$ for several aspect ratios $\be$.
-}
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-compressed-sensing/marcenko-pastur-laws/proposed.pdf}
+\caption{Marchenko--Pastur densities $f_\be$ for several aspect ratios $\be$.}
+\label{fig-marcenko-pastur-laws}
 \end{figure}
 
 
@@ -310,14 +290,11 @@ Rotational invariance makes this statement more precise:
 To see this, rotate the $s$ columns so that $s_I/\sqrt s$ becomes the first coordinate vector. The inverse of the corresponding diagonal entry of $(G^*G)^{-1}$, for $G=\sqrt P A_I$, is the squared distance of the first column of $G$ to the span of the remaining columns. This is a chi-square variable with $P-s+1$ degrees of freedom. Thus $\norm{p_F}\leq(1+\delta)\sqrt s$ with high probability when $s/P$ is sufficiently small and $P$ is large; the factor must exceed one.
 \end{proof}
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-%%
-\includegraphics[width=.6\linewidth]{cs/max-gaussian/max-gaussian}
-%%
-\caption{\label{fig-max-gaussian}
-Maximum of $N$ independent standard Gaussian variables, compared with the dashed curve $\sqrt{2\log(N)}$.
-}
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-compressed-sensing/max-gaussian/proposed.pdf}
+\caption{Maximum of $N$ independent standard Gaussian variables, compared with the dashed curve $\sqrt{2\log(N)}$.}
+\label{fig-max-gaussian}
 \end{figure}
  
 In a Gaussian asymptotic regime with $s/P\to0$, the leading-order scaling is
@@ -329,18 +306,11 @@ with slack needed for a finite-sample probability bound. The unspecified constan
 This is a nonuniform guarantee: the vector $x_0$ is fixed before the matrix $A$ is drawn. The RIP theory in Section~\ref{sec-rip} gives a single event on which recovery holds for all sparse vectors simultaneously.
 
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-%%
-\begin{tabular}{@{}c@{}c@{}c@{}}
-\includegraphics[width=.35\linewidth]{cs/phase/phase-transition-1}&
-\includegraphics[width=.28\linewidth]{cs/phase/phase-transition-2}&
-\includegraphics[width=.35\linewidth]{cs/phase/phase-transition-crit}
-\end{tabular}
-%%
-\caption{\label{fig-phase-trans}
-Phase transitions. Right: empirical probabilities that recovery criteria hold as sparsity varies. Blue: weak ERC; black: ERC; green: $\norm{\eta_F}_\infty\leq1$; red: exact recovery.
-}
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-compressed-sensing/phase-trans/proposed.pdf}
+\caption{Phase transitions. Right: empirical probabilities that recovery criteria hold as sparsity varies. Blue: weak ERC; black: ERC; green: $\norm{\eta_F}_\infty\leq1$; red: exact recovery.}
+\label{fig-phase-trans}
 \end{figure}
 
 
@@ -391,18 +361,11 @@ and use $2\norm{x}\norm{x'}\leq\norm{x}^2+\norm{x'}^2$.
 \end{proof}
 
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
-%%
-%\begin{tabular}{@{}c@{\hspace{5mm}}c@{}}
-\includegraphics[width=.35\linewidth]{cs/rip-const/delta-k}
-%\includegraphics[width=.55\linewidth]{cs/rip-const/eigen-distrib}
-%\end{tabular}
-%%
-\caption{\label{fig-rip-const}
-Evolution of lower bounds $\hat\delta_k$ on the RIP constant.
-% Right: empirical distribution of singular values of Gaussian matrices.
-}
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-compressed-sensing/rip-const/proposed.pdf}
+\caption{Evolution of lower bounds $\hat\delta_k$ on the RIP constant.}
+\label{fig-rip-const}
 \end{figure}
 
 The next theorem bounds the number of measurements needed to keep restricted isometry constants small at sparsity level $s$.

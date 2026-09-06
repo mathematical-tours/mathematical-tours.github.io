@@ -1,0 +1,72 @@
+% Context from chapters/compression.tex; for mathematical reference, not compilation.
+\section{Transform Coding}
+\label{sec-transform-coding}
+
+                                                                 
+\subsection{Coding}
+
+Choose an orthonormal basis, such as a wavelet basis, and write the coefficients as
+\eq{
+	a_m = \dotp{f}{\psi_m} \in \RR.
+}
+Quantization maps each coefficient to an integer using a step size $T>0$:
+\eq{
+	q_m = Q_T(a_m)  \in \ZZ
+	\qwhereq 
+	Q_T(x) = \sign(x) \left\lfloor \frac{|x|}{T} \right\rfloor.
+}
+This quantizer has a zero bin of width $2T$: coefficients in $(-T,T)$ are set to zero.
+
+Like hard thresholding~\eqref{eq-hard-thresh-approx}, quantization discards coefficients smaller than $T$ in magnitude. It also rounds the retained coefficients, introducing an additional error; see Figure~\ref{fig-thresholding-vs-quantizing}.
+
+\myfigure{
+\BookDrawing{tikz/compression-threshold-quantization}
+}{ 
+	Hard thresholding and quantization as functions of the input coefficient. 
+}{fig-thresholding-vs-quantizing}
+
+The integer coefficients $(q_m)_m$ are encoded in a binary stream of length $R$ bits.
+Sections~\ref{subsec-support-coding} and \ref{subsec-entropic-coding} describe two approaches to encoding these integers. The goal is to minimize $R$ for an acceptable distortion.
+
+                                                                 
+\subsection{Decoding}
+
+The decoder retrieves the integers $q_m$ from the binary file and reconstructs coefficient values using
+\eql{\label{eq-de-quantization}
+	\tilde a_m = \sign(q_m)  \pa{|q_m|+\frac{1}{2}} T.
+}
+Each nonzero symbol is reconstructed at the center of its quantization bin; zero is reconstructed as zero:
+\begin{center}
+\image{approximation}{.4}{quantization-bins}
+\end{center}
+
+The decoded signal or image is reconstructed as
+\eql{\label{eq-decompression-approx}
+	\Qq_T(f) \eqdef \sum_{m \in I_T} \tilde a_m \psi_m
+	=\sum_m D_T(Q_T(\dotp{f}{\psi_m}))\psi_m,\qquad I_T=\{m:|a_m|\geq T\},
+}
+where $D_T(q)=T\sign(q)(|q|+1/2)$ and $\sign(0)=0$. This produces a reconstruction error $\norm{f-\Qq_T(f)}$.
+
+Let $M=\#I_T$ and let $f_M$ retain the coefficients indexed by $I_T$ without quantizing them. This is the approximation~\eqref{eq-nonlinear-approx}, with equality at the threshold retained here. Orthogonality gives $\norm{f-f_M} \leq \norm{f-\Qq_T(f)}$. The following bound separates the approximation error from the additional error caused by rounding.
+
+\begin{prop}\label{prop-error-compression}
+	With this choice of $f_M$,
+	\eql{\label{eq-error-compression}
+		\norm{f-\Qq_T(f)}^2 \leq \norm{f-f_M}^2 + M T^2/4
+		\qwhereq
+		M = \#\enscond{m}{ \tilde a_m \neq 0}.
+	}
+\end{prop}
+
+\begin{proof}
+The reconstruction rule~\eqref{eq-de-quantization} gives, for $|a_m|\geq T$,
+\eq{
+	|a_m-\tilde a_m| \leq \frac{T}{2}.
+}
+By orthogonality,
+\eq{
+	\norm{f-\Qq_T(f)}^2 = \sum_m (a_m-\tilde a_m)^2 \leq
+	\sum_{ |a_m|<T } |a_m|^2 + 
+	\sum_{ |a_m| \geq T } \pa{\frac{T}{2}}^2, 
+}
+The first sum is $\norm{f-f_M}^2$, and the second contains $M$ terms, proving the b

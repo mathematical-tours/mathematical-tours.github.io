@@ -15,16 +15,12 @@
 
 Figure \ref{fig-noise-examples} illustrates the variety of imaging noise. Different acquisition devices produce different noise statistics, while the images themselves vary in smoothness and geometry.
 
-\myfigure{
-\tabtrois{
-\image{denoising}{.3}{noise-camera}&
-\image{denoising}{.3}{noise-confocal}&
-\image{denoising}{.3}{noise-sar}\\
-Digital camera & Confocal imaging & SAR imaging
-}
-}{%
-	Noise in images from different acquisition devices. %
-}{fig-noise-examples}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/noise-examples/proposed.pdf}
+\caption{Gaussian, Poisson, and multiplicative Gamma noise simulated on the same flower image.}
+\label{fig-noise-examples}
+\end{figure}
 
 The model should reflect both the acquisition process and the noise statistics. The regularity and geometry of the clean signal then guide the choice of a basis for its representation.
 
@@ -36,11 +32,12 @@ Since noise perturbs discrete measurements from acquisition devices, we consider
 
 Figure \ref{fig-additive-noise-model} summarizes the model: a clean image $f_0$ combines with noise $w$ to produce the observation $Y := f_0 \oplus w$. The operation $\oplus$ may be addition or multiplication. The observed image $Y$ is modeled as a random vector.
 
-\myfigure{
-\image{denoising}{.8}{additive-noise-model}
-}{%
-	Image acquisition, noise, and reconstruction by denoising. %
-}{fig-additive-noise-model}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/additive-noise-model/proposed.pdf}
+\caption{Image acquisition, noise, and reconstruction by denoising.}
+\label{fig-additive-noise-model}
+\end{figure}
 
 In the statistical model, $w$ is a random vector with a specified distribution. A numerical experiment uses one realization, also written $w$.
 
@@ -53,26 +50,20 @@ The simplest image formation model adds noise to a clean signal $f_0$
 }
 where $w$ is the noise residual. Both $w$ and $Y$ are random; an acquired image is one realization of $Y$, denoted by $y$ or $f$ below. Figures \ref{fig-noise-example-1d} and \ref{fig-noise-example-2d} illustrate additive noise on a signal and an image.
 
-\myfigure{
-\tabdeux{
-\image{denoising}{.45}{noise-example-1d-clean}&
-\image{denoising}{.45}{noise-example-1d-noisy}\\
-$f_0$ & $f$
-}
-}{%
-	1-D additive noise example.%	
-}{fig-noise-example-1d}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/noise-example-1d/proposed.pdf}
+\caption{One-dimensional additive Gaussian noise at low, medium, and high levels, with a common clean signal and normalized noise realization.}
+\label{fig-noise-example-1d}
+\end{figure}
 
 
-\myfigure{
-\tabdeux{
-\image{denoising}{.3}{noise-example-2d-clean}&
-\image{denoising}{.3}{noise-example-2d-noisy}\\
-$f_0$ & $y \sim Y = f_0+w$
-}
-}{%
-	2-D additive noise example.%	
-}{fig-noise-example-2d}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/noise-example-2d/proposed.pdf}
+\caption{Two-dimensional additive noise: the clean image $f_0$ and the observation $f=f_0+w$, with $w\sim\mathcal N(0,\sigma^2 I)$.}
+\label{fig-noise-example-2d}
+\end{figure}
 
 The simplest model assumes independent centered Gaussian entries $w_n$ with variance $\si^2$: $w\sim\Nn(0,\sigma^2\Id_N)$. This is Gaussian white noise.
 
@@ -98,16 +89,12 @@ where $\mathbb E_w$ averages over the noise $w$. This risk is a theoretical quan
 The SNR is measured in decibels (dB). Computing it requires the clean signal $f_0$, so it serves as a benchmark in controlled experiments. Because an $\ell^2$ error does not fully describe perceptual quality, visual inspection should accompany the numerical comparison.
 
 
-\myfigure{
-\tabtrois{
-\image{denoising}{.32}{denoising-clean}&
-\image{denoising}{.32}{denoising-noisy}&
-\image{denoising}{.32}{denoising-denoised}\\
-$f_0$ & $y$ & $\Dd(y)$
-}
-}{%
-	Left: clean image, center: noisy image, right: denoised image.%	
-}{fig-denoising-clean}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/denoising-clean/proposed.pdf}
+\caption{Left: clean image, center: noisy image, right: denoised image.}
+\label{fig-denoising-clean}
+\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -134,21 +121,12 @@ where $\hat h$ is the discrete Fourier transform.
 
 Figure \ref{fig-filtering-denoised} illustrates denoising with a low-pass filter.
 
-\myfigure{
-\tabdeux{
-\image{denoising}{.45}{filtering-noisy}&
-\image{denoising}{.45}{filtering-noisy-fourier}\\
-$f$ & $\log|\hat f|$ \\
-\image{denoising}{.45}{filtering-filter}&
-\image{denoising}{.45}{filtering-filter-fourier}\\
-$h$ & $\log|\hat h|$ \\
-\image{denoising}{.45}{filtering-denoised}&
-\image{denoising}{.45}{filtering-denoised-fourier}\\
-$f \star h$ & $\log|\hat f\hat h|=\log|\hat f|+\log|\hat h|$
-}
-}{%
-	Filtering in the spatial domain (left) and the Fourier domain (right).%
-}{fig-filtering-denoised}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/filtering-denoised/proposed.pdf}
+\caption{Gaussian filtering: noisy signal, kernel, and filtered signal (top), with their Fourier magnitudes below.}
+\label{fig-filtering-denoised}
+\end{figure}
 
 The filtering strength is usually controlled by the width $s$ of $h$. A typical example is the (discretized) Gaussian filter
 \eql{\label{eq-gaussian-filters}
@@ -173,12 +151,12 @@ where $Z_s$ normalizes the filter so that $\sum_i h_{s,i}=1$, preserving constan
 
 Figure \ref{fig-filtering-progression} shows the effect of increasing the filter width $s$. Linear filtering works well on smooth signals, but removing more noise also blurs edges and other singularities.
 
-\myfigure{
-\image{denoising}{.7}{filtering-progression-1d}
-\image{denoising}{.2}{filtering-progression-2d}
-}{%
-	Denoising using a filter of increasing width $s$.%	
-}{fig-filtering-progression}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/filtering-progression/proposed.pdf}
+\caption{Gaussian filtering with increasing width: three signals (top) and five images (bottom).}
+\label{fig-filtering-progression}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Optimal Filter Selection and Bias-Variance Tradeoff}
@@ -194,28 +172,23 @@ The filter width $s$ balances noise removal against excessive smoothing of singu
 
 Figure~\ref{fig-iltering-optimal-curve} shows the SNR as a function of filter width, evaluated using the known clean signal.
 
-\myfigure{
-\image{denoising}{.48}{filtering-optimal-1d-curve}
-\image{denoising}{.46}{filtering-optimal-2d-curve}
-}{%
-	SNR as a function of filter width for a signal (left) and an image (right).%
-}{fig-iltering-optimal-curve}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/filtering-optimal-curves/proposed.pdf}
+\caption{SNR as a function of filter width for a signal (left) and an image (right).}
+\label{fig-iltering-optimal-curve}
+\end{figure}
 
-Figures \ref{fig-filtering-optimal-1d} and \ref{fig-filtering-optimal-2d} use the width $s^\star$ that maximizes SNR for the displayed observation. This choice uses the known clean signal to assess the best achievable result within the filter family.
+Figure~\ref{fig-filtering-optimal-1d} uses the width $s^\star$ that maximizes SNR for the displayed observation. This choice uses the known clean signal to assess the best achievable result within the filter family.
 
-\myfigure{
-\image{denoising}{.48}{filtering-optimal-1d-noisy}
-\image{denoising}{.48}{filtering-optimal-1d-denoised}
-}{%
-	Noisy signal (left) and filtered signal (right), using the SNR-optimal width.%
-}{fig-filtering-optimal-1d}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/filtering-optimal-1d/proposed.pdf}
+\caption{Gaussian filtering at the SNR-optimal widths. From left to right: noisy signal, filtered signal, noisy image, and filtered image.}
+\label{fig-filtering-optimal-1d}
+\end{figure}
 
-\myfigure{
-\image{denoising}{.3}{filtering-optimal-2d-noisy}
-\image{denoising}{.3}{filtering-optimal-2d-denoised}
-}{%
-	Noisy image (left) and filtered image (right), using the SNR-optimal width.%
-}{fig-filtering-optimal-2d}
+
 
 Some noise remains at the SNR-optimal width. Increasing the filter width introduces strong blur and reduces the SNR, although the result may look more pleasant.
 
@@ -388,17 +361,12 @@ The noisy coefficients satisfy
 }
 Orthogonal transforms preserve Gaussian white noise, so the coefficients $\dotp{w}{\psi_m}$ remain independent centered Gaussians with variance $\si^2$. If the basis $\{\psi_m\}_m$ represents $f_0$ sparsely, most clean coefficients $ \dotp{f_0}{\psi_m}$ are small, leaving many noisy coefficients dominated by noise; see Figure \ref{fig-wavthresh}. Donoho and Johnstone systematically developed thresholding estimators based on this observation~\cite{donoho-shrinkage}.
 
-\myfigure{
-\tabquatre{
-\image{denoising}{.24}{wavthresh-noisy}&
-\image{denoising}{.24}{wavthresh-coefs-noisy}&
-\image{denoising}{.24}{wavthresh-coef-denoised}&
-\image{denoising}{.24}{wavthresh-denoised}\\
-$f$ & $\dotp{f}{\psi_{j,n}^\om}$ & $S_T(\dotp{f}{\psi_{j,n}^\om})$ & $\tilde f$
-}
-}{%
-	Denoising using thresholding of wavelet coefficients. %	
-}{fig-wavthresh}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/wavthresh/proposed.pdf}
+\caption{Denoising using thresholding of wavelet coefficients.}
+\label{fig-wavthresh}
+\end{figure}
 
 Hard thresholding retains only coefficients whose magnitude exceeds the threshold $T$:
 \eq{
@@ -426,7 +394,7 @@ Hard thresholding makes a discontinuous keep-or-discard decision, which can crea
 Set $S_T^1(0)=0$ by continuity. Figure~\ref{fig-thresholding-hard-vs-soft} compares the two nonlinear maps.
 
 \myfigure{
-\BookDrawing{tikz/denoising-hard-soft-threshold}
+\BookDrawing{chapter-denoising/thresholding-hard-vs-soft/original/denoising-hard-soft-threshold.pdf}
 }{%
 	Hard and soft thresholding functions. %	
 }{fig-thresholding-hard-vs-soft}
@@ -436,11 +404,12 @@ For $q=0$ and $q=1$, these thresholding rules define two different estimators
 	\tilde f^q = \sum_m S_T^q( \dotp{f}{\psi_m} ) \psi_m
 }
 
-\myfigure{
-\image{denoising}{.6}{wavthresh-2d-hard-vs-soft}
-}{%
-	SNR as a function of $T/\si$ for hard and soft thresholding.%
-}{fig-wavthresh-2d-hard-vs-soft}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/wavthresh-2d-hard-vs-soft/proposed.pdf}
+\caption{SNR as a function of $T/\si$ for hard and soft thresholding.}
+\label{fig-wavthresh-2d-hard-vs-soft}
+\end{figure}
 
 
 %%
@@ -463,15 +432,12 @@ Shrinking coarse wavelet coefficients can introduce unwanted low-frequency artif
 
 Figure \ref{fig-wavthresh-2d-hard-vs-soft} plots SNR against the threshold $T$ for a fixed natural image $f_0$. In this experiment, hard thresholding performs best near $T \approx 3\si$, and soft thresholding near $T\approx 3\si/2$. The best soft-thresholded estimate has a slightly higher SNR.
 
-\myfigure{
-\tabdeux{
-\image{denoising}{.3}{wavthresh-2d-hard}&
-\image{denoising}{.3}{wavthresh-2d-soft}\\
-20.9dB & 21.8dB
-}
-}{%
-	Comparison of hard (left) and soft (right) thresholding.%	
-}{fig-wavthresh-2d}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/wavthresh-2d/proposed.pdf}
+\caption{Comparison of hard (left) and soft (right) thresholding.}
+\label{fig-wavthresh-2d}
+\end{figure}
 
 These values describe the displayed experiments; the best threshold depends on the image, basis, noise level, and loss function.
 
@@ -498,12 +464,12 @@ As shown in \eqref{eq-noisy-transformed}, noisy coefficients
 }
 are perturbed by additive Gaussian white noise of variance $\si^2$. Figure \ref{fig-sparse-signal} shows an example of such a noisy sparse signal.
 
-\myfigure{
-\image{denoising}{.45}{sparse-signal}
-\image{denoising}{.45}{sparse-signal-noisy}
-}{%
-	Left: clean sparse coefficients $a_0$; right: noisy coefficients $a$.%
-}{fig-sparse-signal}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/sparse-signal/proposed.pdf}
+\caption{Left: clean sparse coefficients $a_0$; right: noisy coefficients $a$.}
+\label{fig-sparse-signal}
+\end{figure}
 
 
 %\myfigure{
@@ -520,12 +486,12 @@ When all nonzero clean coefficients are well separated from the noise level, cho
 This motivates a deterministic threshold based on the typical size of $\tau_N$; it is not an exact minimization formula for the realized denoising error.
 The random maximum $\tau_N$ depends on $N$. For fixed $\sigma$, its mean is asymptotic to $\sigma\sqrt{2\log N}$ as $N\to\infty$. Its variance tends to zero with $N$, so $\tau_N$ concentrates increasingly near its mean. Figure \ref{fig-max-gaussian-mean} illustrates these trends numerically.
 
-\myfigure{
-\image{denoising}{.6}{max-gaussian-mean}
-\image{denoising}{.63}{max-gaussian-std-corrected}
-}{%
-	Empirical mean (top) and standard deviation (bottom) of the largest absolute Gaussian noise coefficient.%
-}{fig-max-gaussian-mean}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/max-gaussian-mean/proposed.pdf}
+\caption{Empirical mean (top) and standard deviation (bottom) of the largest absolute Gaussian noise coefficient.}
+\label{fig-max-gaussian-mean}
+\end{figure}
 
 
 %%
@@ -565,7 +531,7 @@ The denoiser is translation invariant on the shift lattice $\De$ if
 where $\De$ is a lattice of $\RR^d$. A denser shift lattice imposes equivariance at finer spatial resolution.
 This corresponds to the fact that $\Dd$ commutes with the translation operator.
 \begin{center}
-	\image{denoising}{.3}{cycle-spin-principle}
+	\includegraphics[width=.72\linewidth,height=.25\textheight,keepaspectratio]{chapter-denoising/cycle-spin-principle/proposed.pdf}
 \end{center}
 Translation invariance on a sufficiently fine set $\De$ prevents the denoiser from favoring particular feature locations. Without it, the same feature may be reconstructed differently depending on where it appears, producing visible artifacts.
 
@@ -609,22 +575,20 @@ This requires 16 forward and inverse wavelet-transform pairs. Averaging this sub
 
 In Figure \ref{fig-wavthresh-ti}, translation-invariant hard thresholding slightly outperforms translation-invariant soft thresholding, reversing their ranking in the orthogonal-basis experiment. % Code \ref{denoising-cyclespin} implement this cycle spinning for a 2-D wavelet thresholding.
 
-\myfigure{
-\tabdeux{
-\image{denoising}{.3}{wavthresh-2d-soft}&
-\image{denoising}{.3}{wavthresh-2d-hard-ti}\\
-21.8dB & 23.4dB
-}
-}{%
-	Soft thresholding in an orthogonal wavelet basis (left) and translation-invariant hard thresholding (right). %
-}{fig-wavthresh-2d-soft-ti}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/wavthresh-2d-soft-ti/proposed.pdf}
+\caption{Soft thresholding in an orthogonal wavelet basis (left) and translation-invariant hard thresholding (right).}
+\label{fig-wavthresh-2d-soft-ti}
+\end{figure}
 
 
-\myfigure{
-\image{denoising}{.5}{wavthresh-ti-curves}
-}{%
-	SNR as a function of $T/\si$ for translation-invariant thresholding. %
-}{fig-wavthresh-ti}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/wavthresh-ti/proposed.pdf}
+\caption{SNR as a function of $T/\si$ for translation-invariant thresholding.}
+\label{fig-wavthresh-ti}
+\end{figure}
 
 
 % \matlab{matlab/denoising-cyclespin.m
@@ -674,31 +638,21 @@ The fast undecimated wavelet transform, often called the ``\`a trous'' transform
 }
 where the wavelets and shifts are discrete and appropriately normalized. Each array is a band-pass filtered image, as illustrated in Figure~\ref{fig-tiwav}.
 
-\myfigure{
-\tabquatre{
-\image{denoising}{.23}{tiwav-2d-image}&
-\image{denoising}{.23}{tiwav-2d-j2-h}&
-\image{denoising}{.23}{tiwav-2d-j2-v}&
-\image{denoising}{.23}{tiwav-2d-j2-d}\\
-$f$ & $j=-8, \om=H$ & $j=-8, \om=V$ & $j=-8, \om=D$ \\
-&
-\image{denoising}{.23}{tiwav-2d-j1-h}&
-\image{denoising}{.23}{tiwav-2d-j1-v}&
-\image{denoising}{.23}{tiwav-2d-j1-d}\\
-& $j=-7, \om=H$ & $j=-7, \om=V$ & $j=-7, \om=D$ 
-}
-}{%
-	Translation invariant wavelet coefficients. %	
-}{fig-tiwav}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/tiwav/proposed.pdf}
+\caption{Translation invariant wavelet coefficients.}
+\label{fig-tiwav}
+\end{figure}
 
 Figure \ref{fig-tiwav-coefs-thresh} illustrates hard thresholding of these translated coefficients.
 
-\myfigure{
-\image{denoising}{.3}{tiwav-coefs}
-\image{denoising}{.3}{tiwav-coefs-thresh}
-}{%
-	Left: translation invariant wavelet coefficients, for $j=-8, \om=H$, right: thresholded coefficients. %
-}{fig-tiwav-coefs-thresh}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/tiwav-coefs-thresh/proposed.pdf}
+\caption{Left: translation invariant wavelet coefficients, for $j=-8, \om=H$, right: thresholded coefficients.}
+\label{fig-tiwav-coefs-thresh}
+\end{figure}
 
 
 
@@ -724,21 +678,21 @@ Semi-soft thresholding interpolates between hard and soft thresholding through a
 For $0<\theta<1$, set $\mu=1/(1-\theta)$. The limits $\theta\downarrow0$ and $\theta\uparrow1$ give hard and soft thresholding, respectively, away from the threshold boundary.
 Figure~\ref{fig-semisoft} shows an example of this nonlinearity.
 
-\myfigure{
-\image{denoising}{.45}{semisoft-thresholders}
-\image{denoising}{.45}{stein-thresholder}
-}{%
-	Left: semi-soft thresholder, right: Stein thresholder. %	
-}{fig-semisoft}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/semisoft/proposed.pdf}
+\caption{Left: semi-soft thresholder, right: Stein thresholder.}
+\label{fig-semisoft}
+\end{figure}
 
 Figure \ref{fig-semisoft-optimal} shows an SNR improvement for a suitable choice of $\mu$, although the visual difference from hard and soft thresholding is small.
 
-\myfigure{
-\image{denoising}{.45}{semisoft-optimal-image}
-\image{denoising}{.4}{semisoft-optimal-curve}
-}{%
-	 Left: SNR as a function of $\mu$ and $T/\si$. Right: SNR versus $\mu$, with $T/\si$ optimized separately for each $\mu$. %
-}{fig-semisoft-optimal}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/semisoft-optimal/proposed.pdf}
+\caption{Left: SNR as a function of $\mu$ and $T/\si$. Right: SNR versus $\mu$, with $T/\si$ optimized separately for each $\mu$.}
+\label{fig-semisoft-optimal}
+\end{figure}
 
 %%
 \paragraph{Stein thresholding.}
@@ -759,11 +713,12 @@ For large coefficients, Stein thresholding has the following shrinkage behavior:
 }
 as $x \rightarrow \pm \infty$. Its deterministic shrinkage tends to zero, whereas soft thresholding retains a fixed shrinkage. This limiting property does not imply unbiased estimation at finite amplitudes.
 
-\myfigure{
-\image{denoising}{.45}{stein-optimal-curve}
-}{%
-	 SNR as a function of $T/\si$ for Stein thresholding. %
-}{fig-stein-optimal-curve}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/stein-optimal-curve/proposed.pdf}
+\caption{SNR as a function of $T/\si$ for Stein thresholding.}
+\label{fig-stein-optimal-curve}
+\end{figure}
 
 Stein and hard thresholding give similar results in the translation-invariant natural-image experiments shown here.
 
@@ -807,40 +762,35 @@ applies the same attenuation to every coefficient in a block,
 for $q \in \{0,1,\text{stein}\}$.
 Figure \ref{fig-block-wavcoefs} shows the attenuated blocks and the reconstructed image.
 
-\myfigure{
-\image{denoising}{.32}{block-wavcoefs}
-\image{denoising}{.32}{block-wavcoefs-thresh}
-\image{denoising}{.32}{block-denoising}
-}{%
-	 Left: wavelet coefficients, center: block thresholded coefficients, right: denoised image. %	
-}{fig-block-wavcoefs}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/block-wavcoefs/proposed.pdf}
+\caption{Left: wavelet coefficients, center: block thresholded coefficients, right: denoised image.}
+\label{fig-block-wavcoefs}
+\end{figure}
 
 Figure \ref{fig-block-optimal-curves}, left, compares the rules for $q \in \{0,1,\text{stein}\}$. Stein block thresholding gives the highest SNR in this comparison.
 Figure \ref{fig-block-optimal-curves}, right, compares block sizes for Stein thresholding. The choice $s=4$ performs well in the displayed experiment.
 
-\myfigure{
-\image{denoising}{.45}{block-optimal-curves}
-\image{denoising}{.45}{block-sizeblock}
-}{%
-	 SNR as a function of $T/\si$ (left) and comparison of different block sizes (right). %
-}{fig-block-optimal-curves}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/block-optimal-curves/proposed.pdf}
+\caption{SNR as a function of $T/\si$ (left) and comparison of different block sizes (right).}
+\label{fig-block-optimal-curves}
+\end{figure}
 
 Figure \ref{fig-comp-thresh} compares the reconstructions. Stein block thresholding in an orthogonal wavelet basis approaches the quality of translation-invariant hard thresholding here, at lower computational cost.
 The block thresholding strategy can also be applied to wavelet coefficients in a translation invariant tight frame, which gives the best result among the methods compared in this experiment.
 
 The same block attenuation can be implemented directly after the wavelet transform.
 
-\myfigure{
-\tabtrois{
-\image{denoising}{.32}{wavthresh-2d-hard-ti}&
-\image{denoising}{.32}{wavthresh-2d-block}&
-\image{denoising}{.32}{wavthresh-2d-block-ti}\\
-SNR=23.4dB & 22.8dB & 23.8dB
-}
-}{%
-	 Left: translation invariant wavelet hard thresholding, center: block orthogonal Stein thresholding, 
-	 right: block translation invariant Stein thresholding. %	
-}{fig-comp-thresh}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/comp-thresh/proposed.pdf}
+\caption{Left: translation invariant wavelet hard thresholding, center: block orthogonal Stein thresholding,
+	 right: block translation invariant Stein thresholding.}
+\label{fig-comp-thresh}
+\end{figure}
 
 More advanced denoisers use richer statistical models to improve on the methods presented here; see, for instance, \cite{portilla-denoise}.
 
@@ -876,11 +826,12 @@ The Poisson distribution $\Pp(\la)$ has probability mass function
 }
 and its parameter varies across pixels with the underlying intensity. Figure \ref{fig-poisson-distrib} shows several Poisson distributions.
 
-\myfigure{
-\image{denoising}{.5}{poisson-distrib}
-}{%
-	 Poisson distributions for various $\la$. %	
-}{fig-poisson-distrib}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/poisson-distrib/proposed.pdf}
+\caption{Poisson distributions for various $\la$.}
+\label{fig-poisson-distrib}
+\end{figure}
 
 One has 
 \eq{
@@ -892,17 +843,12 @@ Thus denoising again estimates a mean from one observation, but the variance now
 
 Figure \ref{fig-poisson-denoising} shows Poisson-corrupted versions of a clean image $f_0$ at different maximum mean intensities $\la_{\max}$.
 
-\myfigure{
-\tabquatre{
-\image{denoising}{.23}{poisson-denoising-1}&
-\image{denoising}{.23}{poisson-denoising-2}&
-\image{denoising}{.23}{poisson-denoising-3}&
-\image{denoising}{.23}{poisson-denoising-4}\\
-Example 1 & Example 2 & Example 3 & Example 4
-}
-}{%
-	 Examples of Poisson-corrupted images at different count levels. Numerical acquisition parameters are not available for these legacy illustrations. %
-}{fig-poisson-denoising}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/poisson-denoising/proposed.pdf}
+\caption{Poisson-corrupted flower images at increasing photon-count scales $\lambda_{\max}$.}
+\label{fig-poisson-denoising}
+\end{figure}
 
 %%
 \paragraph{Variance stabilization.}
@@ -928,11 +874,12 @@ and the Freeman--Tukey transform
 }
 Figure \ref{fig-variance-stabilization} compares the variance of $\phi(f)$ after these transformations.
 
-\myfigure{
-\image{denoising}{.5}{variance-stabilization-corrected}
-}{%
-	 Exact Poisson variances of the Anscombe, Freeman--Tukey, and $2\sqrt{x}$ transforms as functions of the mean intensity. %
-}{fig-variance-stabilization}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/variance-stabilization/proposed.pdf}
+\caption{Exact Poisson variances of the Anscombe, Freeman--Tukey, and $2\sqrt{x}$ transforms as functions of the mean intensity.}
+\label{fig-variance-stabilization}
+\end{figure}
 
 A variance-stabilized denoiser is defined as
 \eq{
@@ -942,15 +889,12 @@ where $\phi^{-1}$ is applied after projecting the denoised values onto its domai
 
 At the moderate count levels in Figure \ref{fig-poisson-wav}, variance stabilization improves the denoising result.
 
-\myfigure{
-\tabtrois{
-\image{denoising}{.32}{poisson-wav-noisy}&
-\image{denoising}{.32}{poisson-wav-unstab}&
-\image{denoising}{.32}{poisson-wav-stab}
-}
-}{%
-	Left: noisy image, center: denoising without variance stabilization, right: denoising after variance stabilization. %	
-}{fig-poisson-wav}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/poisson-wav/proposed.pdf}
+\caption{Left: noisy image, center: denoising without variance stabilization, right: denoising after variance stabilization.}
+\label{fig-poisson-wav}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Multiplicative Noise}
@@ -989,16 +933,12 @@ where the multiplicative factor is distributed according to a Gamma distribution
 }
 Its mean is one and its variance is $1/K$, so increasing $K$ reduces the relative noise level.
 
-\myfigure{
-\tabquatre{
-\image{denoising}{.23}{multnoise-1}&
-\image{denoising}{.23}{multnoise-2}&
-\image{denoising}{.23}{multnoise-3}&
-\image{denoising}{.23}{multnoise-4}
-}
-}{%
-	 Images with multiplicative noise at different values of $\si$. %
-}{fig-multnoise}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/multnoise/proposed.pdf}
+\caption{Multiplicative Gamma noise for increasing numbers $K$ of averaged looks, with standard deviation $\sigma=K^{-1/2}$.}
+\label{fig-multnoise}
+\end{figure}
 
 Figure \ref{fig-multnoise} illustrates how the noise changes with the number $K=1/\si^2$ of averaged looks.
 
@@ -1018,25 +958,22 @@ Here $\Ga$ is the Gamma function and $\psi$ is its logarithmic derivative, the d
 }
 for strictly positive intensities, where $z_n=\log(w_n)-c$ is centered additive noise with variance $\psi^{(1)}(K)$; $\psi^{(1)}$ is the derivative of the digamma function. Thus the transformed target is $\log f_0$, not $\phi(f_0)$. Exponentiating an estimate of $\log f_0$ introduces a further statistical bias and may require correction.
 
-\myfigure{
-\image{denoising}{.45}{multnoise-hist-unstab}
-\image{denoising}{.45}{multnoise-hist-stab}
-}{%
-	 Histogram of multiplicative noise before (left) and after (right) stabilization. %	
-}{fig-multnoise-hist-unstab}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/multnoise-hist-unstab/proposed.pdf}
+\caption{Histogram of multiplicative noise before (left) and after (right) stabilization.}
+\label{fig-multnoise-hist-unstab}
+\end{figure}
 
 Figure \ref{fig-multnoise-hist-unstab} shows the effect of this variance stabilization on the distributions of $w$ and $z$.
 
 Figure \ref{fig-multnoise-wav} compares the two approaches at moderate noise levels $\si$, where variance stabilization improves the displayed result.
 
-\myfigure{
-\tabtrois{
-\image{denoising}{.32}{multnoise-wav-noisy}&
-\image{denoising}{.32}{multnoise-wav-stab}&
-\image{denoising}{.32}{multnoise-wav-unstab}
-}
-}{%
-	Left: noisy image, center: denoising after variance stabilization, right: denoising without variance stabilization. %
-}{fig-multnoise-wav}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-denoising/multnoise-wav/proposed.pdf}
+\caption{Left: noisy image, center: denoising after variance stabilization, right: denoising without variance stabilization.}
+\label{fig-multnoise-wav}
+\end{figure}
 
 

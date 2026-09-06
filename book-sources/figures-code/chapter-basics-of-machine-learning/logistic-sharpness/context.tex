@@ -1,0 +1,134 @@
+% Context from chapters/machine-learning.tex; for mathematical reference, not compilation.
+he method also applies to features in a general metric space in place of $\RR^p$.
+ 
+Fast nearest-neighbor search can avoid explicitly sorting every distance.
+	
+\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{}}
+\includegraphics[width=.22\linewidth]{ml/pca-nn/knn-1}&
+\includegraphics[width=.22\linewidth]{ml/pca-nn/knn-5}&
+\includegraphics[width=.22\linewidth]{ml/pca-nn/knn-10}&
+\includegraphics[width=.22\linewidth]{ml/pca-nn/knn-40}\\
+$R=1$ & $R=5$ & $R=10$ & $R=40$
+\end{tabular}
+\caption{\label{fig-hist-classif}
+Classification boundaries produced by $R$-nearest neighbors.
+}
+\end{figure}
+
+Figure~\ref{fig-hist-classif} shows the predicted class regions $\enscond{x}{\hat f(x)=\ell}$, for $\ell=1,\ldots,k$, in a two-dimensional projection of the Iris dataset.
+ 
+Increasing $R$ leads to smoother class boundaries.
+
+                                                  
+\subsection{Binary Logistic Classification}
+\label{sec-two-class-logit}
+
+Logistic classification is a widely used baseline for binary and multiclass prediction. It outputs a probability for each class, providing a richer prediction than a class label alone. The accuracy of these probabilities must still be assessed on held-out data.
+ 
+The standard name for this model is logistic regression, even when the prediction task is classification.
+
+Support vector machines provide another common approach. Their hinge loss is nonsmooth, and their scores are not probabilities without an additional calibration step. The choice between these methods depends on the task and evaluation criterion.
+
+For the binary formulas below, use labels $y_i \in \Yy = \{-1,1\}$. In logistic classification, the prediction $f(\cdot,\be) \in [0,1]$ is a probability for the positive class rather than a class label. We retain the notation $f$ for this probability predictor.
+
+
+    
+\paragraph{Approximate risk minimization.}
+
+A linear score $\dotp{x}{\be}$ defines the classifier $\sign(\dotp{x}{\be})$, with either class assigned when the score is zero. The empirical 0--1 objective counts classification errors, leading to the minimization problem
+\eql{\label{eq-ideal-classif}
+	\umin{\be} \sum_{i=1}^n \ell_0(-y_i \dotp{x_i}{\be})
+} 
+where $\ell_0=1_{[0,+\infty)}$ counts zero margins as errors. Away from ties, misclassification corresponds to $\dotp{x_i}{\be}$ and $y_i$ having different signs, so that in this case $\ell_0(-y_i \dotp{x_i}{\be})=1$ (and 0 otherwise for correct classification).
+
+The loss $\ell_0$ is nonconvex, and solving~\eqref{eq-ideal-classif} globally is NP-hard in general. Convex upper bounds on $\ell_0$ provide tractable surrogate objectives.
+
+Two common surrogates are
+\eq{
+	\ell(u)=(1+u)_+ 
+	\qandq
+	\ell(u)=\log(1+\exp(u))/\log(2)
+}	
+These are, respectively, the nonsmooth hinge loss used in support vector machines and the smooth logistic loss. The $1/\log(2)$ is just a constant which makes $\ell_0 \leq \ell$.
+  
+AdaBoost uses the exponential loss $\ell(u)=e^u$.
+ 
+Least squares uses $\ell(u)=(1+u)^2$. Its growth for large negative margins makes it a poor pointwise approximation of $\ell_0$, although it can still give useful classifiers.
+  
+Unregularized hinge-loss minimization is equivalent to a linear program with nonnegative slack variables:
+\eq{
+	\umin{u \geq 0, \be} \enscond{\sum_i u_i}{y_i\dotp{x_i}{\be}\geq1-u_i\text{ for all }i }.
+}	
+
+
+    
+\paragraph{Logistic loss probabilistic interpretation.}
+
+Logistic regression applies a sigmoid to the linear score from Section~\ref{sec-linear-models}. The resulting probability predictor is nonlinear. The predicted probability of class $+1$ is
+\eql{\label{eq-two-class-logit-model}
+	f(x,\be) \eqdef \th(\dotp{x}{\be})
+	\qwhereq
+   	\th(s) \eqdef \frac{e^{s}}{1+e^s} = (1+e^{-s})^{-1},
+}
+which is often called the ``logit'' model.
+ 
+Despite its simplicity, a linear classifier can be effective when the feature dimension $p$ is large.
+ 
+With $s=\dotp{x}{\be}$, the predicted probability of class $-1$ is $1-f(x,\be)=\th(-s)$. The identity $\th(-s)=1-\th(s)$ makes the two probabilities sum to one. It does not require balanced class frequencies; an intercept can account for unequal prior frequencies.
+
+For a nonzero parameter, $\be/\norm{\be}$ determines the normal direction of the separating hyperplane, while $1/\norm{\be}$ controls the width of the probability transition. As $\norm{\be} \rightarrow +\infty$ along a fixed direction, the transition approaches a sharp decision boundary.
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/ml-logistic-one-dimension}\hfill
+\BookPanel{.485}{2}{tikz/ml-logistic-two-dimensions}
+\caption{Logistic classification in one and two dimensions, showing how $\norm{\be}$ controls the width of the probability transition.}
+\label{fig-logistic-sharpness}
+\end{figure}
+
+The predictor $f(x,\be)$ is also a single-layer perceptron with a logistic (sigmoid) activation; see Chapter~\ref{c-deep-learning}.
+
+For conditionally independent labels $y_i\in\{-1,+1\}$, write $\bar y_i=(y_i+1)/2\in\{0,1\}$, $s_i=\dotp{x_i}{\be}$, and $p_i=\th(s_i)$. The likelihood is
+\eq{\PP(\yp=y_i\mid\xp=x_i)=p_i^{\bar y_i}(1-p_i)^{1-\bar y_i}.}
+Thus the negative log-likelihood is
+\eq{\sum_i\{-\bar y_i\log p_i-(1-\bar y_i)\log(1-p_i)\}
+=\sum_i\log(1+\exp(-y_is_i)).}
+After division by the sample size, this gives the empirical-risk objective~\eqref{eq-erm-param} with logistic loss:
+\eql{\label{eq-logistic-optim}
+	\hat\be \in \uargmin{\be \in \RR^p} 
+		 E(\be)  = \frac{1}{n} \sum_{i=1}^n \loss(\dotp{x_i}{\be},y_i)  
+}
+where the logistic loss reads
+\eql{\label{eq-logistic-loss}
+	 \loss( s,y ) \eqdef \log( 1+\exp(-sy) ). 
+}
+Problem~\eqref{eq-logistic-optim} is a smooth convex minimization. If $X$ has full column rank, $E$ is strictly convex, so it has at most one minimizer. A finite minimizer need not exist for separable data. A positive quadratic penalty guarantees existence and uniqueness.
+
+\begin{figure}
+\centering
+\includegraphics[width=.4\linewidth]{ml/classif/losses-corrected}
+\caption{\label{fig-losses}
+Classification losses as functions of the negative margin $s=-y\dotp{x}{\be}$, with zero margin counted as an error. The unscaled logistic loss need not upper-bound the 0--1 loss; division by $\log 2$ gives the upper-bound normalization used above.
+}
+\end{figure}
+
+Figure~\ref{fig-losses} compares the 0--1, logistic, and hinge losses.
+
+   
+\paragraph{Gradient descent method.}
+
+Write the objective as
+\eq{
+	 E(\be) = \Loss(X \be,y) \qwhereq \Loss(s,y)= \frac{1}{n}  \sum_i \loss(s_i,y_i), 
+}
+Its gradient is
+\eq{
+	 \nabla E(\be) = X^* \nabla \Loss(X \be,y)
+      \qwhereq
+      \nabla\Loss(s,y)=-\frac{y}{n}\odot\th(-y\odot s),
+}
+where $\odot$ is the pointwise multiplication operator, i.e. \texttt{.*} in Matlab.
+ 
+Once $\be^{(\ell=0)} \in \RR^{p}$ is initialized (f

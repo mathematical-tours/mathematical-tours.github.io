@@ -1,0 +1,148 @@
+% Context from chapters/sec-regul.tex; for mathematical reference, not compilation.
+\section{Regularization}
+
+When the sample size $n$ is small relative to the model dimension $p$, regularization helps control the complexity of empirical risk minimization.
+
+
+                                                                        
+\subsection{Penalized Least Squares}
+
+For simplicity, consider regularized least-squares regression:
+\eql{\label{eq-regul-ls}
+	\umin{x \in \RR^p} f_\la(x) \eqdef \frac{1}{2}\norm{Ax-y}^2 + \la R(x) 
+}
+where $R(x)$ is the regularizer and $\la\geq 0$ the regularization parameter. 
+ 
+The regularizer expresses prior structure of the weight vector $x$, such as small magnitude or sparsity. The strength $\la$ can be selected by cross-validation.
+
+We assume that $R$ is finite, nonnegative, lower semicontinuous, and coercive, i.e. $R(x) \rightarrow +\infty$ as $\norm{x} \rightarrow +\infty$.
+ 
+The following proposition shows that as $\la\downarrow0$, regularization selects among the exact solutions when $Ax=y$ is feasible. This is particularly useful when $\ker(A)\neq\{0\}$ and there are infinitely many exact solutions.
+
+\begin{prop}
+	Assume $Ax=y$ is feasible and $\la_k>0$ tends to zero. If $x_{\la_k}$ minimizes $f_{\la_k}$, then this sequence is bounded, and every accumulation point $x^\star$ is a solution of the constrained optimization problem
+	\eql{\label{eq-regul-constr}
+		\umin{Ax=y} R(x).
+	}
+\end{prop}
+
+
+\begin{proof}
+	Choose an arbitrary feasible point $x_0$, so $Ax_0=y$. Optimality of $x_{\la_k}$ gives
+	\eql{\label{eq-ineq-proof-regul}
+			\frac{1}{2}\norm{Ax_{\la_k}-y}^2 + \la_k R(x_{\la_k}) \leq \la_k R(x_0).
+	}
+	Nonnegativity of the terms implies $R(x_{\la_k}) \leq  R(x_0)$. Coercivity of the regularizer makes the sequence $(x_{\la_k})_k$ bounded, since $R$ has bounded sublevel sets.
+	 
+	The residual also satisfies $\norm{Ax_{\la_k}-y}^2\leq2\la_k R(x_0)$, so every accumulation point obeys $Ax^\star = y$.
+	 
+	Along a subsequence converging to $x^\star$, lower semicontinuity gives $R(x^\star)\leq R(x_0)$. Since $x_0$ was arbitrary, $x^\star$ solves~\eqref{eq-regul-constr}.
+\end{proof}
+
+                                                                        
+\subsection{Ridge Regression}
+
+Ridge regression uses the quadratic penalty $R(x)=\frac12\norm{x}_{\RR^p}^2$. For $\la>0$, the objective in~\eqref{eq-regul-ls} has a unique minimizer:
+\eq{
+	x_\la \eqdef \uargmin{x \in \RR^p} f_\la(x) = \frac{1}{2} \norm{Ax-y}^2_{\RR^n} +\frac\la2\norm{x}_{\RR^p}^2.
+}
+One has 
+\eq{
+	\nabla f_\la(x)=A^\top(Ax-y)+\la x,\qquad\nabla f_\la(x_\la)=0
+}
+Thus $x_\la$ depends linearly on $y$ and can be computed by solving a linear system. Two equivalent expressions are available.
+
+\begin{prop}
+	One has
+	\begin{align}
+		x_\la &= (A^\top A + \la \Id_p)^{-1} A^\top y,  \label{eq-regul-ls-1} \\
+			 &= A^\top (A A^\top + \la \Id_n)^{-1} y. \label{eq-regul-ls-2} 
+	\end{align}
+\end{prop}
+
+\begin{proof}
+	Denoting $B \eqdef (A^\top A + \la \Id_p)^{-1} A^\top$ and $C \eqdef A^\top (A A^\top + \la \Id_n)^{-1}$, 
+	one has $(A^\top A + \la \Id_p) B = A^\top$ while 
+	\eq{
+		(A^\top A + \la \Id_p) C = (A^\top A + \la \Id_p) A^\top (A A^\top + \la \Id_n)^{-1}
+		= A^\top (A A^\top  + \la \Id_n) (A A^\top + \la \Id_n)^{-1}
+		= A^\top.
+	}
+	Since $A^\top A + \la \Id_p$ is invertible, this gives the desired result.
+\end{proof}
+
+The systems can be solved directly, for example by Cholesky factorization, or iteratively, for example by conjugate gradients. The latter exploits the quadratic structure more effectively than ordinary gradient descent.
+
+For $n>p$, use the smaller system~\eqref{eq-regul-ls-1}; for $n<p$, use~\eqref{eq-regul-ls-2}.
+
+    
+\paragraph{Pseudo-inverse.}
+
+As $\la\downarrow0$, $x_\la$ converges to the minimum-norm least-squares solution $A^+y$. If $Ax=y$ is feasible, this is, by~\eqref{eq-regul-constr}
+\eq{
+	\uargmin{Ax=y}\norm{x} .
+}
+If $A$ has full column rank, so $\ker(A)=\{0\}$ and $n\geq p$, $A^\top A \in \RR^{p \times p}$ is an invertible matrix, and $(A^\top A + \la \Id_p)^{-1} \rightarrow (A^\top A)^{-1}$, so that
+\eq{
+	x_0 = A^+ y \qwhereq A^+ \eqdef (A^\top A)^{-1}A^\top .
+}
+If $A$ has full row rank, so $\ker(A^\top)=\{0\}$ and $n\leq p$, the alternative formula is
+\eq{
+	x_0 = A^+ y \qwhereq A^+ \eqdef A^\top (AA^\top)^{-1}.
+}	 
+When $n=p$ and $A$ is invertible, both formulas reduce to $A^+=A^{-1}$. For any rank, the singular value decomposition (SVD) gives the Moore--Penrose pseudoinverse by inverting the nonzero singular values and leaving the zero ones unchanged.
+
+\myfigure{
+\image{variational}{1}{sparsity-lq-balls}
+}{ 
+	$\ell^q$ balls $\enscond{x}{\sum_k |x_k|^q \leq 1}$ for varying $q$.
+}{fig-ml-sparsity-lq}
+
+
+                                                                        
+\subsection{Lasso}
+
+The Lasso uses an $\ell^1$ penalty:
+\eq{
+	R(x) = \norm{x}_1 \eqdef \sum_{k=1}^p |x_k|.
+}
+The penalty promotes sparsity in the solutions $x_\la$ of
+\eq{
+	x_\la \in \uargmin{x \in \RR^p} f_\la(x) = \frac{1}{2} \norm{Ax-y}^2_{\RR^n} + \la \norm{x}_1
+}
+The solutions $x_\la$ may be nonunique, and typically have many zero coefficients.
+ 
+Figure~\ref{fig-ml-sparsity-lq} illustrates the geometry of $\ell^q$ balls. They concentrate around the coordinate axes as $q \rightarrow 0$, favoring sparse solutions, but become nonconvex for $q<1$.
+
+
+Sparsity can encode a prior on the unknown, as in imaging, or select a small subset of predictive features. Feature selection can make a model easier to interpret and cheaper to evaluate.
+ 
+Whether Lasso or ridge regression performs better depends on sparsity, correlations, noise, and the prediction task.
+
+The objective $f_\la$ is convex, but the $\ell^1$ penalty is nonsmooth, so ordinary gradient descent does not apply at all points.
+ 
+Section~\ref{sec-ml-ista} develops an appropriate modification of gradient descent.
+ 
+A closed-form solution $x_\la$ is generally unavailable, but the case of an orthogonal design matrix $A$ reduces to coordinatewise thresholding.
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/sparse-regularization-soft-objective-1}\hfill
+\BookPanel{.485}{2}{tikz/sparse-regularization-soft-objective-2}
+\caption{Effect of $\la$ on the penalized scalar objective $F(x)\eqdef\frac12(x-y)^2+\la|x|$.}
+\label{fig-ml-varspars}
+\end{figure}
+\begin{figure}[tbp]
+\BookContinuedFigure
+\centering
+\BookPanel{.485}{3}{tikz/sparse-regularization-soft-objective-3}\hfill
+\BookPanel{.485}{4}{tikz/sparse-regularization-soft-objective-4}
+\caption{Effect of $\la$ on the penalized scalar objective $F(x)\eqdef\frac12(x-y)^2+\la|x|$.}
+\label{fig-ml-varspars-continued}
+\end{figure}
+
+
+\begin{prop}\label{prop-soft-tresdh}
+	When $n=p$ and $A=\Id_n

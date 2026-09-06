@@ -1,0 +1,68 @@
+% Context from chapters/sec-optim-smooth.tex; for mathematical reference, not compilation.
+\section{Gradient Descent Algorithm}
+\label{sec-grad-desc-basic}
+
+
+                                                                                  
+\subsection{Steepest Descent Direction}
+
+The Taylor expansion~\eqref{eq-grad-dfn} approximates $f$ near $x$ by an affine function:
+\eq{
+	f(z) = T_x(z) + o(\norm{x-z})
+	\qwhereq
+	T_x(z) \eqdef f(x) + \dotp{\nabla f(x)}{z-x}, 
+}
+Figure~\ref{fig-expansion-taylor} illustrates the approximation. First-order methods use $f$ through its local model $T_x$.
+
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/smooth-taylor-line}\hfill
+\BookPanel{.485}{2}{tikz/smooth-taylor-plane}
+\caption{Panels 1 and 2: first-order Taylor approximations in one and two dimensions.
+	Panels 3 and 4: the gradient is orthogonal to the level set; the diagram illustrates the proof.}
+\label{fig-expansion-taylor}
+\end{figure}
+\begin{figure}[tbp]
+\BookContinuedFigure
+\centering
+\BookPanel{.485}{3}{tikz/smooth-level-set-tangent}\hfill
+\BookPanel{.485}{4}{tikz/smooth-nested-level-sets}
+\caption{Panels 1 and 2: first-order Taylor approximations in one and two dimensions.
+	Panels 3 and 4: the gradient is orthogonal to the level set; the diagram illustrates the proof.}
+\label{fig-expansion-taylor-continued}
+\end{figure}
+
+A nonzero gradient $\nabla f(x)$ points uphill locally, so $-\nabla f(x)$ is a descent direction. At a fixed point $x$, examine $f$ along the ray
+\eq{ 
+	\tau \in \RR^+ = [0,+\infty[ \longmapsto f(x-\tau \nabla f(x)) \in \RR.
+}
+If $f$ is differentiable at $x$, one has 
+\eq{
+	f(x-\tau \nabla f(x)) = f(x) - \tau \dotp{\nabla f(x)}{\nabla f(x)} + o(\tau)
+		= f(x) - \tau \norm{\nabla f(x)}^2 + o(\tau).
+}
+If $\nabla f(x)=0$, then $x$ is stationary and is a global minimizer when $f$ is convex. Otherwise, for sufficiently small $\tau$,
+\eq{
+	f(x-\tau \nabla f(x)) < f(x)
+} 
+so the step from $x$ to $x-\tau \nabla f(x)$ decreases the objective.
+
+\begin{rem}[Orthogonality to level sets]
+	A level set of $f$ contains points with the same value of $f$. For $s \in \RR$, define
+	\eq{
+		\Ll_s \eqdef \enscond{x}{f(x)=s}.		
+	}
+	Assume $f$ is continuously differentiable near $x$ and $\nabla f(x)\neq0$. Then $x$ is a regular point of the level set $\Ll_{f(x)}$. The gradient is normal to its tangent space and points toward increasing values of $f$; see Figure~\ref{fig-expansion-taylor-continued}, panels 3 and 4.
+	 
+	Take a smooth curve through $x$ in $\Ll_s$, parameterized by $t \in \RR \mapsto c(t)$ with $c(0)=x$.
+	  
+	The function $h(t) \eqdef f(c(t))$ has constant value $h(t)=s$ because $c(t)$ lies in the level set. Thus $h'(t)=0$. Expanding at $t=0$ also gives
+	\eq{
+		h(t) = f(c(0) + t c'(0) + o(t)) = h(0)+t\dotp{c'(0)}{\nabla f(c(0))} + o(t)
+	}	
+	i.e. $h'(0) = \dotp{c'(0)}{\nabla f(x)}=0$, so that $\nabla f(x)$ is orthogonal to the tangent $c'(0)$ of the curve $c$, which lies in the tangent plane of $\Ll_s$  (as shown in Figure~\ref{fig-expansion-taylor-continued}, panel 3).  Since the curve $c$ is arbitrary, the whole tangent plane is thus orthogonal to $\nabla f(x)$.
+\end{rem}
+
+\begin{rem}[Local optimal descent direction]
+	Assume $f$ is continuously differentiable near $x$ and $\nabla f(x)\neq0$. Among displacements of length $r$, every minimizing direction approaches the normali

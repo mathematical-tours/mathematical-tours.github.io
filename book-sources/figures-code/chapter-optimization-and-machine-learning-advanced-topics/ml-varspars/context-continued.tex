@@ -1,0 +1,163 @@
+% Context from chapters/sec-regul.tex; for mathematical reference, not compilation.
+$ has bounded sublevel sets.
+	 
+	The residual also satisfies $\norm{Ax_{\la_k}-y}^2\leq2\la_k R(x_0)$, so every accumulation point obeys $Ax^\star = y$.
+	 
+	Along a subsequence converging to $x^\star$, lower semicontinuity gives $R(x^\star)\leq R(x_0)$. Since $x_0$ was arbitrary, $x^\star$ solves~\eqref{eq-regul-constr}.
+\end{proof}
+
+                                                                        
+\subsection{Ridge Regression}
+
+Ridge regression uses the quadratic penalty $R(x)=\frac12\norm{x}_{\RR^p}^2$. For $\la>0$, the objective in~\eqref{eq-regul-ls} has a unique minimizer:
+\eq{
+	x_\la \eqdef \uargmin{x \in \RR^p} f_\la(x) = \frac{1}{2} \norm{Ax-y}^2_{\RR^n} +\frac\la2\norm{x}_{\RR^p}^2.
+}
+One has 
+\eq{
+	\nabla f_\la(x)=A^\top(Ax-y)+\la x,\qquad\nabla f_\la(x_\la)=0
+}
+Thus $x_\la$ depends linearly on $y$ and can be computed by solving a linear system. Two equivalent expressions are available.
+
+\begin{prop}
+	One has
+	\begin{align}
+		x_\la &= (A^\top A + \la \Id_p)^{-1} A^\top y,  \label{eq-regul-ls-1} \\
+			 &= A^\top (A A^\top + \la \Id_n)^{-1} y. \label{eq-regul-ls-2} 
+	\end{align}
+\end{prop}
+
+\begin{proof}
+	Denoting $B \eqdef (A^\top A + \la \Id_p)^{-1} A^\top$ and $C \eqdef A^\top (A A^\top + \la \Id_n)^{-1}$, 
+	one has $(A^\top A + \la \Id_p) B = A^\top$ while 
+	\eq{
+		(A^\top A + \la \Id_p) C = (A^\top A + \la \Id_p) A^\top (A A^\top + \la \Id_n)^{-1}
+		= A^\top (A A^\top  + \la \Id_n) (A A^\top + \la \Id_n)^{-1}
+		= A^\top.
+	}
+	Since $A^\top A + \la \Id_p$ is invertible, this gives the desired result.
+\end{proof}
+
+The systems can be solved directly, for example by Cholesky factorization, or iteratively, for example by conjugate gradients. The latter exploits the quadratic structure more effectively than ordinary gradient descent.
+
+For $n>p$, use the smaller system~\eqref{eq-regul-ls-1}; for $n<p$, use~\eqref{eq-regul-ls-2}.
+
+    
+\paragraph{Pseudo-inverse.}
+
+As $\la\downarrow0$, $x_\la$ converges to the minimum-norm least-squares solution $A^+y$. If $Ax=y$ is feasible, this is, by~\eqref{eq-regul-constr}
+\eq{
+	\uargmin{Ax=y}\norm{x} .
+}
+If $A$ has full column rank, so $\ker(A)=\{0\}$ and $n\geq p$, $A^\top A \in \RR^{p \times p}$ is an invertible matrix, and $(A^\top A + \la \Id_p)^{-1} \rightarrow (A^\top A)^{-1}$, so that
+\eq{
+	x_0 = A^+ y \qwhereq A^+ \eqdef (A^\top A)^{-1}A^\top .
+}
+If $A$ has full row rank, so $\ker(A^\top)=\{0\}$ and $n\leq p$, the alternative formula is
+\eq{
+	x_0 = A^+ y \qwhereq A^+ \eqdef A^\top (AA^\top)^{-1}.
+}	 
+When $n=p$ and $A$ is invertible, both formulas reduce to $A^+=A^{-1}$. For any rank, the singular value decomposition (SVD) gives the Moore--Penrose pseudoinverse by inverting the nonzero singular values and leaving the zero ones unchanged.
+
+\myfigure{
+\image{variational}{1}{sparsity-lq-balls}
+}{ 
+	$\ell^q$ balls $\enscond{x}{\sum_k |x_k|^q \leq 1}$ for varying $q$.
+}{fig-ml-sparsity-lq}
+
+
+                                                                        
+\subsection{Lasso}
+
+The Lasso uses an $\ell^1$ penalty:
+\eq{
+	R(x) = \norm{x}_1 \eqdef \sum_{k=1}^p |x_k|.
+}
+The penalty promotes sparsity in the solutions $x_\la$ of
+\eq{
+	x_\la \in \uargmin{x \in \RR^p} f_\la(x) = \frac{1}{2} \norm{Ax-y}^2_{\RR^n} + \la \norm{x}_1
+}
+The solutions $x_\la$ may be nonunique, and typically have many zero coefficients.
+ 
+Figure~\ref{fig-ml-sparsity-lq} illustrates the geometry of $\ell^q$ balls. They concentrate around the coordinate axes as $q \rightarrow 0$, favoring sparse solutions, but become nonconvex for $q<1$.
+
+
+Sparsity can encode a prior on the unknown, as in imaging, or select a small subset of predictive features. Feature selection can make a model easier to interpret and cheaper to evaluate.
+ 
+Whether Lasso or ridge regression performs better depends on sparsity, correlations, noise, and the prediction task.
+
+The objective $f_\la$ is convex, but the $\ell^1$ penalty is nonsmooth, so ordinary gradient descent does not apply at all points.
+ 
+Section~\ref{sec-ml-ista} develops an appropriate modification of gradient descent.
+ 
+A closed-form solution $x_\la$ is generally unavailable, but the case of an orthogonal design matrix $A$ reduces to coordinatewise thresholding.
+
+
+
+\begin{figure}[tbp]
+\centering
+\BookPanel{.485}{1}{tikz/sparse-regularization-soft-objective-1}\hfill
+\BookPanel{.485}{2}{tikz/sparse-regularization-soft-objective-2}
+\caption{Effect of $\la$ on the penalized scalar objective $F(x)\eqdef\frac12(x-y)^2+\la|x|$.}
+\label{fig-ml-varspars}
+\end{figure}
+\begin{figure}[tbp]
+\BookContinuedFigure
+\centering
+\BookPanel{.485}{3}{tikz/sparse-regularization-soft-objective-3}\hfill
+\BookPanel{.485}{4}{tikz/sparse-regularization-soft-objective-4}
+\caption{Effect of $\la$ on the penalized scalar objective $F(x)\eqdef\frac12(x-y)^2+\la|x|$.}
+\label{fig-ml-varspars-continued}
+\end{figure}
+
+
+\begin{prop}\label{prop-soft-tresdh}
+	When $n=p$ and $A=\Id_n$, one has
+	\eq{
+		\uargmin{x \in \RR^p} \frac{1}{2}\norm{x-y}^2 + \la\norm{x}_1=S_\la(y)
+		\qwhereq
+		S_\la(x) = ( \sign(x_k) \max(|x_k|-\la,0)  )_k
+	}
+\end{prop}
+\begin{proof}
+	The separable form $f_\la(x)=\sum_k[\frac12(x_k-y_k)^2+\la|x_k|]$ reduces the problem to minimizing the scalar
+	function $x \in \RR \mapsto \frac{1}{2}(x-y)^2 + \la |x|$. 
+	 
+	Figure~\ref{fig-ml-varspars} illustrates this minimization graphically.
+	  
+	First suppose $y\geq0$. On $x<0$, $F'(x)=x-y-\la<0$, so no minimizer is negative. On $x>0$, $F'(x)=x-y+\la$ vanishes at $x=y-\la$ when $y>\la$. Otherwise, the one-sided derivatives at zero have opposite weak signs, making zero the minimizer.
+	 
+	The negative case follows by the symmetry $x \mapsto -x$.
+\end{proof}
+
+The nonlinear map $S_\la$ is soft thresholding.
+
+                                                                        
+\subsection{Iterative Soft Thresholding}
+\label{sec-ml-ista}
+
+
+We derive an iterative algorithm by minimizing a quadratic surrogate.
+ 
+We aim at minimizing
+\eq{
+	f(x) \eqdef \frac{1}{2} \norm{y-Ax}^2 + \la \norm{x}_1
+}
+For a fixed reference point $x'$, introduce the surrogate with parameter $\tau>0$:
+\eq{
+	f_\tau(x,x') \eqdef f(x) - \frac{1}{2}\norm{Ax-Ax'}^2 + \frac{1}{2\tau}\norm{x-x'}^2.
+}
+The surrogate touches the objective, $f_\tau(x,x)=f(x)$. Its additional quadratic term is
+\eq{
+	K(x,x') \eqdef - \frac{1}{2}\norm{Ax-Ax'}^2 + \frac{1}{2\tau}\norm{x-x'}^2=
+	\frac{1}{2}\dotp{ \pa{\frac{1}{\tau}\Id_p-A^\top A} (x-x') }{x-x'}.
+}
+The term $K(x,x')$ is nonnegative when $\la_{\max}(A^\top A) \leq 1/\tau$, equivalently $\tau \leq 1/\norm{A}_{\text{op}}^2$, where $\norm{A}_{\text{op}} = \si_{\max}(A)$ is the operator norm.
+ 
+Thus $f_\tau(x,x')$ is a valid surrogate:
+\eq{
+	f(x) \leq f_\tau(x,x'), \quad
+	f_\tau(x,x)=f(x), \qandq
+	f(\cdot)-f_\tau(\cdot,x') \text{ is smooth.} 
+}
+The surrogate is strongly convex in its first argument, so its minimizer is un

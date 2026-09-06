@@ -1,0 +1,124 @@
+% Context from chapters/variational-priors.tex; for mathematical reference, not compilation.
+\section{PDE and Energy Minimization}
+
+Minimizing a smooth prior by gradient descent produces an image-smoothing flow.
+
+                                                                      
+\subsection{General Flows}
+
+The gradient of a differentiable prior $J : \RR^N \rightarrow \RR$ is the vector $\grad J(f)$ that describes its local first-order variation:
+\eq{
+	J(f+\epsilon) = J(f) + \dotp{\epsilon}{\grad J(f)} + o(\norm{\epsilon}).
+}
+
+Gradient descent seeks to decrease a smooth discrete energy by iterating
+\eql{\label{eq-gradmin-flow}
+	f^{(k+1)} = f^{(k)}  - \tau \grad J(f^{(k)}),
+}
+where the step size $\tau$ is chosen to ensure descent. The quadratic and smoothed TV energies below admit explicit sufficient bounds on $\tau$.
+
+To pass to continuous time, associate iteration $k$ with time $t=k\tau$ and let $\tau$ tend to zero. The limiting flow
+\eq{
+	t > 0 \longmapsto f_t \in \RR^N
+}
+satisfies the following differential equation, an ODE for a finite-dimensional image and a PDE when space is continuous:
+\eql{\label{eq-pde-flow}
+	\pd{f_t}{t} = - \grad J(f_t)
+	\qandq
+	f_0 = f.
+}
+Gradient descent is an explicit time discretization of this differential equation at times $t_k = k  \tau$.
+
+\myfigure{
+\tabquatre{
+\image{variational}{.23}{flow-heat-1}&
+\image{variational}{.23}{flow-heat-4}&
+\image{variational}{.23}{flow-heat-2}&
+\image{variational}{.23}{flow-heat-3}\\
+\image{variational}{.23}{flow-tv-4}&
+\image{variational}{.23}{flow-tv-3}&
+\image{variational}{.23}{flow-tv-2}&
+\image{variational}{.23}{flow-tv-1}
+}
+}{ 
+    Heat flow (top) and TV flow (bottom): images $f_t$ at increasing times $t$.
+}{fig-flow}
+
+                                                                      
+\subsection{Heat Flow}
+
+Heat flow results from applying \eqref{eq-pde-flow} to the Sobolev energy $\Jsob(f)$, defined in \eqref{eq-dfn-sob-energy} for functions and in \eqref{eq-discr-sobolev} for discrete images.
+
+Expanding the quadratic energy gives
+\eq{
+	J(f+\epsilon) = \frac{1}{2}\norm{\nabla f+\nabla \epsilon}^2 = J(f) - \dotp{\Delta f}{\epsilon} + \frac{1}{2}\norm{\nabla\epsilon}^2,
+}
+so that 
+\eq{
+	\grad \Jsob(f) = -\Delta f.
+}
+Figure \ref{fig-discrete-operators-lapl}, left, shows an image Laplacian. Its magnitude is typically large near edges, with either sign.
+
+The heat flow is thus 
+\eql{\label{eq-heat-flow-cont}
+	\pd{f_t}{t}(x) = - (\grad J(f_t))(x) = \De f_t(x)
+	\qandq
+	f_0 = f.
+}
+
+\myfigure{
+\tabdeux{
+\image{variational}{.3}{discrete-operators-lapl}&
+\image{variational}{.3}{discrete-operators-lapltv}\\
+$\diverg(\nabla f)$ & $\diverg(\nabla f / \norm{\nabla f})$ 
+}
+}{ 
+	Discrete Laplacian (left) and negative discrete TV gradient (right).
+}{fig-discrete-operators-lapl}
+
+  
+\paragraph{Continuous in space.}
+
+For continuous images on the unbounded domain $\RR^2$, the PDE \eqref{eq-heat-flow-cont} has an explicit solution: convolution with a Gaussian kernel whose variance grows with time
+\eql{\label{eq-heat-gaussian}
+	f_t = f \star h_t \qwhereq 
+	h_t(x) = \frac{1}{4 \pi t} e^{-\frac{\norm{x}^2}{4t}}.
+}	
+Convolution with this widening kernel progressively smooths the image.
+
+  
+\paragraph{Discrete in space.}
+
+The gradient flow of the discrete Sobolev energy \eqref{eq-discr-sobolev} is
+\eq{
+	\pd{f_{n,t}}{t} = - (\grad J(f_t))_n = (\De f_t)_n.
+}
+Discretizing time as in \eqref{eq-gradmin-flow} gives the fully discrete iteration
+\eq{	
+	f^{(k+1)}_n = f^{(k)}_n + \tau \Big( \sum_{p \in V_4(n)} f_p^{(k)} - 4 f_n^{(k)} \Big) = (f^{(k)} \star h)_n
+}
+where $V_4(n)$ denotes the four neighbors of pixel $n$. Each iteration convolves the current image with the same filter:
+\eq{
+	f^{(k)} = f \star h \star \ldots \star h  = f \star^k h.
+}
+The filter has coefficients $h_0=1-4\tau$ and $h_{\pm e_1}=h_{\pm e_2}=\tau$; all other entries vanish.
+
+This iteration is stable and converges if $0<\tau<1/4$.
+
+
+
+                                                                      
+\subsection{Total Variation Flows}
+
+  
+\paragraph{Total variation gradient.}
+
+The total variation energy $\Jtv$ is nonsmooth, both in its continuous form \eqref{eq-dfn-tv-energy} and in its discrete form \eqref{eq-discr-tv}. In the discrete case, $\Jtv$ is nondifferentiable at any image $f$ with a pixel $n$ where $\nabla f_n = 0$.
+
+If $\nabla f_n\neq0$ at every pixel, the gradient is
+\eq{
+	(\grad J(f))_n = -\diverg\pa{ \frac{ \nabla f}{ \norm{\nabla f} } }_n
+}
+The displayed quotient is undefined where the spatial gradient vanishes. Figure \ref{fig-discrete-operators-lapl}, right, shows the negative TV gradient; normalization by small gradient magnitudes makes it sensitive to perturbations in smooth regions.
+
+Nondifferentiability prevents the use of classical gradient descent at such im

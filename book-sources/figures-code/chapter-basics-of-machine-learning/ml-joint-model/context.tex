@@ -1,0 +1,50 @@
+% Context from chapters/machine-learning.tex; for mathematical reference, not compilation.
+\section{Supervised Learning: Regression}
+\label{sec-regression}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-joint-model}
+\caption{Probabilistic modeling.}
+\label{fig-review-ml-joint-model}
+\end{figure}
+In supervised learning, the training data consist of pairs $(x_i,y_i)\in\Xx\times\Yy$, with $\Xx=\RR^p$ here for simplicity. We seek a function $f:\Xx\rightarrow\Yy$ that captures the relationship $y_i\approx f(x_i)$ and predicts an output $f(x)$ for a new input $x$.
+
+When $\Yy$ is finite and discrete, the task is supervised classification, studied in Section~\ref{sec-classif}. Binary classification uses $\Yy=\{0,1\}$; for example, in a medical application, $y_i=0$ may indicate a healthy subject and $y_i=1$ a subject with the condition of interest.
+ 
+When $\Yy$ is continuous, typically $\Yy=\RR$, the task is regression.
+
+                                                  
+\subsection{Linear Regression}
+\label{sec-linear-models}
+
+For regression, we specialize empirical risk minimization to $\Yy=\RR$ with the quadratic loss $\loss(y,y')=\frac{1}{2}|y-y'|^2$.
+
+Nonlinear regression can be formulated using a dictionary of features, such as polynomials. This lifts the data into a higher-dimensional space and leads to the kernel methods of Section~\ref{sec-kernel-methods}.
+
+   
+\paragraph{Least squares and conditional expectation.}
+
+If $f$ ranges over measurable functions and $\EE(\yp^2)<\infty$, a population minimizer $\bar f$ in~\eqref{eq-consistency-estim} is the conditional mean of the response given the input. It is defined up to equality almost everywhere under the input distribution.
+ 
+Suppose for simplicity that $\pi$ has density $\frac{\d \pi}{\d x \d y}$ with respect to a product measure $\d x \d y$, such as Lebesgue measure. Then
+\eq{
+	\foralls x \in \Xx, \quad
+	\bar f(x) = \EE( \yp | \xp=x) = 
+	\frac{ 
+		\int_{\Yy} y \frac{\d \pi}{\d x \d y}(x,y) \d y 
+	}{ 
+		\int_{\Yy} \frac{\d \pi}{\d x \d y}(x,y) \d y
+	 }
+}
+where $(\xp,\yp)$ has law $\pi$ and the formula applies where the denominator is positive.
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/ml-conditional-expectation}
+\caption{Conditional expectation.}
+\label{fig-bound-regul}
+\end{figure}
+
+If $\Xx$ and

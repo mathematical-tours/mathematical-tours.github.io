@@ -1,0 +1,193 @@
+% Context from chapters/inverse-problems.tex; for mathematical reference, not compilation.
+                                                 
+\subsection{Inpainting}
+\label{sec-inpainting-variational}
+
+For the inpainting problem, the operator defined in \eqref{eq-inp-operator} is diagonal in space
+\eq{
+	 \Phi = \diag_m( \de_{\Om^c}[m] ),
+}
+and is an orthogonal projector $\Phi^* = \Phi$.
+
+For noiseless data, we enforce the affine constraint $\enscond{f \in \RR^N}{y=\Phi f}$ using the orthogonal projector
+\eq{
+	\foralls x, \quad P_y(f)(x) = \choice{
+		f(x) \qifq x \in \Om,\\
+		\; y(x) \quad \qifq x \notin \Om.
+	}
+}
+
+
+Projected gradient descent solves~\eqref{eq-ip-regul-noiseless} for a smooth prior.
+For the Sobolev energy, the algorithm iterates
+\eq{
+	\iit{f}= P_y( \it{f} + \tau \Delta \it{f} ).
+}
+The iteration converges if $0<\tau<1/4$, since $\norm{\Delta}\leq8$. Figure \ref{fig-inp-sob-iter} shows how it progressively fills the missing region.
+
+                                                                                                         
+
+                                        
+   
+                                                                                                                                                                                                           
+                          
+
+\myfigure{
+\tabquatre{
+\image{invpbm}{.24}{sob-inp-iter-1}&
+\image{invpbm}{.24}{sob-inp-iter-2}&
+\image{invpbm}{.24}{sob-inp-iter-3}&
+\image{invpbm}{.24}{sob-inp-iter-4} \\
+$k=1$ & $k=10$ & $k=20$ & $k=100$ 
+}
+}{ 
+	Sobolev projected gradient descent algorithm.   
+}{fig-inp-sob-iter}
+
+           
+          
+                                        
+                                            
+                                        
+                                                
+  
+    
+                                                               
+                     
+
+Figure \ref{fig-inpainting-parrot} illustrates the use of Sobolev inpainting to remove a cage from an image.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{inpainting-parrot-image}&
+\image{invpbm}{.3}{inpainting-parrot-mask}&
+\image{invpbm}{.3}{inpainting-parrot-sobolev}\\
+Image $f_0$ & Observation $y=\Phi f_0$ & Sobolev $f^\star$ \\
+}
+}{ 
+    Removing a parrot cage by inpainting.  
+}{fig-inpainting-parrot}
+
+For the smoothed TV prior, the gradient descent reads
+\eq{
+	\iit{f}= P_y\pa{
+			\it{f} + \tau \diverg\pa{ \frac{ \nabla \it{f}}{ \sqrt{\epsilon^2+\norm{\nabla \it{f}}^2} } }
+		}
+}
+which converges if $0<\tau<\epsilon/4$.
+
+Figure \ref{fig-inpainting-cameraman} compares Sobolev inpainting with smoothed TV inpainting for small $\epsilon$. In this example, TV gives a modest visual improvement without increasing the SNR.
+
+                                                                                                                                                                
+
+\myfigure{
+\tabdeux{
+\image{invpbm}{.3}{inpainting-cameraman-image}&
+\image{invpbm}{.3}{inpainting-cameraman-observations}\\
+Image $f_0$ & Observation $y=\Phi f_0$ \\
+\image{invpbm}{.3}{inpainting-cameraman-sobolev}&
+\image{invpbm}{.3}{inpainting-cameraman-tv} \\
+Sobolev $f^\star$ & TV $f^\star$
+}
+}{ 
+	Inpainting with Sobolev and TV regularization.   
+}{fig-inpainting-cameraman}
+
+
+
+                                                                
+\subsection{Tomography Inversion}
+
+In an idealized two-dimensional tomography model, each projection integrates the unknown image along a line $\De_{t,\th}$ defined by
+\eq{
+	x \cdot \tau_\theta = x_1 \cos\th + x_2\sin\th = t
+}
+Here $\tau_\theta=(\cos\theta,\sin\theta)$ is the unit normal to the line.
+
+The resulting Radon transform is
+\eq{
+	\foralls \th \in [0,\pi), \foralls t \in \RR, \quad
+	p_{\th}(t) = \int_{\De_{t,\th}} f(x) \,d s
+	 = \iint f(x)\, \de( x \cdot \tau_\theta - t )\, d x 
+}
+see Figure~\ref{fig-tomo-principle}.
+
+\myfigure{
+\image{invpbm}{.4}{tomo-principle}
+}{ 
+	Principle of tomography acquisition.   
+}{fig-tomo-principle}
+
+With $\hat f(\omega)=\int f(x)e^{-\imath x\cdot\omega}\,\mathrm{d}x$, the Fourier slice theorem identifies the one-dimensional Fourier transform of each projection with a radial slice of the two-dimensional Fourier transform
+\eql{\label{eq-fourier-slice}
+	\foralls \th \in [0,\pi)~,~ 
+\foralls \xi \in \RR\quad
+		\hat p_\th(\xi) = \hat f( \xi \cos \th, \xi \sin \th ).
+}
+Changing to polar coordinates in Fourier inversion gives the filtered-backprojection formula
+\eq{
+	f(x) = 
+\frac{1}{2\pi} \int_{0}^\pi (p_\th \star h)(x \cdot \tau_\theta)\, d \th
+}
+with $\hat h(\xi) = |\xi|$.
+
+
+\myfigure{
+\tabtrois{
+                                
+\image{invpbm}{.3}{tomo-image}&
+\image{invpbm}{.35}{tomo-radon-subsample}&
+\image{invpbm}{.3}{tomo-radon-fourier}\\
+Image $f$ & Radon sub-sampling & Fourier domain
+}
+}{ 
+	Partial Fourier measurements.  
+}{fig-tomo-radon-subsample}
+
+
+We model acquisition at finitely many equally spaced orientations $\{\th_k=\pi k/K\}_{0\leq k<K}$ by the partial Radon transform
+\eq{
+	R f = ( p_{\th_k} )_{0 \leq k < K}.
+}
+By~\eqref{eq-fourier-slice}, knowing $R f$ is equivalent to knowing the Fourier transform of $f$ along the corresponding radial lines:
+\eq{
+	\{ \hat f(\xi \cos(\th_k), \xi \sin(\th_k)) \}_k.
+}
+For a simplified discrete model, we therefore treat acquisition as direct sampling of the Fourier transform:
+\eq{
+	\Phi f = ( \hat f[\om] )_{\om \in \Om} \in \CC^P
+}
+where $\Om$ consists of discrete radial sampling lines in the Fourier plane; see Figure \ref{fig-tomo-radon-subsample}, right.
+
+In this idealized discrete model, recovery is an inpainting problem in the Fourier domain. We use the unitary discrete Fourier transform and consider measurements
+\eq{
+	\foralls \om \in \Om, \quad y[\om] = \hat f[\om] + w[\om]
+}
+where $w[\om]$ denotes measurement noise, modeled here as Gaussian white noise.
+
+\myfigure{
+\tabtrois{
+\image{invpbm}{.3}{tomo-image}&
+\image{invpbm}{.3}{tomo-pinv-13}&
+\image{invpbm}{.3}{tomo-pinv-32}\\
+Image $f_0$ & 13 projections & 32 projections.
+}
+}{ 
+	Pseudoinverse reconstruction from partial Radon projections.  
+}{fig-tomo-pinv}
+
+For these partial Fourier measurements, the pseudoinverse $f^+ = \Phi^+ y$ from \eqref{eq-pseudo-inverse} is given by
+\eq{
+	{\hat f}^+[\om] = \choice{
+		y[\om] \qifq \om \in \Om,\\
+		\; 0 \qifq \om \notin \Om.
+	}
+}
+Figure \ref{fig-tomo-pinv} shows examples of pseudoinverse reconstruction as the size of $\Om$ increases. This reconstruction exhibits pronounced artifacts because missing Fourier frequencies are set to zero.
+
+The total variation regularization \eqref{eq-ip-regul} reads
+\eq{
+	f^\star \in \uargmin{f} \frac{1}{2}\sum_{\om \in \Om} |y[\om] - \hat f[\om]|^2 
+	+ \la \normTV{f}.
+}
+TV regularization suits images with approximately constant regions separated by sharp boundaries, as in the cartoon model of Section \ref{subsec-cartoon-images}. Figure \ref{fi

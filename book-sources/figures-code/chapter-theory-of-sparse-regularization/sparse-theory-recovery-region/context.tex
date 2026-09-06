@@ -1,0 +1,139 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+eta_F=\eta_0$.
+\end{prop}
+
+The condition $\norm{\eta_F}_\infty \leq 1$ implies that $x_0$ is a solution to~\eqref{eq-lasso-constr}.
+  
+A strict off-support bound on $\eta_F$ strengthens this recovery condition and gives both a linear error rate and support stability for small noise.
+
+The feasibility condition $\norm{\eta_F}_\infty \leq 1$ has the empty-cap interpretation shown in Figure~\ref{fig-delaunay}. We thank Charles Dossal for pointing out this connection to spherical Delaunay triangulations.
+
+\begin{figure}
+\centering
+  
+\includegraphics[width=.6\linewidth]{sparse-theory/polytopes/delaunay}
+  
+\caption{\label{fig-delaunay}
+For unit-norm columns, the supporting hyperplane defined by a valid certificate determines an empty spherical cap: its interior contains no signed column $\pm a_i$.
+}
+\end{figure}
+
+\begin{rem}[Operator norm]\label{rem-operator-norm}
+In the proof, we use the $\ell^p-\ell^q$ matrix operator norm, which is defined as
+\eq{
+	\norm{B}_{p,q} \eqdef \max \enscond{ \norm{B u}_q }{ \norm{u}_p \leq 1 }.
+}
+For $p=q$, we denote $\norm{B}_{p} \eqdef \norm{B}_{p,p}$.
+ 
+For $p=q=2$, $\norm{B}_2$ is the maximum singular value, and one has
+\eq{
+	\norm{B}_1 = \umax{j} \sum_i |B_{i,j}|
+	\qandq
+	\norm{B}_\infty = \umax{i} \sum_j |B_{i,j}|.
+}
+\end{rem}
+
+\begin{thm}\label{thm-support-stable}
+Let $I=\supp(x_0)\neq\emptyset$, assume $A_I$ is injective, and suppose $\norm{\eta_{F,I^c}}_\infty<1$. There exist $c_0,c_1>0$, depending on $A$, $I$, and $x_0$, such that if
+\eq{
+ 0<\lambda<c_0,\qquad \norm{A^*w}_\infty<c_1\lambda,
+}
+then the solution $x_\lambda$ of~\eqref{eq-lasso-lagr} is unique and has the same support and sign as $x_0$. It satisfies
+\eql{\label{eq-explicit-lownoise}
+ x_{\lambda,I}=x_{0,I}+A_I^+w-\lambda(A_I^*A_I)^{-1}\sign(x_{0,I}),
+ \qquad x_{\lambda,I^c}=0.
+}
+In particular, the error is $O(\norm{A^*w}_\infty+\lambda)$. When $\norm{A^*w}_\infty>0$, choosing $\lambda$ proportional to this quantity with a sufficiently large constant gives an $O(\norm{w})$ error as the noise tends to zero.
+\end{thm}
+
+\begin{proof}
+    Let $T \eqdef \min_{i \in I} |x_{0,i}|$ be the smallest nonzero signal amplitude, and let $\de \eqdef \norm{A^* w}_\infty$
+    measure the noise after correlation with the measurement columns.
+	 
+    Set $s \eqdef \sign(x_0)$ and use~\eqref{eq-explicit-lownoise} to define the candidate
+	\eql{
+		\hat x_{I} \eqdef x_{0,I} + A_I^+ w - \la (A_I^*A_I)^{-1} s_I, 
+	}
+	and $\hat x_{I^c}=0$. The goal is to show that $\hat x$ is indeed the unique solution of~\eqref{eq-lasso-lagr}. 
+	
+	
+    \noindent\textit{Step 1.} Sign consistency means $\sign(\hat x)=s$. It follows from $\norm{x_{0,I}-\hat x_I}_\infty < T$, for which a sufficient condition is
+	\eql{\label{eq-supp-stab-proof-1}
+		\norm{x_{0,I}-\hat x_I}_\infty \leq K \norm{A_I^* w}_\infty + K \la < T
+		\qwhereq
+		K \eqdef \norm{(A_I^*A_I)^{-1}}_{\infty}, 
+	}
+	where we used the fact that $A_I^+ = (A_I^*A_I)^{-1} A_I^*$.
+	
+    \noindent\textit{Step 2.} We verify the strict off-support bound in Proposition~\ref{sec-prop-uniquness-lagr}: $\norm{\hat \eta_{I^c}}_\infty < 1$, where $\la \hat \eta = A^* (y-A \hat x)$. Together with sign consistency and injectivity, this proves that $\hat x$ is the unique solution of~\eqref{eq-lasso-lagr}. Compute
+	\begin{align*}
+		\la \hat \eta &= A^*\big(A_Ix_{0,I}+w-A_I\hat x_I\big) \\
+			&=  A^* ( \Id - A_I A_I^+ ) w + \la \eta_F.
+	\end{align*}
+The residual formula also gives $\hat\eta_I=s_I$. Write $\delta=\norm{A^*w}_\infty$, $L=\norm{A_{I^c}^*A_I}_\infty$, $R=KL+1$, and $S=1-\norm{\eta_{F,I^c}}_\infty>0$. Then
+\eql{\label{eq-supp-stab-proof-2}
+ \lambda\norm{\hat\eta_{I^c}}_\infty
+ \leq R\delta+\lambda\norm{\eta_{F,I^c}}_\infty
+ <\lambda\quad\text{if}\quad R\delta<S\lambda.
+}
+Together with sign consistency and injectivity of $A_I$, this strict inequality proves uniqueness.
+
+    \noindent\textit{Conclusion.} Combining~\eqref{eq-supp-stab-proof-1} and~\eqref{eq-supp-stab-proof-2}, we obtain uniqueness of $\hat x$ whenever the parameters $(\la,w)$ satisfy
+	\eq{
+		\Rr = \enscond{
+				(\de,\la)}{\de + \la < \frac{T}{K}
+				\qandq
+				R \de - S \la <0
+		}
+	}
+	
+	
+    The triangular region $\Rr$ contains the simpler triangle
+	\eql{\label{eq-critrion-sign-stability}
+		\tilde\Rr = \enscond{
+				(\de,\la)}{
+				\frac{\de}{\la} < \frac{S}{R}
+				\qandq
+				\la < \la_{\max} 
+		}
+		\qwhereq
+		\la_{\max} \eqdef \frac{T(KL+1)}{K(R+S)}.
+	}
+	                                                                                 
+\end{proof}
+
+	\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/sparse-theory-recovery-region}
+\caption{Region in the $(\la,\de)$ plane where sign consistency holds.}
+\label{fig-review-sparse-theory-recovery-region}
+\end{figure}
+	
+Theorem~\ref{thm-support-stable} requires small correlated noise $\norm{A^*w}_\infty$ and a small $\lambda$, with their ratio controlled, so that regularization does not eliminate the nonzero coefficients of $x_0$. Theorem~\ref{thm-linrate-l1}, by contrast, applies at any noise level $\norm{w}$, but gives neither support control nor uniqueness of $x_\la$, and its constants can be less favorable.
+
+The proof provides explicit constants in terms of three parameters $K,L,S$:
+\begin{rs}
+	\item $K$ accounts for the conditioning of the operator on the support $I$;
+	\item $L$ is the largest sum of absolute correlations between an off-support atom and all atoms on the support;
+    \item $S$ measures the margin by which $\eta_F$ avoids saturation outside the support.
+\end{rs}
+The bounds on $\norm{A^*w}_\infty/\la$ and on $\la$ are given by~\eqref{eq-critrion-sign-stability}. For fixed $\gamma>0$ and sufficiently small $\delta>0$, choosing $\lambda=(1+\gamma)R\delta/S$ gives
+\eq{
+ \norm{x_0-x_\lambda}_\infty\leq K\left(1+(1+\gamma)\frac{R}{S}\right)\delta.
+}
+The strict factor $1+\gamma$ ensures the required strict inequality. Such a choice is primarily theoretical because its constants involve the unknown support.
+
+For a class of signals $x_0$, analyzing $\ell^1$ support recovery therefore starts with testing the Fuchs precertificate $\eta_F$: feasibility requires $\norm{\eta_F}_\infty \leq 1$, and support stability requires a strict bound outside the support.
+ 
+Figure~\ref{fig-certif-cs} illustrates the behavior for random $A$: the precertificate $\eta_F$ becomes nondegenerate when $P$ is sufficiently large. Section~\ref{sec-cs-certif} analyzes this phenomenon.
+
+
+
+\begin{figure}
+\centering
+  
+\begin{tabular}{@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-64}&
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/certif-cs-32}\\
+$P=4$ & $P=8$ \\
+\includegraphics[width=.35\linewidth]{sparse-theory/certificates-cs/cert

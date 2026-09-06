@@ -1,0 +1,54 @@
+% Context from chapters/sec-optim-smooth.tex; for mathematical reference, not compilation.
+\section{Derivative and gradient}
+
+                                                                                  
+\subsection{Gradient}
+
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-gradient-field}
+\caption{The gradient as a vector field.}
+\label{fig-review-smooth-gradient-field}
+\end{figure}
+When all coordinate derivatives of $f$ exist, define
+\eq{
+	\nabla f(x) \eqdef \pa{\pd{f(x)}{x_1}, \ldots,\pd{f(x)}{x_p}}^\top \in \RR^p
+}
+as the gradient vector. The map $\nabla f : \RR^p \rightarrow \RR^p$ is a vector field, and its coordinate derivatives are defined by
+\eq{
+	\pd{f(x)}{x_k} \eqdef \lim_{\eta \rightarrow 0} \frac{f(x+\eta \de_k)-f(x)}{\eta} 
+}
+where $\de_k=(0,\ldots,0,1,0,\ldots,0)^\top \in \RR^p$ is the $k$th canonical basis vector.
+
+Existence of the coordinate derivatives, hence of $\nabla f(x)$, does not imply differentiability of $f$. Differentiability of $f$ at $x$ requires
+\eql{\label{eq-grad-dfn}
+	f(x+\epsilon) = f(x) + \dotp{\epsilon}{\nabla f(x)} + o(\norm{\epsilon}).
+} 
+ 
+The remainder notation $R(\epsilon) = o(\norm{\epsilon})$ means decay faster than the perturbation $\epsilon$ as it tends to $0$: $\frac{R(\epsilon)}{\norm{\epsilon}} \rightarrow 0$ as $\epsilon \rightarrow 0$. Coordinate derivatives concern the behavior of $f$ along the axes, whereas differentiability requires the expansion for every sequence $\epsilon\rightarrow 0$.
+ 
+For example, $f(x)=\frac{2 x_1 x_2 (x_1+x_2)}{x_1^2+x_2^2}$ with $f(0)=0$ has both coordinate derivatives equal to zero at the origin. Yet $f(t,t)=2t$, so the linear expansion with zero gradient fails.
+
+The vector $\nabla f(x)$ is uniquely determined by~\eqref{eq-grad-dfn}. To prove differentiability of $f$ and compute $\nabla f(x)$, it therefore suffices to establish an expansion
+\eq{
+	f(x+\epsilon) = f(x) + \dotp{\epsilon}{g} + o(\norm{\epsilon}), 
+}
+which identifies $\nabla f(x)=g$.
+
+For differentiable functions, convexity is equivalent to the graph lying above every tangent affine function.
+
+\begin{prop}\label{prop-above-tgt}
+	If $f$ is differentiable, then
+	\eq{
+		f \text{ convex} 
+		\quad\Leftrightarrow\quad
+		\forall (x,x'), \: f(x) \geq f(x') + \dotp{\nabla f(x')}{x-x'}.
+	}
+\end{prop}
+\begin{proof}
+	One can write the convexity condition as
+	\eq{
+		f((1-t)x+tx') \leq (1-t) f(x) + t f(x')
+		\qarrq
+	

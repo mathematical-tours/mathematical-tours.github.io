@@ -1,0 +1,144 @@
+% Context from chapters/shannon.tex; for mathematical reference, not compilation.
+e Sobolev regularity to control approximation and denoising errors.
+
+   
+\paragraph{Fourier series.}
+
+Let $\TT=\RR/(2\pi\ZZ)$ denote the circle of length $2\pi$.
+ 
+A function $f\in L^2(\TT)$ is identified with a $2\pi$-periodic function on $\RR$. Its Fourier coefficients are
+\eq{
+	\foralls k \in \ZZ, \quad 
+	\hat f_k \eqdef \frac{1}{2\pi}\int_0^{2\pi} f(x) e^{-\imath x k} \d x.
+}
+Equivalently, $\hat f_k = \dotp{f}{e_k}$, where $\dotp{f}{g} \eqdef \frac{1}{2\pi} \int_\TT f(x) \bar g(x) \d x$ and $e_k(x) \eqdef e^{\imath x k}$.
+ 
+The functions $(e_k)_{k\in\ZZ}$ form an orthonormal basis for this inner product, giving the expansion
+\eql{\label{eq-fourier-series}
+	f = \sum_{k \in \ZZ} \dotp{f}{e_k} e_k
+}
+which means $\norm{f-\sum_{k=-N}^N \dotp{f}{e_k} e_k}_{L^2(\TT)} \rightarrow 0$ for $N \rightarrow +\infty$.
+ 
+For a differentiable function, the series~\eqref{eq-fourier-series} converges pointwise at every $x \in \TT$. If $f$ is of class $C^2$ on $\TT$, then $\hat f_k = O(1/k^2)$, which gives normal convergence and hence uniform convergence.
+ 
+For a piecewise $C^1$ function, the Fourier series converges at a jump to the average of the one-sided limits. Gibbs oscillations prevent uniform convergence across the jump.
+
+
+   
+\paragraph{Poisson formula.}
+
+The Poisson formula relates sampling in the signal domain to periodization in the Fourier domain.
+ 
+For a function $h(\om)$ on $\RR$, define its periodization by
+\eql{\label{eq-periodizing}
+	h_P(\om) \eqdef \sum_n h(\om-2\pi n).
+} 
+If $h \in L^1(\RR)$, the series converges absolutely almost everywhere and $\norm{h_P}_{L^1(\TT)} \leq \norm{h}_{L^1(\RR)}$, with equality for nonnegative functions. Here the norm on $\TT$ uses unnormalized Lebesgue measure over one period. Indeed,
+$$
+	|h_P(x)| \leq (|h|_P)(x), \quad\Longrightarrow\quad
+	\norm{h_P}_{L^1} \leq  \norm{|h|_P}_{L^1} = \norm{h}_{L^1}. 
+$$
+ 
+For $h=\hat f$, Proposition~\ref{prop-poisson} states that the following diagram
+\eq{
+	\begin{array}{rcccl}
+						& f(x)  &  \overset{\Ff}{\longrightarrow} &  \hat f(\om) &\\
+		\text{sampling}& \downarrow & & \downarrow &\text{periodization} \\
+						& (f(n))_n  &  \overset{\text{Fourier series}}{\longrightarrow} &  \sum_n f(n) e^{-\imath \om n} &\\
+	\end{array}
+}
+is commutative. The minus sign in $\sum_n f(n)e^{-\imath\om n}$ is opposite to the sign in Fourier series synthesis; this accounts for the index reversal in the proof below.
+
+\begin{prop}[Poisson formula]\label{prop-poisson}
+Assume that $f\in C(\RR)$, that $\hat f$ has compact support, and that $|f(x)| \leq C(1+|x|)^{-3}$ for some $C$. Then
+\eql{\label{eq-poisson-formula}
+	\foralls \om \in \RR, \quad
+	\sum_n f(n) e^{-\imath \om n} = \hat f_P(\om).
+}
+\end{prop}
+\begin{proof}
+	The decay of $f$ makes $\hat f$ continuously differentiable. Its compact support makes the periodization locally a finite sum, so $(\hat f)_P$ is also $C^1$. It therefore equals its Fourier series:
+	\eql{\label{eq-poisson-series}
+		(\hat f)_P(\om) = \sum_k c_k e^{\imath k \om},
+	} 
+	where
+	\begin{align*}
+		c_k = \frac{1}{2\pi} \int_0^{2\pi} (\hat f)_P(\om) e^{-\imath k \om} \d \om = 
+		\frac{1}{2\pi} \int_0^{2\pi} \sum_n \hat f(\om-2\pi n) e^{-\imath k \om}  \d \om .
+	\end{align*}
+	Absolute integrability follows from
+	\eq{
+		\int_0^{2\pi} \sum_n |\hat f(\om-2\pi n) e^{-\imath k \om}|  \d \om = \int_\RR |\hat f| 
+	}
+	which is finite because $\hat f$ is continuous and compactly supported. We may therefore exchange the sum and integral:
+	\eq{
+		c_k = \sum_n \frac{1}{2\pi} \int_0^{2\pi} \hat f(\om-2\pi  n) e^{-\imath k \om}  \d \om
+		= \frac{1}{2\pi} \int_{\RR} \hat f(\om) e^{-\imath k \om}  \d \om
+		= f(-k)
+	}
+	where we used the inverse Fourier transform formula~\eqref{eq-i-ft}, which is valid because $\hat f \in L^1(\RR)$.
+\end{proof}
+
+   
+\paragraph{Shannon's sampling theorem.}
+
+Shannon's sampling theorem gives a sufficient condition for reconstructing a signal from the samples $f \mapsto (f(ns))_n$ at spacing $s>0$.
+ 
+The bandlimiting condition is $\supp(\hat f) \subset [-\pi/s,\pi/s]$. By Fourier inversion~\eqref{eq-i-ft}, such a signal is $C^\infty$ and has an entire extension to the complex plane.
+ 
+Shannon's 1949 paper placed the sampling theorem at the heart of communication theory, while acknowledging earlier interpolation results and Nyquist's work on transmission rates.
+ 
+Figure~\ref{fig-sampling-aliasing} illustrates the reconstruction argument and the aliasing that occurs when spectral replicas overlap; see also Figure~\ref{fig-aliasing}.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/shannon-sampling-aliasing}
+\caption{Sampling and Shannon interpolation in the frequency and time domains, with unit sample spacing. Left: the bandlimiting condition of Theorem~\ref{thm-shannon-sampling} holds. Right: overlapping spectral replicas cause aliasing; the reconstructed signal still passes through every sample. The rows show the original signal, sampling, the interpolation kernel, and reconstruction.}
+\label{fig-sampling-aliasing}
+\end{figure}
+
+
+
+
+
+\begin{thm} \label{thm-shannon-sampling}
+	If $f\in C(\RR)$, $|f(x)| \leq C(1+|x|)^{-3}$ for some $C$ and $\supp(\hat f) \subset [-\pi/s,\pi/s]$, then one has
+	\eql{\label{eq-shannong-interp}
+		\foralls x \in \RR, \quad 
+		f(x) = \sum_n f(n s) \sinc(x/s-n) \qwhereq
+		\sinc(u) = \frac{\sin(\pi u)}{\pi u},\quad \sinc(0)=1
+	}
+	with uniform convergence.
+\end{thm}
+
+\begin{proof} 
+	Set $g \eqdef f(s \cdot)$. Then $\hat g=1/s \hat f(\cdot/s)$, as follows from the substitution $z=s x$:
+	\eq{
+		\hat g(\om) = \int f(s x) e^{-\imath \om x} \d x = \frac{1}{s} \int f(z) e^{-\imath (\om/s) z} \d z = \hat f(\om/s)/s, 
+	} 
+	It is therefore enough to prove the result for unit sample spacing:
+	$$
+		g(x) = \sum_n g(n) \sinc(x-n), 
+	$$
+	For the rest of the proof, write $f$ in place of $g$.
+	 
+	The compact support hypothesis implies $\hat f(\om) = 1_{[-\pi,\pi]}(\om) \hat f_P(\om)$.  
+	Combining the inversion formula~\eqref{eq-i-ft} with the Poisson formula~\eqref{eq-poisson-formula} gives
+	\eq{
+		f(x) = \frac{1}{2\pi} \int_{-\pi}^\pi \hat f_P(\om) e^{\imath \om x} \d \om
+		= \frac{1}{2\pi} \int_{-\pi}^\pi \sum_n f(n) e^{\imath \om (x-n)} \d \om.
+	} 
+	The decay of $f$ gives $\int_{-\pi}^\pi \sum_n |f(n) e^{\imath \om (x-n)}| \d \om = 2\pi\sum_n |f(n)| < +\infty$. We may therefore exchange summation and integration:
+	\eq{
+		f(x) = \sum_n f(n)  \frac{1}{2\pi} \int_{-\pi}^\pi e^{\imath \om (x-n)} \d \om = \sum_n f(n) \sinc(x-n).
+	}
+The series converges uniformly by the Weierstrass test, since $|\sinc(x-n)|\leq 1$ and $\sum_n|f(n)|<\infty$.
+\end{proof}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/shannon-sinc}
+\caption{The sinc interpolation kernel.}
+\label{fig-review-shannon-sinc}
+\end{figure}
+The sinc kernel decays slowly and oscillates, making it inconvenient for local interpolation. Oversampling gives more flexibility: if $\supp(\hat f)\subset[-\pi/s',\pi/s']$ with $s'>s$, the spectrum occupies a strict subinterval of the Nyquist interval. One can then choose a reconstruction 

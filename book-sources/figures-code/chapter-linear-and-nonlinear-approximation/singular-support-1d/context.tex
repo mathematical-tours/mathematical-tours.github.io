@@ -1,0 +1,138 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+\section{Wavelet Approximation of Piecewise Smooth Functions}
+
+Wavelets improve approximation near singularities because their support is localized.
+
+                                        
+\subsection{Decay of Wavelet Coefficients}
+\label{subsect-wavdecay}
+
+To approximate smooth regions efficiently, choose wavelets with sufficiently many vanishing moments, denoted by $p$:
+\eq{
+	\foralls k=0,\ldots,p-1, \; \int \psi(x) x^k \d x = 0.
+}
+Choose $p\geq\alpha$, where $\alpha$ is the regularity of the signal outside singularities (for instance jumps or kinks).
+
+\myfigure{
+\image{approximation}{.55}{singular-part-1d}
+\image{approximation}{.25}{singular-part-2d}
+}{ 
+	Singular and regular regions of a signal (left) and an image (right). 
+}{fig-singular-part}
+
+To quantify the approximation error decay for piecewise smooth signals \eqref{eq-model-piece-smooth} and images \eqref{eq-model-piece-smooth-2d}, one treats wavelets supported in smooth regions separately from those crossing singularities. Figure \ref{fig-singular-part} locates the singular and regular regions of a signal and an image.
+
+\begin{prop}
+Assume a compactly supported wavelet with $p\geq\alpha$ vanishing moments (all moments of total degree less than $p$ in dimension $d$). If $f$ admits a $C^\alpha$ extension to a neighborhood of the support, one has
+\eql{\label{eq-wavcoef-decay-1}
+	|\dotp{f}{\psi_{j,n}}| \leq C_f2^{j(\alpha+d/2)}\int|t|^\alpha|\psi(t)|\,\d t.
+}
+Without the smoothness assumption, every bounded $f$ satisfies
+\eql{\label{eq-wavcoef-decay-2}
+	|\dotp{f}{\psi_{j,n}}| \leq \norm{f}_\infty \norm{\psi}_1 2^{j \frac{d}{2}}.
+}
+\end{prop}
+
+\begin{proof}
+Under these assumptions, one can perform a Taylor expansion of $f$ around the point $2^j n$
+\eq{
+	f(x) = P(x-2^j n) + R(x-2^jn) = P(2^j t) + R(2^j t)
+}
+where $\deg(P)<\al$ and 
+\eq{
+	|R(x)|\leq C_f \norm{x}^\al.
+}
+One then bounds the wavelet coefficient
+\eq{
+	\dotp{f}{\psi_{j,n}} = \frac{1}{2^{j \frac{d}{2}}} \int f(x) \psi\pa{ \frac{x-2^j n}{2^j} } \d x 
+		= 2^{j \frac{d}{2}} \int R(2^j t) \psi(t) \d t
+}
+where we substituted $t = \frac{x-2^j n}{2^j}$. This proves~\eqref{eq-wavcoef-decay-1}. The bound~\eqref{eq-wavcoef-decay-2} follows directly by bounding the function in the inner product.
+\end{proof}
+
+                                        
+\subsection{1-D Piecewise Smooth Approximation}
+
+For a piecewise smooth 1-D signal in the model~\eqref{eq-model-piece-smooth}, the large coefficients $\dotp{f}{\psi_{j,n}}$ concentrate near singularities. Denote the finite set of singular points by $\Ss \subset [0,1]$.
+
+
+\begin{thm}\label{thm-approx-piecesmooth-1d}
+For $\alpha>0$, let $f$ belong to the piecewise $C^\alpha$ model~\eqref{eq-model-piece-smooth}. With compactly supported orthonormal wavelets having at least $\alpha$ vanishing moments (and a compatible boundary construction), the best $M$-term error satisfies
+\eql{\label{eq-decay-piecewav}
+	\norm{f-f_M}^2 = O(M^{-2\al}).
+}
+\end{thm}
+
+\begin{proof}
+The proof is split into several parts.
+
+  
+\paragraph{Step 1. Separating regular and singular coefficients.}
+
+At scale $2^j$, define the singular index set by the wavelets whose support crosses a singularity:
+\eql{\label{eq-singsupport-1d}
+	\Cc_j = \enscond{n}{ \supp(\psi_{j,n}) \cap \Ss \neq \emptyset }
+}
+Compact support and dyadic spacing imply a bound on its cardinality that is uniform in $j$:
+\eq{
+	|\Cc_j| \leq K |\Ss| = \text{constant}.
+}
+Using \eqref{eq-wavcoef-decay-1} for $d=1$, the decay of regular coefficients is bounded as
+\eq{
+	\foralls n \in \Cc_j^c, \quad \abs{\dotp{f}{\psi_{j,n}}} \leq  C2^{j(\alpha+1/2)}.
+}
+Using \eqref{eq-wavcoef-decay-2} for $d=1$, the decay of singular coefficients is bounded as
+\eq{
+	\foralls n \in \Cc_j, \quad \abs{\dotp{f}{\psi_{j,n}}} \leq  C 2^{j/2}.
+}
+For a sufficiently small threshold $T$, define two cutoff scales, one for regular coefficients and one for singular coefficients, as functions of $T$:
+\eq{
+	2^{j_1} = (T/C)^{\frac{1}{\al+1/2}}
+	\qandq
+	2^{j_2} = (T/C)^{2}.
+}
+Round these cutoff scales to integers; this changes constants only. All subsequent scale sums are bounded above by the fixed coarsest scale $j_0=0$, and the finitely many scaling coefficients are retained. Figure~\ref{fig-singular-support-1d} shows a schematic segmentation of the set of wavelet coefficients into regular and singular parts, together with the cut-off scales.
+
+\myfigure{
+\image{approximation}{.6}{singular-support-1d}
+\image{approximation}{.3}{singular-support-legend}
+}{ 
+	Segmentation of the wavelet coefficients into regular and singular parts.  
+}{fig-singular-support-1d}
+
+  
+\paragraph{Step 2. Bounding the error.}
+These cut-off scales allow us to define a comparison approximation
+\eql{\label{eq-hand-made-approx}
+	\tilde f_M=P_{V_0}f+\sum_{j_2\leq j\leq0} \sum_{n \in \Cc_j} \dotp{f}{\psi_{j,n}} \psi_{j,n} +  \sum_{j_1\leq j\leq0} \sum_{n \in \Cc_j^c} \dotp{f}{\psi_{j,n}} \psi_{j,n}.
+}
+The error of the comparison $M$-term approximation $\tilde f_M$ bounds the best $M$-term error from above:
+\eqml{\label{eq-wavapprox-1d-1}
+	\norm{f-f_M}^2 &\leq \norm{f-\tilde f_M}^2 \leq \sum_{j<j_2, n \in \Cc_j} |\dotp{f}{\psi_{j,n}}|^2 + 
+\sum_{j<j_1, n \in \Cc_j^c} |\dotp{f}{\psi_{j,n}}|^2 \\
+	& \leq \sum_{j < j_2} (K |\Ss|) \times C^2 2^{j} + \sum_{j < j_1} 2^{-j} \times  C^2 2^{j(2\al+1)} \\
+	& = O( 2^{j_2} + 2^{2\al j_1} ) = O( T^2 + T^{ \frac{2\al}{\al+1/2} } ) = O( T^{ \frac{2\al}{\al+1/2} } ).
+}
+
+  
+\paragraph{Step 3. Counting the Coefficients.}
+The number of coefficients needed to build the approximating signal $\tilde f_M$ is
+\eqml{\label{eq-wavapprox-1d-2}
+	M &\leq1+\sum_{j_2\leq j\leq0} |\Cc_j| +
+\sum_{j_1\leq j\leq0} |\Cc_j^c| \leq
+1+\sum_{j_2\leq j\leq0} K |\Ss| +
+\sum_{j_1\leq j\leq0} 2^{-j} \\
+	&= O( |\log(T)| + T^{\frac{-1}{\al+1/2}} ) 
+=  O(T^{\frac{-1}{\al+1/2}} ).
+}
+  
+\paragraph{Step 4. Putting everything together.}
+Given a coefficient budget $M$, choose $T$ to be a sufficiently large constant times $M^{-(\alpha+1/2)}$. The coefficient-count bound then uses at most $M$ terms, and the error bound is $O(M^{-2\alpha})$.
+\end{proof}
+
+For piecewise Lipschitz signals, the wavelet rate is faster than the jump-limited $O(M^{-1})$ Fourier bound in~\eqref{eq-fourier-piecewisesmooth}. It also matches the smooth-signal rate~\eqref{eq-sovolev-signal-decay}: finitely many singularities do not worsen the asymptotic exponent in one dimension. The rate~\eqref{eq-decay-piecewav} is asymptotically optimal for this class.
+
+\myfigure{
+\image{approximation}{.6}{wav-approx-1d-1}\\
+\image{approximation}{.6}{wav-approx-1d-2}\\
+\image{approximation}{.6}{w

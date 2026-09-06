@@ -1,0 +1,167 @@
+% Context from chapters/denoising.tex; for mathematical reference, not compilation.
+ across pixels with the underlying intensity. Figure \ref{fig-poisson-distrib} shows several Poisson distributions.
+
+\myfigure{
+\image{denoising}{.5}{poisson-distrib}
+}{ 
+	 Poisson distributions for various $\la$.   
+}{fig-poisson-distrib}
+
+One has 
+\eq{
+	\mathbb E(f_n)=\la=f_{0,n}
+	\qandq
+	\text{Var}(f_n)=\la=f_{0,n}
+}
+Thus denoising again estimates a mean from one observation, but the variance now varies with intensity. The absolute noise level increases as more photons reach the sensor. For positive intensity, the relative standard deviation $f_{0,n}^{-1/2}$ instead decreases.
+
+Figure \ref{fig-poisson-denoising} shows Poisson-corrupted versions of a clean image $f_0$ at different maximum mean intensities $\la_{\max}$.
+
+\myfigure{
+\tabquatre{
+\image{denoising}{.23}{poisson-denoising-1}&
+\image{denoising}{.23}{poisson-denoising-2}&
+\image{denoising}{.23}{poisson-denoising-3}&
+\image{denoising}{.23}{poisson-denoising-4}\\
+Example 1 & Example 2 & Example 3 & Example 4
+}
+}{ 
+	 Examples of Poisson-corrupted images at different count levels. Numerical acquisition parameters are not available for these legacy illustrations.  
+}{fig-poisson-denoising}
+
+  
+\paragraph{Variance stabilization.}
+
+Applying a thresholding estimator
+\eq{
+	\Dd(f) = \sum_m S_T^q(\dotp{f}{\psi_m}) \psi_m
+}
+directly to $f$ can perform poorly because a single threshold $T$ cannot adapt to spatially varying noise. A variance-stabilizing transform $\phi : [0,+\infty) \rightarrow \RR$, applied pixelwise, maps the counts to $\phi(f)$. An additive Gaussian white-noise model can then be a useful approximation:
+\eql{\label{eq-var-stab}
+	\phi(f) \approx \phi(f_0) + w
+}
+where $w_n\sim\Nn(0,\sigma^2)$ are independent centered Gaussians with constant variance $\si^2$.
+
+The model~\eqref{eq-var-stab} is approximate, and its accuracy depends on the intensity range of $f_{0,n}$.
+Two common variance-stabilizing transforms for Poisson noise are the Anscombe transform
+\eq{
+	\phi(x) = 2\sqrt{x+3/8}
+}
+and the Freeman--Tukey transform
+\eq{
+	\phi(x) = \sqrt{x+1}+\sqrt{x}.
+}
+Figure \ref{fig-variance-stabilization} compares the variance of $\phi(f)$ after these transformations.
+
+\myfigure{
+\image{denoising}{.5}{variance-stabilization-corrected}
+}{ 
+	 Exact Poisson variances of the Anscombe, Freeman--Tukey, and $2\sqrt{x}$ transforms as functions of the mean intensity.  
+}{fig-variance-stabilization}
+
+A variance-stabilized denoiser is defined as
+\eq{
+	\Dd^{\text{stab},q}(f) =  \phi^{-1}( \sum_m S_T^q(\dotp{\phi(f)}{\psi_m}) \psi_m )
+}
+where $\phi^{-1}$ is applied after projecting the denoised values onto its domain. The direct inverse generally introduces bias, especially at low counts; bias-corrected inverse transforms can improve the result.
+
+At the moderate count levels in Figure \ref{fig-poisson-wav}, variance stabilization improves the denoising result.
+
+\myfigure{
+\tabtrois{
+\image{denoising}{.32}{poisson-wav-noisy}&
+\image{denoising}{.32}{poisson-wav-unstab}&
+\image{denoising}{.32}{poisson-wav-stab}
+}
+}{ 
+	Left: noisy image, center: denoising without variance stabilization, right: denoising after variance stabilization.   
+}{fig-poisson-wav}
+
+                                                     
+\subsection{Multiplicative Noise}
+
+  
+\paragraph{Multiplicative image formation.}
+
+A multiplicative noise model assumes that
+\eq{
+	f_n = f_{0,n} w_n
+}
+where $w$ is a random multiplier, observed through one realization, with $\mathbb E(w_n)=1$.
+Once again, the noise level depends on the pixel value
+\eq{
+	\mathbb E(f_n) = f_{0,n}
+	\qandq
+	\text{Var}(f_n) = f_{0,n}^2 \si^2 
+	\qwhereq 
+	\sigma^2=\operatorname{Var}(w_n).
+}
+In SAR imaging, a common model forms $f$ by averaging $K$ independent observations, called looks:
+\eq{
+	\foralls 1\leq s\leq K, \quad f^{(s)}_n = f_{0,n} w^{(s)}_n + r^{(s)}_n
+}
+where $r^{(s)}$ is additive Gaussian white noise and the multiplier $w^{(s)}_n$ has an exponential distribution:
+\eq{
+	p_{w^{(s)}_n}(x)=e^{-x}\mathbf1_{x>0}.
+}
+Averaging $K$ independent looks divides the additive-noise variance by $K$. When the remaining additive component is negligible, the average is approximately
+\eq{
+	f_n = \frac{1}{K} \sum_{s=1}^K f^{(s)}_n \approx f_{0,n} w_n
+}
+where the multiplicative factor is distributed according to a Gamma distribution
+\eq{
+	w_n\sim\operatorname{Gamma}(\text{shape}=K,\text{rate}=K),\qquad p_{w_n}(x)=\frac{K^K}{\Gamma(K)}x^{K-1}e^{-Kx}\mathbf1_{x>0}.
+}
+Its mean is one and its variance is $1/K$, so increasing $K$ reduces the relative noise level.
+
+\myfigure{
+\tabquatre{
+\image{denoising}{.23}{multnoise-1}&
+\image{denoising}{.23}{multnoise-2}&
+\image{denoising}{.23}{multnoise-3}&
+\image{denoising}{.23}{multnoise-4}
+}
+}{ 
+	 Images with multiplicative noise at different values of $\si$.  
+}{fig-multnoise}
+
+Figure \ref{fig-multnoise} illustrates how the noise changes with the number $K=1/\si^2$ of averaged looks.
+
+A simple variance stabilization transform is
+\eq{
+	\phi(x)=\log(x) - c
+}
+where
+\eq{
+	c = \text{E}(\log(w)) = \psi(K) - \log(K)
+	\qwhereq
+	\psi(x) = \Ga'(x)/\Ga(x)
+}
+Here $\Ga$ is the Gamma function and $\psi$ is its logarithmic derivative, the digamma function. The transformed observation satisfies
+\eq{
+	\phi(f)_n=\log f_{0,n}+z_n,
+}
+for strictly positive intensities, where $z_n=\log(w_n)-c$ is centered additive noise with variance $\psi^{(1)}(K)$; $\psi^{(1)}$ is the derivative of the digamma function. Thus the transformed target is $\log f_0$, not $\phi(f_0)$. Exponentiating an estimate of $\log f_0$ introduces a further statistical bias and may require correction.
+
+\myfigure{
+\image{denoising}{.45}{multnoise-hist-unstab}
+\image{denoising}{.45}{multnoise-hist-stab}
+}{ 
+	 Histogram of multiplicative noise before (left) and after (right) stabilization.   
+}{fig-multnoise-hist-unstab}
+
+Figure \ref{fig-multnoise-hist-unstab} shows the effect of this variance stabilization on the distributions of $w$ and $z$.
+
+Figure \ref{fig-multnoise-wav} compares the two approaches at moderate noise levels $\si$, where variance stabilization improves the displayed result.
+
+\myfigure{
+\tabtrois{
+\image{denoising}{.32}{multnoise-wav-noisy}&
+\image{denoising}{.32}{multnoise-wav-stab}&
+\image{denoising}{.32}{multnoise-wav-unstab}
+}
+}{ 
+	Left: noisy image, center: denoising after variance stabilization, right: denoising without variance stabilization.  
+}{fig-multnoise-wav}
+
+

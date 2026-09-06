@@ -1,0 +1,154 @@
+% Context from chapters/denoising.tex; for mathematical reference, not compilation.
+ spinning to hard thresholding in an orthogonal wavelet basis, using the following shifts:
+$\De = \{ 0, 1/N_0, 2/N_0, 3/N_0 \}^2$ on an $N_0\times N_0$ image, corresponding to shifts by $\{ 0, 1, 2, 3 \}^2$ pixels.
+This requires 16 forward and inverse wavelet-transform pairs. Averaging this subset of shifts does not in general guarantee exact pixel-shift equivariance. In this example, partial averaging reduces sensitivity to shifts, substantially improves the SNR, and suppresses oscillatory artifacts. These artifacts move as $\tau$ changes, so averaging reduces them.
+
+In Figure \ref{fig-wavthresh-ti}, translation-invariant hard thresholding slightly outperforms translation-invariant soft thresholding, reversing their ranking in the orthogonal-basis experiment.                                                                                               
+
+\myfigure{
+\tabdeux{
+\image{denoising}{.3}{wavthresh-2d-soft}&
+\image{denoising}{.3}{wavthresh-2d-hard-ti}\\
+21.8dB & 23.4dB
+}
+}{ 
+	Soft thresholding in an orthogonal wavelet basis (left) and translation-invariant hard thresholding (right).  
+}{fig-wavthresh-2d-soft-ti}
+
+
+\myfigure{
+\image{denoising}{.5}{wavthresh-ti-curves}
+}{ 
+	SNR as a function of $T/\si$ for translation-invariant thresholding.  
+}{fig-wavthresh-ti}
+
+
+                                      
+                                                                                                                                                                                                                         
+
+  
+\paragraph{Translation invariant wavelet frame.}
+
+Cycle spinning also has a frame interpretation: replace the orthogonal basis $\Bb = \{\psi_m\}$ by its translated copies,
+\eql{\label{eq-ti-wavframe}
+	\Bb_{\text{inv}} = \{ (\psi_m)_\tau \}_{m, \tau \in \De}.
+}
+Although $\Bb_{\text{inv}}$ is no longer an orthogonal basis, orthonormality of each translated copy gives the energy and reconstruction identities
+\eq{
+	\norm{f}^2 = \frac{1}{|\De|} \sum_{m, \tau \in \De} |\dotp{f}{(\psi_m)_\tau}|^2
+	\qandq
+	f = \frac{1}{|\De|} \sum_{m, \tau \in \De} \dotp{f}{(\psi_m)_\tau} (\psi_m)_\tau.
+}
+Such redundant families are called tight frames.
+
+One can then define a translation invariant thresholding denoiser
+\eql{\label{eq-ti-thresh}
+	\Dd_{\text{inv}}(f) = \frac{1}{|\De|} \sum_{m, \tau \in \De} S_T(\dotp{f}{(\psi_m)_\tau}) (\psi_m)_\tau.
+}
+This estimator equals the cycle spinning estimator defined in \eqref{eq-cycle-spinning}.
+
+Counted with multiplicity, the translated frame has $|\De| |\Bb|$ elements.
+For a basis of signals with $N$ samples and a lattice of $|\De|=N$ shifts, this gives up to $N^2$ vectors in $\Bb_{\text{inv}}$. In a hierarchical construction such as a wavelet basis, however, different shifts can produce the same atom:
+\eq{
+	(\psi_m)_\tau = (\psi_{m'})_{\tau'}
+	\qforq
+	m \neq m'
+	\qandq
+	\tau\neq \tau',
+}
+The number of distinct vectors in $\Bb_{\text{inv}}$ can therefore be much smaller than $N^2$.
+For instance, for an orthogonal wavelet basis, one has
+\eq{
+	(\psi_{j,n})_{k 2^j} = \psi_{j,n+k},
+}
+so many translated atoms coincide. For a signal of length $N$, an undecimated transform has $\log_2N$ detail arrays of length $N$, plus a coarse array. For an $N_0\times N_0$ image ($N=N_0^2$), it has $3\log_2N_0$ detail arrays of $N$ entries, plus a coarse array. Appropriate multiplicity weights must be retained when replacing the full translated family by distinct atoms.
+
+The fast undecimated wavelet transform, often called the ``\`a trous'' transform, computes these coefficients in $O(N\log N)$ operations. Each detail array is indexed directly by every pixel location:
+\eq{
+ d_j^\omega[n]=\dotp{f}{(\psi_{j,0}^\omega)_n},\qquad
+ n\in\{0,\ldots,N_0-1\}^2,\quad\omega\in\{V,H,D\},
+}
+where the wavelets and shifts are discrete and appropriately normalized. Each array is a band-pass filtered image, as illustrated in Figure~\ref{fig-tiwav}.
+
+\myfigure{
+\tabquatre{
+\image{denoising}{.23}{tiwav-2d-image}&
+\image{denoising}{.23}{tiwav-2d-j2-h}&
+\image{denoising}{.23}{tiwav-2d-j2-v}&
+\image{denoising}{.23}{tiwav-2d-j2-d}\\
+$f$ & $j=-8, \om=H$ & $j=-8, \om=V$ & $j=-8, \om=D$ \\
+&
+\image{denoising}{.23}{tiwav-2d-j1-h}&
+\image{denoising}{.23}{tiwav-2d-j1-v}&
+\image{denoising}{.23}{tiwav-2d-j1-d}\\
+& $j=-7, \om=H$ & $j=-7, \om=V$ & $j=-7, \om=D$ 
+}
+}{ 
+	Translation invariant wavelet coefficients.   
+}{fig-tiwav}
+
+Figure \ref{fig-tiwav-coefs-thresh} illustrates hard thresholding of these translated coefficients.
+
+\myfigure{
+\image{denoising}{.3}{tiwav-coefs}
+\image{denoising}{.3}{tiwav-coefs-thresh}
+}{ 
+	Left: translation invariant wavelet coefficients, for $j=-8, \om=H$, right: thresholded coefficients.  
+}{fig-tiwav-coefs-thresh}
+
+
+
+                                                     
+\subsection{Other Shrinkage Rules}
+
+Other shrinkage rules offer different compromises between retaining large coefficients and suppressing noise. We describe two examples whose performance depends on the coefficient distribution of $f$ in the chosen basis.
+
+  
+\paragraph{Semi-soft thresholding.}
+
+Semi-soft thresholding interpolates between hard and soft thresholding through a parameter $\mu>1$:
+\eq{
+	S_T^\th(x) = g_{\frac{1}{1-\th}}(x)
+	\qwhereq
+	g_\mu(x) = 
+	\choice{
+		0 \qifq |x|<T\\
+		x \qifq |x|>\mu T\\
+		\sign(x)\frac{\mu(|x|-T)}{\mu-1} \text{ otherwise.}
+	}
+}
+For $0<\theta<1$, set $\mu=1/(1-\theta)$. The limits $\theta\downarrow0$ and $\theta\uparrow1$ give hard and soft thresholding, respectively, away from the threshold boundary.
+Figure~\ref{fig-semisoft} shows an example of this nonlinearity.
+
+\myfigure{
+\image{denoising}{.45}{semisoft-thresholders}
+\image{denoising}{.45}{stein-thresholder}
+}{ 
+	Left: semi-soft thresholder, right: Stein thresholder.   
+}{fig-semisoft}
+
+Figure \ref{fig-semisoft-optimal} shows an SNR improvement for a suitable choice of $\mu$, although the visual difference from hard and soft thresholding is small.
+
+\myfigure{
+\image{denoising}{.45}{semisoft-optimal-image}
+\image{denoising}{.4}{semisoft-optimal-curve}
+}{ 
+	 Left: SNR as a function of $\mu$ and $T/\si$. Right: SNR versus $\mu$, with $T/\si$ optimized separately for each $\mu$.  
+}{fig-semisoft-optimal}
+
+  
+\paragraph{Stein thresholding.}
+
+Stein thresholding is defined using a quadratic attenuation of large coefficients
+\eq{
+ 	S_T^{\text{Stein}}(x) = \max\pa{1-\frac{T^2}{|x|^2},0}x.
+}
+The value at $x=0$ is defined to be zero. This should be compared with the linear attenuation of soft thresholding
+\eq{
+ 	S_T^1(x) = \max\pa{1-\frac{T}{|x|},0}x.
+}
+For large coefficients, Stein thresholding has the following shrinkage behavior:
+\eq{
+	|S_T^{\text{Stein}}(x)-x| \rightarrow 0
+	\quad\text{ whereas }\quad
+	|S_T^1(x)-x| \rightarr

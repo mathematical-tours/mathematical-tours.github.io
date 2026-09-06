@@ -1,0 +1,84 @@
+% Context from chapters/sparse-regularization.tex; for mathematical reference, not compilation.
+\section{Example: Sparse Deconvolution}
+
+
+                                                                
+\subsection{Sparse Spikes Deconvolution}
+
+Sparse spike deconvolution uses sparsity in the spatial domain, which corresponds to the orthonormal basis of Diracs $\psi_m[n] = \de[n-m]$. In seismic imaging, a simple sparse reflectivity model represents $f_0$ as a few impulses associated with changes in acoustic impedance.
+
+In a linearized one-dimensional model that neglects multiple reflections, the subsurface reflectivity $f_0$ produces observations $y=h \star f_0 + w$. Here $h$ is the transmitted pulse, called a seismic wavelet. This use of the word differs from the orthogonal wavelet bases constructed in Chapter \ref{chap-wavelets}, although the terminology originated in seismic imaging.
+
+The seismic wavelet $h$ is typically band-pass, balancing spatial and frequency concentration. Figure~\ref{fig-spikes-lun} shows a second derivative of a Gaussian and its Fourier transform. The narrow transmitted band illustrates how acquisition suppresses information about $f_0$.
+
+            
+                                  
+      
+                       
+                     
+
+Using $\lun$ regularization in the Dirac basis gives
+\eq{
+	 f^\star = \uargmin{f \in \RR^N} \frac{1}{2} \norm{f \star h - y}^2 + \la \sum_m |f_m|.
+}
+Figure \ref{fig-spikes-lun} shows the result of $\lun$ minimization with an oracle choice of $\la$ that minimizes the error $\norm{f^\star-f_0}$.
+
+
+\myfigure{
+\tabdeux{
+\image{invpbm}{.4}{spikes-filter}&
+\image{invpbm}{.4}{spikes-filter-fourier}\\
+$h$ & $\hat h$ \\
+                                                
+\image{invpbm}{.4}{spikes-signal}&
+\image{invpbm}{.4}{spikes-observations}\\
+$f_0$ & $y=h \star f_0 + w$ \\
+\image{invpbm}{.4}{spikes-pinv}&
+\image{invpbm}{.4}{spikes-l1}\\
+$f^+$ & $f^\star$ 
+}
+}{ 
+    Sparse spike recovery by the pseudoinverse and by $\lun$ regularization.  
+}{fig-spikes-lun}
+
+ISTA for sparse spike recovery alternates the updates
+\eq{
+	\tilde f^{(k)} = f^{(k)} - \tau h^\vee \star ( h \star f^{(k)}-y )
+}
+and
+\eq{
+	f^{(k+1)}_m = S_{\la \tau}^{1}(\tilde f^{(k)}_m )
+}
+where $h^\vee[n]=\overline{h[-n]}$ is the adjoint convolution kernel. It equals $h$ for a real symmetric filter. The step size must satisfy
+\eq{
+	0<\tau < 2/\norm{\Phi^* \Phi} = 2 / \umax{\om} |\hat h(\om)|^2
+}
+to guarantee convergence. Figure \ref{fig-spikes-ista-decay} shows convergence of both the objective values and the iterates. Objective convergence alone would not ensure convergence of the iterates when minimizers are nonunique; the forward--backward convergence theorem provides the latter guarantee here.
+
+
+\myfigure{
+\tabdeux{
+\image{invpbm}{.4}{spikes-ista-decay-conv}&
+\image{invpbm}{.4}{spikes-ista-decay-energy} \\
+                                        
+$\log_{10}( E(f^{(k)})/E(f^\star)-1 )$ &
+$\log_{10}( \norm{f^{(k)}-f^\star}/\norm{f_0} )$
+}
+}{ 
+	Convergence of the energy and iterates under iterative soft thresholding.  
+}{fig-spikes-ista-decay}
+
+
+                                                                
+\subsection{Sparse Wavelets Deconvolution}
+
+
+Camera images can be blurred by defocus, motion during exposure, or diffraction. Assuming spatial invariance, we model the blur operator $\Phi$ by convolution:
+\eq{
+	y = f_0 \star h + w.
+}
+We use a Gaussian filter $h$ of width $\mu > 0$. On a fixed $d$-dimensional domain, the number of effectively transmitted frequencies scales roughly as $\mu^{-d}$, with a threshold-dependent factor, because higher frequencies are strongly attenuated.
+
+Figures~\ref{fig-deconvolution-1d} and~\ref{fig-deconvolution-2d} show examples of signal and image acquisition with Gaussian blur.
+
+Sobolev regularization~\eqref{eq-quad-regul-convol} suppresses high-frequency noise more strongly than the squared-norm penalty~\eqref{eq-regul-normsq}. Both can blur sharp transitions. TV regularization and sparsity in a wavelet basis are better a

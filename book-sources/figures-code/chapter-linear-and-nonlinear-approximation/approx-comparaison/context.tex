@@ -1,0 +1,171 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+e form
+\eq{
+	\log(\norm{f-f_M}^2) = \text{cst} - \al \log(M)
+}
+and appears as a straight line with slope $-\al$. For sampled data, this behavior is generally studied when $M \ll N$; as $M \approx N$, retaining nearly all coefficients drives the error to zero.
+
+
+\myfigure{
+\tabquatre{
+\image{approximation}{.24}{approx-speed-1}&
+\image{approximation}{.24}{approx-speed-2}&
+\image{approximation}{.24}{approx-speed-3}&
+\image{approximation}{.24}{approx-speed-4}\\
+Smooth & Cartoon & Natural \#1 & Natural \#2
+}
+}{ 
+	Test images with different types of structure. 
+}{fig-approx-speed-1}
+
+
+
+\myfigure{
+\image{approximation}{.4}{approx-speed-curves}
+}{ 
+	Wavelet approximation error for the images in Figure \ref{fig-approx-speed-1}. 
+}{fig-approx-speed}
+
+   
+\subsection{Comparison of bases.}
+
+For a fixed image $f$, the decay of $\norm{f-f_M}$ compares the efficiency of different bases. Figure \ref{fig-approx-effi} makes this comparison for an image containing contours and textures. The Fourier basis of Section \ref{sec-fourier-multiple-dim} performs poorly here: periodic boundaries create artifacts, and globally supported atoms do not follow local contours. The cosine basis removes the periodic boundary discontinuity through symmetric extension, but its atoms remain global. Local DCT bases use cosine atoms on small square patches, improving localization. At small coefficient budgets $M$, however, their block structure produces visible artifacts. The isotropic wavelet basis of Section \ref{sec-isotropic-wav} performs best in this example by combining localized atoms with a multiresolution organization.
+
+\myfigure{
+\tabquatre{
+\image{approximation}{.24}{approx-effi-fft}&
+\image{approximation}{.24}{approx-effi-dct}&
+\image{approximation}{.24}{approx-effi-locdct}&
+\image{approximation}{.24}{approx-effi-wav}\\
+Fourier & Cosine & Local DCT & Wavelets\\
+SNR=17.1dB & SNR=17.5dB & SNR=18.4dB & SNR=19.3dB
+}
+}{ 
+	Comparison of approximation errors for different bases using the same number $M=N/50$ of coefficients.  
+}{fig-approx-effi-1}
+
+\myfigure{
+	\image{approximation}{.4}{approx-effi-curves}
+}{ 
+	Comparison of approximation error decay for different bases.  
+}{fig-approx-effi}
+
+
+
+  
+     
+                                     
+
+                                                                                                                                                                                                                                                                                                                      
+
+               
+                         
+                                                              
+                                          
+   
+                                 
+                                                               
+                                                         
+   
+                                 
+                                                             
+                                                         
+   
+                                                                   
+             
+
+                                                                                                                                                        
+
+                                                                      
+
+                                                 
+        
+          
+
+             
+   
+                                              
+     
+                                                                                                                  
+  
+                                                                                                                                            
+ 
+                                            
+     
+                                              
+                                
+                                   
+  
+                                                                                                     
+ 
+                                        
+     
+                                                                                                                         
+  
+                 
+                                        
+                                 
+                               
+                               
+  
+
+           
+   
+
+
+
+Figure~\ref{fig-approx-comparaison} summarizes the approximation rates developed in the following sections for different data models.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/approximation-rates}
+\caption{Summary of linear and nonlinear approximation rates
+	$\norm{f-f_M}^2$ for different classes of 1-D signals and images.}
+\label{fig-approx-comparaison}
+\end{figure}
+
+
+                                        
+                                        
+\section{Fourier Linear Approximation of Smooth Functions}
+
+For integer $\alpha$, the smooth model~\eqref{eq-smooth-model} bounds all continuous derivatives through that order. Greater regularity of $f$, measured by a larger $\al$, permits faster approximation. Figure~\ref{fig-signal-model-sobolev} illustrates the related Sobolev measure of smoothness.
+
+                                        
+\subsection{1-D Fourier Approximation}
+
+A 1-D signal $f \in \Ldeux([0,1])$ is associated with a 1-periodic function $f(t+1)=f(t)$ defined for $t \in \RR$.
+
+  
+\paragraph{Low pass approximation.}
+
+For even $M$, consider the linear Fourier approximation that retains frequencies up to $M/2$:
+\eq{
+	f_M^{\text{lin}} = \sum_{m=-M/2}^{M/2} \dotp{f}{e_m}e_m
+}
+where we use the 1-D Fourier atoms
+\eq{
+	\foralls m\in\ZZ,\quad e_m(t) \eqdef e^{2 i \pi m t}.
+}
+This symmetric cutoff retains $M+1$ Fourier atoms; the extra coefficient does not affect the asymptotic rates below.
+
+Figure \ref{fig-ourier-approx-1d} shows these approximations for increasing $M$. The jumps in $f$ produce substantial error and ringing near the singularities.
+
+                                                                                                                                                               
+
+\myfigure{
+\tabdeux{
+\image{approximation}{.48}{fourier-approx-1d-0}&
+\image{approximation}{.48}{fourier-approx-1d-1}\\
+\image{approximation}{.48}{fourier-approx-1d-2}&
+\image{approximation}{.48}{fourier-approx-1d-3}
+}
+}{ 
+	Fourier approximation of a signal.  
+}{fig-ourier-approx-1d}
+
+                                       
+                                                                                                                                                                                                      
+
+                                          
+                                                          

@@ -1,0 +1,125 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+\section{Signal and Image Modeling}
+\label{sec-signal-models}
+
+A signal model specifies a constraint $f \in \Theta$, where $\Theta \subset \Ldeux([0,1]^d)$ is the class of signals of interest.
+Figure \ref{fig-approximation-class} shows different image models, which we describe below.
+
+\myfigure{
+\tabquatre{
+\image{approximation}{.24}{approximation-class-regular}&
+\image{approximation}{.24}{approximation-class-bv}&
+\image{approximation}{.24}{approximation-class-cartoon}&
+\image{approximation}{.24}{approximation-class-natural}\\
+Regular & Bounded variation & Cartoon & Natural
+}
+                                                            
+}{ 
+	Examples of image models.  
+}{fig-approximation-class}
+
+
+
+                                           
+\subsection{Uniformly Smooth Signals and Images}
+\label{subsec-smooth-class}
+
+  
+\paragraph{Signals with derivatives.}
+
+The simplest model consists of uniformly smooth signals with bounded derivatives
+\eql{\label{eq-smooth-model} 
+	\Th = \enscond{ f \in \Ldeux([0,1]^d) }{ \norm{f}_{\Cal} \leq C },
+}
+where $C>0$ is fixed. For integer $\alpha\geq1$, in one dimension
+\eq{
+	\norm{f}_{\Cal} \eqdef \umax{0\leq k\leq\al} \normb{ \frac{\d^k f}{\d t^k} }_{\infty}.
+}
+In higher dimensions, take the maximum over all partial derivatives of total order at most $\alpha$. For noninteger $\alpha=m+\beta$, $0<\beta<1$, use the usual H\"older norm: derivatives through order $m$ are bounded, and order-$m$ derivatives are $\beta$-H\"older continuous.
+
+  
+\paragraph{Sobolev smooth signals and images.}
+
+For integer $\alpha\geq1$, a $\Cal$ signal in the model~\eqref{eq-smooth-model} has derivatives with bounded energy:
+\eq{
+	\frac{\d^\al f}{\d t^\al}(t) = f^{(\al)}(t) \in \Ldeux([0,1]). 
+}	
+For integer $\alpha$ and periodic boundary conditions, use the identity
+\eq{
+	\hat f^{(\al)}_m = (2i\pi m)^\al \hat f_m
+}
+Here $\hat f$ denotes Fourier coefficients as in~\eqref{eq-defn-fourier-coeffs}, now on $\RR/\ZZ$ rather than $\RR/2\pi\ZZ$:
+\eq{
+	\hat f_n \eqdef \int_0^1 e^{-2\imath\pi n x} f(x) \d x, 
+}
+This motivates the homogeneous Sobolev seminorm
+\eql{\label{eq-sobolev-norm}
+	\norm{f}_{\text{Sob}(\al)}^2 = \sum_{m \in \ZZ} |2\pi m|^{2\al} |\dotp{f}{e_m}|^2,
+}
+so that $\norm{f}_{\text{Sob}(\al)} = \norm{f^{(\al)}}$ for smooth periodic functions. The same seminorm applies when the derivatives exist only in the distributional sense and belong to $\Ldeux([0,1])$.
+
+This definition extends to distributions and signals $f \in \Ldeux([0,1]^d)$ of arbitrary dimension $d$ as
+\eql{\label{eq-sobolev-norm-highdim}
+	\norm{f}_{\text{Sob}(\al)}^2 = \sum_{m \in \ZZ^d} (2\pi \norm{m})^{2\al} |\dotp{f}{e_m}|^2,
+}
+
+The periodic Sobolev model
+\eql{\label{eq-sobolev-model}
+	\Th = \enscond{f \in \Ldeux([0,1]^d)}{ \norm{f}_2^2+\norm{f}_{\text{Sob}(\al)}^2\leq C }
+}
+includes the corresponding periodic $C^\alpha$ model~\eqref{eq-smooth-model} for integer $\alpha$, after adjusting the radius of the ball. For noninteger $\alpha$, H\"older regularity gives Sobolev regularity of every order $s<\alpha$, but need not give regularity of order $\alpha$ itself.
+
+Figure \ref{fig-signal-model-sobolev} shows images with an increasing Sobolev norm for $\al=2$.
+
+\myfigure{
+\image{approximation}{.5}{signal-model-sobolev}
+}{ 
+	Images with increasing Sobolev norm.  
+}{fig-signal-model-sobolev}
+
+
+                                           
+\subsection{Piecewise Regular Signals and Images}
+
+  
+\paragraph{Piecewise smooth signals.}
+
+A piecewise smooth 1-D signal $f \in \Ldeux([0,1])$ is $\Cal$ on the intervals separated by at most $K$ interior singular points:
+\eql{\label{eq-model-piece-smooth}
+	\Th = \enscond{f \in \Ldeux([0,1])}{ \exists\,0=t_0<t_1<\cdots<t_{K+1}=1,\quad\max_{0\leq i\leq K}\norm{f|_{(t_i,t_{i+1})}}_{\Cal}\leq C }
+}
+Here $f|_{(t_i,t_{i+1})}$ denotes the restriction of $f$ to the open interval $(t_i,t_{i+1})$.
+
+  
+\paragraph{Piecewise smooth images.}
+
+A piecewise smooth image is a function $f \in \Ldeux([0,1]^2)$ with $\Cal$ regularity away from at most $K$ rectifiable curves:
+\eql{\label{eq-model-piece-smooth-2d}
+	\Th = \enscond{f \in \Ldeux([0,1]^2)}{ \exists \, \Ga=\bigcup_{i=0}^{K-1}\ga_i, \;
+	\norm{f}_{\Cal(\Ga^c)} \leq C_1 \qandq
+	|\ga_i| \leq C_2
+	 }	 
+}
+Here $|\ga_i|$ denotes curve length. The $C^\alpha$ bound applies separately within each smooth region, with uniform one-sided regularity up to its edges.
+
+Segmentation methods such as the one proposed by Mumford and Shah \cite{mumford-shah} implicitly assume such a piecewise smooth image model.
+
+                                           
+\subsection{Bounded Variation Signals and Images}
+\label{subsec-bv-model}
+
+Bounded variation provides a more flexible model for signals with edges
+\eql{\label{eq-model-tv}
+	\Th=\enscond{f\in\Ldeux([0,1]^d)}{ \normi{f} \leq C_1 \qandq \normTV{f} \leq C_2 }.
+}
+For $d=1$ and $d=2$, this model includes the piecewise smooth signal and image models~\eqref{eq-model-piece-smooth} and~\eqref{eq-model-piece-smooth-2d} when $\alpha\geq1$, after adjusting the constants. Bounds on the derivatives, jump sizes, and total edge length then control the variation.
+
+The total variation of a smooth function is 
+\eq{
+	\int \norm{\nabla f(x)} \d x
+} 
+where 
+\eq{
+	\nabla f(x) = \pa{ \frac{\partial f}{\partial x_i}  }_{i=0}^{d-1} \in \RR^d
+} 
+is the gradient at $x$. Total 

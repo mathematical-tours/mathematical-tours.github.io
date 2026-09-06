@@ -1,0 +1,74 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+\section{Application to ODEs and PDEs}
+\label{sec-fourier-pdes}
+
+                                                
+\subsection{On Continuous Domains}
+
+We give the main calculations, leaving analytic details of existence and regularity aside.
+
+On $\XX=\RR$ or $\TT$, one has
+\eq{
+	\Ff( f^{(k)} )(\om) = (\imath \om)^k \hat f(\om). 
+}
+Intuitively, $f^{(k)} = f \star \de^{(k)}$ where $\de^{(k)}$ is a distribution with Fourier transform $\hat \de^{(k)}(\om) = (\imath \om)^k$. 
+ 
+Similarly on $\XX=\RR^d$ (see Section~\ref{sec-fourier-multiple-dim} for the definition of the Fourier transform in dimension $d$), one has
+\eql{\label{eq-lapl-fourier}
+	\Ff(\Delta f)(\om) = -\norm{\om}^2 \hat f(\om)
+}
+The same identity holds on $\TT^d$, with $\om$ replaced by $n \in \ZZ^d$.
+ 
+Fourier transforms and Fourier coefficients provide a powerful tool for studying linear differential equations with constant coefficients by turning them into algebraic equations.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-heat}
+\caption{Heat diffusion as a convolution.}
+\label{fig-heat}
+\end{figure}
+
+As a typical example, we consider the heat equation
+\eq{
+	\frac{\partial f_t}{\partial t} = \Delta f_t
+	\qarrq
+	\foralls \om, \quad \frac{\partial \hat f_t(\om)}{\partial t} = -\norm{\om}^2 \hat f(\om).
+}
+Hence $\hat f_t(\om) = \hat f_0(\om) e^{-\norm{\om}^2 t}$. Applying the inverse Fourier transform and the convolution theorem gives
+\eq{
+	f_t = G_t \star f_0 \qwhereq
+	G_t=\frac{1}{(4\pi t)^{d/2}} e^{-\frac{\norm{x}^2}{4t}}
+}
+On $\RR^d$, $G_t$ is a Gaussian density with standard deviation $\sqrt{2t}$ in each direction. On the torus, periodize this kernel and adjust its mass to the chosen Haar normalization.
+
+
+                                                
+\subsection{Finite Domain and Discretization}
+
+On $\ZZ/N\ZZ$, corresponding to a discrete periodic domain, consider the forward first difference and the centered second difference:
+\begin{align}\label{eq-disc-diff-1}
+	D_1 f &\eqdef N(f_{n+1}-f_n)_n=f\star d_1\qwhereq d_1=N[-1,0,\ldots,0,1]^\top \in \RR^N, \\
+	\label{eq-disc-diff-2}
+	D_2 f=-D_1^\top D_1 f & \eqdef N^2 (f_{n+1}+f_{n-1}-2f_n)_n = f \star d_2 \qwhereq d_2=-d_1\star\bar d_1=N^2[-2,1,0,\ldots,0,1]^\top \in \RR^N.
+\end{align}
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-finite-difference-spectrum}
+\caption{Comparison of the spectra of $\De$ and $D_2$.}
+\label{fig-review-fourier-finite-difference-spectrum}
+\end{figure}
+Thanks to Proposition~\ref{prop-tfd-conv}, one can equivalently compute
+\eql{\label{eq-fft-lapl}
+	\Ff( D_2 f ) = \hat d_2 \odot \hat f
+	\qwhereq
+	(\hat d_2)_k = N^2 ( e^{\piN k}+e^{-\piN k} - 2 ) = -4N^2 \sin\pa{\frac{\pi k}{N}}^2.
+}
+Here $\bar d_1[n]=d_1[-n]$ denotes periodic reflection. For fixed nonzero $k$ and $N\to\infty$, one has $(\hat d_2)_k \sim -(2\pi k)^2$ which matches the scaling of~\eqref{eq-lapl-fourier}.
+
+
+                                                
+                                                
+                                                
+\section{A Bit of Group Theory}
+
+The reference for this sec

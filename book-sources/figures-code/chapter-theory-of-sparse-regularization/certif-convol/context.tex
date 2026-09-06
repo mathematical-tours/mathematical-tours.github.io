@@ -1,0 +1,88 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+arse-theory-convolution-spikes}
+\caption{Convolution operator.}
+\label{fig-spikes}
+\end{figure}
+
+
+
+A closely related example uses $\phi(z)=(e^{\imath k z})_{k=-f_c}^{f_c}$ on $\XX=\TT$, so that $\Aa$ corresponds to computing the $2f_c+1$ low-frequency coefficients of the Fourier transform of the measure
+\eq{
+	\Aa(m) = \pa{ \int_\TT e^{\imath k x} \d m(x) }_{k=-f_c}^{f_c}.
+}
+The operator $\Aa^*\Aa$ is a convolution against an ideal low-pass (Dirichlet) kernel. By weighting the Fourier coefficients, one can model low-pass filters on the torus.
+
+On $\XX=\RR^+$, another example is the Laplace transform:
+\eq{
+	\Aa(m) = z \mapsto \int_{\RR^+} e^{-x z} \d m(x).
+}
+
+Define the continuous covariance kernel by
+\eq{
+	\foralls (z,z') \in \XX^2, \quad
+	\Cc(z,z') \eqdef \dotp{\phi(z)}{\phi(z')}_{\Hh}.
+}
+The function $\Cc$ is the kernel of $\Aa^* \Aa$.
+ 
+The discrete covariance, defined on the computational grid, is $C=(\Cc(z_i,z_{i'}))_{i,i'} \in \RR^{N \times N}$, while its restriction to some support set $I$ is $C_{I,I}=(\Cc(z_i,z_{i'}))_{(i,i')\in I^2}\in\RR^{|I|\times|I|}$.
+
+By~\eqref{eq-eta-f-cov}, the vector $\eta_F$ samples the continuous precertificate $\tilde\eta_F$ on the grid:
+\eq{
+	\eta_F = ( \tilde\eta_F(z_i) )_{i=1}^N \in \RR^N, 
+}
+\eql{\label{eq-etaf-cont}
+	\qwhereq \tilde\eta_F(x) = \sum_{i \in I} b_i \Cc(x,z_i) \qwhereq b_I = C_{I,I}^{-1} \sign(x_{0,I}), 
+}
+Thus $\eta_F$ samples a linear combination of $|I|$ kernel functions $(\Cc(x,z_i))_{i \in I}$.
+
+The question is whether $\norm{\eta_F}_{\ell^\infty} \leq 1$. Along increasingly dense grids, continuity implies that a uniform bound on the sampled certificate requires $\norm{\tilde\eta_F}_{L^\infty}\leq1$. A finite grid may miss an overshoot between samples. The construction constrains $\tilde\eta_F$ only to interpolate $\sign(x_{0,i})$ at support points $z_i$; it does not prevent the function from leaving $[-1,1]$ nearby. Figure~\ref{fig-certif-convol} illustrates this fact.
+
+
+In one dimension, a certificate bounded in magnitude by one must satisfy $\eta'(z_i)=0$ at every interior support point $i \in I$, where it already interpolates the sign. Adding these necessary conditions gives the minimum-norm precertificate with vanishing derivatives:
+\eql{\label{eq-vanishing-precertif}
+ \tilde\eta_V=\Aa^*p_V,\qquad
+ p_V=\uargmin{p\in\Hh}\enscond{\norm{p}_\Hh}{
+ (\Aa^*p)(z_i)=\sign(x_{0,i}),\quad
+ (\Aa^*p)'(z_i)=0\quad(i\in I)}.
+}
+Here we restrict to a one-dimensional domain and assume that the interpolation constraints are independent. The adjoint is $(\Aa^*p)(z)=\langle\phi(z),p\rangle_\Hh$, and $\eta_V=(\tilde\eta_V(z_i))_{i=1}^N$. A derivative constraint alone does not ensure $|\tilde\eta_V|\leq1$; this bound must be checked separately.
+As in~\eqref{eq-etaf-cont}, this precertificate is a linear combination of kernel functions, now with $2|I|$ terms:
+\eq{
+	\tilde\eta_V(x) = \sum_{i \in I} b_i \Cc(x,z_i) + c_i \partial_2\Cc(x,z_i), 
+}
+where $\partial_2\Cc$ is the derivative of $\Cc$ with respect to the second variable, and $(b,c)$ solve a $2|I| \times 2|I|$ linear system
+\eq{
+	\begin{pmatrix} b \\ c \end{pmatrix} 
+	= 
+	\begin{pmatrix}
+		(\Cc(z_i,z_{i'}))_{i,i' \in I^2} & (\partial_2\Cc(z_i,z_{i'}))_{i,i' \in I^2} \\
+		(\partial_1\Cc(z_i,z_{i'}))_{i,i' \in I^2} & (\partial_1\partial_2\Cc(z_i,z_{i'}))_{i,i' \in I^2}
+	\end{pmatrix}^{-1}
+	\begin{pmatrix} \sign(x_{0,I}) \\ \zeros_I \end{pmatrix} .
+}
+ 
+Evaluating $\tilde\eta_V=\Aa^*p_V$ on the reconstruction grid gives the discrete precertificate $\eta_V$.
+ 
+Figure~\ref{fig-certif-convol} shows better behavior of $\eta_V$ than of $\eta_F$. If $\norm{\eta_V}_\infty\leq1$ and $A$ is injective on its saturation set, Theorem~\ref{thm-linrate-l1} gives a linear rate in the grid-based $\ell^2$ norm. As the grid is refined, however, this coefficient $\ell^2$ norm does not provide an intrinsic distance between spike measures, which need not have $L^2$ densities.
+ 
+When $\eta_V$ differs from $\eta_F$, one cannot directly apply Theorem~\ref{thm-support-stable}: exact support stability on increasingly fine grids can fail in super-resolution problems.
+ 
+Methods without a fixed grid provide a more suitable framework for such stability results. In a grid-free formulation, a valid vanishing-derivative precertificate coincides with the minimum-norm certificate under the corresponding interpolation and nondegeneracy assumptions. This leads to stability results for spike locations and amplitudes, rather than a fixed-grid coefficient norm.
+
+
+
+
+\begin{figure}
+\centering
+  
+\begin{tabular}{@{}c@{}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/certif-convol/etaV-N3-d40}&
+\includegraphics[width=.35\linewidth]{sparse-theory/certif-convol/etaV-N3-d50}\\
+\includegraphics[width=.35\linewidth]{sparse-theory/certif-convol/etaV-N3-d60}&
+\includegraphics[width=.35\linewidth]{sparse-theory/certif-convol/etaV-N3-d80}
+\end{tabular}
+  
+\caption{\label{fig-certif-convol}
+Continuous representations of the precertificates $\eta_F$ and $\eta_V$ for a convolution operator $A$.
+}
+\end{figure}

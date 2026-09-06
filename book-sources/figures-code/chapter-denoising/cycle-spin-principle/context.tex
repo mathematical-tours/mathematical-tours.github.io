@@ -1,0 +1,84 @@
+% Context from chapters/denoising.tex; for mathematical reference, not compilation.
+.63}{max-gaussian-std-corrected}
+}{ 
+	Empirical mean (top) and standard deviation (bottom) of the largest absolute Gaussian noise coefficient. 
+}{fig-max-gaussian-mean}
+
+
+  
+\paragraph{Asymptotic optimality.}
+
+Donoho and Johnstone~\cite{donoho-shrinkage} showed that the universal threshold $T = \si \sqrt{2 \log(N)}$ gives a risk bound for signals that admit accurate nonlinear approximations in $\{\psi_m\}_m$. The risk is within a logarithmic factor of an ideal coefficient-selection risk.
+
+
+\begin{thm}\label{thm-nonlinear-denoising}
+Let $N\geq2$ and $Y=f_0+w$, with $w\sim\mathcal N(0,\sigma^2I_N)$, in a real orthonormal basis. Hard or soft thresholding~\eqref{eq-hard-soft-thresh} with
+\eq{T=\sigma\sqrt{2\ln N}}
+satisfies an oracle inequality of the form
+\eq{
+ \mathbb E\norm{f_0-\tilde f^q}^2
+ \leq C_0(1+\ln N)\left[\sigma^2+\min_{0\leq M\leq N}\left(\norm{f_0-f_{0,M}^{\mathrm{nlin}}}^2+M\sigma^2\right)\right],
+}
+where $C_0$ is an absolute constant and $f_{0,M}^{\mathrm{nlin}}$ retains the $M$ largest clean coefficients. In particular, if $\norm{f_0-f_{0,M}^{\mathrm{nlin}}}^2\leq CM^{-2\beta}$ for $1\leq M\leq N$, with $\beta>0$, then for $0<\sigma\leq1$,
+\eq{\mathbb E\norm{f_0-\tilde f^q}^2\leq C'(1+\ln N)\sigma^{4\beta/(2\beta+1)},}
+where $C'$ depends on $C$ and $\beta$.
+\end{thm}
+
+The oracle inequality is a standard Gaussian thresholding bound; see~\cite{donoho-shrinkage}. The rate follows by balancing $CM^{-2\beta}$ and $M\sigma^2$, with integer rounding and truncation at $N$ as in Theorem~\ref{thm-linear-denoising}. The added $\sigma^2$ term accounts for residual noise even at the zero signal.
+
+The universal threshold $T=\sigma\sqrt{2\ln N}$ is conservative: it suppresses nearly all pure-noise coefficients. The smaller thresholds illustrated in Figure~\ref{fig-wavthresh-2d} often give better SNR in these experiments.
+
+                                                     
+\subsection{Translation Invariant Thresholding Estimators}
+
+  
+\paragraph{Translation invariance.}
+
+Let $f\mapsto\tilde f=\Dd(f)$ be a denoising method, and $f_\tau(x) = f(x-\tau)$ be a translated signal or image for $\tau \in \RR^d$ ($d=1$ or $d=2$).
+The denoiser is translation invariant on the shift lattice $\De$ if
+\eq{ 
+	\foralls \tau \in \De, \quad \Dd(f) = \Dd(f_\tau)_{-\tau}
+}
+where $\De$ is a lattice of $\RR^d$. A denser shift lattice imposes equivariance at finer spatial resolution.
+This corresponds to the fact that $\Dd$ commutes with the translation operator.
+\begin{center}
+	\image{denoising}{.3}{cycle-spin-principle}
+\end{center}
+Translation invariance on a sufficiently fine set $\De$ prevents the denoiser from favoring particular feature locations. Without it, the same feature may be reconstructed differently depending on where it appears, producing visible artifacts.
+
+For denoising by thresholding 
+\eq{
+	\Dd(f) = \sum_m S_T( \dotp{f}{\psi_m} ) \psi_m.
+}
+a sufficient condition is invariance of the basis $\{\psi_m\}_m$ under shifts in $\De$, up to unit-modulus factors:
+\eq{
+	\foralls m',\ \foralls\tau\in\De,\ \exists m, \: \exists \la \in \CC,  \quad \quad (\psi_{m'})_\tau = \la \psi_m
+}
+where $|\la|=1$.
+
+On the periodic domain, the Fourier basis is invariant under every shift $\De=\RR^d$ of $[0,1]^d$. The discrete Fourier basis is invariant under all integer shifts $\De=\{0,\ldots,N_0-1\}^d$, where $N=N_0$ counts samples in one dimension and $N=N_0 \times N_0$ counts pixels in two dimensions.
+
+Unfortunately, an orthogonal wavelet basis 
+\eq{
+	\{\psi_m = \psi_{j,n} \}_{j,n}
+}
+is generally not invariant under arbitrary shifts in either the continuous or discrete setting. For instance, in 1-D,
+\eq{
+	(\psi_{j',n'})_{\tau} \notin \{ \psi_{j,n} \} \qforq \tau=2^{j\prime}/2.
+}
+
+  
+\paragraph{Cycle spinning.}
+
+For a finite group $\De$ of periodic shifts, average the shifted, denoised, and realigned outputs of $\Dd$ to obtain a translation-invariant estimator:
+\eql{\label{eq-cycle-spinning}
+	\Dd_{\text{inv}}(f) = \frac{1}{|\De|} \sum_{\tau \in \De} \Dd( f_{\tau} )_{-\tau}.
+}
+One checks that
+\eq{ 
+	\foralls \tau \in \De, \quad \Dd_{\text{inv}}(f) = \Dd_{\text{inv}}(f_\tau)_{-\tau}
+}
+To obtain translation invariance at pixel precision for data with $N$ samples, one should use a set of $|\De|=N$ translation vectors. For wavelets, this requires $O(N^2)$ operations.
+
+Figure \ref{fig-wavthresh-2d-soft-ti} applies cycle spinning to hard thresholding in an orthogonal wavelet basis, using the following shifts:
+$\De = \{ 0, 1/N_0, 2/N_0, 3/N_0 \}^2$ on 

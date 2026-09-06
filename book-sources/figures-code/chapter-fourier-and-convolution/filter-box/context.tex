@@ -1,0 +1,77 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+\section{Convolution on \texorpdfstring{$\RR$ and $\TT$}{the Line and the Circle}}
+
+                                                
+\subsection{Convolution}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-convolution}
+\caption{Convolution on $\RR$. The dashed curve is $f\star g$; the marked value $(f\star g)(x)$ equals the shaded integral.}
+\label{fig-review-fourier-convolution}
+\end{figure}
+On $\XX=\RR$ or $\TT$, one defines 
+\eql{\label{eq-convol-1d}
+	f \star g(x) = \int_\XX f(t) g(x-t) \d t. 
+}
+Here and throughout this section, integrals use Lebesgue measure on $\RR$ and normalized Haar measure $\d t/(2\pi)$ on $\TT$. With this convention, Young's inequality states that, for $1\leq p,q,r\leq\infty$ and $(f,g)\in L^p(\XX)\times L^q(\XX)$,
+\eql{\label{eq-young-convol}
+	\frac{1}{p}+\frac{1}{q}=1+\frac{1}{r} \qarrq
+	f \star g \in L^r(\XX) \qandq 
+	\norm{f\star g}_{L^r(\XX)} \leq \norm{f}_{L^p(\XX)}\norm{g}_{L^q(\XX)}.
+}
+In particular, convolution by $f\in L^1(\XX)$ defines a bounded linear map from $L^p(\XX)$ to itself. When $r=\infty$ and $1<p,q<\infty$, the convolution $f\star g$ has a bounded continuous representative, illustrating its regularizing effect.
+ 
+On the circle, $p<q \qarrq L^q(\TT) \subset L^p(\TT)$, so $L^\infty(\XX)$ is contained in every space in this scale.
+
+
+\myfigure{
+\BookDrawing{tikz/fourier-running-average}
+}{ 
+	Signal filtering with a box filter (running average).   
+}{fig-filter-box}
+
+Convolution can regularize functions. For instance, if $f \in L^1(\XX)$ and $g\in C^1(\XX)$ is bounded with bounded derivative, then $f \star g$ is differentiable and $(f \star g)'=f \star g'$. To construct an approximate identity, choose a smooth compactly supported $\rho\geq0$ with $\int_\RR\rho=1$ and set $\rho_\epsilon(x)=\epsilon^{-1}\rho(x/\epsilon)$. Then $f\star\rho_\epsilon\to f$ in $L^p(\RR)$ for $1\leq p<\infty$, and uniformly for bounded uniformly continuous $f$. On the circle, use $2\pi\sum_{k\in\ZZ}\rho_\epsilon(\cdot-2\pi k)$, whose integral against normalized Haar measure is one.
+ 
+This smoothing effect is also useful for denoising signals and images.
+
+
+\myfigure{
+\image{fourier}{.6}{filtering-1d-1}\\
+\image{fourier}{.6}{filtering-1d-2}\\
+\image{fourier}{.6}{filtering-1d-3}
+}{ 
+	Filtering an irregular signal with Gaussian filters of increasing width $\si$.  
+}{fig-filtering-1d}
+
+   
+\begin{prop}
+If $f,g\in L^1(\XX)$, then
+\eql{\label{eq-convol-fourier}
+	\Ff(f \star g) = \hat f \odot \hat g.
+}
+For $\XX=\RR$, $\odot$ denotes pointwise multiplication of the continuous Fourier transforms.
+For $\XX=\TT$, $\odot$ acts on bounded Fourier-coefficient sequences (pointwise multiplication of sequences).
+\end{prop}
+
+
+           
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-convolution-fourier}
+\caption{How the Fourier transform converts convolution into multiplication.}
+\label{fig-review-fourier-convolution-fourier}
+\end{figure}
+This means that $\Ff$ is an algebra homomorphism. For instance, if $\XX=\RR$, its range lies in the algebra of continuous functions that vanish at $\pm\infty$.
+
+As shown in Figure~\ref{fig-splines}, successive convolutions of a box function produce cardinal splines: piecewise polynomials of increasing smoothness.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-splines}
+\caption{Cardinal splines are defined by successive convolutions.}
+\label{fig-splines}
+\end{figure}
+
+
+Convolution also describes the sum of indepen

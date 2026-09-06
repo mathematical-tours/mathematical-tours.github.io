@@ -1,0 +1,83 @@
+% Context from chapters/sparse-regularization.tex; for mathematical reference, not compilation.
+\section{Sparsity Priors}
+
+                                                                      
+\subsection{Ideal Sparsity Prior}
+
+Chapter \ref{chap-approximation} shows that an orthonormal basis $\Bb = \{ \psi_m \}_m$ adapted to an image class $\Th$ can approximate each $f\in\Th$ using relatively few atoms.
+
+The $\lzero$ prior measures representation complexity by counting the nonzero coefficients:
+\eq{
+	\Jz(f) \eqdef \#\enscond{m}{\dotp{f}{\psi_m} \neq 0}
+	\qwhereq
+	x_m = \dotp{f}{\psi_m}.
+}
+This count is also called the $\lzero$ pseudonorm:
+\eq{
+	\normz{x} \eqdef \Jz(f).
+}
+It measures sparsity directly, without accounting for the magnitudes of the nonzero coefficients.
+
+Natural images usually have many nonzero coefficients, but can often be approximated by a function $f_M$ with a small count $M=\Jz(f_M)$. Retaining coefficients above a threshold gives a best $M$-term approximation, with $M$ determined by that threshold:
+\eq{
+	f_M = \sum_{ |\dotp{f}{\psi_m}|>T } \dotp{f}{\psi_m} \psi_m
+	\qwhereq
+	M = \#\enscond{m}{|\dotp{f}{\psi_m}|>T}.
+}
+For suitable wavelet bases and the bounded-variation image classes specified in Section \ref{sec-signal-models}, the error $\norm{f-f_M}$ satisfies quantitative decay estimates. These estimates motivate approximating natural images $f$ by functions with small $\Jz$.
+
+Figure \ref{fig-sparsity-wav} displays a natural image in the wavelet basis $\psi_m = \psi_{j,n}^\om$, indexed by $m=(j,n,\om)$. Most coefficients $\dotp{f}{\psi_m}$ have small magnitude, so retaining the few large coefficients captures much of the image.
+
+\myfigure{
+\tabdeux{
+\image{variational}{.3}{sparsity-image}&
+\image{variational}{.3}{sparsity-wav}\\
+Image $f$ & Coefficients $\dotp{f}{\psi_m}$
+}
+}{ 
+    Most wavelet coefficients of a natural image have small magnitude.
+}{fig-sparsity-wav}
+
+
+                                                                      
+\subsection{Convex Relaxation}
+
+The ideal sparsity prior $\Jz$ is nonconvex, which makes optimization difficult. For example, if $f$ and $g$ have disjoint nonempty coefficient supports in $\Bb$, then $\Jz( (f+g)/2 ) = \Jz(f)+\Jz(g)$, violating convexity of $\Jz$.
+
+In a general inverse problem, minimizing $\Jz$ entails a combinatorial search over possible coefficient supports.
+
+To approximate the ideal prior $\Jz$, consider the $\ell^q$ family with $q>0$:
+\eq{
+	J_q(f) = \displaystyle \sum_m |\dotp{f}{\psi_m}|^q.
+}
+As shown in Figure \ref{fig-sparsity-lq}, the unit balls in $\RR^2$ become concentrated near the coordinate axes as $q\downarrow0$. For each fixed finite-dimensional vector, $J_q(f)\to\Jz(f)$; the limiting shape of these bounded unit balls should not be confused with the unbounded set $\{x:\norm{x}_0\leq1\}$. Small values of $q$ favor sparsity.
+
+
+\myfigure{
+\image{variational}{1}{sparsity-lq-balls}
+}{ 
+	$\ell^q$ balls $\enscond{x}{J_q(x) \leq 1}$ for varying $q$.
+}{fig-sparsity-lq}
+
+
+The prior $J_q$ is convex exactly when $q \geq 1$. The smallest exponent yielding a convex prior, $q=1$, gives the $\lun$ prior $\Ju$:
+\eql{\label{eq-dfn-lun-prior}
+	\Ju(f) = \norm{(\dotp{f}{\psi_m})}_1 = \sum_m |\dotp{f}{\psi_m}|.
+}
+In the following, we consider discrete orthonormal bases $\Bb = \{\psi_m\}_{m=0}^{N-1}$ of $\RR^N$.
+
+
+                                                                      
+\subsection{Sparse Regularization and Thresholding}
+
+Given an orthonormal basis $\{\psi_m\}_m$ of $\RR^N$, regularization-based denoising \eqref{eq-regul-denoising} can be written using the sparsity priors $\Jz$ and $\Ju$ as
+\eq{
+	f^\star \in \uargmin{g \in \RR^N} \frac{1}{2} \norm{f-g}^2 + \la J_q(g)
+}
+for $q=0$ or $q=1$, writing $J_0=\Jz$. Orthonormality separates the objective into coefficientwise terms:
+\eq{
+	f^\star = \sum_m x^\star_m \psi_m
+}
+\eq{
+	\qwhereq
+	x^{\star} \in \uargmin{y \in \RR^N} \sum_m

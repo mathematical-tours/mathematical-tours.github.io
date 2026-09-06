@@ -1,0 +1,121 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+\section{Convolution on \texorpdfstring{$\RR$ and $\TT$}{the Line and the Circle}}
+
+                                                
+\subsection{Convolution}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-convolution}
+\caption{Convolution on $\RR$. The dashed curve is $f\star g$; the marked value $(f\star g)(x)$ equals the shaded integral.}
+\label{fig-review-fourier-convolution}
+\end{figure}
+On $\XX=\RR$ or $\TT$, one defines 
+\eql{\label{eq-convol-1d}
+	f \star g(x) = \int_\XX f(t) g(x-t) \d t. 
+}
+Here and throughout this section, integrals use Lebesgue measure on $\RR$ and normalized Haar measure $\d t/(2\pi)$ on $\TT$. With this convention, Young's inequality states that, for $1\leq p,q,r\leq\infty$ and $(f,g)\in L^p(\XX)\times L^q(\XX)$,
+\eql{\label{eq-young-convol}
+	\frac{1}{p}+\frac{1}{q}=1+\frac{1}{r} \qarrq
+	f \star g \in L^r(\XX) \qandq 
+	\norm{f\star g}_{L^r(\XX)} \leq \norm{f}_{L^p(\XX)}\norm{g}_{L^q(\XX)}.
+}
+In particular, convolution by $f\in L^1(\XX)$ defines a bounded linear map from $L^p(\XX)$ to itself. When $r=\infty$ and $1<p,q<\infty$, the convolution $f\star g$ has a bounded continuous representative, illustrating its regularizing effect.
+ 
+On the circle, $p<q \qarrq L^q(\TT) \subset L^p(\TT)$, so $L^\infty(\XX)$ is contained in every space in this scale.
+
+
+\myfigure{
+\BookDrawing{tikz/fourier-running-average}
+}{ 
+	Signal filtering with a box filter (running average).   
+}{fig-filter-box}
+
+Convolution can regularize functions. For instance, if $f \in L^1(\XX)$ and $g\in C^1(\XX)$ is bounded with bounded derivative, then $f \star g$ is differentiable and $(f \star g)'=f \star g'$. To construct an approximate identity, choose a smooth compactly supported $\rho\geq0$ with $\int_\RR\rho=1$ and set $\rho_\epsilon(x)=\epsilon^{-1}\rho(x/\epsilon)$. Then $f\star\rho_\epsilon\to f$ in $L^p(\RR)$ for $1\leq p<\infty$, and uniformly for bounded uniformly continuous $f$. On the circle, use $2\pi\sum_{k\in\ZZ}\rho_\epsilon(\cdot-2\pi k)$, whose integral against normalized Haar measure is one.
+ 
+This smoothing effect is also useful for denoising signals and images.
+
+
+\myfigure{
+\image{fourier}{.6}{filtering-1d-1}\\
+\image{fourier}{.6}{filtering-1d-2}\\
+\image{fourier}{.6}{filtering-1d-3}
+}{ 
+	Filtering an irregular signal with Gaussian filters of increasing width $\si$.  
+}{fig-filtering-1d}
+
+   
+\begin{prop}
+If $f,g\in L^1(\XX)$, then
+\eql{\label{eq-convol-fourier}
+	\Ff(f \star g) = \hat f \odot \hat g.
+}
+For $\XX=\RR$, $\odot$ denotes pointwise multiplication of the continuous Fourier transforms.
+For $\XX=\TT$, $\odot$ acts on bounded Fourier-coefficient sequences (pointwise multiplication of sequences).
+\end{prop}
+
+
+           
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-convolution-fourier}
+\caption{How the Fourier transform converts convolution into multiplication.}
+\label{fig-review-fourier-convolution-fourier}
+\end{figure}
+This means that $\Ff$ is an algebra homomorphism. For instance, if $\XX=\RR$, its range lies in the algebra of continuous functions that vanish at $\pm\infty$.
+
+As shown in Figure~\ref{fig-splines}, successive convolutions of a box function produce cardinal splines: piecewise polynomials of increasing smoothness.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-splines}
+\caption{Cardinal splines are defined by successive convolutions.}
+\label{fig-splines}
+\end{figure}
+
+
+Convolution also describes the sum of independent random variables. Writing $f_X$ for the probability density of a random vector $X$ with respect to Lebesgue measure, independence of $X$ and $Y$ gives $f_{X+Y}=f_X \star f_Y$. This identity is fundamental in probability and statistics.
+
+
+\texttt{Associated code: fourier/test\_denoising.m and fourier/test\_fft2.m}
+
+                                                
+\subsection{Translation Invariant Operators}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-translation-inv}
+\caption{Commutative diagram for translation invariance.}
+\label{fig-review-fourier-translation-inv}
+\end{figure}
+Translation-invariant operators commute with translations. In signal and image processing, they apply the same rule at every location.
+
+The following propositions characterize translation-invariant operators as convolutions against kernels that may be distributions. The term ``translation equivariant'' is more precise: translating the input translates the output by the same amount.
+ 
+The kernel\textquotesingle s regularity depends on the topologies of the input and output spaces, so the proof differs between the two settings below.
+ 
+We begin with operators whose outputs are continuous functions.
+
+\begin{prop}
+	We define $T_\tau f = f(\cdot-\tau)$.
+	 
+	A bounded linear operator $H : (L^2(\XX),\norm{\cdot}_2) \rightarrow (C_b(\XX),\norm{\cdot}_\infty)$ commutes with every translation, meaning that for all $\tau$, $H \circ T_\tau = T_\tau \circ H$, if and only if
+	\eq{
+		\foralls f \in L^2(\XX), \quad H(f) = f \star g
+	}
+	with $g \in L^2(\XX)$.
+\end{prop}
+
+Formally, the identity $f=f\star\delta$ suggests that $Hf=f\star H\delta$ for a translation-invariant operator. Since $H\delta$ need not be defined under the present hypotheses, the following argument uses bounded evaluation functionals instead.
+
+\begin{proof}
+	By~\eqref{eq-young-convol} and the continuity result for $r=\infty$, the convolution operator $H : f \mapsto f \star g$ with $g \in L^2(\XX)$ is bounded from $L^2(\XX)$ to $C_b(\XX)$. Moreover,
+	\eq{
+		(H \circ T_\tau)(f) = \int_\XX f( (\cdot-\tau)-y) g(y) \d y = (f \star g)(\cdot-\tau) = T_\tau (Hf),
+	}
+	so that such an $H$ is translation-invariant. 
+	
+	
+	Conversely, we define $\ell : f \mapsto H(f)(0) \in \CC$, which is well defined since $H(f) \in \Cc^0(\XX)$.
+	 
+	Continuity of $H$ gives a constant $C$ such that $\norm{Hf}_\infty \leq C \norm{f}_2$, hence $|\ell(f)| \leq C \norm{f}_2$. Thus $\ell$ is a continuous linear functional on the Hilbert space $L^2(\XX)$. By the Fr\'echet--Riesz theorem, there exists $h \in L^2(\XX)$ such that $\ell(f)=\dotp{f}{h}

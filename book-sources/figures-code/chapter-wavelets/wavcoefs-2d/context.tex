@@ -1,0 +1,180 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+iso-1}&
+\image{wavelets}{.36}{wavalgo-2d-aniso-2}\\
+Image $f$ & Row transform & Column transform.
+}
+}{ 
+	Steps of the anisotropic wavelet transform.  
+}{fig-wavalgo-2d-aniso}
+
+                                                   
+\subsection{Isotropic Wavelets}\label{sec-isotropic-wav}
+
+The anisotropic atoms~\eqref{eq-aniso-wav} have independent scales in the two coordinate directions. For compactly supported wavelets, their supports lie in axis-aligned rectangles of size proportional to $2^{j_1}\times2^{j_2}$. This directional bias can produce visible artifacts in denoising and compression when it does not match the image geometry.
+
+\myfigure{
+\image{wavelets}{.3}{wavcoefs-iso-aniso-2}
+\image{wavelets}{.3}{wavecoefs-iso-aniso-1}
+}{ 
+	Anisotropic (left) versus isotropic (right) wavelet coefficients.  
+}{fig-wavecoefs-iso}
+
+An alternative uses a common scale in both directions. Tensor products of one-dimensional approximation spaces give a two-dimensional multiresolution
+\eq{
+	L^2(\RR^2) \supset \ldots \supset V_{j-1} \otimes V_{j-1} \supset V_j \otimes V_j \supset V_{j+1} \otimes V_{j+1} \supset \ldots \supset \{0\}.
+}
+We write
+\eq{
+	V_j^O \eqdef V_j \otimes V_j
+} 
+for this isotropic 2-D approximation space.
+
+Recall that the tensor product of two closed subspaces $V_1,V_2\subset L^2(\RR)$ is
+\eq{
+	V_1 \otimes V_2 = \text{Closure}\pa{ \Span\enscond{f_1(x_1)f_2(x_2) \in L^2(\RR^2)}{ f_1 \in V_1, f_2 \in V_2 } }.
+}
+If $(\phi_k^s)_k$ are orthonormal bases of $V_s$, their tensor products $(\phi_{k_1}^1(x_1)\phi_{k_2}^2(x_2))_{k_1,k_2}$ form an orthonormal basis of $V_1 \otimes V_2$.
+
+The tensor product distributes over these orthogonal sums
+\eq{
+		( V_j \oplus^\bot W_j) \otimes ( V_j \oplus^\bot W_j)
+		= 
+		V_j^O \oplus^\bot W_j^V\oplus^\bot W_j^H\oplus^\bot W_j^D
+		\qwhereq
+		\choice{
+		W_j^V \eqdef (V_j \otimes W_j), \\
+		W_j^H \eqdef (W_j \otimes V_j),  \\
+		W_j^D \eqdef (W_j \otimes W_j).
+		}
+}
+The labels $\{V,H,D\}$ stand for \textit{Vertical, Horizontal, Diagonal} detail spaces.
+ 
+The following diagram summarizes the nested spaces and their detail components:
+\begin{center}
+	\image{wavelets}{.8}{embeded-spaces-2d}
+\end{center}
+
+For $j \in \ZZ$, translates of a mother wavelet span each detail space. We index them by $n=(n_1,n_2)\in\ZZ^2$, or by indices in $\{0,\ldots,2^{-j}-1\}^2$ on the torus $\TT^2$:
+\eq{
+	\foralls \om \in \{V,H,D\}, \quad
+	W_j^\om = 
+	\text{Span}\{ \psi_{j,n_1,n_2}^\om \}_{n_1,n_2}
+}
+where
+\eq{
+	\foralls \om \in \{V,H,D\}, \quad
+	\psi_{j,n_1,n_2}^{\om}(x) = \frac{1}{2^j}\psi^\om\pa{ \frac{x_1-2^j n_1}{2^j}, \frac{x_2-2^j n_2}{2^j} }
+}
+and where the three mother wavelets are
+\eq{
+	\psi^H(x)=\psi(x_1)\phi(x_2),\quad
+	\psi^V(x)=\phi(x_1)\psi(x_2), \qandq
+	\psi^D(x)=\psi(x_1)\psi(x_2).
+}
+Here the span is closed in $L^2$ on an unbounded domain; on the torus, the wavelets are periodized. Figure~\ref{fig-wavelets-2d} displays examples of these wavelets.
+
+\myfigure{
+\tabquatre{
+\image{wavelets}{.24}{wavelets-2d-1}&
+\image{wavelets}{.24}{wavelets-2d-2}&
+\image{wavelets}{.24}{wavelets-2d-3}&
+\image{wavelets}{.24}{wavelets-2d-support-corrected}\\
+$\psi^H$ & $\psi^V$ & $\psi^D$ & Support
+}
+}{ 
+	2-D wavelets and a schematic support centered at $(2^j n_1,2^j n_2)$, with width $K2^j$ (right). 
+}{fig-wavelets-2d}
+
+
+  
+\paragraph{Haar 2-D multiresolution.}
+
+The 2-D Haar construction gives piecewise constant approximations: functions in $V_j \otimes V_j$ are constant on squares of size $2^j \times 2^j$. Figure~\ref{fig-multires-2d-haar} shows the corresponding projections of an image.
+
+\myfigure{
+\image{wavelets}{.24}{multires-2d-haar-0}
+\image{wavelets}{.24}{multires-2d-haar-1}
+\image{wavelets}{.24}{multires-2d-haar-2}
+\image{wavelets}{.24}{multires-2d-haar-3}
+}{ 
+	2-D Haar approximation $P_{V_j^O}f$ for increasing $j$.  
+}{fig-multires-2d-haar}
+
+  
+\paragraph{Discrete 2-D wavelet coefficients.}
+
+As in~\eqref{eq-hyp-wav-samples}, assume that acquisition provides inner products of the continuous signal $f$ with scaling functions at scale $2^J$, with $N=2^{-J}$ samples per direction:
+\eq{
+	\foralls n\in \{0,\ldots,N-1\}^2, \quad a_{J,n}=\dotp{f}{(\phi_{J,n_1}\otimes\phi_{J,n_2})^P}
+}
+Discrete wavelet coefficients are defined as
+\eq{
+	\foralls \om \in \{V,H,D\}, \; \foralls J < j \leq 0, \; \foralls 0 \leq n_1,n_2 < 2^{-j}, \quad
+	d_{j,n}^\om = \dotp{ f }{ \psi_{j,n}^{\om} } .
+}
+Here the wavelets are periodized.
+ 
+Approximation coefficients are defined as
+\eq{
+	a_{j,n}=\dotp{f}{(\phi_{j,n_1}\otimes\phi_{j,n_2})^P}.
+}
+
+\myfigure{
+\image{wavelets}{.3}{wavcoefs-2d-original}
+\image{wavelets}{.42}{wavcoefs-2d-coefs}
+}{ 
+	2-D wavelet coefficients.  
+}{fig-wavcoefs-2d}
+
+Figure~\ref{fig-wavcoefs-2d} shows how the wavelet coefficients are arranged in an image of $N^2$ pixels.
+ 
+Figure~\ref{fig-wavcoefs-example} shows other examples of wavelet decompositions.
+
+\myfigure{
+\tabtrois{
+\image{wavelets}{.3}{wavcoefs-example-square}&
+\image{wavelets}{.3}{wavcoefs-example-boat}&
+\image{wavelets}{.3}{wavcoefs-example-mandrill}\\
+\image{wavelets}{.3}{wavcoefs-example-square-coefs}&
+\image{wavelets}{.3}{wavcoefs-example-boat-coefs}&
+\image{wavelets}{.3}{wavcoefs-example-mandrill-coefs}
+}
+}{ 
+	Images (top) and their wavelet coefficients (bottom). 
+}{fig-wavcoefs-example}
+
+  
+\paragraph{One step of the forward 2-D transform.}
+
+Each step separates fine-scale approximation coefficients into three detail arrays and a coarse approximation:
+\eq{
+	a_{j-1} \longmapsto (a_j, d_j^H, d_j^V, d_j^D).
+}
+As in one dimension, this map is orthogonal. It is implemented by applying the filtering and sub-sampling formula~\eqref{eq-convol-subsample} in each coordinate direction.
+
+One first applies 1-D horizontal filtering and sub-sampling
+\eqm{
+	\tilde a_j &= ( a_{j-1} \star^H \bar h ) \downarrow^H 2\\
+	\tilde d_j &= (a_{j-1}\star^H\bar g) \downarrow^H 2,
+}
+where $\star^H$ denotes convolution along the first coordinate (called horizontal here), applied to each column of the array
+\eq{
+	a \star^H b_{n_1,n_2} = \sum_{m_1=0}^{P-1} a_{n_1-m_1,n_2} b_{m_1}
+}
+Here $a\in\CC^{P\times P}$ is a matrix and $b\in\CC^P$ is a filter. The notation $\downarrow^H 2$ denotes sub-sampling in the horizontal direction
+\eq{
+	(a \downarrow^H 2)_{n_1,n_2} = a_{2n_1,n_2}.
+}
+
+One then applies 1-D vertical filtering and sub-sampling to $\tilde a_j$ and $\tilde d_j$ to obtain
+\eqm{
+	\begin{array}{ll}
+	a_j &=  ( \tilde a_j \star^V \bar h ) \downarrow^V 2,\\
+	d_j^V &= ( \tilde a_j \star^V \bar g ) \downarrow^V 2,
+	\end{array}\qquad	
+	\begin{array}{ll}
+	d_j^H &= ( \tilde d_j \star^V \bar h ) \downarrow^V 2,\\
+	d_j^D &= ( \tilde d_j \star^V \bar g ) \downarrow^V 2,
+	\end{array}
+}
+where the verti

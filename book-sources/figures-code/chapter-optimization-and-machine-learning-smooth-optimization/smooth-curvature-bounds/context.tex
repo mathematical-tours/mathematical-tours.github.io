@@ -1,0 +1,155 @@
+% Context from chapters/sec-optim-smooth.tex; for mathematical reference, not compilation.
+ k} \leq \frac{1}{4k}.
+	\end{align*}
+\end{proof}	
+	
+
+
+
+                                                                                  
+\subsection{General Case}
+
+We now extend the convergence analysis to general smooth convex functions.
+ 
+The Hessian replaces the constant matrix $C$ of a quadratic objective.
+
+   
+\paragraph{Hessian.}
+
+For a twice continuously differentiable function, the Hessian matrix is
+\eq{
+	(\partial^2 f)(x) = \pa{ \frac{\partial^2 f(x)}{\partial x_i \partial x_j} }_{1 \leq i,j \leq p} \in \RR^{p \times p}.
+}	
+Each entry differentiates the $i$th component of the gradient with respect to the $j$th coordinate. Equality of mixed partial derivatives makes $\partial^2 f(x)$ symmetric.
+
+Twice differentiability of $f$ at $x$ implies the Taylor expansion
+\eql{\label{eq-taylor-hess}
+	f(x+\epsilon) = f(x) + \dotp{\nabla f(x)}{\epsilon} + \frac{1}{2} \dotp{\partial^2 f(x) \epsilon}{\epsilon}
+	+ o(\norm{\epsilon}^2).
+}
+Thus $f$ has a local quadratic approximation near $x$.
+ 
+The Hessian is the unique symmetric matrix in this expansion. If an expansion has the form below with a symmetric matrix $H$,
+\eq{
+	f(x+\epsilon) = f(x) + \dotp{\nabla f(x)}{\epsilon} + \frac{1}{2} \dotp{H \epsilon}{\epsilon}
+	+ o(\norm{\epsilon}^2).
+}
+comparison with~\eqref{eq-taylor-hess} identifies $\partial^2 f(x)=H$, avoiding separate computation of all $p^2$ partial derivatives.
+ 
+Equivalently, differentiate the gradient:
+\eq{
+	\nabla f(x+\epsilon) = \nabla f(x) + [\partial^2 f(x)](\epsilon) + o(\norm{\epsilon})
+}
+where $[\partial^2 f(x)](\epsilon) \in \RR^p$ is the product of the Hessian $\partial^2 f(x)$ with $\epsilon$.
+
+A twice differentiable function $f$ on $\RR^p$ is convex exactly when, at every $x$, the Hessian $\partial^2 f(x)$ is positive semidefinite.
+  
+Positive definiteness everywhere implies strict convexity of $f$, but is not necessary: $x^4$ is strictly convex on $\RR$ although its second derivative vanishes at $x=0$.
+
+For a quadratic objective $f(x)=\frac12\dotp{Cx}{x}-\dotp{x}{u}$, the gradient $\nabla f(x) = Cx-u$ gives the constant Hessian $\partial^2 f(x) = C$.
+ 
+For the classification function, one has 
+\eq{
+	\nabla f(x) = -A^\top \diag(y) \nabla L( -\diag(y) Ax). 
+}
+and thus
+\begin{align*}
+	\nabla f(x+\epsilon) &= -A^\top \diag(y) \nabla L( -\diag(y) Ax-\diag(y)A\epsilon)  \\
+		&= \nabla f(x)  -A^\top \diag(y) [\partial^2 L( -\diag(y) Ax)]( -\diag(y) A\epsilon) + o(\norm{\epsilon})
+\end{align*}
+Since $\nabla L(u) = (\ell'(u_i))$ one has $\partial^2 L(u)=\diag(\ell''(u_i))$. This means that 
+\eq{
+	\partial^2 f(x) = A^\top \diag(y) \times \diag( \ell''(-\diag(y) Ax) ) \times \diag(y) A.
+}
+This matrix is symmetric positive semidefinite when $\ell$ is convex, because $\ell''$ is nonnegative.
+
+\begin{rem}[Second order optimality condition]
+The Hessian can classify a stationary point $x^\star$ with $\nabla f(x^\star)=0$. If $\partial^2 f(x^\star)$ is positive definite, then $x^\star$ is a strict local minimizer.
+ 
+Positive semidefiniteness of $\partial^2 f(x^\star)$ alone does not classify the point; for example, $x^3$ on $\RR$ has a vanishing Hessian at its stationary inflection point.
+ 
+Conversely, if $x^\star$ is a local minimum, then $\partial^2 f(x^\star)$ is positive semidefinite.
+\end{rem}
+
+\begin{rem}[Second order algorithms]
+The Hessian also yields second-order methods such as Newton's method. These can converge faster locally than gradient descent, at a greater cost per iteration. A variable-metric gradient step has the form
+\eq{
+	x_{k+1} = x_k - H_k \nabla f(x_k)
+}
+where $H_k \in \RR^{p \times p}$ is symmetric positive definite. Gradient descent uses $H_k=\tau_k \Id_p$; Newton's method uses $H_k=[\partial^2 f(x_k)]^{-1}$ when the Hessian is positive definite.
+ 
+Note that
+\eq{
+	f(x_{k+1})=f(x_k)-\dotp{H_k \nabla f(x_k)}{\nabla f(x_k)} + o(\norm{H_k \nabla f(x_k)}).
+}
+Positive definiteness of $H_k$ ensures that, if $x_k$ is nonstationary with $\nabla f(x_k)\neq0$, then $\dotp{H_k \nabla f(x_k)}{\nabla f(x_k)}>0$.
+ 
+Scaling $H_k$ sufficiently small therefore guarantees descent, $f(x_{k+1}) < f(x_k)$.
+ 
+We do not develop second-order algorithms further here.
+\end{rem}
+
+For convergence analysis, uniform Hessian bounds play the role of the spectral bounds on $C$ in the quadratic case. We require these bounds on $\partial^2 f(x)$ at every $x$.
+ 
+Integrating these local bounds yields global inequalities that support an analysis similar to the quadratic one.
+
+
+   
+\paragraph{Smoothness and strong convexity.}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/smooth-curvature-bounds}
+\caption{Quadratic upper and lower bounds for a smooth strongly convex function.}
+\label{fig-review-smooth-curvature-bounds}
+\end{figure}
+For $L>0$, quantify the smoothness of $f$ by requiring an $L$-Lipschitz gradient:
+\eql{\label{eq-lipsch-grad}\tag{$\Rr_L$}
+	\foralls (x,x') \in (\RR^p)^2, \quad
+	\norm{ \nabla f(x)-\nabla f(x') } \leq L \norm{x-x'}. 
+}
+A linear convergence guarantee for the iterates follows from a uniform lower curvature bound. We impose this by assuming that $f$ is $\mu$-strongly convex
+\eql{\label{eq-strong-conv}\tag{$\Ss_\mu$}
+	\foralls (x,x')\in (\RR^p)^2, \quad
+	\dotp{\nabla f(x)-\nabla f(x')}{ x-x' } \geq \mu \norm{x-x'}^2. 
+}
+For $\Cc^2$ functions, these conditions are equivalent to uniform Hessian bounds.
+
+\begin{prop}\label{prop-smooth-strong}
+Conditions~\eqref{eq-lipsch-grad} and~\eqref{eq-strong-conv} imply
+\eql{\label{eq-above-below-quad}
+	\foralls (x,x'), \quad
+	f(x')+\dotp{\nabla f(x')}{x-x'}+\frac{\mu}{2}\norm{x-x'}^2
+	\leq
+	f(x) 
+	\leq 
+	f(x')+\dotp{\nabla f(x')}{x-x'}+\frac{L}{2}\norm{x-x'}^2.
+}
+If $f$ is of class $\Cc^2$, conditions~\eqref{eq-lipsch-grad} and~\eqref{eq-strong-conv} are equivalent to
+\eql{\label{eq-upper-lower-bound-hess}
+	\foralls x, \quad \mu \Id_{p}  \preceq \partial^2 f(x) \preceq L \Id_{p}
+}
+where $\partial^2 f(x)\in\RR^{p\times p}$ is the Hessian and $\preceq$ denotes the semidefinite order:
+\eq{
+	A \preceq B \quad\Longleftrightarrow\quad
+	\foralls u\in\RR^p,\quad\dotp{Au}{u} \leq \dotp{B u}{u}.
+}
+\end{prop}
+
+\begin{proof}
+	We prove~\eqref{eq-above-below-quad}, using Taylor expansion with integral remainder
+	\eq{
+		f(x') - f(x) = \int_0^1 \dotp{\nabla f(x_t)}{x'-x} \d t
+		= \dotp{\nabla f(x)}{x'-x} + \int_0^1 \dotp{\nabla f(x_t)-\nabla f(x)}{x'-x} \d t		
+	}
+	where $x_t \eqdef x+t(x'-x)$.
+	 
+	Using Cauchy--Schwarz, and then the smoothness hypothesis~\eqref{eq-lipsch-grad}
+	\eq{
+		f(x') - f(x) \leq \dotp{\nabla f(x)}{x'-x} +  \int_0^1 L \norm{x_t-x} \norm{x'-x} \d t
+		\leq \dotp{\nabla f(x)}{x'-x} +  L \norm{x'-x}^2 \int_0^1  t  \d t
+	} 
+	which is the desired upper-bound. Using directly~\eqref{eq-strong-conv} gives 
+	\eq{
+		f(x') - f(x) 
+		= \d

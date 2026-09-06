@@ -4,7 +4,7 @@
 \chapter{Shannon Coding Theory}
 \label{sec-shannon}
 
-\chapteroverview{A sequence of symbols can often be stored using fewer bits when its probabilities and dependencies are taken into account. The challenge is to reduce the expected length while keeping every message unambiguously recoverable. Prefix codes and entropy lead to Shannon's source coding bound; Huffman's construction, block coding, and models of dependent symbols then show how coding methods approach that bound.}
+\chapteroverview{A sequence of symbols can often be stored using fewer bits when its probabilities and dependencies are taken into account. The challenge is to reduce the expected length while keeping every message unambiguously recoverable. Prefix codes and entropy lead to Shannon's source coding bound; Huffman's construction and block coding show how to approach it. Empirical block counts connect these bounds to finite texts, while models of dependent symbols reveal further compression gains.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Source Coding}
@@ -33,13 +33,12 @@ A code is a prefix code if no codeword is a prefix of another. Equivalently, the
 We write $c=\text{Leaves}(T)$ for this tree representation.
 
 
-\myfigure{
-\image{1-shannon}{.35}{tree/prefix-coding}
-\qquad
-\image{1-shannon}{.35}{tree/tree-example}
-}{%
-Left: the complete tree of binary words of length 3. Right: a prefix code.
-}{fig-tree-prefix}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-shannon-coding-theory/tree-prefix/proposed.pdf}
+\caption{Left: the complete tree of binary words of length 3. Right: a prefix code.}
+\label{fig-tree-prefix}
+\end{figure}
 
 To decode a binary stream, follow its bits down the tree. Upon reaching a leaf, output the corresponding symbol and return to the root. The prefix property makes this decoding unambiguous.
 
@@ -53,7 +52,12 @@ Let $p=(p_1,\ldots,p_K)\in\RR_+^K$ be the symbol probability vector, with $\sum_
 %
 In practice, one often estimates $p_k$ from the relative frequency of $\Symb_k$ in the data. The decoder must also know the resulting code, either from a shared model or from a transmitted description.
 
-\wrapf{1-shannon/entropie/entropie-fonction}{The concave function $h(u)=-u\log_2u$ underlying entropy.}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-shannon-coding-theory/the-concave-function-underlying-entropy/proposed.pdf}
+\caption{The concave function $h(u)=-u\log_2u$ underlying entropy.}
+\label{fig-audit-shannon-coding--the-concave-function-underlying-entropy}
+\end{figure}
 
 The entropy of the probability distribution $p$ is
 \eq{
@@ -65,19 +69,17 @@ For $h(u)=-u\log_2u$ and $u>0$, one has $h'(u)=-(\ln u+1)/\ln2$ and $h''(u)=-1/(
 
 For a probability density $f$ with respect to a reference measure $\d x$, such as Lebesgue measure on $\RR^d$, differential entropy is defined by $H(f)\eqdef-\int f(x)\log_2(f(x))\,\d x$, whenever this integral is defined. Unlike discrete entropy, it can be negative and depends on the reference measure.
 
-\myfigure{
-\tabtrois{
-\includegraphics[width=.25\linewidth]{1-shannon/entropie/histo-1}&
-\includegraphics[width=.25\linewidth]{1-shannon/entropie/histo-3}&
-\includegraphics[width=.25\linewidth]{1-shannon/entropie/histo-sub}\\
-$H(p)=0$ & $H(p)=\log_2(2)=1$ &  $H(p) = 1.62$
-}
-}{Three examples of probability distributions with corresponding entropies.}{fig-histo-entropy}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-shannon-coding-theory/histo-entropy/proposed.pdf}
+\caption{Three examples of probability distributions with corresponding entropies in bits.}
+\label{fig-histo-entropy}
+\end{figure}
 
 
 \begin{figure}[tbp]
 \centering
-\BookDrawing{tikz/coding-entropy-extrema}
+\BookDrawing{chapter-shannon-coding-theory/entropy-extrema/original/coding-entropy-extrema.pdf}
 \caption{Entropy is minimized at a point mass and maximized at the uniform distribution. Left: level sets of the entropy formula in the positive quadrant and the constraint $p_1+p_2=1$. Middle: its restriction to that constraint. Right: entropy level sets on the three-symbol probability simplex.}
 \label{fig-entropy-extrema}
 \end{figure}
@@ -116,7 +118,7 @@ We seek a prefix code minimizing $L(c)$.
 %
 Shannon's source coding theorem bounds the optimal expected length in terms of entropy.
 
-\begin{thm}
+\begin{thm}\label{thm-shannon-source-coding}
 Assume $p_k>0$ for every symbol in the alphabet. Symbols of zero probability may be omitted.
 	(i) If $c=\text{Leaves}(T)$ for some tree $T$, then 
 	\eq{
@@ -154,10 +156,10 @@ Kraft's inequality characterizes the possible codeword lengths of a prefix code 
 	\begin{figure}[tbp]
 \centering
 {\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
-\BookDrawing{tikz/coding-kraft-necessity}
+\BookDrawing{chapter-shannon-coding-theory/kraft-trees/original/coding-kraft-necessity.pdf}
 \par\medskip
 {\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
-\BookDrawing{tikz/coding-kraft-sufficiency}
+\BookDrawing{chapter-shannon-coding-theory/kraft-trees/original/coding-kraft-sufficiency.pdf}
 \caption{Panel 1: full binary tree obtained by completing the tree associated with the code $(c_1=0, c_2=10, c_3=110, c_4=111)$.
 	Panel 2: subtrees with the prescribed codeword lengths packed from left to right.}
 \label{fig-kraft-trees}
@@ -192,10 +194,20 @@ For a one-symbol alphabet, the empty word has length zero and the same conclusio
 This proof is constructive: rounding the ideal lengths and using Kraft's lemma yields a Shannon code. It need not minimize $L(c)$. Huffman's greedy algorithm constructs an optimal binary prefix code by repeatedly merging the two least probable symbols. With a priority queue, its cost is $O(K\log K)$. Figure~\ref{fig-huff-code} illustrates the construction.
 
 
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-shannon-coding-theory/huff-code/proposed.pdf}
+\caption{Successive merges in Huffman's coding algorithm.}
+\label{fig-huff-code}
+\end{figure}
+
 \texttt{Associated code: coding/test\_text.m}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Probabilistic Modeling}
+
+\subsection{Block Coding}
+\label{sec-shannon-block-coding}
 
 Symbol-by-symbol prefix coding may be inefficient when one symbol has probability close to one: its ideal length $-\log_2p_k$ is then below one bit, whereas a nontrivial prefix code uses at least one bit per symbol. A remedy is to group $r$ consecutive symbols into blocks and code the resulting alphabet of size $K^r$.
 
@@ -215,12 +227,87 @@ with equality if and only if the symbols within the block are independent. For $
 }
 Modeling dependence can therefore reduce the expected length further. For a stationary source on a finite alphabet, the block entropies are subadditive, so the entropy rate $\lim_{r\to\infty}H(P)/r$ exists. This rate is the asymptotic lower bound on the expected number of bits per symbol.
 
-\myfigure{
-\includegraphics[width=.8\linewidth]{1-shannon/huff-code}
-}{Successive merges in Huffman's coding algorithm.}{fig-huff-code}
+
+\subsection{Empirical Block Coding}
+\label{sec-shannon-empirical-blocks}
+
+The same entropy bound has a finite-text counterpart. Fix a text $x_1\cdots x_N$ over the alphabet $\mathcal A=\{\Symb_1,\ldots,\Symb_K\}$, and assume $N=mr$ with $m,r\geq1$. Split it into $m$ non-overlapping blocks of length $r$:
+\eq{
+ B_s=(x_{(s-1)r+1},\ldots,x_{sr})\in\mathcal A^r,
+ \qquad s=1,\ldots,m.
+}
+Define the empirical symbol and block distributions by counting occurrences:
+\begin{align}
+ \label{eq-empirical-symbol-distribution}
+ \hat p(a)&=\frac1N\sum_{i=1}^N\mathbf1_{\{x_i=a\}},
+ &&a\in\mathcal A,\\
+ \label{eq-empirical-block-distribution}
+ \hat P(w)&=\frac1m\sum_{s=1}^m\mathbf1_{\{B_s=w\}},
+ &&w\in\mathcal A^r.
+\end{align}
+These distributions describe the fixed text; no assumption on how it was generated is needed.
+
+For each position $t\in\{1,\ldots,r\}$ within a block, let
+\eq{
+ \hat q_t(a)=\frac1m\sum_{s=1}^m\mathbf1_{\{x_{(s-1)r+t}=a\}}
+ =\sum_{w:w_t=a}\hat P(w).
+}
+Thus $\hat q_t$ is the $t$-th marginal of $\hat P$. The position marginals need not coincide, but every symbol occurrence contributes to exactly one of them. Consequently,
+\eql{\label{eq-empirical-average-marginal}
+ \hat p=\frac1r\sum_{t=1}^r\hat q_t.
+}
+
+\begin{prop}[Empirical block entropy]\label{prop-empirical-block-entropy}
+For every fixed text and every block length $r$ dividing $N$,
+\eql{\label{eq-empirical-block-entropy}
+ H(\hat P)\leq\sum_{t=1}^rH(\hat q_t)\leq rH(\hat p).
+}
+\end{prop}
+
+\begin{proof}
+Consider the product of the position marginals,
+\eq{
+ Q=\hat q_1\otimes\cdots\otimes\hat q_r,
+ \qquad Q(w)=\prod_{t=1}^r\hat q_t(w_t).
+}
+If $\hat P(w)>0$, then $\hat q_t(w_t)>0$ for every $t$, so $Q(w)>0$. Relative entropy is therefore finite. Expanding $\log_2 Q(w)$ and summing over each coordinate gives
+\begin{align*}
+ 0\leq\mathrm{KL}(\hat P\mid Q)
+ &=\sum_{w:\hat P(w)>0}\hat P(w)\log_2\frac{\hat P(w)}{Q(w)}\\
+ &=-H(\hat P)+\sum_{t=1}^rH(\hat q_t).
+\end{align*}
+This proves the first inequality. For the second, concavity of entropy and the counting identity~\eqref{eq-empirical-average-marginal} yield
+\eq{
+ \frac1r\sum_{t=1}^rH(\hat q_t)
+ \leq H\!\left(\frac1r\sum_{t=1}^r\hat q_t\right)
+ =H(\hat p).
+}
+\end{proof}
+
+The first inequality is an equality exactly when $\hat P=Q$; the second is an equality exactly when all position marginals equal $\hat p$. Hence $H(\hat P)=rH(\hat p)$ holds exactly when $\hat P=\hat p^{\otimes r}$.
+
+\begin{exmp}[Position frequencies and dependence]
+For the binary text $01010101$ and $r=2$, the symbol distribution is $\hat p=(1/2,1/2)$, while $\hat q_1=(1,0)$ and $\hat q_2=(0,1)$. Every block is $01$, so $H(\hat P)=0$ although $rH(\hat p)=2$. This shows why one must average the position marginals rather than identify each of them with $\hat p$.
+
+For the text $0011$ and $r=2$, both position marginals equal $(1/2,1/2)$, but only the blocks $00$ and $11$ occur. The dependence within each block gives $H(\hat P)=1<2=H(\hat q_1)+H(\hat q_2)$.
+\end{exmp}
+
+\paragraph{Encoded length of the fixed text.}
+For a prefix code $c$ on the observed blocks, the actual number of encoded bits is
+\eq{
+ \ell_{\mathrm{text}}(c)=\sum_{s=1}^m|c(B_s)|
+ =m\sum_{w:\hat P(w)>0}\hat P(w)|c(w)|.
+}
+Applying Theorem~\ref{thm-shannon-source-coding} to $\hat P$ shows that every such code satisfies $\ell_{\mathrm{text}}(c)\geq mH(\hat P)$, and that some code satisfies
+\eql{\label{eq-empirical-block-code-length}
+ \frac{\ell_{\mathrm{text}}(c)}{N}
+ <\frac{H(\hat P)}{r}+\frac1r
+ \leq H(\hat p)+\frac1r.
+}
+This bounds the actual average number of bits per symbol for the given text, at every admissible block length. The decoder is assumed to know the block code, $r$, and $N$; any transmitted codebook or message-length description adds to this length. In particular, when only one distinct block occurs, its empty codeword can be decoded because the number of blocks is known.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{Mismatched probability models.}
+\subsection{Mismatched Probability Models}
 
 For ideal real-valued lengths based on a model $q$, the excess expected length is the relative entropy, also called the Kullback--Leibler divergence. For $q_k>0$ whenever $p_k>0$, this excess is
 \eq{
@@ -234,20 +321,12 @@ After lengths are rounded to integers, the difference between the expected lengt
 
 A memoryless code based on the marginal distribution cannot have expected length below the marginal entropy. Dependent data, however, can be coded more efficiently by modeling their joint distribution. An invertible transformation of the discrete symbols can make the dependence easier to encode while preserving their joint entropy. For example, consecutive samples of a smooth signal often have small differences. Figure~\ref{fig-codage-differences} illustrates coding these differences instead of the original values. The initial sample must also be retained to make the transformation invertible.
 
-\myfigure{
-\includegraphics[width=.8\linewidth]{1-shannon/differences/differences}
-%
-\tabtrois{
-\includegraphics[width=.25\linewidth]{1-shannon/differences/histo-pix}&
-\includegraphics[width=.25\linewidth]{1-shannon/differences/histo-diff}&
-\includegraphics[width=.2\linewidth]{1-shannon/differences/arbre-difference}\\
-$H(p) \approx 1.54, L(c) \approx 1.67 $ & $H(p) \approx 0.61, L(c) \approx 1.16 $ & Code tree
-}
-}{Top: transformation by successive differences.
-%
-Bottom: comparison of histograms of pixel values and differences, and a code tree for these differences.
-%
-}{fig-codage-differences}
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{chapter-shannon-coding-theory/codage-differences/proposed.pdf}
+\caption{Difference coding. From left to right: the signal, its first differences, the corresponding histograms, and a code tree for the differences.}
+\label{fig-codage-differences}
+\end{figure}
 
 Another way to exploit temporal redundancy is run-length coding: each maximal run of identical symbols is represented by the symbol and the run length, which can itself be entropy-coded. Its performance depends on how the run lengths and transitions are modeled.
 

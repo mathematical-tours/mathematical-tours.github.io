@@ -1,0 +1,142 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+tisfies the empty-cap property: the spherical cap bounded by a triangle's circumcircle contains no signed column $\pm a_j$ in its interior.
+ 
+Figure~\ref{fig-polytopes} illustrates these conclusions in $\RR^2$ and $\RR^3$.
+
+
+\begin{figure}
+\centering
+  
+\begin{tabular}{@{}c@{}c@{\hspace{3mm}}c@{}}
+\includegraphics[width=.35\linewidth]{sparse-theory/polytopes/polytopes-32-1}&
+\includegraphics[width=.35\linewidth]{sparse-theory/polytopes/polytopes-32-2}&
+\includegraphics[width=.25\linewidth]{sparse-theory/polytopes/polytopes-3d}\\
+$A\in \RR^{2\times 3}$& $A\in \RR^{2\times 3}$ & $A\in \RR^{3\times N}$
+\end{tabular}
+  
+\caption{\label{fig-polytopes}
+The linear map $A$ projects the $\ell^1$ ball $B$; the nonlinear recovery map $\Aa$ selects solutions of~\eqref{eq-lasso-constr}.
+}
+\end{figure}
+
+                                                                                  
+\subsection{Optimality Conditions}
+
+For an index set $I \subset \{1,\ldots,N\}$, write $A=(a_i)_{i=1}^N$ for the columns of $A$ and $A_I \eqdef (a_i)_{i \in I} \in \RR^{P \times |I|}$ for the corresponding submatrix. For a vector $x \in \RR^N$, write $x_I \eqdef (x_i)_{i \in I} \in \RR^{|I|}$ for its restriction.
+
+The following proposition rephrases the first-order optimality conditions in a convenient form.
+
+\begin{prop}\label{prop-first-order-lagr}
+	$x_\la$ is a solution to~\eqref{eq-lasso-lagr} for $\la>0$ if and only if
+	\eq{
+		\eta_{\la,I} = \sign(x_{\la,I})
+		\qandq
+		\norm{\eta_{\la,I^c}}_\infty \leq 1
+	}
+	where we define
+	\eql{\label{eq-defn-eta-lamb}
+		I\eqdef \supp(x_\la) \eqdef \enscond{i}{ x_{\la,i} \neq 0 }, 
+		\qandq	\eta_\la \eqdef \frac{1}{\la}A^*(y-Ax_\la).
+	}
+\end{prop}
+\begin{proof}
+The objective in~\eqref{eq-lasso-lagr} is the sum of a differentiable convex function and a continuous convex penalty. The subdifferential sum rule gives
+\eq{
+	\partial f_\la(x) = \frac{1}{\la}A^*(Ax-y)  + \partial\norm{\cdot}_1(x).
+} 
+Thus $x_\la$ is a solution to~\eqref{eq-lasso-lagr} if and only if $0 \in \partial f_\la(x_\la)$, which gives the desired result.
+\end{proof}
+
+In particular, $\supp(x_\la) \subset \sat(\eta_\la)$, where $\sat(\eta)=\{i:|\eta_i|=1\}$ is the saturation set.
+
+For the constrained case $\la=0$, the next proposition introduces dual certificates arising from the Lagrange multipliers associated with $\Ll_y$.
+
+\begin{prop}\label{prop-first-order-constr}
+	$x^\star$ solves~\eqref{eq-lasso-constr} if and only if $Ax^\star=y$ and
+	\eql{\label{eq-defn-dual-certif}
+		\exists \eta \in \Dd_0(y,x^\star) \eqdef \Im(A^*) \cap \partial \norm{\cdot}_1(x^\star).
+	}
+\end{prop}
+\begin{proof}
+The norm penalty in~\eqref{eq-lasso-constr} is continuous, so the subdifferential sum rule gives
+\eq{
+	\partial f_0(x) = \partial \iota_{\Ll_y}(x) + \partial\norm{\cdot}_1(x).
+}
+If $x \in \Ll_y$, then $\partial \iota_{\Ll_y}(x)$ is the normal space to the affine set $\Ll_y$, i.e. $\ker(A)^\bot=\Im(A^*)$.
+\end{proof}
+
+Every valid certificate satisfies $\supp(x^\star) \subset \sat(\eta)$, for $\eta\in \Dd_0(y,x^\star)$.
+
+Writing $I=\supp(x^\star)$, one thus has
+\eq{
+	\Dd_0(y,x^\star) = \enscond{ \eta = A^* p }{
+		\eta_I = \sign(x^\star_I), \:
+		\norm{\eta}_\infty \leq 1
+	}.
+}
+Although the notation $\Dd_0(y,x^\star)$ involves a particular solution $x^\star$, the set of certificates is the same for every primal solution. The duality argument below explains this independence.
+
+                                                                                  
+\subsection{Uniqueness}
+
+The next proposition shows that at least one minimizer uses linearly independent columns of $A$. It does not assert that every minimizer has this property.
+
+\begin{prop}
+	For $\lambda>0$, there is a solution $x^\star$ to~\eqref{eq-lasso-lagr} whose support $I$ satisfies $\ker(A_I)=\{0\}$. The same holds for~\eqref{eq-lasso-constr} when it is feasible.
+\end{prop}
+
+\begin{proof}
+Let $x$ be a minimizer and $I=\supp(x)$. If $A_I$ is not injective, choose a nonzero $h_I\in\ker(A_I)$ and extend it by zero outside $I$. Along the interval containing $t=0$ on which $x+th$ retains the sign of $x$, the fidelity is constant and the $\ell^1$ norm is affine. Optimality at the interior point $t=0$ forces its slope to vanish. Move to a finite endpoint of this interval, where at least one coefficient becomes zero. Continuity shows that the endpoint is still a minimizer and has smaller support. Repeating the argument terminates after finitely many steps at a minimizer with injective $A_I$.
+\end{proof}
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/sparse-theory-injectivity}
+\caption{Coefficient trajectories along a support-reducing direction.}
+\label{fig-review-sparse-theory-injectivity}
+\end{figure}
+ 
+If the columns of $A_I$ on a minimizer's support are linearly dependent, the proof constructs another minimizer. Thus that solution of~\eqref{eq-lasso-lagr} is nonunique.
+
+For a solution $x_\la$ with $\ker(A_I)=\{0\}$, the optimality condition for~\eqref{eq-lasso-lagr} gives the implicit formula
+\eql{\label{eq-local-shape-lasso}
+	x_{\la,I} = A_I^+ y - \la (A_I^*A_I)^{-1} \sign(x_{\la,I}).
+}
+This expression generalizes soft thresholding (which is recovered when $A=\Id_N$).
+
+Although the coefficient vector $x_\la$ may not be unique, its fitted data $Ax_\la$, also called the predictor, are unique.
+ 
+Multiplying~\eqref{eq-local-shape-lasso} by the restricted measurement matrix gives
+\eql{\label{eq-local-predictor-lasso}
+	A x_{\la} = \Proj_{\Im(A_I)} y - \la A_I (A_I^*A_I)^{-1} \sign(x_{\la,I}).
+}
+Thus, up to an $O(\la)$ bias, this predictor is an orthogonal projection onto a low-dimensional subspace indexed by $I$.
+
+
+\begin{lem}\label{lem-unique-predict}
+	For $\lambda>0$, if $x_1,x_2$ solve~\eqref{eq-lasso-lagr}, then $Ax_1=Ax_2$. For the feasible constrained problem~\eqref{eq-lasso-constr}, both predictors equal $y$.
+\end{lem}
+\begin{proof}
+    For $\la=0$, feasibility gives $Ax_1=Ax_2=y$. Otherwise, suppose $Ax_1 \neq Ax_2$ and set $x=(x_1+x_2)/2$. Convexity gives
+	\eq{
+		\norm{x}_1 \leq \frac{ \norm{x_1}_1 + \norm{x_2}_1 }{2}
+		\qandq
+		\norm{Ax-y}^2 < \frac{ \norm{Ax_1-y}^2 + \norm{Ax_2-y}^2 }{2}		
+	}
+    where strict convexity of the squared Euclidean norm makes the second inequality strict. Hence
+	\eq{
+		\frac{1}{2\la}\norm{Ax-y}^2 +\norm{x}_1 <
+		\frac{1}{2\la}\norm{Ax_1-y}^2 +\norm{x_1}_1, 
+	}
+    contradicting the optimality of $x_1$.
+\end{proof}
+
+
+\begin{prop}\label{sec-prop-uniquness-lagr}
+ 	For $\la>0$, let $x_\la$ be a solution to~\eqref{eq-lasso-lagr} and denote $\eta_\la \eqdef \frac{1}{\la}A^*(y-A x_\la)$.
+	 
+	We define the ``extended support'' as 
+	\eq{
+		J \eqdef \sat(\eta_\la) \eqdef \enscond{i}{|\eta_{\la,i}|=1}.
+	}
+	If $\ker(A_{J})=\{0\}$ then $x

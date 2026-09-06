@@ -1,0 +1,116 @@
+% Context from chapters/deep-learning.tex; for mathematical reference, not compilation.
+\section{Deep Architectures}
+\label{sec-deepnet-discr}
+
+                                          
+\subsection{Deep Network Structure}
+\label{sec-deep-structure}
+
+Deep learning constructs estimators $f(x,\be)$ by composing parameterized maps.
+ 
+The hidden layers compute a feature representation of the input, and the output layer applies a linear or generalized linear predictor to those features. Unlike a fixed kernel feature map, this representation is learned from the training data.
+
+   
+\paragraph{Feedforward architectures.}
+
+A feedforward chain has the structure introduced in~\eqref{eq-simple-lin-dag}, with the loss $\Ll$ omitted. Starting from $x_0=x$, compute
+\eq{
+	x_{\ell+1} = f_\ell(x_\ell,\be_\ell),  
+}
+so that $x_L=f(x,\be)$ with 
+\eq{
+	f(\cdot,\be) = f_{L-1}(\cdot,\be_{L-1}) \circ f_{L-2}(\cdot,\be_{L-2}) \circ \ldots \circ f_{0}(\cdot,\be_0)
+}
+where $\be=(\be_0,\ldots,\be_{L-1})$ collects the parameters, and each layer has the dimensions
+\eq{
+	f_{\ell}(\cdot,\be_\ell) : \RR^{n_\ell} \rightarrow \RR^{n_{\ell+1}}.
+}
+ 
+We focus on feedforward chains. More general architectures use branched computational graphs or share parameters across recurrent steps.
+
+The parameters $\be$ are fitted by empirical risk minimization~\eqref{eq-erm-param}, typically using the stochastic methods of Section~\ref{sec-stochastic-optim}. The resulting objective is generally nonconvex, so Theorem~\ref{thm-conv-sgd} does not apply. Under suitable smoothness, noise, and step-size assumptions, one can instead bound measures of stationarity. Initialization and optimization dynamics can also provide implicit regularization.
+
+For chain architectures, reverse mode computes the gradient of the ERM loss~\eqref{eq-grad-formula} as described in Section~\ref{sec-reversemode-simple}. For convolutional layers, it gives the backpropagation equations~\eqref{eq-backprop} below. More general computational graphs require the reverse pass to accumulate contributions from every branch and every use of a shared parameter; Section~\ref{sec-reverse-mode} explains this general procedure.
+
+   
+\paragraph{Deep MLP.}
+
+A common computational block $f_\ell(\cdot,\be_\ell)$ consists of
+\begin{rs}
+	\item an affine map, $B_\ell \cdot + b_\ell$ with a matrix $B_\ell \in \RR^{\tilde n_{\ell} \times n_\ell}$ and a vector $b_\ell \in \RR^{\tilde n_\ell}$ parametrized (in most cases linearly) by $\be_\ell$,
+	\item a nonlinearity independent of $\be_\ell$, given by $\rho_\ell : \RR^{\tilde n_{\ell}} \rightarrow \RR^{n_{\ell+1}}$
+\end{rs}
+which we write as
+\eql{\label{eq-struc-layer}
+	\foralls x_\ell \in \RR^{n_\ell}, \quad
+	f_{\ell}(x_\ell,\be_\ell) = \rho_\ell(  B_\ell x_\ell + b_\ell ) \in \RR^{n_{\ell+1}}. 
+}
+In a fully connected layer, every entry of $B_\ell$ and $b_\ell$ is trainable, so $(B_\ell,b_\ell)=\be_\ell$.
+ 
+A common choice is a pointwise activation $\rho_\ell$, written as $\rho_\ell(z)=(\tilde\rho_\ell(z_k))_k$ with $\tilde\rho_\ell : \RR \rightarrow \RR$ nonlinear. Such an activation preserves dimension, so $n_{\ell+1}=\tilde n_\ell$. Standard examples are the rectified linear unit (ReLU), $\tilde\rho_\ell(s)=\max(s,0)$, and the sigmoid, $\tilde\rho_\ell(s)=\th(s) = (1+e^{-s})^{-1}$.
+
+Interleaving affine maps with nonlinear activations produces increasingly expressive functions $f(\cdot,\be)$.
+
+Training the parameters $\be = (B_\ell,b_\ell)_\ell$ means minimizing~\eqref{eq-erm-param}, for example by stochastic gradient descent. Automatic differentiation computes the gradient at a cost proportional to a forward evaluation, namely $O(\sum_\ell n_\ell\tilde n_\ell)$ for dense layers with pointwise activations. The chain structure gives the backpropagation formula~\eqref{eq-backprop-discr}.
+
+For regression tasks, one usually uses an affine output layer with a squared $\ell^2$ loss $L$. An output nonlinearity is appropriate when the target is constrained, for example to nonnegative values.
+ 
+For classification, a multiclass logistic map~\eqref{eq-multiclass-logitmap} converts the final scores into class probabilities.
+
+For high-dimensional inputs such as images, fully connected layers can require prohibitively many parameters. They also ignore spatial structure and symmetries. Convolutional architectures exploit this structure, as detailed in Section~\ref{sec-cnn}.
+
+
+\begin{figure}[tbp]
+\centering
+{\small\sffamily\color{BookMuted}Panel 1\par}\smallskip
+\BookDrawing{tikz/deep-learning-fully-connected}
+\par\medskip
+{\small\sffamily\color{BookMuted}Panel 2\par}\smallskip
+\BookDrawing{tikz/deep-learning-convolutional}
+\caption{Panel 1: fully connected network.
+Panel 2: convolutional neural network.}
+\label{fig-deep-fc-cnn}
+\end{figure}
+
+
+                                          
+\subsection{Perceptron and Shallow Models}
+
+The logistic classifiers from Sections~\ref{sec-two-class-logit} and~\ref{sec-multiclass-logit} are simple instances of this network formulation.
+
+The binary logistic model~\eqref{eq-two-class-logit-model} is a one-layer ($L=1$) instance of~\eqref{eq-struc-layer}. Omitting the bias, its components are
+\eq{
+	B_0 x = \dotp{x}{\be}
+	\qandq
+	\tilde\rho_0(u) = \th(u).
+}
+The network $f(x,\be) = \th(\dotp{x}{\be})$ can include a bias by appending a constant coordinate to $x$. For labels $y \in \{0,1\}$, it is trained with binary cross-entropy:
+\eq{
+	L(t,y) = -\log( t^{y} (1-t)^{1-y} ) = -y\log(t)-(1-y)\log(1-t).
+}
+The resulting empirical-risk objective is convex in the parameters.
+
+For $K$ classes, compute the scores $B_0 x = (\dotp{x}{\be_k})_{k=1}^K$ and apply the normalized exponential map
+\eq{
+	f(x,\be) = \Nn( ( \exp(\dotp{x}{\be_k}) )_k )
+	\qwhereq
+	\Nn(u) = \frac{u}{\sum_{k} u_{k}}
+} 
+For target vectors $y$ on the probability simplex, use the cross-entropy loss
+\eq{
+	L(t,y) = -\sum_{k=1}^K y_k \log(t_k). 
+}
+
+                                          
+\subsection{Convolutional Neural Networks}
+\label{sec-cnn}
+
+Signals, images, and videos carry spatial structure that can guide the architecture. Convolutional layers respect translations of the spatial grid, subject to boundary conditions, and reuse the same filters at every location.
+
+At depth $\ell$, a convolutional network arranges the activation vector $x_\ell\in\RR^{n_\ell}$ as an array in $\RR^{\bar n_\ell\times d_\ell}$, with $\bar n_\ell$ spatial positions and $d_\ell$ channels, so $n_\ell=\bar n_\ell d_\ell$. The spatial positions typically form a one-, two-, or three-dimensional grid.
+ 
+For an RGB image, $\bar n_0$ is the number of pixels and $d_0=3$.
+ 
+Write $x_\ell = ( (x_\ell)_r[i] )_{r,i}$, where $i \in \{1,\ldots,\bar n_\ell\}$ indexes the spatial position and $r \in \{1,\ldots,d_\ell\}$ the channel.
+
+We require the l

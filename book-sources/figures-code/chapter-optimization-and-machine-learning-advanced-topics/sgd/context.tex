@@ -1,0 +1,167 @@
+% Context from chapters/sec-stochastic-optim.tex; for mathematical reference, not compilation.
+dvanced-unbiased-gradient}\hfill
+\BookPanel{.485}{2}{tikz/advanced-sgd-trajectory}
+\caption{Unbiased stochastic gradient estimate (panel 1) and a schematic SGD trajectory (panel 2).}
+\label{fig-review-advanced-unbiased-gradient}
+\label{fig-review-advanced-sgd-trajectory}
+\end{figure}
+For very large $n$, computing the full gradient $\nabla f$ as in~\eqref{eq-full-grad} is prohibitive.  
+ 
+SGD replaces the full gradient by the gradient of one summand $f_{i}$, with $i$ sampled uniformly. This gives an unbiased estimate:
+\eql{\label{eq-unbiased-grad}
+	\EE_{\ip}{ \nabla f_{\ip}(x) } = \nabla f(x)
+}
+where $\ip$ is a random variable distributed uniformly in $\{1,\ldots,n\}$.
+
+
+Starting from $x_0$, stochastic gradient descent (SGD) iterates
+\eq{
+	x_{k+1} = x_k - \tau_k \nabla f_{i(k)}(x_k)
+}
+where, for each iteration index $k$, $i(k)$
+is drawn independently of previous draws, uniformly from $\{1,\ldots,n\}$.
+ 
+The iterates $x_{k+1}$ are random. We therefore study convergence to a minimizer of $f$ in a probabilistic sense, such as mean square or probability, together with the corresponding rates.
+
+A batch-gradient step costs $O(np)$,
+whereas an SGD step costs $O(p)$. This makes SGD attractive
+when $n$ is large and repeated passes through the data are costly.
+Redundancy between observations can sometimes yield
+accurate predictions after only $k \ll n$ updates, before all
+observations have been used.
+
+The step-size schedule $\tau_k$ must balance two requirements: it
+usually needs to decrease to suppress stochastic noise,
+but not so quickly that the method stops making progress
+before reaching a minimizer.
+
+
+A common schedule has asymptotic behavior $\tau_k \sim k^{-1}$
+as $k\rightarrow +\infty$. One such schedule is
+\eql{\label{eq-stepsize-sgd}
+	\tau_k \eqdef \frac{\tau_0}{1 + k/k_0}
+}
+where $\tau_0>0$ sets the initial step and $k_0>0$ controls how long the steps remain approximately constant.
+
+Figure~\ref{fig-sgd-traject} illustrates minimization of $f_1(x)+f_2(x)$ for $x \in \RR$, with $f_1(x)=(x-1)^2$ and $f_2(x)=(x+1)^2$. The distribution of $x_k$ concentrates around the minimizer $x^\star=0$. The initial iterate $x_0$ is uniform on $[-1/2,1/2]$.
+
+\begin{figure}
+\centering
+\includegraphics[width=.49\linewidth]{ml/sgd/sgd-histo} 
+\includegraphics[width=.49\linewidth]{ml/sgd/sgd-trajectory}
+\caption{\label{fig-sgd-traject}
+Repeated SGD runs for $k\mapsto x_k\in\RR$. Left: the distribution of iterates at each iteration. Right: individual trajectories.
+}
+\end{figure}
+
+The following theorem gives a mean-square convergence rate. The second-moment assumption is imposed along the iterates, not uniformly on all of $\RR^p$: a globally strongly convex function cannot have a globally bounded gradient.
+
+\begin{thm}\label{thm-conv-sgd}
+Let $f$ be differentiable and $\mu$-strongly convex, with minimizer $x^\star$. Let $\mathcal F_k$ contain the initial point and all randomness before the $k$th update, so $x_k$ is $\mathcal F_k$-measurable. Assume the stochastic gradient $G_k$ satisfies
+\eq{\EE(G_k\mid\mathcal F_k)=\nabla f(x_k),\qquad
+\EE(\norm{G_k}^2\mid\mathcal F_k)\leq C^2.}
+For $x_{k+1}=x_k-\tau_kG_k$, $\tau_k=1/(\mu(k+2))$, and deterministic $x_0$,
+\eql{\label{eq-rate-sgd}
+\EE\norm{x_k-x^\star}^2\leq\frac{R}{k+2},\qquad
+R=\max\{2\norm{x_0-x^\star}^2,C^2/\mu^2\}.
+}
+If $f$ additionally has an $L$-Lipschitz gradient, then
+$\EE(f(x_k)-f(x^\star))\leq LR/(2(k+2))$.
+\end{thm}
+\begin{proof}
+Strong convexity and $\nabla f(x^\star)=0$ imply
+\eql{\label{eq-sgd-proof-1}
+\dotp{\nabla f(x_k)}{x_k-x^\star}\geq\mu\norm{x_k-x^\star}^2.
+}
+Expand the squared update and take a conditional expectation, then average over the history. With $e_k=\EE\norm{x_k-x^\star}^2$,
+\eql{\label{eq-sgd-proof-2}
+e_{k+1}\leq(1-2\mu\tau_k)e_k+\tau_k^2C^2.
+}
+The claim holds at $k=0$ by the definition of $R$. Set $m=k+2\geq2$. Since $1-2/m\geq0$, the induction hypothesis gives
+\eq{e_{k+1}\leq\left(1-\frac2m\right)\frac Rm+\frac R{m^2}
+=\frac{R(m-1)}{m^2}\leq\frac R{m+1}.}
+The objective bound follows from $L$-smoothness at the minimizer.
+\end{proof}
+
+The preceding SGD bound, and the averaging scheme below, give sublinear rates even when $f$ is strongly convex. By contrast, batch gradient descent has a linear rate under the assumptions of Theorem~\ref{thm-gradsec-non-strong-conv}.
+
+Figure~\ref{fig-sgd} compares the objective values $f(x_k)$.
+The black dashed curve shows batch gradient descent, with the iteration
+axis rescaled to reflect the $n$-fold cost of a batch update.
+
+
+\begin{figure}
+\centering
+\begin{tabular}{cc}
+\includegraphics[width=.45\linewidth]{ml/sgd/error-sgd-1} &
+\includegraphics[width=.45\linewidth]{ml/sgd/error-sgd-2} \\
+$f(x_k)$ & $\log_{10}(f(x_k)-f(x^\star))$ 
+\end{tabular}
+\caption{\label{fig-sgd}
+Objective-error evolution for SGD in logistic classification; the dashed curve shows batch gradient descent.
+}
+\end{figure}
+
+
+
+
+                                                        
+\subsection{Stochastic Gradient Descent with Averaging (SGA)}
+\label{sec-sga}
+
+Diminishing steps can slow SGD as
+$\tau_k$ approaches zero.
+ 
+Averaging reduces fluctuations in the estimate. Run SGD on auxiliary
+iterates $( \tilde x_k)_k$,
+\eq{
+	 \tilde x_{k+1}=\tilde x_k - \tau_k \nabla f_{i(k)}(\tilde x_k)
+}
+and return their Cesàro average:
+\eq{
+	x_k \eqdef \frac{1}{k} \sum_{\ell=1}^k \tilde x_{\ell}.
+}
+This gives stochastic gradient descent with averaging (SGA),
+also called averaged SGD.
+
+The average can be maintained without storing the full trajectory,
+using the recursive update
+\eq{
+	x_{k+1}=\frac{1}{k+1}\tilde x_{k+1}+\frac{k}{k+1}x_k.
+}
+
+
+A typical step-size schedule is
+\eq{
+	\tau_k \eqdef \frac{\tau_0}{1 + \sqrt{k/k_0}}.
+}
+These steps decrease more slowly, at rate $k^{-1/2}$.
+
+
+Averaging can reduce sensitivity to the tuning parameters
+$(k_0,\tau_0)$, although their choice still affects performance.
+
+                                       
+
+Bach proves that for logistic classification, 
+averaging can adapt to local curvature under suitable regularity and step-size assumptions. This is a problem-dependent result, rather than a universal improvement of every constant over SGD.
+
+
+
+                                                        
+\subsection{Stochastic Averaged Gradient Descent (SAG)}
+
+                                 
+For a finite dataset with $n$ samples of total size $n \times p$,
+one can trade additional memory for reduced gradient noise
+by storing past gradient evaluations. This yields
+the stochastic averaged gradient (SAG) method.
+
+Store the latest gradient of each summand in a table $(G^i)_{i=1}^n$, requiring $O(np)$ memory. Maintain its average $g$ as an approximation to the full gradient.
+
+Initialize $G^i=0$ for all $i$ and $g=0$, so that $g=n^{-1}\sum_iG^i$ is the stored average. At each iteration, update the table and then $x$:
+\eq{
+	x_{k+1} = x_k - \tau g
+	\qwhereq
+	\choice{
+	h\lefta

@@ -1,0 +1,102 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+bility of the moments allows differentiation under the Fourier integral: $\hat\psi^{(k)} = \Ff( (-\imath \cdot)^k \psi(\cdot) )$. Thus
+	\eq{
+		(-\imath)^k \int_\RR x^k \psi(x) \d x  = \hat\psi^{(k)}(0).
+	}
+	Relations~\eqref{eq-rel-psi-phi} and~\eqref{eq-qmf} imply
+	\eq{
+		\hat \psi(2\om) = \hat h(\om+\pi)^* \rho(\om)
+		\qwhereq
+		\rho(\om) \eqdef \frac{1}{\sqrt{2}} e^{-i \om}  \hat \phi(\om).
+	}
+	and differentiating this relation shows	
+	\eq{
+		2 \hat \psi^{(1)}(2\om) = \hat h(\om+\pi)^* \rho^{(1)}(\om) + \hat h^{(1)}(\om+\pi)^* \rho(\om)
+	}
+	Since $\hat h(\pi)=0$ and $\rho(0)=\hat\phi(0)/\sqrt2\neq0$, this shows that $\hat\psi^{(1)}(0)=0 \Leftrightarrow \hat h^{(1)}(\pi)^*=0$.
+	 
+	Induction gives the higher-order equivalence
+	$\hat\psi^{(k)}(0)=0 \Leftrightarrow \hat h^{(k)}(\pi)^*=0$, provided all derivatives of lower order vanish.
+\end{proof}
+
+Conditions~\eqref{eq-cond-h-1} and~\eqref{eq-cond-h-2} give $\hat h(\pi)=0$, so every admissible wavelet has at least $1$ vanishing moment: $\int \psi=0$. By~\eqref{eq-cond-vm-fourier}, additional vanishing moments require the Fourier transform $\hat h$ to vanish to higher order at $\om=\pi$.
+
+  
+\paragraph{Support.}
+
+Figure~\ref{fig-vanishing-moments-1d} shows the wavelet coefficients of a piecewise smooth signal. The cancellation provided by $\psi$ suppresses coefficients in smooth regions, leaving the largest coefficients near singularities.
+
+\myfigure{
+\image{wavelets}{.6}{vanishing-moments-1d-coefs}
+}{ 
+	Location of large wavelet coefficients.  
+}{fig-vanishing-moments-1d}
+
+Choosing $\psi$ with short support limits how many wavelets intersect each singularity.
+ 
+One can show that the size of the support of $\psi$ is proportional to the size of the support of $h$.
+ 
+Short support competes with the vanishing-moment requirement~\eqref{eq-dfn-vm}. Indeed, one can prove that
+for an orthogonal wavelet basis with $p$ vanishing moments
+\eq{
+	|\text{Supp}(\psi)| \geq 2p-1,
+} 
+where the left-hand side denotes the length of the smallest closed interval containing the support of a compactly supported orthogonal mother wavelet.
+
+
+Chapter~\ref{chap-approx} studies in detail the tradeoff between support size and vanishing moments in nonlinear approximation of piecewise smooth signals.
+
+  
+\paragraph{Smoothness.}
+
+In compression or denoising applications, an approximate signal is recovered from a partial set $I_M$ of coefficients,
+\eq{
+	f_M = \sum_{(j,n) \in I_M} \dotp{f}{\psi_{j,n}} \psi_{j,n}.
+}
+This finite sum is at least as smooth as $\psi$.
+
+A smooth wavelet $\psi$ helps avoid visible reconstruction artifacts. Smoothness controls the regularity of the reconstructed signal, while vanishing moments and localization primarily determine the approximation rates studied below. These properties are often linked: in many families, including the Daubechies wavelets introduced next, more vanishing moments also bring greater smoothness.
+
+
+                                   
+\subsection{Daubechies Wavelets}
+
+To build a wavelet $\psi$ with a fixed number $p$ of vanishing moments, one designs the filter $h$, and uses the quadrature mirror filter relation~\eqref{eq-qmf} to compute $g$. One therefore looks for $h$ such that
+\eq{
+	|\hat h(\om)|^2 + |\hat h(\om+\pi)|^2 = 2, \quad 
+	\hat h(0)=\sqrt{2}, \qandq
+	\foralls k=0,\ldots,p-1, \; {\frac{\d^k \hat h}{\d \om^k} }(\pi)=0.
+}
+These conditions give algebraic relations between the coefficients of $h$, which can be solved explicitly using the Euclidean division algorithm for polynomials.
+
+The resulting Daubechies wavelets have $p$ vanishing moments and attain the minimum support length $2p-1$ among compactly supported orthogonal wavelets.
+
+The following filter coefficients are rounded to four decimal places. For $p=1$, the construction gives the Haar system (up to the overall sign of the wavelet), with
+\eq{
+	h= [h_0 = 0.7071;    0.7071].
+}
+For $p=2$, one obtains the celebrated Daubechies 4 filter 
+\eq{
+	h = [0.4830 ;  h_0=0.8365  ;  0.2241  ; -0.1294],
+}
+and for $p=3$,
+\eq{
+	h =  [0  ;  0.3327  ;  0.8069  ;  h_0=0.4599; -0.1350 ;-0.0854   ; 0.0352].
+}
+
+  
+\paragraph{Wavelet display.}
+
+Figure~\ref{fig-wavelets} compares Daubechies mother wavelets with increasing numbers of vanishing moments. Each continuous wavelet is approximated by a discrete wavelet $\bar \psi_{j,n}$ computed on a fine grid of $N$ samples. Applying the inverse transform to the following coefficient vector produces that discrete wavelet:
+$d_{j',n'} = \delta_{j-j'} \delta_{n-n'}$.
+
+\myfigure{
+\tabdeux{
+\image{wavelets}{.45}{wavelet-daubechies-1}
+\image{wavelets}{.45}{wavelet-daubechies-2}\\
+\image{wavelets}{.45}{wavelet-daubechies-3}
+\image{wavelets}{.45}{wavelet-daubechies-4}
+}
+}{ 
+	Daubechies mother wavelets $\psi$ with increasing numbers $p$ of vanishing moments.  
+}{fig-wavelets}

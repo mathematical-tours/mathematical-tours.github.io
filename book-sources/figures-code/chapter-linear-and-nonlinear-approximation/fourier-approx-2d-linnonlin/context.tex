@@ -1,0 +1,167 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+_m(t) \eqdef e^{2 i \pi m t}.
+}
+This symmetric cutoff retains $M+1$ Fourier atoms; the extra coefficient does not affect the asymptotic rates below.
+
+Figure \ref{fig-ourier-approx-1d} shows these approximations for increasing $M$. The jumps in $f$ produce substantial error and ringing near the singularities.
+
+                                                                                                                                                               
+
+\myfigure{
+\tabdeux{
+\image{approximation}{.48}{fourier-approx-1d-0}&
+\image{approximation}{.48}{fourier-approx-1d-1}\\
+\image{approximation}{.48}{fourier-approx-1d-2}&
+\image{approximation}{.48}{fourier-approx-1d-3}
+}
+}{ 
+	Fourier approximation of a signal.  
+}{fig-ourier-approx-1d}
+
+                                       
+                                                                                                                                                                                                      
+
+                                          
+                                                                                                                                                                   
+
+
+This low-pass approximation is a convolution, since
+\eq{
+	f_M = \sum_{m=-M/2}^{M/2} \dotp{f}{e_m} e_m = f \star h_M
+	\qwhereq
+	\hat h_{M} \eqdef 1_{[-M/2,M/2]}.
+}
+The kernel $h_M$ is the Dirichlet kernel introduced in the Fourier chapter.
+
+The following elementary bound shows that this approximation error decays for $\Cc^\al$ signals.
+
+\begin{prop}
+	For integer $\alpha\geq1$ and $f\in C^\alpha(\RR/\ZZ)$
+	\eq{
+		\norm{ f-f_M^{\text{lin}} }^2 = O(M^{-2\al+1}).
+	}
+\end{prop}
+
+\begin{proof}
+Using integration by parts, one shows that for a $\Cal$ function $f$ in the smooth signal model~\eqref{eq-smooth-model},
+$\Ff(f^{(\ell)})_m = (2\imath m \pi)^\ell \hat f_m$, so that 
+Cauchy--Schwarz gives
+\eq{
+	|\dotp{f}{e_m}| \leq |2\pi m|^{-\al} \norm{f^{(\al)}}_2.
+}
+This implies
+\eq{
+	\norm{ f-f_M^{\text{lin}} }^2 = \sum_{|m|>M/2} |\dotp{f}{e_m}|^2
+	\leq \norm{f^{(\al)}}^2_2 \sum_{|m|>M/2} |2\pi m|^{-2\al} = O(M^{-2\al+1}).
+}
+\end{proof}
+
+Using the full energy of $f^{(\al)}$ gives a sharper bound under the same assumptions. The argument also applies to the larger Sobolev class.
+
+\begin{prop}\label{prop-sobol-fourier-lin}
+	For $\alpha>0$ and a periodic signal in the Sobolev model~\eqref{eq-sobolev-model}, one has
+	\eql{\label{eq-sovolev-signal-decay}
+		\norm{f-f^{\text{lin}}_M}^2 \leq C \norm{f}_{\mathrm{Sob}(\alpha)}^2  M^{-2\al}.
+	}
+\end{prop}
+\begin{proof}
+	One has
+	\eqml{
+		\norm{f}_{\mathrm{Sob}(\alpha)}^2 &= \sum_m |2 \pi m|^{2\al} |\dotp{f}{e_m}|^2
+		\geq \sum_{|m|>M/2} |2 \pi m|^{2\al} |\dotp{f}{e_m}|^2 \\ 
+		& \geq (\pi M)^{2\al} \sum_{|m|>M/2}
+		|\dotp{f}{e_m}|^2 \geq (\pi M)^{2\al} \norm{f-f_M^{\text{lin}}}^2.
+	}
+\end{proof}
+
+This rate is optimal uniformly over a Sobolev ball. The best $M$-term Fourier approximation satisfies the same upper bound because it is at least as accurate as the low-pass approximation; individual functions may have faster decay.
+
+For signals with piecewise Lipschitz regularity in the model~\eqref{eq-model-piece-smooth}, such as the example in Figure \ref{fig-ourier-approx-1d}, the general bound for both linear and nonlinear Fourier approximation errors is
+\eql{\label{eq-fourier-piecewisesmooth}
+	\norm{f-f_M}^2 \leq C_f M^{-1}
+}
+and Fourier atoms are no longer optimal for approximation.
+ 
+For example, the interval indicator $f=1_{[a,b]}$ has coefficients $\hat f_m=(e^{-2\pi\imath ma}-e^{-2\pi\imath mb})/(2\pi\imath m)$ for $m\neq0$, and hence
+$\norm{f-f_M}^2\asymp M^{-1}$ when $0<b-a<1$ for both linear and nonlinear approximations.
+
+                                        
+\subsection{Sobolev Images}
+
+The same argument applies to images and higher-dimensional data through the Sobolev seminorm~\eqref{eq-sobolev-norm-highdim} with $d>1$.
+
+For an $\al$-regular Sobolev image, the linear and nonlinear approximation errors satisfy
+\eq{
+	 \norm{f-f_M}^2 \leq C \norm{f}_{\mathrm{Sob}(\alpha)}^2 M^{-\al}.
+}
+For $d$-dimensional data $f : [0,1]^d \rightarrow \RR$, the corresponding error bound is $O(M^{-2\al/d})$.
+
+For an image with piecewise Lipschitz regularity and finite-length edges in the model~\eqref{eq-model-piece-smooth-2d}, the linear and nonlinear errors satisfy the slower general bound
+\eql{\label{eq-fourier-decay-2d}
+	\norm{f-f_M}^2 \leq C_f M^{-1/2},
+}
+and Fourier atoms are no longer optimal for approximation.
+
+\myfigure{
+\tabquatre{
+\image{approximation}{.238}{fourier-approx-2d-0}&
+\image{approximation}{.238}{fourier-approx-2d-1}&
+\image{approximation}{.238}{fourier-approx-2d-2}&
+\image{approximation}{.238}{fourier-approx-2d-3}\\
+&
+\image{approximation}{.238}{approx-2d-fourier-1}&
+\image{approximation}{.238}{approx-2d-fourier-2}&
+\image{approximation}{.238}{approx-2d-fourier-3}
+}
+}{ 
+	Linear (top row) and nonlinear (bottom row) Fourier approximation. 
+}{fig-fourier-approx-2d-linnonlin}
+
+                                        
+                                        
+\section{Wavelet Approximation of Piecewise Smooth Functions}
+
+Wavelets improve approximation near singularities because their support is localized.
+
+                                        
+\subsection{Decay of Wavelet Coefficients}
+\label{subsect-wavdecay}
+
+To approximate smooth regions efficiently, choose wavelets with sufficiently many vanishing moments, denoted by $p$:
+\eq{
+	\foralls k=0,\ldots,p-1, \; \int \psi(x) x^k \d x = 0.
+}
+Choose $p\geq\alpha$, where $\alpha$ is the regularity of the signal outside singularities (for instance jumps or kinks).
+
+\myfigure{
+\image{approximation}{.55}{singular-part-1d}
+\image{approximation}{.25}{singular-part-2d}
+}{ 
+	Singular and regular regions of a signal (left) and an image (right). 
+}{fig-singular-part}
+
+To quantify the approximation error decay for piecewise smooth signals \eqref{eq-model-piece-smooth} and images \eqref{eq-model-piece-smooth-2d}, one treats wavelets supported in smooth regions separately from those crossing singularities. Figure \ref{fig-singular-part} locates the singular and regular regions of a signal and an image.
+
+\begin{prop}
+Assume a compactly supported wavelet with $p\geq\alpha$ vanishing moments (all moments of total degree less than $p$ in dimension $d$). If $f$ admits a $C^\alpha$ extension to a neighborhood of the support, one has
+\eql{\label{eq-wavcoef-decay-1}
+	|\dotp{f}{\psi_{j,n}}| \leq C_f2^{j(\alpha+d/2)}\int|t|^\alpha|\psi(t)|\,\d t.
+}
+Without the smoothness assumption, every bounded $f$ satisfies
+\eql{\label{eq-wavcoef-decay-2}
+	|\dotp{f}{\psi_{j,n}}| \leq \norm{f}_\infty \norm{\psi}_1 2^{j \frac{d}{2}}.
+}
+\end{prop}
+
+\begin{proof}
+Under these assumptions, one can perform a Taylor expansion of $f$ around the point $2^j n$
+\eq{
+	f(x) = P(x-2^j n) + R(x-2^jn) = P(2^j t) + R(2^j t)
+}
+where $\deg(P)<\al$ and 
+\eq{
+	|R(x)|\leq C_f \norm{x}^\al.
+}
+One then bounds the wavelet coefficient
+\eq{
+	\dotp{f}{\ps

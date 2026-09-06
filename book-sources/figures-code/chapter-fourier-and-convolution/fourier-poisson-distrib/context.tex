@@ -1,0 +1,147 @@
+% Context from chapters/fourier.tex; for mathematical reference, not compilation.
+mmutes with every translation, meaning that for all $\tau$, $H \circ T_\tau = T_\tau \circ H$, if and only if
+	\eq{
+		\foralls f \in L^2(\XX), \quad H(f) = f \star g
+	}
+	with $g \in L^2(\XX)$.
+\end{prop}
+
+Formally, the identity $f=f\star\delta$ suggests that $Hf=f\star H\delta$ for a translation-invariant operator. Since $H\delta$ need not be defined under the present hypotheses, the following argument uses bounded evaluation functionals instead.
+
+\begin{proof}
+	By~\eqref{eq-young-convol} and the continuity result for $r=\infty$, the convolution operator $H : f \mapsto f \star g$ with $g \in L^2(\XX)$ is bounded from $L^2(\XX)$ to $C_b(\XX)$. Moreover,
+	\eq{
+		(H \circ T_\tau)(f) = \int_\XX f( (\cdot-\tau)-y) g(y) \d y = (f \star g)(\cdot-\tau) = T_\tau (Hf),
+	}
+	so that such an $H$ is translation-invariant. 
+	
+	
+	Conversely, we define $\ell : f \mapsto H(f)(0) \in \CC$, which is well defined since $H(f) \in \Cc^0(\XX)$.
+	 
+	Continuity of $H$ gives a constant $C$ such that $\norm{Hf}_\infty \leq C \norm{f}_2$, hence $|\ell(f)| \leq C \norm{f}_2$. Thus $\ell$ is a continuous linear functional on the Hilbert space $L^2(\XX)$. By the Fr\'echet--Riesz theorem, there exists $h \in L^2(\XX)$ such that $\ell(f)=\dotp{f}{h}$.
+	 
+	Hence, $\foralls x \in \XX$, 
+	\eq{
+		H(f)(x) = T_{-x} (Hf)(0) = H ( T_{-x} f)(0) = \ell( T_{-x} f ) = \dotp{T_{-x} f}{h} =
+		\int_\XX f(y+x)\overline{h(y)}\,\d y = (f\star g)(x),
+	}
+	where $g(x)\eqdef\overline{h(-x)}\in L^2(\XX)$.
+\end{proof}
+
+On $\TT$, an operator need not produce continuous outputs. Its convolution kernel may then be a distribution, and Fourier coefficients provide a convenient way to define the operator.
+
+\begin{prop}\label{prop-ti-convol-l2}
+	A bounded linear operator $H : L^2(\TT) \rightarrow L^2(\TT)$ commutes with every translation, meaning that for all $\tau$, $H \circ T_\tau = T_\tau \circ H$, if and only if
+	\eq{
+		\foralls f \in L^2(\TT), \quad
+		\Ff( H(f) ) = \hat f \odot c 
+	}
+	where $c \in \ell^\infty(\ZZ)$ (a bounded sequence).
+\end{prop}
+\begin{proof}
+	We denote $\phi_n \eqdef e^{\imath n \cdot}$. 
+	One has
+	\eq{
+		H(\phi_n) = H(T_\tau T_{-\tau }\phi_n) = H(T_\tau e^{\imath n \tau } \phi_n)  = e^{\imath n \tau} H(T_\tau(\phi_n)) = e^{\imath n \tau} T_\tau(H(\phi_n)).
+	}
+	Thus, for all $n$, 
+	\eq{
+		\dotp{H(\phi_n)}{\phi_m} 
+		= e^{\imath n \tau} \dotp{T_\tau \circ H(\phi_n)}{\phi_m} 
+		= e^{\imath n \tau} \dotp{H(\phi_n)}{ T_{-\tau}(\phi_m) }
+		=  e^{\imath (n-m) \tau} \dotp{H(\phi_n)}{ \phi_m }
+	}
+	So for $n \neq m$, $\dotp{H(\phi_n)}{\phi_m} = 0$, and we define $c_n \eqdef \dotp{H(\phi_n)}{\phi_n}$.
+	We thus have $H(\phi_n) = c_n \phi_n$.
+	Since $H$ is continuous, $\norm{Hf}_{L^2(\TT)} \leq C \norm{f}_{L^2(\TT)}$ for some constant $C$, and thus
+	by Cauchy--Schwarz
+	\eq{
+		|c_n| = |\dotp{H(\phi_n)}{\phi_n}| \leq \norm{H(\phi_n)} \norm{\phi_n} \leq C 
+	}	
+	because $\norm{\phi_n}=1$, so that $c \in \ell^\infty(\ZZ)$.
+	 
+	By continuity of $H$, recalling that by definition $\hat f_n \eqdef \dotp{f}{\phi_n}$, 
+	\eq{
+		H(f) = \lim_N H( \sum_{n=-N}^N \hat f_n \phi_n ) = \lim_N \sum_{n=-N}^N \hat f_n H(\phi_n)
+		= \lim_N \sum_{n=-N}^N c_n \hat f_n \phi_n = \sum_{n \in \ZZ} c_n \hat f_n \phi_n
+	} 
+	where we used $H(\phi_n) = c_n \phi_n$. This proves the desired representation.
+\end{proof}
+
+Conversely, by Parseval\textquotesingle s identity, a bounded sequence $c$ defines a bounded Fourier multiplier, which commutes with translations. Translation-invariant operators are therefore diagonal in the Fourier basis.
+
+                                                
+\subsection{Poisson\textquotesingle s Formula and Distributions}
+
+Informally, the Fourier series
+\eq{
+	\sum_n f(n) e^{-\imath \om n}
+} 
+can be viewed as the Fourier transform $\Ff( \Pi_1 \odot f )$ of the discrete distribution
+\eq{
+	\Pi_1 \odot f = \sum_n f(n) \de_{n}
+	\qwhereq
+	\Pi_s = \sum_n \de_{sn}
+}
+for $s>0$,
+where $\de_a$ is the Dirac mass at location $a \in \RR$, i.e. the distribution such that $\int f\,\d\delta_a=f(a)$ for any continuous $f$. A measure can be multiplied by a continuous function; a general distribution can be multiplied by a smooth function. For a tempered distribution $\mu$, its Fourier transform is defined by duality on Schwartz test functions:
+\eq{
+	\foralls g \in \Ss(\RR), \quad \int_\RR g(x) \d \Ff(\mu) = \int_\RR \Ff(g) \d \mu,
+	\qwhereq
+	\Ff(g) \eqdef \int_\RR g(x)e^{-\imath x\cdot}\,\d x,
+}
+Here $\Ss(\RR)$ is the Schwartz space; the integral notation denotes the distributional pairing.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/fourier-poisson-distrib}
+\caption{Sine waves summed in the Poisson formula.}
+\label{fig-review-fourier-poisson-distrib}
+\end{figure}
+The Poisson formula~\eqref{eq-poisson-bis} can thus be interpreted as
+\eq{
+	\Ff(\Pi_1 \odot f) = \sum_n \hat f(\cdot-2\pi n) = \int_\RR \hat f(\cdot-\om) \d\Pi_{2\pi}(\om)  = \hat f \star \Pi_{2\pi}
+}
+Since $\Ff^{-1} = \frac{1}{2\pi} \Ss \circ \Ff$ where $\Ss(f)=f(-\cdot)$, applying this operator to both sides gives
+\eq{
+	\Pi_1 \odot f = \frac{1}{2\pi} \Ss \circ \Ff(\hat f \star \Pi_{2\pi}) =  \Ss(  \frac{1}{2\pi} \Ff(\hat f) \odot \hat\Pi_{2\pi})
+	= \Ss(  \frac{1}{2\pi} \Ff(\hat f) ) \odot \Ss(\hat\Pi_{2\pi}) = \hat \Pi_{2\pi} \odot f.
+}
+This can be interpreted as the relation
+\eq{
+	\hat\Pi_{2\pi} = \Pi_{1}
+	\qarrq
+	\hat\Pi_1 = 2\pi \Pi_{2\pi}.
+}
+
+For intuition, consider a finite Fourier series
+\eq{
+	\sum_{n=-N}^N e^{-\imath n \om} = \frac{\sin((N+1/2)\om)}{\sin(\om/2)}
+}
+which is the Dirichlet kernel, with removable singularities at multiples of $2\pi$. Its value there is $2N+1$; in the sense of distributions it converges to $2\pi\Pi_{2\pi}$.
+
+                                                
+                                                
+                                                
+\section{Finite Fourier Transform and Convolution}
+\label{sec-dft}
+
+                                           
+\subsection{Discrete Orthonormal Bases}
+
+A discrete signal is a finite-dimensional vector $f \in \CC^N$, where $N$ is the number of samples and $f_n$ is the value at a specified location. For a 2-D image $f \in \CC^N \simeq \CC^{N_0 \times N_0}$, we have $N = N_0 \times N_0$, with $N_0$ pixels in each direction.
+
+The discrete inner product is the analogue of the continuous $\Ldeux$ inner product:
+\eq{
+	\dotp{f}{g} = \sum_{n=0}^{N-1} f_n \bar g_n.
+}
+The corresponding squared Euclidean distance is
+\eq{
+	\norm{f-g}^2 = \sum_{n=0}^{N-1} |f_n-g_n|^2.
+}
+
+Exactly as in the continuous case, a discrete orthonormal basis $\{ \psi_k \}_{0 \leq k < N }$ of $\CC^N$ satisfies
+\eql{\label{eq-orthobasis-disc}
+	\dotp{\psi_k}{\psi_{k'}} = \de_{k-k'}.
+}
+A signal expands in this orthonorma

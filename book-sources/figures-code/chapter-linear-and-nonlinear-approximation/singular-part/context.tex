@@ -1,0 +1,60 @@
+% Context from chapters/approximation.tex; for mathematical reference, not compilation.
+\section{Wavelet Approximation of Piecewise Smooth Functions}
+
+Wavelets improve approximation near singularities because their support is localized.
+
+                                        
+\subsection{Decay of Wavelet Coefficients}
+\label{subsect-wavdecay}
+
+To approximate smooth regions efficiently, choose wavelets with sufficiently many vanishing moments, denoted by $p$:
+\eq{
+	\foralls k=0,\ldots,p-1, \; \int \psi(x) x^k \d x = 0.
+}
+Choose $p\geq\alpha$, where $\alpha$ is the regularity of the signal outside singularities (for instance jumps or kinks).
+
+\myfigure{
+\image{approximation}{.55}{singular-part-1d}
+\image{approximation}{.25}{singular-part-2d}
+}{ 
+	Singular and regular regions of a signal (left) and an image (right). 
+}{fig-singular-part}
+
+To quantify the approximation error decay for piecewise smooth signals \eqref{eq-model-piece-smooth} and images \eqref{eq-model-piece-smooth-2d}, one treats wavelets supported in smooth regions separately from those crossing singularities. Figure \ref{fig-singular-part} locates the singular and regular regions of a signal and an image.
+
+\begin{prop}
+Assume a compactly supported wavelet with $p\geq\alpha$ vanishing moments (all moments of total degree less than $p$ in dimension $d$). If $f$ admits a $C^\alpha$ extension to a neighborhood of the support, one has
+\eql{\label{eq-wavcoef-decay-1}
+	|\dotp{f}{\psi_{j,n}}| \leq C_f2^{j(\alpha+d/2)}\int|t|^\alpha|\psi(t)|\,\d t.
+}
+Without the smoothness assumption, every bounded $f$ satisfies
+\eql{\label{eq-wavcoef-decay-2}
+	|\dotp{f}{\psi_{j,n}}| \leq \norm{f}_\infty \norm{\psi}_1 2^{j \frac{d}{2}}.
+}
+\end{prop}
+
+\begin{proof}
+Under these assumptions, one can perform a Taylor expansion of $f$ around the point $2^j n$
+\eq{
+	f(x) = P(x-2^j n) + R(x-2^jn) = P(2^j t) + R(2^j t)
+}
+where $\deg(P)<\al$ and 
+\eq{
+	|R(x)|\leq C_f \norm{x}^\al.
+}
+One then bounds the wavelet coefficient
+\eq{
+	\dotp{f}{\psi_{j,n}} = \frac{1}{2^{j \frac{d}{2}}} \int f(x) \psi\pa{ \frac{x-2^j n}{2^j} } \d x 
+		= 2^{j \frac{d}{2}} \int R(2^j t) \psi(t) \d t
+}
+where we substituted $t = \frac{x-2^j n}{2^j}$. This proves~\eqref{eq-wavcoef-decay-1}. The bound~\eqref{eq-wavcoef-decay-2} follows directly by bounding the function in the inner product.
+\end{proof}
+
+                                        
+\subsection{1-D Piecewise Smooth Approximation}
+
+For a piecewise smooth 1-D signal in the model~\eqref{eq-model-piece-smooth}, the large coefficients $\dotp{f}{\psi_{j,n}}$ concentrate near singularities. Denote the finite set of singular points by $\Ss \subset [0,1]$.
+
+
+\begin{thm}\label{thm-approx-piecesmooth-1d}
+For $\alpha>0$, let $f$ belong to the piecewise $C^\alpha$ model~\eqref{eq-model-piece-smooth}. With compactly supported orthonormal wavelets havin

@@ -1,0 +1,124 @@
+% Context from chapters/denoising.tex; for mathematical reference, not compilation.
+\section{Linear Denoising by Filtering}
+\label{sec-linear-denoising}
+
+                                                     
+\subsection{Translation Invariant Estimators}
+
+A linear estimator $\Dd(Y) = \tilde f$ of $f_0$ preserves addition, $\Dd(f+g) = \Dd(f)+\Dd(g)$, and scalar multiplication.
+A translation-invariant estimator commutes with translations: $\Dd(f_\tau) = \Dd(f)_\tau$, where $f_\tau(t) = f(t-\tau)$. We assume periodic boundary conditions, in either one or two dimensions.
+ 
+An estimator with both properties is a convolution filter:
+\eq{
+	\Dd(f) = f \star h
+}
+where $h\in\RR^N$ is a filter. Denoising filters are usually low-pass. To preserve constant signals, one imposes
+\eq{
+	\sum_n h_n = \hat h_0 = 1
+}
+where $\hat h$ is the discrete Fourier transform. 
+
+Figure \ref{fig-filtering-denoised} illustrates denoising with a low-pass filter.
+
+\myfigure{
+\tabdeux{
+\image{denoising}{.45}{filtering-noisy}&
+\image{denoising}{.45}{filtering-noisy-fourier}\\
+$f$ & $\log|\hat f|$ \\
+\image{denoising}{.45}{filtering-filter}&
+\image{denoising}{.45}{filtering-filter-fourier}\\
+$h$ & $\log|\hat h|$ \\
+\image{denoising}{.45}{filtering-denoised}&
+\image{denoising}{.45}{filtering-denoised-fourier}\\
+$f \star h$ & $\log|\hat f\hat h|=\log|\hat f|+\log|\hat h|$
+}
+}{ 
+	Filtering in the spatial domain (left) and the Fourier domain (right). 
+}{fig-filtering-denoised}
+
+The filtering strength is usually controlled by the width $s$ of $h$. A typical example is the (discretized) Gaussian filter
+\eql{\label{eq-gaussian-filters}
+	\foralls -N/2 < i \leq N/2, \quad h_{s,i} = \frac{1}{Z_s} \exp\pa{ -\frac{ i^2 }{ 2s^2} }
+}
+where $Z_s$ normalizes the filter so that $\sum_i h_{s,i}=1$, preserving constant signals. Figure \ref{fig-filtering-denoised} shows the effect of Gaussian filtering in the spatial and Fourier domains.
+
+     
+          
+                                          
+                                           
+   
+                                                                    
+                  
+          
+                                        
+                                           
+   
+                                                                  
+                  
+    
+
+Figure \ref{fig-filtering-progression} shows the effect of increasing the filter width $s$. Linear filtering works well on smooth signals, but removing more noise also blurs edges and other singularities.
+
+\myfigure{
+\image{denoising}{.7}{filtering-progression-1d}
+\image{denoising}{.2}{filtering-progression-2d}
+}{ 
+	Denoising using a filter of increasing width $s$.  
+}{fig-filtering-progression}
+
+                                                     
+\subsection{Optimal Filter Selection and Bias-Variance Tradeoff}
+\label{subsec-optimal-selection-filter}
+
+The best filter depends on both the unknown signal $f_0$ and the noise level $\si$. Rather than optimize over all filters, we can tune a width parameter $s$ within a family such as the Gaussian filters in~\eqref{eq-gaussian-filters}.
+
+The triangle inequality separates the smoothing error from the remaining noise:
+\eq{
+	\norm{\tilde f - f_0} \leq \norm{ h_s \star f_0 - f_0 } + \norm{ h_s \star w }
+}
+The filter width $s$ balances noise removal against excessive smoothing of singularities. A wider filter typically reduces $\norm{h_s \star w}$ while increasing $\norm{h_s\star f_0-f_0}$.
+
+Figure~\ref{fig-iltering-optimal-curve} shows the SNR as a function of filter width, evaluated using the known clean signal.
+
+\myfigure{
+\image{denoising}{.48}{filtering-optimal-1d-curve}
+\image{denoising}{.46}{filtering-optimal-2d-curve}
+}{ 
+	SNR as a function of filter width for a signal (left) and an image (right). 
+}{fig-iltering-optimal-curve}
+
+Figures \ref{fig-filtering-optimal-1d} and \ref{fig-filtering-optimal-2d} use the width $s^\star$ that maximizes SNR for the displayed observation. This choice uses the known clean signal to assess the best achievable result within the filter family.
+
+\myfigure{
+\image{denoising}{.48}{filtering-optimal-1d-noisy}
+\image{denoising}{.48}{filtering-optimal-1d-denoised}
+}{ 
+	Noisy signal (left) and filtered signal (right), using the SNR-optimal width. 
+}{fig-filtering-optimal-1d}
+
+\myfigure{
+\image{denoising}{.3}{filtering-optimal-2d-noisy}
+\image{denoising}{.3}{filtering-optimal-2d-denoised}
+}{ 
+	Noisy image (left) and filtered image (right), using the SNR-optimal width. 
+}{fig-filtering-optimal-2d}
+
+Some noise remains at the SNR-optimal width. Increasing the filter width introduces strong blur and reduces the SNR, although the result may look more pleasant.
+
+
+                                                     
+\subsection{Oracle Denoiser}
+
+To study the best possible choice of $h$, first suppose that an oracle knows the clean signal $f_0$.
+ 
+Recall the model $Y = f_0 + \noise$, where $\noise$ is Gaussian white noise: $\noise_k \sim \mathcal{N}(0, \sigma^2)$ and the $\noise_k$ are independent and identically distributed. The clean signal $f_0$ is fixed. Choose an orthonormal basis $(\psi_k)_k$, typically the Fourier basis, and restrict attention to linear estimators that are diagonal in it:
+\begin{equation}\label{eq:linear-denoiser}
+	\tilde{f} \coloneqq \sum_k \lambda_k \dotp{Y}{\psi_k} \, \psi_k.
+\end{equation}
+For the Fourier basis, this means $\tilde{f} = Y \star h$ where $\hat h=\lambda$. Note that $\tilde{f}$ is a random vector.
+ 
+The oracle may use $f_0$ to select the gains $\lambda$, but the estimator must still be linear in $Y$ and have the displayed diagonal form. It cannot simply return $f_0$.
+
+Denoting $c_k \coloneqq \dotp{f_0}{\psi_k}$ (for the normalized discrete Fourier basis, $c=\hat f_0/\sqrt N$), the expected risk of this denoiser is
+$$
+	\mathbb{E}_w

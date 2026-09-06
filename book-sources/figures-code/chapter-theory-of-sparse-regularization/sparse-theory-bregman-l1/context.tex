@@ -1,0 +1,147 @@
+% Context from chapters/sparse-theory.tex; for mathematical reference, not compilation.
+ore general regularized problem
+\eql{\label{eq-lagr-J}
+	\umin{x \in \RR^N} \frac{1}{2\la}\norm{Ax-y}^2+J(x)
+}
+for a proper convex regularizer $J$ and $\lambda>0$. We state estimates for any minimizer, without assuming uniqueness.
+
+\begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/sparse-theory-bregman}
+\caption{Visualization of Bregman divergences.}
+\label{fig-bregman}
+\end{figure}
+
+For $x_0$ with nonempty subdifferential and a chosen $\eta \in \partial J(x_0)$, define the Bregman divergence
+\eq{
+	D_\eta(x|x_0) \eqdef J(x)-J(x_0)-\dotp{\eta}{x-x_0}.
+}
+One has $D_\eta(x_0|x_0)=0$ and, by convexity, $D_\eta(x|x_0)\geq0$; see Figure~\ref{fig-bregman}.
+
+If $J$ is differentiable, then $\partial J(x_0)=\{\nabla J(x_0)\}$, and the divergence becomes
+\eq{
+	D(x|x_0) \eqdef J(x)-J(x_0)-\dotp{\nabla J(x_0)}{x-x_0}.
+}
+If $J$ is strictly convex, then $D(x|x_0)=0$ exactly when $x=x_0$. Thus $D(\cdot|\cdot)$ separates points, although it need not be symmetric or satisfy the triangle inequality.
+
+If $J=\norm{\cdot}^2$, then $D(x|x_0) = \norm{x-x_0}^2$ is the squared Euclidean distance.
+ 
+For the negative-entropy functional $J(x)=\sum_i x_i(\log x_i-1)+\iota_{\RR_+^N}(x)$, one obtains
+\eq{
+	D(x|x_0)  = \sum_i x_i \log\pa{ \frac{x_i}{x_{0,i}} } + x_{0,i}-x_i
+}
+This is the generalized Kullback--Leibler divergence for $x_0\in\RR_{++}^N$ and $x\in\RR_+^N$, with the convention $0\log0=0$. For probability vectors, the linear terms sum to zero.
+
+The following estimate, associated with the work of Burger and Osher, yields a linear noise rate measured by Bregman divergence.
+
+\begin{thm}\label{thm-bregman-rates}
+	If there exists 
+	\eql{\label{eq-sourcecond-J}
+		\eta  = A^* p \in \Im(A^*) \cap \partial J(x_0), 
+	}
+    then every solution $x_\la$ of~\eqref{eq-lagr-J} satisfies
+	\eql{\label{eq-bregman-rate}
+		D_\eta( x_\la|x_0 ) \leq \frac{1}{2}\pa{ \frac{\norm{w}}{\sqrt{\la}} + \sqrt{\la}\norm{p} }^2.
+	}
+    The measurement residual also satisfies
+	\eql{\label{eq-predict-source}
+		\norm{Ax_\la-y} \leq \norm{w} + 2\norm{p}\la.
+	}
+\end{thm}
+\begin{proof}
+	The optimality of $x_\la$ for~\eqref{eq-lagr-J} implies
+	\eq{
+		\frac{1}{2\la}\norm{Ax_\la-y}^2+J(x_\la) \leq \frac{1}{2\la}\norm{Ax_0-y}^2+J(x_0) = \frac{1}{2\la}\norm{w}^2+J(x_0).
+	}
+	Hence, using $\dotp{\eta}{x_\la-x_0} = \dotp{p}{Ax_\la-Ax_0} = \dotp{p}{A x_\la - y+w}$, one has
+	\begin{align*}
+		D_\eta(x_\la|x_0) &= J(x_\la)-J(x_0)-\dotp{\eta}{x_\la-x_0} 
+			\leq \frac{1}{2\la}\norm{w}^2 - \frac{1}{2\la}\norm{Ax_\la-y}^2 -\dotp{p}{A x_\la-y} - \dotp{p}{w} \\
+			& = \frac{1}{2\la}\norm{w}^2 - \frac{1}{2\la}\norm{Ax_\la-y + \la p }^2 + \frac{\la}{2} \norm{p}^2 - \dotp{p}{w} \\
+			& \leq \frac{1}{2\la}\norm{w}^2 + \frac{\la}{2} \norm{p}^2 + \norm{p}\norm{w}
+			= \frac{1}{2}\pa{ \frac{\norm{w}}{\sqrt{\la}} + \sqrt{\la}\norm{p} }^2.
+	\end{align*}
+Since $D_\eta(x_\lambda|x_0)\geq0$, the completed-square bound gives
+\eq{
+ \norm{Ax_\lambda-y+\lambda p}^2
+ \leq\norm{w-\lambda p}^2
+ \leq(\norm{w}+\lambda\norm{p})^2.
+}
+The triangle inequality therefore yields
+\eq{
+ \norm{Ax_\lambda-y}\leq\norm{w}+2\lambda\norm{p}.
+}
+
+\end{proof}
+
+When $\norm{w}>0$ and $p\neq0$, choose $\la=\norm{w}/\norm{p}$ in~\eqref{eq-bregman-rate}. The resulting estimate $D_\eta( x_\la|x_0 ) \leq 2 \norm{w}\norm{p}$ is linear in the noise level.
+ 
+For the simple case of a quadratic regularizer $J(x)=\norm{x}^2/2$, as used in Section~\ref{sec-tikhonov}, the source condition~\eqref{eq-sourcecond-J} becomes
+\eq{
+	x_0 \in \Im(A^*)
+}
+This is~\eqref{eq-source-cond-init} with $\be=1$. Under this condition, \eqref{eq-bregman-rate} gives the sublinear $\ell^2$ estimate
+\eq{
+	\norm{x_0-x_\la} \leq 2 \sqrt{ \norm{w}\norm{p} }.
+}
+This agrees with Theorem~\ref{thm-sublin-quad} under the convention $x_0\in\Im((A^*A)^{\beta/2})$.
+
+ 
+The source condition~\eqref{eq-sourcecond-J} is sufficient for $x_0$ to minimize $J$ subject to $Ax=Ax_0$. In finite dimension, it is also necessary under a subdifferential sum-rule qualification, for example when $J$ is finite and continuous on $\RR^N$. Without such a qualification, existence of a Lagrange multiplier is an additional assumption.
+
+                                        
+\subsection{Linear Rates in Norms for \texorpdfstring{$\ell^1$}{l1} Regularization}
+
+For a regularizer $J$ that is not strictly convex, the Bregman bound~\eqref{eq-bregman-rate} need not control the error in norm. We now examine how additional certificate conditions restore such control for the $\ell^1$ penalty $J=\norm{\cdot}_1$.
+
+    \begin{figure}[tbp]
+\centering
+\BookDrawing{tikz/sparse-theory-bregman-l1}
+\caption{Bregman divergence controls the $\ell^1$ error on coordinates where $\eta$ does not saturate.}
+\label{fig-review-sparse-theory-bregman-l1}
+\end{figure}
+	
+The next lemma quantifies this control through the gap between $|\eta_i|$ and one.
+
+\begin{lem}
+	For $\eta \in \partial \norm{\cdot}_1(x_0)$, let $J \eqdef \sat(\eta)$. Then
+	\eql{\label{eq-bound-breg-source}
+		D_\eta(x|x_0) \geq (1-\norm{\eta_{J^c}}_\infty) \norm{(x-x_0)_{J^c}}_1.
+	}
+\end{lem}
+
+\begin{proof}
+Note that $x_{0,J^c}=0$ since $\supp(x_0) \subset \sat(\eta)$ by definition of the subdifferential of the $\ell^1$ norm.
+ 
+	Since the $\ell^1$ norm is separable, each term in the sum defining $D_\eta(x|x_0)$ is nonnegative, hence
+	\begin{align*}
+		D_\eta(x|x_0) &= \sum_i |x_i|-|x_{0,i}|- \eta_i ( x_{i}-x_{0,i} ) 
+			\geq \sum_{i \in J^c} |x_i|-|x_{0,i}|- \eta_i ( x_{i}-x_{0,i} ) \\
+		&= \sum_{i \in J^c} |x_i|- \eta_i x_{i} \geq \sum_{i \in J^c} (1-|\eta_i|) |x_i|
+		\geq (1-\norm{\eta_{J^c}}_\infty) \sum_{i \in J^c} |x_i|
+		= (1-\norm{\eta_{J^c}}_\infty) \sum_{i \in J^c} |x_i-x_{0,i}|.
+	\end{align*}
+\end{proof}
+
+We use the convention $\norm{\eta_\emptyset}_\infty=0$. The margin $1-\norm{\eta_{J^c}}_\infty>0$ measures how far $\eta$ lies from saturation on the complementary coordinates. A larger margin gives stronger control of the coefficient error.
+
+This lemma yields a norm convergence rate under the certificate and injectivity assumptions of Proposition~\ref{sec-prop-uniquness-constr}, with $x^\star=x_0$.
+
+\begin{thm}\label{thm-linrate-l1}
+	If there exists 
+	\eql{\label{eq-sourcecond-l1}
+		\eta \in \Dd_0(A x_0,x_0)
+	}
+	and $\ker(A_{J})=\{0\}$ where
+	$J \eqdef \sat(\eta)$ then, for fixed $c>0$ and $\norm{w}>0$, choosing $\la=c\norm{w}$ gives a constant $C$ (depending on $A$, the certificate, and $c$, but not on $w$) such that any solution $x_\la$ of $\Pp_\la(Ax_0+w)$ satisfies
+	\eql{\label{eq-linrate-l1}
+		\norm{x_\la-x_0} \leq C \norm{w}. 
+	}
+\end{thm}
+\begin{proof}
+	Write $\eta=A^*p$ and $y=Ax_0+w$.
+	 
+	The optimality of $x_\la$ in~\eqref{eq-lasso-lagr} implies
+	\eq{
+		\frac{1}{2\la} \norm{Ax_\la-y}^2 + \norm{x_\la}_1 \leq 
+		\frac{1}{2\la} \norm{Ax_0-y}^2

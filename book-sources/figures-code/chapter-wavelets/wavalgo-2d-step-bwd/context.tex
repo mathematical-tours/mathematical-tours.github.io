@@ -1,0 +1,180 @@
+% Context from chapters/wavelets.tex; for mathematical reference, not compilation.
+	a_{j,n}=\dotp{f}{(\phi_{j,n_1}\otimes\phi_{j,n_2})^P}.
+}
+
+\myfigure{
+\image{wavelets}{.3}{wavcoefs-2d-original}
+\image{wavelets}{.42}{wavcoefs-2d-coefs}
+}{ 
+	2-D wavelet coefficients.  
+}{fig-wavcoefs-2d}
+
+Figure~\ref{fig-wavcoefs-2d} shows how the wavelet coefficients are arranged in an image of $N^2$ pixels.
+ 
+Figure~\ref{fig-wavcoefs-example} shows other examples of wavelet decompositions.
+
+\myfigure{
+\tabtrois{
+\image{wavelets}{.3}{wavcoefs-example-square}&
+\image{wavelets}{.3}{wavcoefs-example-boat}&
+\image{wavelets}{.3}{wavcoefs-example-mandrill}\\
+\image{wavelets}{.3}{wavcoefs-example-square-coefs}&
+\image{wavelets}{.3}{wavcoefs-example-boat-coefs}&
+\image{wavelets}{.3}{wavcoefs-example-mandrill-coefs}
+}
+}{ 
+	Images (top) and their wavelet coefficients (bottom). 
+}{fig-wavcoefs-example}
+
+  
+\paragraph{One step of the forward 2-D transform.}
+
+Each step separates fine-scale approximation coefficients into three detail arrays and a coarse approximation:
+\eq{
+	a_{j-1} \longmapsto (a_j, d_j^H, d_j^V, d_j^D).
+}
+As in one dimension, this map is orthogonal. It is implemented by applying the filtering and sub-sampling formula~\eqref{eq-convol-subsample} in each coordinate direction.
+
+One first applies 1-D horizontal filtering and sub-sampling
+\eqm{
+	\tilde a_j &= ( a_{j-1} \star^H \bar h ) \downarrow^H 2\\
+	\tilde d_j &= (a_{j-1}\star^H\bar g) \downarrow^H 2,
+}
+where $\star^H$ denotes convolution along the first coordinate (called horizontal here), applied to each column of the array
+\eq{
+	a \star^H b_{n_1,n_2} = \sum_{m_1=0}^{P-1} a_{n_1-m_1,n_2} b_{m_1}
+}
+Here $a\in\CC^{P\times P}$ is a matrix and $b\in\CC^P$ is a filter. The notation $\downarrow^H 2$ denotes sub-sampling in the horizontal direction
+\eq{
+	(a \downarrow^H 2)_{n_1,n_2} = a_{2n_1,n_2}.
+}
+
+One then applies 1-D vertical filtering and sub-sampling to $\tilde a_j$ and $\tilde d_j$ to obtain
+\eqm{
+	\begin{array}{ll}
+	a_j &=  ( \tilde a_j \star^V \bar h ) \downarrow^V 2,\\
+	d_j^V &= ( \tilde a_j \star^V \bar g ) \downarrow^V 2,
+	\end{array}\qquad	
+	\begin{array}{ll}
+	d_j^H &= ( \tilde d_j \star^V \bar h ) \downarrow^V 2,\\
+	d_j^D &= ( \tilde d_j \star^V \bar g ) \downarrow^V 2,
+	\end{array}
+}
+where the vertical operators are defined analogously to the horizontal operators, acting on rows.
+
+\myfigure{
+\image{wavelets}{.9}{wavalgo-2d-step-fwd}
+}{ 
+	Forward 2-D filterbank step.  
+}{fig-wavalgo-2d-step-fwd}
+
+\myfigure{
+\tabtrois{
+\image{wavelets}{.24}{wavalgo-2d-0}&
+\image{wavelets}{.24}{wavalgo-2d-1}&
+\image{wavelets}{.24}{wavalgo-2d-2}\\
+Coefficients $a_{j-1}$ & Transform on rows & Transform on columns
+}
+}{ 
+	One step of the 2-D wavelet transform algorithm.  
+}{fig-wavalgo-2d}
+
+These two forward steps are shown in the block diagram in Figure~\ref{fig-wavalgo-2d-step-fwd}.
+The updates can be performed in place, storing all coefficients in an image of $N^2$ pixels, as shown in Figure~\ref{fig-wavalgo-2d}. This produces the familiar multiscale arrangement used in Figure~\ref{fig-wavcoefs-example}.
+
+  
+\paragraph{Fast 2-D wavelet transform.}
+
+The 2-D FWT algorithm iterates these steps through the scales:
+\begin{rs}
+	\item \textbf{Input:} image $f \in \CC^{N\times N}$.
+	\item \textbf{Initialization:} $a_J = f$.
+	\item \textbf{For} $j=J+1,\ldots,j_0$.
+		\eq{
+			\begin{array}{ll}
+			\tilde a_j &= ( a_{j-1} \star^H \bar h ) \downarrow^H 2, \\
+			\tilde d_j &= (a_{j-1}\star^H\bar g) \downarrow^H 2, \\
+			a_j &=  ( \tilde a_j \star^V \bar h ) \downarrow^V 2,
+			\end{array}\qquad			
+			\begin{array}{ll}
+			d_j^V &= ( \tilde a_j \star^V \bar g ) \downarrow^V 2,\\
+			d_j^H &= ( \tilde d_j \star^V \bar h ) \downarrow^V 2,\\
+			d_j^D &= ( \tilde d_j \star^V \bar g ) \downarrow^V 2.
+			\end{array}
+		}
+	\item \textbf{Output:} the coefficients $\{d_j^\om\}_{J<j\leq j_0,\om} \cup \{ a_{j_0} \}$.
+\end{rs}
+
+
+  
+\paragraph{Fast 2-D inverse wavelet transform.}
+
+The inverse transform undoes the horizontal and vertical filtering steps.
+The first step computes
+\eqm{
+	\tilde a_j &= (a_j\uparrow^V2)\star^Vh + (d_j^V\uparrow^V2)\star^Vg,\\
+	\tilde d_j &= (d_j^H\uparrow^V2)\star^Vh + (d_j^D\uparrow^V2)\star^Vg,
+}
+where the vertical up-sampling is
+\eq{
+	(a \uparrow^V 2)_{n_1,n_2} = 
+	\choice{
+		a_{n_1,k}\qifq n_2=2k, \\
+		0\qifq n_2=2k+1.
+	}
+}
+The second inverse step computes
+\eqm{
+	a_{j-1} &= (\tilde a_j\uparrow^H2)\star^Hh + (\tilde d_j\uparrow^H2)\star^Hg.
+}
+Figure~\ref{fig-wavalgo-2d-step-bwd} gives the inverse filter-bank diagram corresponding to Figure~\ref{fig-wavalgo-2d-step-fwd}.
+
+\myfigure{
+\image{wavelets}{.9}{wavalgo-2d-step-bwd}
+}{ 
+	Backward 2-D filterbank step.  
+}{fig-wavalgo-2d-step-bwd}
+
+The inverse fast wavelet transform iteratively applies these elementary steps
+\begin{rs}
+	\item \textbf{Input:} $\{d_j^\om\}_{J<j\leq j_0,\om} \cup \{ a_{j_0} \}$.
+	\item \textbf{For} $j=j_0,j_0-1,\ldots,J+1$.
+		\eqm{
+			\tilde a_j &= (a_j\uparrow^V2)\star^Vh + (d_j^V\uparrow^V2)\star^Vg,\\
+			\tilde d_j &= (d_j^H\uparrow^V2)\star^Vh + (d_j^D\uparrow^V2)\star^Vg,\\
+			a_{j-1} &= (\tilde a_j\uparrow^H2)\star^Hh + (\tilde d_j\uparrow^H2)\star^Hg.
+		}
+	\item \textbf{Output:} $f = a_J$.
+\end{rs}
+
+
+
+
+                                   
+                                   
+\section{Wavelet Design}
+
+Implementing the FWT requires the filters $h$ and $g$, rather than explicit formulas for the scaling function $\phi$ and wavelet $\psi$. Most useful wavelets have no elementary closed form; their refinement equations define them implicitly, and the cascade algorithm approximates them.
+
+This section derives constraints on the filters and gives examples. Under the usual quadrature-mirror construction, the low-pass filter $h$ determines the high-pass filter $g$.
+
+
+                                   
+\subsection{Low-pass Filter Constraints}
+
+We introduce the following three conditions on a filter $h$
+\begin{align}
+	\label{eq-cond-h-1}\tag{$C_1$}  \hat h(0)&=\sqrt{2}  \\
+	\label{eq-cond-h-2}\tag{$C_2$}   |\hat h(\om)|^2 + |\hat h(\om+\pi)|^2&=2, \\
+	\label{eq-cond-h-star}\tag{$C^*$}  \underset{\om \in [-\pi/2,\pi/2]}{\inf} |\hat h(\om)|&>0.
+\end{align}
+
+These conditions use the Fourier series of the filter $h \in \RR^\ZZ$:
+\eql{\label{eq-fourier-tr-infi}
+	\forall \om \in \RR/2\pi\ZZ, \quad
+	\hat h(\om) \eqdef \sum_{n \in \ZZ} h_n e^{-\imath n \om }.
+}
+If $h \in \ell^1(\ZZ)$, this defines a continuous periodic function $\hat h \in \Cc^0(\RR/2\pi\ZZ)$, and the definition extends to $h \in \ell^2(\ZZ)$ to give $\hat h \in L^2(\RR/2\pi\ZZ)$.
+
+\begin{thm}\label{thm-multires-approx}
+	If an integrable real scaling function $\phi$ defines a multiresolution analysis and its filter $h$ is su

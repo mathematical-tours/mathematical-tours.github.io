@@ -1,0 +1,127 @@
+% Context from chapters/machine-learning.tex; for mathematical reference, not compilation.
+c{\la}{2} \norm{\be}_\Hh^2
+}
+
+Start with regression under the squared loss $\ell(y,z)=\frac{1}{2}(y-z)^2$:
+\eq{
+	\be^\star = \uargmin{\be \in \Hh} \norm{\Phi\be-y}_{\RR^n}^2+\la\norm{\be}_\Hh^2.
+}
+which is the ridge regression problem studied in Section~\ref{sec-linear-models}. 
+ 
+Setting the gradient to zero gives
+\eq{
+	\be^\star = ( \Phi^*\Phi + \la \Id_{\Hh} )^{-1} \Phi^* y.
+}
+Direct computation may be impractical or impossible when $\Hh$ is infinite dimensional. The following Woodbury identity converts the problem into a finite system.
+ 
+This is the feature-space counterpart of~\eqref{eq-linest-woodbury}, with $\Phi$ replacing $X$ and $\la$ replacing $n\la_n$.
+
+\begin{prop}
+	One has
+	\eq{
+		( \Phi^*\Phi + \la \Id_{\Hh} )^{-1} \Phi^* = \Phi^* ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1}. 
+	}
+\end{prop}
+\begin{proof}
+	Denoting $U=( \Phi^*\Phi + \la \Id_{\Hh} )^{-1} \Phi^*$ and $V=\Phi^* ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1}$, one has
+ 	\eq{
+		( \Phi^*\Phi + \la \Id_{\Hh} ) U = \Phi^*
+	}
+	and
+	\eq{
+		( \Phi^*\Phi + \la \Id_{\Hh} ) V = ( \Phi^*\Phi\Phi^* + \la \Phi^*)  ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1}
+		 = \Phi^* ( \Phi \Phi^* + \la \Id_{\RR^n} ) ( \Phi \Phi^* + \la \Id_{\RR^n} )^{-1} = \Phi^*.		
+	}
+	Since $( \Phi^*\Phi + \la \Id_{\Hh} )$ is invertible, one obtains the result. 
+\end{proof}
+
+The identity gives the alternative representation
+\eq{
+	\be^\star = \Phi^* c^\star
+	\qwhereq
+		c^\star \eqdef  ( K + \la \Id_{\RR^n} )^{-1} y
+}	
+where the empirical kernel matrix is
+\eq{
+	K=\Phi\Phi^* = ( \kappa(x_i,x_j) )_{i,j=1}^n \in \RR^{n \times n}
+	\qwhereq
+	\kappa(x,x') \eqdef \dotp{\phi(x)}{\phi(x')}. 
+}	
+The coefficients $c^\star \in \RR^n$ depend on the inputs only through $\kappa$, without explicit computation of $\phi(x)$. If $\kappa$ is inexpensive to evaluate, forming $K$ takes $O(n^2)$ kernel evaluations. A dense direct solve costs $O(n^3)$ operations; an iterative solve costs $O(n^2)$ per matrix-vector product, with the iteration count determined by conditioning and accuracy.
+
+The fitted predictor at a new input $x \in \Xx$ also uses only kernel evaluations:
+\eql{\label{eq-prediction-evaluation}
+	\dotp{\be^\star}{\phi(x)}_\Hh = \dotp{ \sum_i c_i^\star \phi(x_i)}{\phi(x)}_\Hh = \sum_i c_i^\star \kappa(x,x_i).
+}
+
+                                                  
+\subsection{Kernel Design}
+
+One can also start directly from a kernel $\kappa(x,x')$ rather than an explicit feature map $\phi$. This is often convenient because kernels can be designed through their geometric properties and combined, for example by addition. The required condition is that every Gram matrix $(\kappa(x_i,x_j))_{i,j}$ be symmetric positive semidefinite. Such kernels are commonly called positive definite kernels; the condition is equivalent to the existence of a Hilbert-space feature map generating the kernel.
+ 
+The underlying input space need not be Euclidean.
+
+
+When using the linear kernel $\kappa(x,y)=\dotp{x}{y}$, one retrieves the linear models studied in the previous section, and the lifting is trivial $\phi(x)=x$.
+ 
+A family of popular kernels are polynomial ones,  $\kappa(x,x') = (\dotp{x}{x\prime}+c)^a$ for $a
+\in \NN^*$ and $c>0$, which corresponds to a lifting in finite dimension. For instance, for $a=2$ and $p=2$, one has a lifting in dimension $6$
+\eq{
+	\kappa(x,x') = \pa{ x_1x_1'+x_2x_2' + c}^2 = \dotp{\phi(x)}{\phi(x')}
+	\qwhereq
+	\phi(x)=(x_1^2,x_2^2,\sqrt{2}x_1x_2,\sqrt{2c}x_1,\sqrt{2c}x_2,c)^* \in \RR^6.	
+}
+A widely used choice on Euclidean spaces is the Gaussian kernel
+\eql{\label{eq-gauss-kernel}
+	 \kappa(x,y) \eqdef e^{-\frac{\norm{x-y}^2}{2\sigma^2}} . 
+}
+The bandwidth $\si>0$ controls the locality of the model and is typically tuned by cross-validation. The Gaussian kernel has the infinite-dimensional feature map $\phi(x)(t)=(2/(\pi\sigma^2))^{p/4}\exp(-\norm{x-t}^2/\sigma^2)\in L^2(\RR^p)$.
+ 
+Another related popular kernel is the Laplacian kernel $\exp(-\norm{x-y}/\si)$.
+ 
+More generally, Bochner's theorem states that a continuous translation-invariant kernel $\kappa(x,x')=k(x-x')$ on $\RR^p$ is positive definite if and only if $k$ is the Fourier transform of a finite nonnegative measure. If this measure has an integrable density, a feature map can be built from the square root of that density. When $k$ is integrable and its Fourier transform is an integrable function, the condition is $\hat k\geq0$; strict positivity is not necessary.
+ 
+Figure~\ref{fig-kernel} shows an example of regression using a Gaussian kernel. 
+
+
+\begin{figure}
+\centering
+\begin{tabular}{@{}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{\hspace{1mm}}c@{}}
+\includegraphics[width=.19\linewidth]{ml/regression/scatter-2d}&
+\includegraphics[width=.19\linewidth]{ml/regression/kernel-2}&
+\includegraphics[width=.19\linewidth]{ml/regression/kernel-3}&
+\includegraphics[width=.19\linewidth]{ml/regression/kernel-4}&
+\includegraphics[width=.19\linewidth]{ml/regression/kernel-5}\\
+& $\si=0.1$ & $\si=0.5$ & $\si=1$ & $\si=5$
+\end{tabular}
+\caption{\label{fig-kernel}
+Regression using a Gaussian kernel.
+}
+\end{figure}
+
+\paragraph{Kernel on non-Euclidean spaces.}
+
+On a general input space $\Xx$, a real kernel $\kappa$ must produce a symmetric positive semidefinite Gram matrix $K=(\kappa(x_i,x_j))_{i,j}$ for every finite collection of inputs. Equivalently, there is a Hilbert space $\Hh$ and a feature map $\phi:\Xx \rightarrow \Hh$ such that $\kappa(x,x')=\dotp{\phi(x)}{\phi(x')}_\Hh$.
+
+For instance, if $\Xx = \Pp(\Mm)$ is the set of measurable sets of finite measure in a measure space $(\Mm,\mu)$, one can define $\kappa(A,B) = \mu(A \cap B)$ which corresponds to the lifting $\phi(A)=1_A$ so that $\dotp{\phi(A)}{\phi(B)} = \int 1_A(x) 1_B(x)\d \mu(x) = \mu(A \cap B)$.
+ 
+Kernels can also be defined on strings and graphs, although their construction is more involved.
+
+When $\kappa(x,x)>0$ for every input under consideration, the kernel can be normalized to have a unit diagonal. For a translation-invariant kernel on $\RR^p$, the diagonal equals the constant $k(0)$, so normalization only requires division by $k(0)>0$. This corresponds to replacing $\phi(x)$ by $\phi(x)/\norm{\phi(x)}_\Hh$ and thus replacing $\kappa(x,x')$ by $\frac{\kappa(x,x')}{\sqrt{\kappa(x,x)}\sqrt{\kappa(x',x')}}$.
+
+
+
+                                                  
+\subsection{General Case}
+
+The least-squares result extends to other losses under the assumptions below. With a squared Hilbert-space norm penalty, the minimizer belongs to a subspace generated by the data, of dimension at most $n$. This representer theorem reduces the problem to finitely many coefficients even when the feature space $\Hh$ is infinite dimensional.
+
+\begin{prop}
+	Assume $\lambda>0$ and the losses $\ell(y_i,\cdot)$ are finite, nonnegative, and convex. The solution $\be^\star\in\Hh$ of
+	\eql{\label{eq-kernel-generic}
+		 \umin{\be \in \Hh} \sum_{i=1}^n \ell(y_i, \dotp{\phi(x_i)}{\be}) + \frac{\la}{2} \norm{\be}_\Hh^2
+		 =
+		 \Loss(\Phi \be,y) + \frac{\la}{2} \norm{\be}_\Hh^2
+	}
+	is unique and can be written as
+	\eql{\label{eq-rkhs-repres
