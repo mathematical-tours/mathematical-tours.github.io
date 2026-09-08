@@ -5,6 +5,17 @@ from experiments_images import hadamard,inpaint_case
 from experiments_learning import cert_case,clustering_case
 
 class ScientificChecks(unittest.TestCase):
+    def test_bird_overview_preserves_peaks_and_detail_samples(self):
+        from experiments_signal import acquisition
+        fs,y=C.bird()
+        for zoom in [1,16]:
+            result=acquisition('examples',{'source':'Birdsong','zoom':zoom})
+            overview,detail=result['panels'];envelope=overview['series'][0];samples=detail['series'][0]
+            self.assertAlmostEqual(min(envelope['y']),float(y.min()),places=7)
+            self.assertAlmostEqual(max(envelope['y']),float(y.max()),places=7)
+            start=int(len(y)*.4);count=len(samples['y'])
+            np.testing.assert_allclose(samples['y'],y[start:start+count],atol=1e-8)
+            np.testing.assert_allclose(samples['x'],np.arange(start,start+count)/fs,atol=1e-6)
     def test_gradient_divergence_adjoint(self):
         rng=np.random.default_rng(19);f=rng.normal(size=(17,19));p=rng.normal(size=(2,17,19))
         self.assertLess(abs(np.sum(C.gradient(f)*p)+np.sum(f*C.divergence(p))),1e-10)
@@ -48,7 +59,39 @@ class ScientificChecks(unittest.TestCase):
             A,x,y,I,J,eta=cert_case(s,24);self.assertLess(max(abs(eta[I]-np.sign(x[I]))),1e-9)
     def test_lloyd_energy_does_not_increase(self):
         for continuous in [False,True]:
-            _,_,_,E=clustering_case(6,continuous);self.assertLessEqual(max(np.diff(E)),1e-10)
+            pts,weights,history,E=clustering_case(6,continuous)
+            self.assertEqual(len(E),len(history))
+            self.assertLessEqual(max(np.diff(E)),1e-10)
+            for k in [0,1,2,3,40]:
+                distances=np.sum((pts[:,None]-history[k][None])**2,axis=2).min(axis=1)
+                self.assertAlmostEqual(E[k],np.average(distances,weights=weights),places=12)
+    def test_empirical_spectrum_retains_all_eigenvalues(self):
+        from experiments_learning import random_case
+        for beta in [.1,.6,.8]:
+            for P in [40,80]:
+                panel=random_case('marcenko-pastur',{'beta':beta,'P':P})['panels'][0]
+                hist=panel['series'][0]
+                self.assertAlmostEqual(sum(hist['y'])*hist['barWidth'],1,places=7)
+    def test_logistic_upper_bound_touches_binary_loss(self):
+        from experiments_learning import learning
+        panel=learning('losses',{'margin':0})['panels'][0]
+        values={s['label']:np.array(s['y']) for s in panel['series']}
+        self.assertTrue(np.all(values['Logistic / log 2']>=values['Binary']))
+        self.assertEqual(values['Logistic / log 2'][300],1)
+        self.assertLess(values['Logistic'][300],1)
+    def test_curvelet_grid_is_tangent_to_frequency_direction(self):
+        from experiments_signal import directional
+        for angle in [0,30,90]:
+            result=directional('curvelet-discretization',{'scale':16,'angle':angle})
+            s=result['panels'][0]['series'][0]
+            x=np.array(s['x']).reshape(13,7);y=np.array(s['y']).reshape(13,7)
+            tangent=np.array([x[0,1]-x[0,0],y[0,1]-y[0,0]])
+            from curvelet_frame import windows
+            _,info=windows(128)
+            actual=min(info[1:],key=lambda v:abs(np.log2(v['radius']/16))*10+abs(np.angle(np.exp(1j*(v['angle']-np.deg2rad(angle))))))
+            normal=np.array([np.cos(actual['angle']),np.sin(actual['angle'])])
+            self.assertAlmostEqual(tangent@normal,0,places=7)
+            self.assertAlmostEqual(np.linalg.norm(tangent),.25,places=7)
     def test_small_numbers_survive_export(self):
         self.assertEqual(arr(np.array([1e-15,1e-9,0])),[1e-15,1e-9,0])
     def test_heat_preserves_mean_and_reduces_dirichlet_energy(self):

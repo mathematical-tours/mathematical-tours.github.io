@@ -53,6 +53,10 @@ def main():
              'Numbers are those of the main PDF, including its continued figures.\n\n',
              'Sliders select the computed values listed below. Menus select actual '
              'inputs or methods; experiment notes explain numerical conventions. '
+             'Each experiment adds an exploration prompt, suggested comparisons, and '
+             'a **What to look for** explanation. **Open figure** preserves selected '
+             'parameters and the comparison tab in a shareable URL. Focus a plot to '
+             'inspect values with the arrow keys, or expand its numerical table. '
              'The original cover and explicitly retained illustrations remain unchanged.\n\n',
              '| Chapter | Interactive | Retained | Computed states |\n',
              '| --- | ---: | ---: | ---: |\n']

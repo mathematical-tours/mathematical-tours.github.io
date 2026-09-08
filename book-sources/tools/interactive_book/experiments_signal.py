@@ -37,8 +37,13 @@ def acquisition(view,p):
         return state(image(f,'RGB flower'),image(z,f'Synthetic channel: {w:.0f} nm'),plot('Spectrum at the central pixel',series(np.linspace(400,700,32),spec,'Intensity'),series([w],[spec[k]],'Selected channel',points=True),xlabel='Wavelength (nm)',ylabel='Intensity'),note='The 32 channels are a synthetic spectral model derived from RGB, not measured multispectral data.')
     z=p['zoom']
     if p['source']=='Birdsong':
-        fs,y=C.bird();t=np.arange(len(y))/fs;a=int(len(y)*.4);count=int(len(y)/z*.4);ids=np.linspace(0,len(y)-1,1000).astype(int);ids2=np.linspace(a,min(a+count,len(y)-1),900).astype(int)
-        return state(plot('Recorded birdsong',series(t[ids],y[ids],'Amplitude'),xlabel='Time (s)',ylabel='Amplitude'),plot('Short-time detail',series(t[ids2],y[ids2],'Amplitude'),xlabel='Time (s)',ylabel='Amplitude'),metrics=[metric('Sampling rate',fs,'Hz')],note='The waveform comes from data/bird.wav; the audio player contains the same recording.')
+        fs,y=C.bird();t=np.arange(len(y))/fs;a=int(len(y)*.4);count=min(len(y)-a,max(2,round(.08*fs/z)));ids=np.arange(a,a+count)
+        # Peak envelopes preserve transients; decimating the oscillatory signal
+        # without a low-pass filter would invent a misleading aliased waveform.
+        bins=np.array_split(np.arange(len(y)),min(800,len(y)))
+        centers=np.array([t[b].mean() for b in bins]);bounds=np.array([[y[b].min(),y[b].max()] for b in bins]);peak=float(max(abs(y)))
+        selected=series([t[ids[0]],t[ids[-1]],t[ids[-1]],t[ids[0]],t[ids[0]]],[-peak,-peak,peak,peak,-peak],'Selected interval',color='#b94b44')
+        return state(plot('Recorded birdsong — peak envelope',series(np.repeat(centers,2),bounds.ravel(),'Sample ranges',segments=True),selected,xlabel='Time (s)',ylabel='Amplitude',ylim=[-1.05*peak,1.05*peak]),plot('Short-time detail — every sample',series(t[ids],y[ids],'Recorded samples'),xlabel='Time (s)',ylabel='Amplitude'),metrics=[metric('Sampling rate',fs,'Hz'),metric('Detail duration',1000*(count-1)/fs,'ms')],note='The overview preserves the minimum and maximum in each time bin; the red outline marks the detail interval. The detail shows every recorded sample, without decimation. The audio player contains the same recording from data/bird.wav.')
     f=C.flower(128,color=True);size=128//z;start=(128-size)//2;box={'x':start,'y':start,'w':size,'h':size,'color':'#cc3333'}
     return state(image(f,'Flower — selected region',boxes=[box]),image(f[start:start+size,start:start+size],'Pixelated enlargement',boxes=[{'x':0,'y':0,'w':size,'h':size,'color':'#cc3333'}]),metrics=[metric('Crop width',size,'pixels')])
 
@@ -207,8 +212,12 @@ def directional(view,p):
     n=128;bank,info=windows(n);radius=p['scale'];angle=np.deg2rad(p['angle']);idx=min(range(1,len(info)),key=lambda i:abs(np.log2(info[i]['radius']/radius))*10+abs(np.angle(np.exp(1j*(info[i]['angle']-angle)))))
     win=bank[idx];atom=fft.fftshift(fft.ifft2(win,norm='ortho').real)
     if view=='curvelet-discretization':
-        a=np.deg2rad(p['angle']);u=np.arange(-3,4)/np.sqrt(radius);v=np.arange(-6,7)/radius;U,V=np.meshgrid(u,v);X=U*np.cos(a)-V*np.sin(a);Y=U*np.sin(a)+V*np.cos(a)
-        return state(plot('Parabolic translation grid',series(X.ravel(),Y.ravel(),'Positions',points=True),xlabel='x',ylabel='y',equal=True),image(atom,'Selected directional atom',signed=True),note='Tangential spacing scales as 1/√r; normal spacing as 1/r. The lattice rotates with the atom orientation.')
+        radius=info[idx]['radius'];normal=info[idx]['angle'];a=normal+np.pi/2
+        u=np.arange(-3,4)/np.sqrt(radius);v=np.arange(-6,7)/radius;U,V=np.meshgrid(u,v);X=U*np.cos(a)-V*np.sin(a);Y=U*np.sin(a)+V*np.cos(a)
+        # Pixel rows increase downward. Use the same Cartesian orientation in
+        # the spatial image and the boxed translation plot.
+        atom_panel=image(atom[::-1],'Selected directional atom',signed=True)
+        return state(plot('Parabolic translation grid',series(X.ravel(),Y.ravel(),'Positions',points=True),xlabel='x',ylabel='y',equal=True),atom_panel,metrics=[metric('Actual frequency angle',np.rad2deg(normal),'°'),metric('Tangential spacing',1/np.sqrt(radius)),metric('Normal spacing',1/radius)],note='The frequency direction is normal to the elongated spatial atom. Tangential spacing is 1/√r and normal spacing is 1/r. The grid uses the selected frame atom’s actual orientation; the spatial image is shown with y increasing upward.')
     return state(image(atom,'Spatial atom (real part)',signed=True),image(fft.fftshift(win),'Frequency window'),metrics=[metric('Radial scale',info[idx]['radius']),metric('Frequency angle',np.rad2deg(info[idx]['angle']),'°')],note='A smooth annular/angular window gives a parabolically scaled directional atom. Spatial oscillation is normal to its elongated envelope; displayed windows come from the same Parseval frame used for denoising.')
 
 

@@ -1,11 +1,13 @@
 // MyST wraps embedded iframes in an aspect-ratio container. Give the real
 // experiment its measured height, including after client-side chapter changes.
 const prepared = new WeakSet();
+function sendTheme(frame){frame.contentWindow?.postMessage({type:'foundations-theme',dark:document.documentElement.classList.contains('dark')},location.origin);}
 function prepareFrames(){
   for(const button of document.querySelectorAll('button.myst-search-bar'))button.setAttribute('aria-label','Search the book');
   for(const frame of document.querySelectorAll('.book-live-frame iframe')){
     if(prepared.has(frame))continue;prepared.add(frame);frame.loading='lazy';
     const container=frame.parentElement;container.style.paddingBottom='0';container.style.height='560px';container.style.width='100%';
+    frame.addEventListener('load',()=>sendTheme(frame));sendTheme(frame);
   }
 }
 window.addEventListener('message',event=>{
@@ -16,6 +18,7 @@ window.addEventListener('message',event=>{
   }
 });
 new MutationObserver(prepareFrames).observe(document.documentElement,{childList:true,subtree:true});prepareFrames();
+new MutationObserver(()=>document.querySelectorAll('.book-live-frame iframe').forEach(sendTheme)).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
 // Start the native section outline collapsed on phones. Readers can open it
 // normally; a remembered button is never automatically closed a second time.
 const compactOutlines=new WeakSet();

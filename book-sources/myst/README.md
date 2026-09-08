@@ -61,7 +61,11 @@ The theme's download menu serves the corresponding published PDF. The build remo
 
 ## Experiments
 
-Every experiment has an **Explore / Book figure** switch and a reset button. Native range inputs and menus work with the keyboard. Plot values can be inspected with the pointer or expanded as a numerical table. Parameters are reflected in each standalone panel's URL.
+Every experiment begins with a short exploration prompt, suggested comparisons under **Try**, and a **What to look for** explanation. Parameter notes distinguish such choices as wavelet dilation versus decomposition depth, or display contrast versus a change to the underlying operator. **Reset** restores the default settings; **Explore / Book figure** switches to the approved PDF illustration.
+
+Native range inputs and menus work with the keyboard. Focus a plot and use left/right to inspect its samples, up/down to select a series, and Home/End to reach the endpoints. A visible marker and text readout identify the selected value. **Numerical values** opens a table that stays open when parameters change. Comparison tabs support the arrow keys and Home/End.
+
+**Open figure** opens a standalone view with the current parameters and comparison tab encoded in its URL, ready to bookmark or share. That view includes the publication figure number and a link back to its chapter. Figures follow the book's light/dark theme, and plot colors adapt for contrast. A failed experiment request exposes the approved book figure and a retry button; rapid slider changes display only the most recently selected result.
 
 The experiments use **computed discrete parameter grids**. Each slider stop loads the result for that exact parameter combination; it does not interpolate pictures. Heavy reconstruction algorithms therefore work on a static site, including when the server is offline. Noise samples, datasets, initializations, and measurement patterns are kept fixed within comparisons. Notes beneath each experiment state boundary conventions, finite-sample assumptions, solver settings, and any simplification relative to the publication figure.
 
@@ -80,6 +84,7 @@ See the [figure-by-figure audit guide](../docs/interactive-book/figures.md) for 
 | `../tools/interactive_book/numerics.py` | Shared data, image, curve, and serialization helpers. |
 | `../tools/interactive_book/build_data.py` | Parameter-grid computation, caching, fallbacks, and panel generation. |
 | `live/book-live.mjs`, `live/plot.mjs` | Browser controls, accessible views, and boxed scientific plots. |
+| `live/guidance.mjs` | Mathematical exploration prompts, parameter explanations, and suggested comparisons. |
 | `book-theme.css`, `live/book-live.css` | Reader and experiment typography/layout. |
 | `book-frame.js` | Responsive iframe sizing and section navigation after route changes. |
 | `scripts/build.mjs` | Strict-capable MyST build and portable iframe paths. |
@@ -102,7 +107,7 @@ make web-serve                 # keep this running in one terminal
 make web-browser-check         # run from another terminal
 ```
 
-The browser test checks every figure's controls, reset and fallback, all chapter pages, mobile layouts, navigation, search, and representative screenshots. It blocks requests outside the local book, testing that reading does not require an external service. If Playwright has no browser installed, run `cd myst && npx playwright install chromium`; alternatively set `BROWSER_EXECUTABLE` to an installed Chromium/Chrome executable. Set `BOOK_URL` to test another local base URL.
+The browser test checks every figure's controls, reset and fallback, all chapter pages, mobile layouts, navigation, search, and representative screenshots. It also exercises keyboard plot inspection, persistent tables, saved parameter links, theme propagation, rapid image updates, and recovery after an intentionally failed request. It blocks requests outside the local book, testing that reading does not require an external service. If Playwright has no browser installed, run `cd myst && npx playwright install chromium`; alternatively set `BROWSER_EXECUTABLE` to an installed Chromium/Chrome executable. Set `BOOK_URL` to test another local base URL.
 
 Reports and screenshots are generated under `../build/interactive-book/`. The publication summary is in [docs/interactive-book](../docs/interactive-book/README.md).
 

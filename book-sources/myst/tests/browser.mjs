@@ -14,25 +14,27 @@ const executable=process.env.BROWSER_EXECUTABLE;
 const browser=await chromium.launch({headless:true,...(executable?{executablePath:executable}:{})});
 const context=await browser.newContext({viewport:{width:1280,height:1000},reducedMotion:'reduce'});
 const buildInfo=await (await context.request.get(base+'/build-info.json')).json();
-const issues=[],results=[],external=new Set();
+const issues=[],results=[],bookLinks=[],external=new Set();
 function saveReport(chaptersChecked=0){const report={book_url:base,content_sha256:buildInfo.content_sha256,figures_checked:results.length,passed:results.filter(r=>r.passed).length,chapters_checked:chaptersChecked,issues,external_requests:[...external],results};fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2)+'\n');return report;}
 await context.route('**/*',route=>{const u=new URL(route.request().url());if(u.protocol.startsWith('http')&&u.origin!==origin){external.add(u.href);return route.abort();}return route.continue();});
 function watch(page,label){page.on('pageerror',e=>issues.push({label,error:String(e)}));page.on('response',r=>{if(r.status()>=400)issues.push({label,status:r.status(),url:r.url()});});}
-async function waitPaint(page){await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));}
+async function waitPaint(page){await page.waitForFunction(()=>document.body.dataset.rendering!=='true');await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));}
 async function inspectFigure(f){
   const page=await context.newPage();watch(page,f.id);
   try{
     await page.goto(`${base}/live/panels/${f.id}.html`,{waitUntil:'networkidle'});
     await page.waitForFunction(()=>document.body.dataset.ready||document.body.dataset.error,{timeout:15000});
     assert.equal(await page.locator('body').getAttribute('data-error'),null);
+    bookLinks.push({id:f.id,chapter:f.chapter,url:await page.locator('.chapter-link').getAttribute('href')});
     if(f.interaction){
+      await waitPaint(page);assert.equal(await page.locator('.exploration-prompt').isVisible(),true);assert.ok(await page.locator('.presets button').count()>=2);
       const initial=await page.locator('body').getAttribute('data-state');const visual=()=>page.locator('#panels').evaluate(p=>p.innerHTML+[...p.querySelectorAll('canvas')].map(c=>c.toDataURL()).join('|'));const before=await visual();
       await page.locator('#controls input,#controls select').first().evaluate(input=>{input.value=input.value==='0'?'1':'0';input.dispatchEvent(new Event('input',{bubbles:true}));});await waitPaint(page);
       assert.notEqual(await page.locator('body').getAttribute('data-state'),initial);
       assert.notEqual(await visual(),before);
       await page.getByRole('button',{name:'Reset all parameters'}).click();await waitPaint(page);assert.equal(await page.locator('body').getAttribute('data-state'),initial);
       await page.getByRole('tab',{name:'Book figure',exact:true}).click();assert.equal(await page.locator('#static').isVisible(),true);
-      await page.getByRole('tab',{name:'Explore',exact:true}).click();assert.equal(await page.locator('#explore').isVisible(),true);
+      await page.getByRole('tab',{name:'Explore',exact:true}).click();await waitPaint(page);assert.equal(await page.locator('#explore').isVisible(),true);
       const failed=await page.locator('img:visible').evaluateAll(images=>images.filter(i=>i.complete&&i.naturalWidth===0).map(i=>i.src));assert.deepEqual(failed,[]);
     }else {assert.equal(await page.locator('#static').isVisible(),true);await page.locator('#static img').evaluate(img=>{if(!img.complete||!img.naturalWidth)throw new Error('Static image missing');});}
     results.push({id:f.id,passed:true});
@@ -50,6 +52,11 @@ for(const c of chapters){
   assert.equal(await reader.locator('.katex-error').count(),0,`Math errors in ${c.chapter}`);
   const overflow=await reader.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);assert.equal(overflow,false,`Horizontal overflow in ${c.chapter}`);
   const expected=figures.filter(f=>f.chapter===c.chapter).length;assert.equal(await reader.locator('iframe').count(),expected,`Dropped figure in ${c.chapter}`);
+  const anchors=new Set(await reader.locator('[id]').evaluateAll(items=>items.map(e=>e.id)));
+  for(const link of bookLinks.filter(l=>l.chapter===c.chapter)){
+    const target=new URL(link.url);assert.equal(target.pathname,`${new URL(base).pathname}/${c.chapter}/`);
+    if(target.hash)assert.ok(anchors.has(decodeURIComponent(target.hash.slice(1))),`Missing chapter return anchor for ${link.id}`);
+  }
   chaptersChecked++;
   }catch(error){issues.push({label:c.chapter,error:String(error)});}
 }

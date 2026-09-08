@@ -1,4 +1,4 @@
-/** Check embedded sizing, keyboard access, and reading on a static HTTP server. */
+/** Check embedded sizing, keyboard access, recovery, and reading offline. */
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,11 +13,12 @@ const issues=[],external=new Set(),checks=[];
 await context.route('**/*',route=>{const u=new URL(route.request().url());if(u.protocol.startsWith('http')&&u.origin!==new URL(base).origin){external.add(u.href);return route.abort();}return route.continue();});
 const page=await context.newPage();page.on('pageerror',e=>issues.push(String(e)));page.on('response',r=>{if(r.status()>=400)issues.push(`${r.status()}: ${r.url()}`);});
 const info=await (await context.request.get(base+'/build-info.json')).json();
+async function settled(surface){await surface.waitForFunction(()=>document.body.dataset.ready&&document.body.dataset.rendering!=='true');await surface.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));}
 async function frameFits(locator){
   await locator.scrollIntoViewIfNeeded();
   await page.waitForFunction(selector=>{
     const iframe=document.querySelector(selector),body=iframe?.contentDocument?.body;
-    return body?.dataset.ready&&Math.abs(iframe.getBoundingClientRect().height-body.getBoundingClientRect().height)<=12;
+    return body?.dataset.ready&&body.dataset.rendering!=='true'&&Math.abs(iframe.getBoundingClientRect().height-body.getBoundingClientRect().height)<=12;
   },await locator.evaluate(e=>'iframe[src="'+e.getAttribute('src')+'"]'),{timeout:15000});
 }
 try{
@@ -27,12 +28,30 @@ try{
   await page.goto(base+'/fourier/',{waitUntil:'networkidle'});
   const iframe=page.locator('iframe[src*="fourier--filtering-1d.html"]');await frameFits(iframe);
   const frame=await (await iframe.elementHandle()).contentFrame();
+  assert.ok((await frame.locator('.observation').innerText()).includes('high frequencies'));
+  const canvas=frame.locator('#panels canvas').first();await settled(frame);await canvas.focus();
+  const firstPoint=await frame.locator('.plot-tooltip').first().innerText();await canvas.press('ArrowRight');
+  assert.notEqual(await frame.locator('.plot-tooltip').first().innerText(),firstPoint);
+  await canvas.press('ArrowDown');assert.match(await frame.locator('.plot-tooltip').first().innerText(),/Filtered/);
+  checks.push('Keyboard curve inspection and contextual exploration guidance');
   await frame.locator('.chart-table summary').first().click();await frameFits(iframe);
   assert.equal(await frame.locator('.chart-table[open] table').count(),1);
+  await frame.locator('#controls input').first().evaluate(input=>{input.value='0';input.dispatchEvent(new Event('input',{bubbles:true}));});await settled(frame);await frameFits(iframe);
+  assert.equal(await frame.locator('.chart-table[open] table').count(),1);
   await frame.locator('.chart-table summary').first().click();
-  await frame.getByRole('tab',{name:'Book figure',exact:true}).click();await frameFits(iframe);
-  await frame.getByRole('tab',{name:'Explore',exact:true}).click();await frameFits(iframe);
-  await page.screenshot({path:path.join(out,'embedded-desktop.png')});checks.push('Embedded figure, numerical table, and comparison resizing');
+  await frame.getByRole('tab',{name:'Explore',exact:true}).focus();await frame.getByRole('tab',{name:'Explore',exact:true}).press('End');await frameFits(iframe);
+  assert.equal(await frame.getByRole('tab',{name:'Book figure',exact:true}).getAttribute('tabindex'),'0');
+  await frame.getByRole('tab',{name:'Book figure',exact:true}).press('Home');await settled(frame);await frameFits(iframe);
+  assert.equal(await frame.getByRole('tab',{name:'Book figure',exact:true}).getAttribute('tabindex'),'-1');
+  await page.screenshot({path:path.join(out,'embedded-desktop.png')});checks.push('Embedded figure, persistent numerical table, keyboard tabs, and comparison resizing');
+  await frame.locator('.presets button').last().click();await settled(frame);
+  const link=await frame.locator('.permalink').getAttribute('href');assert.equal(new URL(link).searchParams.get('sigma'),'16');
+  const standalone=await context.newPage();await standalone.goto(link,{waitUntil:'networkidle'});await settled(standalone);
+  assert.equal(await standalone.locator('#value-sigma').innerText(),'16');
+  assert.ok((await standalone.locator('.chapter-link').getAttribute('href')).includes('/fourier/#'));
+  await standalone.getByRole('tab',{name:'Book figure',exact:true}).click();await standalone.reload({waitUntil:'networkidle'});await settled(standalone);
+  assert.equal(await standalone.locator('#static').isVisible(),true);await standalone.close();
+  checks.push('Suggested comparisons and shareable parameters/view survive reload');
   await page.setViewportSize({width:390,height:844});await frameFits(iframe);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
   await page.screenshot({path:path.join(out,'embedded-mobile.png')});checks.push('Embedded mobile sizing');
@@ -43,8 +62,27 @@ try{
   await page.locator('#search-list a').first().waitFor();assert.ok(await page.locator('#search-list a[href*="shannon-coding"]').count());
   await page.keyboard.press('Escape');checks.push('Mobile contents and accessible search');
   await page.setViewportSize({width:1440,height:1000});await page.goto(base+'/shannon-coding/',{waitUntil:'networkidle'});
+  const darkIframe=page.locator('iframe[src*="shannon-coding--huff-code.html"]');await frameFits(darkIframe);
+  const darkFrame=await (await darkIframe.elementHandle()).contentFrame();
   await page.evaluate(()=>document.documentElement.classList.add('dark'));
-  await page.screenshot({path:path.join(out,'reading-dark.png')});checks.push('Dark reading theme');
+  await darkFrame.waitForFunction(()=>document.documentElement.classList.contains('dark'));await frameFits(darkIframe);
+  assert.equal(await darkFrame.evaluate(()=>getComputedStyle(document.body).getPropertyValue('--paper').trim()),'#12212c');
+  await page.screenshot({path:path.join(out,'reading-dark.png')});checks.push('Dark reading theme propagated into interactive figures');
+  const rapid=await context.newPage();await rapid.goto(base+'/live/panels/wavelets--wavcoefs-2d.html',{waitUntil:'networkidle'});await settled(rapid);
+  await rapid.locator('#controls input').first().evaluate(input=>{for(const value of ['0','3','1','2']){input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));}});await settled(rapid);
+  assert.ok((await rapid.locator('body').getAttribute('data-state')).startsWith('2,'));assert.equal(await rapid.locator('#value-level').innerText(),'3');
+  const imageURLs=await rapid.locator('#panels img').evaluateAll(images=>images.map(i=>i.getAttribute('src')));
+  const expectedImages=await rapid.evaluate(async()=>{const cfg=JSON.parse(document.getElementById('figure-config').textContent),data=await (await fetch(cfg.data)).json();return data.states[document.body.dataset.state].panels.filter(p=>p.kind==='image').map(p=>new URL('../data/'+p.src,location.href).href);});assert.deepEqual(imageURLs,expectedImages);
+  const before=await rapid.locator('body').getAttribute('data-state');await rapid.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{origin:location.origin,source:window,data:{type:'foundations-theme',dark:true}})));await settled(rapid);
+  assert.equal(await rapid.locator('body').getAttribute('data-state'),before);await rapid.screenshot({path:path.join(out,'wavelets-dark.png'),fullPage:true});await rapid.close();
+  checks.push('Rapid image changes commit only the latest selected state');
+  const retry=await context.newPage();let block=true;
+  await retry.route('**/live/data/fourier--filtering-1d.json',route=>block?route.abort():route.continue());
+  await retry.goto(base+'/live/panels/fourier--filtering-1d.html',{waitUntil:'networkidle'});await retry.waitForFunction(()=>document.body.dataset.error);
+  assert.equal(await retry.locator('#static').isVisible(),true);assert.equal(await retry.getByRole('button',{name:'Try again',exact:true}).isVisible(),true);
+  block=false;await retry.getByRole('button',{name:'Try again',exact:true}).click();await settled(retry);
+  assert.equal(await retry.locator('body').getAttribute('data-error'),null);assert.equal(await retry.locator('#explore').isVisible(),true);await retry.close();
+  checks.push('Failed data request exposes the book figure and a working retry');
 }catch(error){issues.push(String(error));}
 await context.close();await browser.close();
 const report={book_url:base,content_sha256:info.content_sha256,checks,issues,external_requests:[...external]};

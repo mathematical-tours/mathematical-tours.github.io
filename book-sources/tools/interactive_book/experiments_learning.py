@@ -66,8 +66,12 @@ def mp_case(beta,P):
 
 def random_case(view,p):
     if view in ['marcenko-pastur','marcenko-pastur-laws']:
-        e,beta=mp_case(p['beta'],p['P']);lo=(1-np.sqrt(beta))**2;hi=(1+np.sqrt(beta))**2;x=np.linspace(lo,hi,401);d=np.sqrt(np.maximum((hi-x)*(x-lo),0))/(2*np.pi*beta*x);hist,edge=np.histogram(e,bins=20,range=(lo,hi),density=False);density=hist/(len(e)*np.diff(edge))
-        return state(plot('Wishart eigenvalue distribution',series((edge[1:]+edge[:-1])/2,density,'Empirical',bars=True),series(x,d,'Marchenko–Pastur'),xlabel='Eigenvalue λ',ylabel='Density'),metrics=[metric('Actual s / P',beta),metric('Lower support edge',lo),metric('Upper support edge',hi),metric('Smallest eigenvalue',e[0])],note='B has independent N(0, 1/P) entries; the eigenvalues are those of BᵀB. All offered aspect ratios are below one, so the limiting law has no atom at zero.')
+        e,beta=mp_case(p['beta'],p['P']);lo=(1-np.sqrt(beta))**2;hi=(1+np.sqrt(beta))**2;x=np.linspace(lo,hi,401);d=np.sqrt(np.maximum((hi-x)*(x-lo),0))/(2*np.pi*beta*x)
+        # A finite matrix can have eigenvalues outside the limiting support.
+        # Include every observation so the empirical density has unit mass.
+        hist,edge=np.histogram(e,bins=20,range=(min(lo,float(e[0])),max(hi,float(e[-1]))),density=False);density=hist/(len(e)*np.diff(edge))
+        assert hist.sum()==len(e)
+        return state(plot('Wishart eigenvalue distribution',series((edge[1:]+edge[:-1])/2,density,'Empirical',bars=True,barWidth=float(edge[1]-edge[0])),series(x,d,'Marchenko–Pastur'),xlabel='Eigenvalue λ',ylabel='Density'),metrics=[metric('Actual s / P',beta),metric('Lower support edge',lo),metric('Upper support edge',hi),metric('Smallest eigenvalue',e[0]),metric('Outside limiting support',int(np.sum((e<lo)|(e>hi))))],note='B has independent N(0, 1/P) entries; the eigenvalues are those of BᵀB. The histogram includes all eigenvalues, including any outside the asymptotic support. Since s/P < 1, the limiting law has no atom at zero.')
     if view in ['max-gaussian','max-gaussian-mean']:
         N=p['N'];z=np.random.default_rng(SEED).standard_normal((800,1024));vals=np.max(abs(z[:,:N]) if view=='max-gaussian-mean' else z[:,:N],axis=1);hist,edges=np.histogram(vals,35,density=True);grid=np.array([8,16,32,64,128,256,512,1024]);means=[np.max(abs(z[:,:n]) if view=='max-gaussian-mean' else z[:,:n],axis=1).mean() for n in grid]
         return state(plot('Distribution of the maximum',series((edges[:-1]+edges[1:])/2,hist,'800 trials',bars=True),xlabel='Maximum',ylabel='Density'),plot('Mean growth',series(grid,means,'Empirical mean'),series(grid,np.sqrt(2*np.log(grid)),'√(2 log N)',dash=True),xlabel='N',ylabel='Mean maximum',logx=True),metrics=[metric('Mean',vals.mean()),metric('Standard deviation',vals.std())],note=('Maximum absolute value' if view=='max-gaussian-mean' else 'Maximum (without absolute value)')+' of independent standard Gaussians; 800 trials with common random draws.')
@@ -131,12 +135,14 @@ def clustering_case(K,continuous):
             I=lab==k
             if I.any():new[k]=np.average(pts[I],weights=weights[I],axis=0)
         centers=new;history.append(centers.copy())
-    assert np.max(np.diff(energies))<1e-10
+    dist=np.sum((pts[:,None]-centers[None])**2,axis=2)
+    energies.append(float(np.sum(weights*dist.min(axis=1))/weights.sum()))
+    assert len(energies)==len(history) and np.max(np.diff(energies))<1e-10
     return pts,weights,history,energies
 
 def clustering(view,p):
     pts,weights,h,E=clustering_case(p['K'],view=='lloyd');k=p['iteration'];c=h[k];lab=np.argmin(np.sum((pts[:,None]-c[None])**2,axis=2),axis=1);curves=[series(pts[lab==i,0],pts[lab==i,1],f'Cluster {i+1}',points=True) for i in range(len(c))];curves.append(series(c[:,0],c[:,1],'Centroids',points=True,size=7,color='#182f3c'))
-    return state(plot('Lloyd assignments and centroids',*curves,xlabel='x₁' if view=='lloyd' else 'PC1',ylabel='x₂' if view=='lloyd' else 'PC2',equal=True),plot('Quantization energy',series(np.arange(len(E)),E,'Energy'),series([min(k,39)],[E[min(k,39)]],'Current iteration',points=True),xlabel='Iteration',ylabel='Weighted squared distance'),metrics=[metric('Iteration',k),metric('Clusters',p['K'])],note='Weighted Lloyd iterations approximate a nonuniform continuous density using 1400 fixed quadrature samples.' if view=='lloyd' else 'Lloyd’s algorithm acts on the first two PCA coordinates of the real Iris measurements. Initialization stays fixed for each K.')
+    return state(plot('Lloyd assignments and centroids',*curves,xlabel='x₁' if view=='lloyd' else 'PC1',ylabel='x₂' if view=='lloyd' else 'PC2',equal=True),plot('Quantization energy',series(np.arange(len(E)),E,'Energy'),series([k],[E[k]],'Current iteration',points=True),xlabel='Iteration',ylabel='Weighted squared distance'),metrics=[metric('Iteration',k),metric('Clusters',p['K']),metric('Energy',E[k])],note='Weighted Lloyd iterations approximate a nonuniform continuous density using 1400 fixed quadrature samples.' if view=='lloyd' else 'Lloyd’s algorithm acts on the first two PCA coordinates of the real Iris measurements. Initialization stays fixed for each K.')
 
 
 def classification_data(kind='Moons'):
@@ -151,8 +157,8 @@ def probability_panel(model,X,title,prob=True):
 
 def learning(view,p):
     if view=='losses':
-        x=np.linspace(-3,3,401);s=p['margin'];loss=[('Binary',(x>=0).astype(float)),('Hinge',np.maximum(0,1+x)),('Logistic',np.logaddexp(0,x)),('Exponential',np.exp(x))]
-        return state(plot('Loss as a function of negative margin',*[series(x,y,n) for n,y in loss],series([s,s],[0,5],'Current margin',dash=True),xlabel='s = −y ⟨x, β⟩',ylabel='Loss',ylim=[0,5]),table('Current losses',['Loss','Value'],[['Binary',int(s>=0)],['Hinge',f'{max(0,1+s):.3f}'],['Logistic',f'{np.logaddexp(0,s):.3f}'],['Exponential',f'{np.exp(s):.3f}']]),note='The unscaled logistic loss is log(1 + exp(s)); at zero it equals log 2. The binary loss counts zero margin as an error, as in this chapter.')
+        x=np.linspace(-3,3,601);s=p['margin'];loss=[('Binary',(x>=0).astype(float)),('Hinge',np.maximum(0,1+x)),('Logistic',np.logaddexp(0,x)),('Logistic / log 2',np.logaddexp(0,x)/np.log(2)),('Exponential',np.exp(x))]
+        return state(plot('Loss as a function of negative margin',*[series(x,y,n) for n,y in loss],series([s,s],[0,5],'Current margin',dash=True),xlabel='s = −y ⟨x, β⟩',ylabel='Loss',ylim=[0,5]),table('Current losses',['Loss','Value'],[['Binary',int(s>=0)],['Hinge',f'{max(0,1+s):.3f}'],['Logistic',f'{np.logaddexp(0,s):.3f}'],['Logistic / log 2',f'{np.logaddexp(0,s)/np.log(2):.3f}'],['Exponential',f'{np.exp(s):.3f}']]),note='At zero margin, logistic / log 2 equals 1 and touches the binary loss. It upper-bounds the binary loss for every margin; the unscaled logistic need not. Zero margin counts as an error. Loss values above 5 remain available in the table.')
     if view=='hist-classif':
         X,y=classification_data(p['dataset']);model=KNeighborsClassifier(p['k']).fit(X,y);return state(plot('Training observations',*[series(X[y==i,0],X[y==i,1],f'Class {i}',points=True) for i in [0,1]],xlabel='x₁',ylabel='x₂',equal=True),probability_panel(model,X,'Neighbor vote probability P(y = 1 | x)'),metrics=[metric('Neighbors R',p['k'])],note='Class probability is the fraction of the R nearest training points in class 1. Every grid point is classified from the displayed fixed sample.')
     if view=='separation-influ':
