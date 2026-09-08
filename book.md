@@ -141,7 +141,7 @@ chapters:
       <p class="hero-intro">A mathematical route from signals and images to inverse problems, optimization, and machine learning. Read the theory, explore the figures, and connect the ideas to computational methods.</p>
       <div class="hero-actions">
         <a class="button primary" href="{{ '/book/interactive/' | relative_url }}">Read the interactive book <span aria-hidden="true">↗</span></a>
-        <a class="button" href="{{ page.book_pdf | relative_url }}" download="Mathematical-Foundations-of-Data-Sciences.pdf">Download the full PDF <span aria-hidden="true">↓</span></a>
+        <a class="button" href="{{ page.book_pdf | relative_url }}" download="FundationsDataScience.pdf">Download the full PDF <span aria-hidden="true">↓</span></a>
       </div>
       <p class="format-note">Free to read · Full PDF: {{ page.book_pdf_mb }} MB</p>
     </div>
