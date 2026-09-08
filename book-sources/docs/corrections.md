@@ -47,3 +47,14 @@ See the [interactive edition record](interactive-book/README.md) for the figure 
 - **Figure 13.16:** added the `logistic / log(2)` curve alongside the unscaled likelihood loss. The normalized curve touches the binary loss at zero margin and upper-bounds it everywhere. Included zero exactly in the plotting grid, exposed both normalizations in the current-value table, and stated the zero-margin convention.
 
 Validation: 4 conversion tests, 15 numerical invariant tests, and 6 browser-module tests pass. The strict web build, all 236 figure displays, all 19 chapter pages, all 3,911 parameter states, and all 151 chapter-to-book PDF links pass their audits. Additional browser checks cover keyboard inspection, persistent tables, saved links, phone layouts, theme propagation, rapid parameter changes, and failed-request recovery. Approved book figures, canonical LaTeX, and published PDFs remain unchanged.
+
+## 8 September 2026: book presentation page
+
+- Redesigned the parent repository's `book.md` as a responsive HTML presentation page, with a dedicated Jekyll layout, local styles, and a cover preview rendered from the current full-book PDF.
+- Added prominent links to the interactive edition and complete PDF, the author and affiliation, and the current book's page count and download size.
+- Organized all 19 chapters in publication order into three topic groups. Each entry includes its canonical title, a short description, its PDF page count, and separate online/PDF links. Corrected outdated display titles, notably **Fourier and Convolution**, **Basics of Machine Learning**, **Shallow Learning**, and **Nonsmooth Convex Optimization**, while preserving the working PDF filenames.
+- Added accessible chapter search and topic filtering. The complete chapter catalogue remains readable when JavaScript is disabled.
+- Retained the Numerical Tours and the three optimization course-note PDFs. The Optimal Transport section now points to **OT4ML: Optimal Transport for Machine Learners**, at `https://www.gpeyre.com/ot4ml/`, as requested.
+- Kept the established `/book/` page address and used a standalone layout so other website pages retain their existing presentation.
+
+Validation: the full-book PDF, interactive homepage, all 19 chapter PDFs, all 19 web chapters, and the three course-note PDFs returned successful live responses. The generated page matches the canonical chapter order, titles, and PDF sizes. Browser checks passed at desktop, tablet, and 320-pixel mobile widths, including search, topic filters, keyboard operation, reset, chapter navigation, and the JavaScript-free catalogue. The page requires no external font or script downloads.
