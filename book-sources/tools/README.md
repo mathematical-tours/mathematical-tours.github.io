@@ -4,6 +4,7 @@ Run these commands from `book-sources/`. `make help` lists the common entry poin
 
 | Tool | Purpose |
 | --- | --- |
+| `interactive_book/` | Convert LaTeX to MyST, compute experiments, validate the interactive edition, and prepare its GitHub Pages publication. |
 | `build_book.py` | Build the book, standalone chapters and current figure review PDF. |
 | `regenerate_figures.py` | Rebuild figures from Python/TikZ sources and track dependencies. |
 | `build_figure_comparator.py` | Extract exact book numbers/captions and build pending comparisons. |

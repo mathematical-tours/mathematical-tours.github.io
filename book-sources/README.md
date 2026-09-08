@@ -8,6 +8,7 @@ The active `\include{chapters-tex/...}` lines in `FundationsDataScience.tex` def
 | --- | --- |
 | `chapters-tex/` | Active chapters, included sections, shared styles and bibliography. |
 | `chapters-pdf/` | Published independent chapters. |
+| `myst/` | Interactive MyST edition, browser controls, and pinned web dependencies. |
 | `figures/` and `figures-code/` | Matching chapter-organized assets and Python/TikZ sources. |
 | `data/` | Input images, audio and datasets. |
 | `tools/` | Build, regeneration and audit utilities. |
@@ -40,6 +41,16 @@ The build works in `build/`, checks all final LaTeX logs, and stabilizes referen
 
 After an editorial change, run the full `make` before distributing the PDFs together. A selected-chapter build leaves other independent PDFs unchanged.
 
+## Interactive book
+
+Read the [interactive book online](https://mathematical-tours.github.io/book/interactive/).
+
+The [interactive edition](myst/README.md) follows the OT4ML MyST book. It converts the preface, all 19 chapters, and references from the canonical LaTeX, preserving publication numbering. All 145 accepted numerical figures have parameter controls and an approved-book-figure comparison view; the existing TikZ and expressly retained original drawings remain available.
+
+Install the pinned web dependencies once with `cd myst && npm ci`, return to this directory, then run `make web` and `make web-serve`. Read the book at [localhost:8790](http://127.0.0.1:8790/). The build requires Pandoc 3 and the existing scientific Python environment. `make web-check` audits the edition, and `make web-browser-check` checks its browser interactions against a running preview.
+
+See the [figure controls and audit guide](docs/interactive-book/figures.md). The web build leaves all published PDFs intact and produces a static site under `myst/_build/html/`.
+
 ## Figures and author audit
 
 All active figures have reproducible Python and/or TikZ sources in:
@@ -61,4 +72,4 @@ See [generation instructions](figures-code/README.md), [audit instructions](docs
 
 All active chapter sources use UTF-8. The shared design is in `chapters-tex/shared/book-preamble.tex`, mathematical commands in `chapters-tex/shared/mystyle.sty`, and publication details in `chapters-tex/shared/book-metadata.tex`. Dates appear on the book cover and only on standalone chapter openings. The book-title/author/affiliation mastheads remain on independent chapter PDFs.
 
-See the [final integration record](docs/figures/final-integration.md) and per-figure source guides for the figure corrections, acceptance decisions and validation results.
+See the [editorial corrections](docs/corrections.md), [final figure integration record](docs/figures/final-integration.md), and per-figure source guides for corrections, acceptance decisions and validation results.

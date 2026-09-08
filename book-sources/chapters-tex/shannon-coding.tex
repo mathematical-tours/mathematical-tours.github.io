@@ -40,7 +40,15 @@ We write $c=\text{Leaves}(T)$ for this tree representation.
 \label{fig-tree-prefix}
 \end{figure}
 
-To decode a binary stream, follow its bits down the tree. Upon reaching a leaf, output the corresponding symbol and return to the root. The prefix property makes this decoding unambiguous.
+To decode a binary stream, follow its bits down the tree. Upon reaching a leaf, output the corresponding symbol and return to the root. The prefix property makes this decoding unambiguous and instantaneous: each symbol is recognized as soon as the last bit of its codeword has been read.
+
+For codes with nonempty codewords, \emph{unique decodability} means that every encoded finite message has exactly one decomposition into codewords. Prefix codes have this property, but a uniquely decodable code need not be a prefix code. For example, consider
+\eq{
+ c(\Symb_1)=0, \qquad c(\Symb_2)=01.
+}
+The word $0$ is a prefix of $01$, yet decoding is unique: every $1$ must be paired with the immediately preceding $0$ to form $01$, and every remaining $0$ represents $\Symb_1$. Thus $00101$ can only be split as $0\mid01\mid01$, encoding $\Symb_1\Symb_2\Symb_2$.
+
+After reading a $0$, however, the decoder must inspect the next bit, or know that the message has ended, before deciding which symbol to output. If it has already committed to $\Symb_1$ and the next bit is $1$, it must backtrack and decode $01$ as $\Symb_2$. One bit of lookahead avoids this backtracking here, but still introduces a decoding delay. Prefix coding avoids such tentative decisions and the associated lookahead or backtracking overhead.
 
 
 %%
@@ -176,12 +184,24 @@ Kraft's inequality characterizes the possible codeword lengths of a prefix code 
 
 
 
+% Keep the calculation and its explanation together across intervening floats.
+\begin{samepage}
 \begin{proof}[Proof of Shannon's theorem]
-(i) Put $\ell_k=|c_k|$, $Z=\sum_k2^{-\ell_k}\leq1$, and $q_k=2^{-\ell_k}/Z$. The nonnegativity of relative entropy gives
-\eql{\label{eq-proof-shannon}
- L(c)-H(p)=\mathrm{KL}(p\mid q)-\log_2 Z\geq0.
+(i) Put $\ell_k=|c_k|$ and $Z=\sum_k2^{-\ell_k}$. Kraft's inequality gives $0<Z\leq1$, so $q_k=2^{-\ell_k}/Z$ defines a strictly positive probability vector. Since $2^{-\ell_k}=Zq_k$, we have
+\eq{
+ \ell_k=-\log_2(Zq_k)=-\log_2q_k-\log_2Z.
 }
-Equality requires $Z=1$ and $q=p$, identifying the ideal real-valued code lengths $-\log_2p_k$.
+Substituting this expression and using $\sum_kp_k=1$ gives
+\eql{\label{eq-proof-shannon}
+ \begin{aligned}
+ L(c)-H(p)
+ &=\sum_k p_k\bigl(\ell_k+\log_2p_k\bigr)\\
+ &=\sum_k p_k\log_2\frac{p_k}{q_k}-(\log_2Z)\sum_kp_k\\
+ &=\mathrm{KL}(p\mid q)-\log_2 Z
+   \geq\mathrm{KL}(p\mid q)\geq0.
+ \end{aligned}
+}
+The first inequality follows from $Z\leq1$, and the second from the nonnegativity of relative entropy. Equality $L(c)=H(p)$ holds exactly when $Z=1$ and $q=p$; then $\ell_k=-\log_2p_k$, so these ideal lengths must be integers.
 
 (ii) Choose $\ell_k=\lceil-\log_2p_k\rceil$. Then $\sum_k2^{-\ell_k}\leq\sum_kp_k=1$, so Lemma~\ref{lem-kraft} constructs a prefix code with these lengths. Moreover,
 \eq{
@@ -190,6 +210,7 @@ Equality requires $Z=1$ and $q=p$, identifying the ideal real-valued code length
 }
 For a one-symbol alphabet, the empty word has length zero and the same conclusions hold.
 \end{proof}
+\end{samepage}
 
 This proof is constructive: rounding the ideal lengths and using Kraft's lemma yields a Shannon code. It need not minimize $L(c)$. Huffman's greedy algorithm constructs an optimal binary prefix code by repeatedly merging the two least probable symbols. With a priority queue, its cost is $O(K\log K)$. Figure~\ref{fig-huff-code} illustrates the construction.
 

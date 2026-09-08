@@ -31,3 +31,38 @@ help:
 	@echo "make figures  Regenerate figure assets"
 	@echo "make check    Audit the published book, chapters, and figures"
 	@echo "make clean    Remove build caches; keep published PDFs and Python runtime"
+	@echo "make web      Build and check the complete interactive MyST edition"
+	@echo "make web-serve  Open a local static server for the interactive book"
+	@echo "make web-publish  Prepare the validated edition for GitHub Pages"
+
+# Interactive edition. Install its pinned Node dependencies once in myst/.
+.PHONY: web web-sync web-data web-check web-serve web-browser-check web-document web-publish
+web-sync:
+	$(PYTHON) tools/interactive_book/convert.py
+
+web-data: web-sync
+	$(FIGURE_PYTHON) tools/interactive_book/build_data.py
+
+web: web-data
+	cd myst && npm run build -- --strict
+	$(MAKE) web-check
+
+web-check:
+	$(PYTHON) tools/interactive_book/test_conversion.py
+	$(FIGURE_PYTHON) tools/interactive_book/test_numerics.py
+	cd myst && npm test
+	$(PYTHON) tools/interactive_book/validate.py
+	$(FIGURE_PYTHON) tools/interactive_book/validate_pdf_links.py
+
+web-serve:
+	cd myst && npm start
+
+web-browser-check:
+	cd myst && npm run test:browser
+
+web-document:
+	$(PYTHON) tools/interactive_book/document.py
+
+# Copy a validated build to the existing GitHub Pages publication directory.
+web-publish:
+	$(PYTHON) tools/interactive_book/publish.py

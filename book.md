@@ -5,9 +5,11 @@ description: "of Data Sciences"
 header-img: "img/boat-waves.jpg"
 ---
 
-You can retrieve the draft of the book:
+**[Read the interactive book online](/book/interactive/)** — all 19 chapters, with 145 interactive figures, parameter sliders, and choices of inputs and methods.
 
-> Gabriel Peyré, [Mathematical Foundations of Data Sciences](book-sources/FundationsDataScience.pdf).
+You can also download the complete book:
+
+> Gabriel Peyré, [Mathematical Foundations of Data Sciences](/book-sources/FundationsDataScience.pdf).
 
 The [Latex sources of the book are available](https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/book-sources).
 
@@ -17,34 +19,36 @@ This book draft presents an overview of important mathematical and numerical fou
 
 Chapters Available as Individual PDFs
 ----------------
-- [Shannon Coding Theory](book-sources/chapters-pdf/shannon-coding.pdf)
-- [Shannon Sampling Theory](book-sources/chapters-pdf/shannon.pdf)
-- [Fourier Transforms](book-sources/chapters-pdf/fourier.pdf)
-- [Wavelets](book-sources/chapters-pdf/wavelets.pdf)
-- [Linear and Non-linear Approximation](book-sources/chapters-pdf/approximation.pdf)
-- [Compression](book-sources/chapters-pdf/compression.pdf)
-- [Denoising](book-sources/chapters-pdf/denoising.pdf)
-- [Variational Priors and Regularization](book-sources/chapters-pdf/variational-priors.pdf)
-- [Inverse Problems](book-sources/chapters-pdf/inverse-problems.pdf)
-- [Theory of Sparse Regularization](book-sources/chapters-pdf/sparse-theory.pdf)
-- [Compressed Sensing](book-sources/chapters-pdf/compressed-sensing.pdf)
-- [Machine Learning](book-sources/chapters-pdf/machine-learning.pdf)
-- [Optimization & Machine Learning: Smooth Optimization](book-sources/chapters-pdf/optim-ml-smooth.pdf)
-- [Optimization & Machine Learning: Advanced Topics](book-sources/chapters-pdf/optim-ml-advanced.pdf)
-- [Deep-Learning](book-sources/chapters-pdf/deep-learning.pdf)
-- [Convex Analysis](book-sources/chapters-pdf/convex-analysis.pdf)
-- [Non Smooth Optimization](book-sources/chapters-pdf/optim-nonsmooth.pdf)
+- [Shannon Sampling Theory](/book-sources/chapters-pdf/shannon.pdf)
+- [Fourier Transforms](/book-sources/chapters-pdf/fourier.pdf)
+- [Shannon Coding Theory](/book-sources/chapters-pdf/shannon-coding.pdf)
+- [Wavelets](/book-sources/chapters-pdf/wavelets.pdf)
+- [Linear and Non-linear Approximation](/book-sources/chapters-pdf/approximation.pdf)
+- [Compression](/book-sources/chapters-pdf/compression.pdf)
+- [Denoising](/book-sources/chapters-pdf/denoising.pdf)
+- [Variational Priors and Regularization](/book-sources/chapters-pdf/variational-priors.pdf)
+- [Inverse Problems](/book-sources/chapters-pdf/inverse-problems.pdf)
+- [Sparse Regularization](/book-sources/chapters-pdf/sparse-regularization.pdf)
+- [Theory of Sparse Regularization](/book-sources/chapters-pdf/sparse-theory.pdf)
+- [Compressed Sensing](/book-sources/chapters-pdf/compressed-sensing.pdf)
+- [Machine Learning](/book-sources/chapters-pdf/machine-learning.pdf)
+- [Optimization & Machine Learning: Smooth Optimization](/book-sources/chapters-pdf/optim-ml-smooth.pdf)
+- [Optimization & Machine Learning: Advanced Topics](/book-sources/chapters-pdf/optim-ml-advanced.pdf)
+- [Perceptrons](/book-sources/chapters-pdf/perceptrons.pdf)
+- [Deep-Learning](/book-sources/chapters-pdf/deep-learning.pdf)
+- [Convex Analysis](/book-sources/chapters-pdf/convex-analysis.pdf)
+- [Non Smooth Optimization](/book-sources/chapters-pdf/optim-nonsmooth.pdf)
 
 
 Optimization for Machine Learning
 ----------------
 
 Here are dedicated course notes covering specifically:
-- [Optimization and its applications in ML](book-sources/optim-ml/OptimML.pdf)
-- [PAC learning](book-sources/optim-ml/OptimML-PAC.pdf).
-- [Diffusion models](book-sources/optim-ml/OptimML-DiffusionModels.pdf)
+- [Optimization and its applications in ML](/book-sources/aux/optim-ml/OptimML.pdf)
+- [PAC learning](/book-sources/aux/optim-ml/OptimML-PAC.pdf).
+- [Diffusion models](/book-sources/aux/optim-ml/OptimML-DiffusionModels.pdf)
 
 Optimal Transport
 ----------------
 
-Dedicated course notes covering specifically optimal transport is [available as a separate PDF file](book-sources/optimal-transport/CourseOT.pdf). You can also check [the dedicated book](https://optimaltransport.github.io/) for a more detailed treatment of the algorithmic aspects.
+See [Optimal Transport for Machine Learning](https://www.gpeyre.com/ot4ml/) for dedicated interactive course notes, or [Computational Optimal Transport](https://optimaltransport.github.io/) for a detailed treatment of the algorithmic aspects.
