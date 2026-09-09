@@ -1,0 +1,112 @@
+\chapter{Python programs for exact arithmetic}
+\label{appendix-software-resources}
+\chapteroverview{Exact arithmetic separates algebraic identities from rounding
+error. These programs construct finite fields, carry out modular Fourier
+transforms, and implement the encoding and decoding procedures of
+Chapter~\ref{chap-extension-finite-field-values}. Their small examples are
+checked against direct transforms, integer products, and code constraints.}
+
+The modules \texttt{finite\_fields.py} and
+\texttt{error\_correcting\_codes.py} use SymPy for integer and polynomial
+arithmetic, and \texttt{galois} for finite-field arrays. Their imports,
+shared helpers, and executable checks are supplied with the complete Python
+sources. Array coordinates increase with polynomial degree; a polynomial
+library may instead print its coefficients in descending order, so the
+conversion is explicit. All random examples use a fixed seed.
+
+\section{Fourier transforms over finite fields}
+\label{sect1-listing-transform-finite-body}
+Program~\ref{listing-fft-finite-body} factors $\Phi_n$ over $\FF_p$ and
+uses one irreducible factor to construct a field containing a root of
+\emph{exact} order $n$. It rejects $p\mid n$. The example takes $p=2$
+and $n=15$, so the transform values lie in an extension of the binary
+input alphabet. The module also supplies a mixed-radix FFT, checked against
+the direct transform here.
+
+In \texttt{galois}, an integer used to construct an extension-field element
+encodes its polynomial-basis coordinates. Consequently, the scalar $n\,1_K$
+is constructed as \texttt{field(n \% p)}, not \texttt{field(n)}. This
+matters in the inverse transform's normalization.
+\begin{listing}[H]
+\PythonCode{listing-fft-finite-body}
+\caption{Constructing and checking an exact finite-field Fourier transform.}
+\label{listing-fft-finite-body}
+\end{listing}
+
+\section{Fourier transforms over residue rings}
+\label{sect1-listing-transform-ring}
+Program~\ref{listing-fft-ring} uses Python integers reduced modulo $m$.
+For a dyadic transform length $n>1$, it checks that $n$ is invertible and
+$\zeta^{n/2}=-1\pmod m$. These hypotheses make $\zeta$ a principal root
+by Proposition~\ref{prop-cns-square-root-ring}. A modulus need not be prime:
+the transform works, for instance, modulo the composite Fermat number
+$2^{32}+1$. The inverse uses the inverse root and multiplication by
+$n^{-1}\pmod m$.
+\begin{listing}[H]
+\PythonCode{listing-fft-ring}
+\caption{A radix-two Fourier transform with modular integer arithmetic.}
+\label{listing-fft-ring}
+\end{listing}
+
+\section{Multiplication of large integers}
+\label{sect1-listing-mult-large-integers-ring}
+The digit base is an input parameter, and the transform length covers the
+full linear convolution. Program~\ref{listing-mult-large-integers} chooses
+a modulus $m=2^{cn/2}+1$ larger than the coefficient bound; $2^c$ is then
+a principal $n$th root. The inverse transform returns the exact nonnegative
+convolution coefficients, after which carry propagation recovers the product.
+Signed inputs and zero are handled separately. The digit-conversion helpers
+are given in Programs~\ref{listing-number2vector} and~\ref{listing-vector2number}.
+
+Python's built-in integers already support arbitrary precision. The purpose
+of this implementation is to expose the transform-based algorithm and its
+bounds, rather than to extend Python's range or promise a faster product.
+The tests compare the result with independent built-in multiplication,
+including operands with hundreds of decimal digits.
+\begin{listing}[H]
+\PythonCode{listing-mult-large-integers}
+\caption{Exact integer multiplication with a sufficiently large modular transform.}
+\label{listing-mult-large-integers}
+\end{listing}
+
+\section{BCH encoding and decoding}
+\label{sect1-listing-decoding-bch}
+The implementation has four parts:
+\begin{enumerate}
+\item Program~\ref{listing-decodage-bch-1} takes the union of the cyclotomic
+cosets meeting $1,\ldots,\delta-1$ and constructs the generator polynomial.
+The alphabet is $\FF_p$, while root and syndrome computations take place
+in a suitable extension.
+\item Program~\ref{listing-decodage-bch-2} multiplies a message polynomial
+by the generator, then illustrates correction of three errors in a binary
+length-31 code of designed distance seven.
+\item Program~\ref{listing-decodage-bch-3} determines the actual error
+count from a Hankel matrix and solves for the minimal locator. This
+includes the zero-error case and fewer errors than the permitted maximum.
+\item Program~\ref{listing-decodage-bch-4} either completes the syndrome
+spectrum or finds the locator roots and solves for error magnitudes.
+Both routes verify the alphabet, error count, and all code constraints.
+\end{enumerate}
+The rank calculation is exact finite-field elimination. Outside the stated
+correction radius, successful checks do not identify the transmitted word
+uniquely; this is the usual limitation of bounded-distance decoding.
+\begin{listing}[H]
+\PythonCode{listing-decodage-bch-1}
+\caption{Constructing the generator of a prime-alphabet BCH code.}
+\label{listing-decodage-bch-1}
+\end{listing}
+\begin{listing}[H]
+\PythonCode{listing-decodage-bch-2}
+\caption{BCH encoding and an independently checked decoding example.}
+\label{listing-decodage-bch-2}
+\end{listing}
+\begin{listing}[H]
+\PythonCode{listing-decodage-bch-3}
+\caption{Recovering the actual locator degree and its coefficients.}
+\label{listing-decodage-bch-3}
+\end{listing}
+\begin{listing}[H]
+\PythonCode{listing-decodage-bch-4}
+\caption{BCH decoding by spectrum completion or locator roots.}
+\label{listing-decodage-bch-4}
+\end{listing}

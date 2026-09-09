@@ -1,0 +1,421 @@
+\section{The discrete Fourier transform}
+
+\begin{correction}{exo-bit-reversal}
+\begin{enumerate}
+\item The first vectors are
+$u^{(1)}=(0,1)$, $u^{(2)}=(0,2,1,3)$, and
+$u^{(3)}=(0,4,2,6,1,5,3,7)$.
+\item When the most significant input bit is zero, reversal appends a zero
+to the reversed lower bits, giving $2u^{(n-1)}$. When it is one, reversal
+appends a one, giving $2u^{(n-1)}+1$. This is exactly the defining recursion.
+\item In this order, the leaves of the DIT recursion are adjacent in memory.
+The iterative algorithm combines contiguous blocks from size two upward;
+Section~\ref{sect2-impl-concrete} explains why this evaluates the DFT of the
+original signal, rather than the DFT of a different signal.
+\item A first-half output index has leading bit zero, so its reversed index
+is even. Reversing its remaining bits gives $\wt f_g=\widetilde{f^0}$.
+The same argument with a leading one gives $\wt f_d=\widetilde{f^1}$.
+\item Program~\ref{listing-revbitsrec} implements this relation.
+At every level, concatenation copies $N$ entries in total, so this recursive
+array construction costs $O(N\log N)$ element moves.
+In contrast, the direct index recursion creates arrays of lengths
+$1,2,4,\ldots,N$, for $O(N)$ total work, followed by a single $O(N)$ gather.
+The two implementations do not have the same copying complexity.
+\begin{listing}[H]
+\PythonCode{listing-revbitsrec}
+\caption{Recursive permutation of a vector into bit-reversed order.}
+\label{listing-revbitsrec}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-algo-good-thomas}
+\begin{enumerate}
+\item Choose integers $u,v$ with $up+vq=1$. Then
+$\psi(k_1,k_2)=(k_1vq+k_2up)\bmod N$ has the required two residues.
+The Chinese remainder theorem makes it the inverse of $\varphi$.
+\item Since $n=\psi(k_1,k_2)$ satisfies $n\equiv k_1\pmod p$ and
+$n\equiv k_2\pmod q$,
+\[
+ n(s_1q+s_2p)\equiv k_1s_1q+k_2s_2p\pmod N.
+\]
+This follows either by reducing modulo both coprime factors or by expanding
+$\psi$. Substitute in the two-dimensional Fourier sum and reindex by $n$:
+\[
+ \wh F[s_1,s_2]
+ =\sum_{n=0}^{N-1}f[n]\omega_N^{-n(s_1q+s_2p)}
+ =\wh f[(s_1q+s_2p)\bmod N].
+\]
+\item For a given output index $m$, the inverse mapping is
+$s_1=mq^{-1}\bmod p$ and $s_2=mp^{-1}\bmod q$.
+These inverses exist by coprimality, proving bijectivity.
+The integer $s_1q+s_2p$ can exceed $N-1$; the reduction modulo $N$ is essential.
+\item The character pairing factors with no additional phase, so there is
+no analogue of $\omega_N^{-bd}$ in \eqref{eqn-cooley-tukey-twiddle}.
+Program~\ref{listing-fftgt} scatters the input by its two residues, applies
+a separable two-dimensional FFT, and scatters the output by the proved map.
+Further factoring the row and column transforms combines this method with
+Cooley--Tukey or other algorithms. The permutations still cost memory traffic;
+removing multiplications does not by itself establish a running-time advantage.
+\begin{listing}[H]
+\PythonCode{listing-fftgt}
+\caption{A Good--Thomas factorization with explicit input and output permutations.}
+\label{listing-fftgt}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-algo-split-radix}
+\begin{enumerate}
+\item Write the input index as $a+bN/4$. Expanding the exponent for
+frequency $4k+2j+1$ gives
+\[
+ \omega_N^{-(a+bN/4)(4k+2j+1)}
+ =\omega_{N/4}^{-ak}\omega_N^{-a(2j+1)}\omega_4^{-b(2j+1)},
+\]
+since the omitted factor $e^{-2\pi\imath bk}$ is one.
+With $u_a=f[a]-f[a+N/2]$ and $v_a=f[a+N/4]-f[a+3N/4]$, the two inner
+sums are $u_a-\imath v_a$ and $u_a+\imath v_a$.
+Their general twiddle factors are $\omega_N^{-a}$ and $\omega_N^{-3a}$.
+The even-output branch is the length-$N/2$ DFT of $f_g+f_d$, without twiddles.
+\item Let $E$ be the length-$N/2$ DFT of the even input entries, and let
+$O_1,O_3$ be the length-$N/4$ DFTs of the entries at indices $4j+1$ and
+$4j+3$. For $0\leq k<N/4$, put
+$u=\omega_N^{-k}O_1[k]$, $v=\omega_N^{-3k}O_3[k]$.
+Then
+\begin{align*}
+ \wh f[k]&=E[k]+u+v,&
+ \wh f[k+N/2]&=E[k]-u-v,\\
+ \wh f[k+N/4]&=E[k+N/4]-\imath(u-v),&
+ \wh f[k+3N/4]&=E[k+N/4]+\imath(u-v).
+\end{align*}
+These follow by substituting the four frequency quarters into the three
+input-subsequence sums. The function \texttt{split\_radix} in the accompanying
+Python module follows these formulas; sizes one and two are the base cases.
+\item Let $M(N)$ count the displayed general complex multiplications.
+The split-radix combine stage uses $N/2$ such products, giving
+\[
+ M(N)=M(N/2)+2M(N/4)+N/2,\qquad M(1)=M(2)=0.
+\]
+For $N=2^p$, solving the recurrence yields
+$M(N)=Np/3-2N/9+(2/9)(-1)^p$.
+With the same length-two base case, radix two gives $Np/2-N/2$.
+Thus the leading coefficient drops from $1/2$ to $1/3$ in this model.
+Each split-radix quartet uses six complex additions after sharing $u+v$
+and $u-v$, so
+\[
+ A(N)=A(N/2)+2A(N/4)+3N/2,\qquad A(1)=0,\quad A(2)=2.
+\]
+It follows that $A(N)=N\log_2N$, the same count as radix two.
+Further savings are possible by special-casing trivial twiddles; these were
+excluded from this count. An iterative version must schedule subproblems of
+two different sizes and track where the three subsequences and four output
+quarters are stored. Its permutations must follow that factorization, rather
+than assuming equal-length blocks at every stage.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-calcul-convolution-fft}
+\begin{enumerate}
+\item As zero-extended sequences,
+$f=\sum_jf_j[\cdot-jM]$. Bilinearity and translation covariance of linear
+convolution give the asserted sum of shifted block convolutions.
+\item Each block output has length at most $2M-1$.
+Choose one FFT length $L\geq2M-1$, for example the next power of two,
+and compute the padded transform of $g$ once.
+For every block, take one forward FFT, multiply by this stored transform,
+and take an inverse FFT. Add the first $2M-1$ entries at offset $jM$.
+With $L=O(M)$, each block costs $O(M\log M)$, and there are $N/M$ blocks.
+Including the overlap additions gives $O(N\log M)$ for $M\geq2$.
+For a one-sample kernel the operation is simply scalar multiplication.
+\item If the last block has $r<M$ entries, pad it to the same FFT length
+but add only its $r+M-1$ output entries. No output beyond index $N+M-2$
+should be retained. Program~\ref{listing-convol} handles this case directly.
+\begin{listing}[H]
+\PythonCode{listing-convol}
+\caption{Overlap-add convolution, including an incomplete final block.}
+\label{listing-convol}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-circulating-matrix}
+\begin{enumerate}
+\item Since $(Rx)[j]=x[j-1]$ modulo $N$,
+\[
+ (\Omega_NRx)[k]=\sum_jx[j-1]\omega_N^{-kj}
+ =\omega_N^{-k}\sum_jx[j]\omega_N^{-kj}=(D\Omega_Nx)[k].
+\]
+Multiply on the right by $\Omega_N^{-1}$.
+\item The first column of $R^j$ is $e_j$, and every column is a cyclic
+shift of it; hence $C=\sum_{j=0}^{N-1}c_jR^j$.
+Conjugating by $\Omega_N$ gives $\sum_jc_jD^j$.
+Its $k$th diagonal entry is $\sum_jc_j\omega_N^{-kj}=\wh c[k]$.
+Applying this diagonalization to $x$ gives the multiplication formula.
+\item Directly,
+$(Cx)[i]=\sum_jc[i-j]x[j]=(c*x)[i]$.
+The DFT of this vector is $\wh c\cdot\wh x$, so inversion yields the same result.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-interpolation-trigonometric}
+A negative signed frequency $k\in\{-N_0,\ldots,-1\}$ is stored at index
+$N+k$ in the original spectrum and at index $P+k$ in the padded spectrum.
+Both indices represent the same exponential after restriction to the
+appropriate grid. Thus inversion gives
+\[
+ f_0[j]=\frac{\eta}{P}\sum_{k=-N_0}^{N_0}\wh f[k\bmod N]
+                         e^{2\pi\imath kj/P}=p(j/P).
+\]
+At $j=\eta m$, $j/P=m/N$, so DFT inversion gives $p(m/N)=f[m]$.
+The factor $\eta=P/N$ compensates for the inverse transform's new divisor.
+The result is the unique interpolant with signed frequencies $-N_0,\ldots,N_0$.
+Program~\ref{listing-interp-trigo} preserves complex input; it removes only
+roundoff-level imaginary parts when the input is real.
+\begin{listing}[H]
+\PythonCode{listing-interp-trigo}
+\caption{Trigonometric interpolation by correctly scaled spectral padding.}
+\label{listing-interp-trigo}
+\end{listing}
+\end{correction}
+
+\begin{correction}{exo-interpolation-chebyshev}
+\begin{enumerate}
+\item The identity
+$\cos((k+1)\theta)+\cos((k-1)\theta)=2\cos\theta\cos(k\theta)$
+gives the recurrence. Induction proves the degree assertion, with leading
+coefficient $2^{k-1}$ for $k\geq1$.
+Substitution gives $T_N(x_j)=\cos((j+1/2)\pi)=0$.
+These are $N$ distinct points, so they exhaust the roots.
+\item The polynomials $T_0,\ldots,T_{N-1}$ have distinct degrees and nonzero
+leading coefficients. They form a basis of the polynomials of degree at most
+$N-1$, giving the unique expansion of the unique interpolant.
+\item Put $\theta_j=(j+1/2)\pi/N$. A finite geometric sum, or pairing
+conjugate exponentials, shows
+\[
+ \sum_{j=0}^{N-1}\cos(k\theta_j)\cos(l\theta_j)
+ =\begin{cases}N,&k=l=0,\\N/2,&k=l>0,\\0,&k\neq l,
+ \end{cases}
+ \qquad 0\leq k,l<N.
+\]
+Thus the cosine rows, scaled by $N^{-1/2}$ for row zero and $(2/N)^{1/2}$
+for the other rows, form an orthonormal matrix. This proves
+$\Cc_2^{-1}=(2/N)\Cc_3$.
+For $\Cc_2$, place $v[k]$ at index $2k+1$ of a length-$4N$ zero array.
+The real part of its DFT at index $j$ is exactly $\Cc_2(v)[j]$.
+For $\Cc_3$, pad $v$ at the end to length $4N$, take the real DFT values
+at indices $2j+1$, and subtract $v[0]/2$.
+Programs~\ref{listing-dct2} and~\ref{listing-dct3} implement these two embeddings.
+\begin{listing}[H]
+\PythonCode{listing-dct2}
+\caption{The cosine transform $\mathcal C_2$ via a length-$4N$ FFT.}
+\label{listing-dct2}
+\end{listing}
+\begin{listing}[H]
+\PythonCode{listing-dct3}
+\caption{The cosine transform $\mathcal C_3$ via a length-$4N$ FFT.}
+\label{listing-dct3}
+\end{listing}
+\item The interpolation conditions are
+\begin{equation}
+\label{eqn-calcul-coef-cheby}
+ v[j]=\sum_{k=0}^{N-1}\alpha_k\cos(k\theta_j)
+      =\Cc_3(\alpha)[j]+\frac{\alpha_0}{2}.
+\end{equation}
+Orthogonality gives
+$\alpha_0=\Cc_2(v)[0]/N$ and
+$\alpha_k=2\Cc_2(v)[k]/N$ for $k>0$.
+The coefficients cost $O(N\log N)$ to compute. Evaluating the degree-$N-1$
+series at each new point costs $O(N)$ using a recurrence, as in NumPy's
+\texttt{chebval}. Program~\ref{listing-interpolation-chebyshev} includes the
+Runge example from the exercise.
+\begin{listing}[H]
+\PythonCode{listing-interpolation-chebyshev}
+\caption{Chebyshev interpolation and the Runge example.}
+\label{listing-interpolation-chebyshev}
+\end{listing}
+\end{enumerate}
+The Chebyshev nodes cluster near the endpoints, reducing the large endpoint
+oscillations seen with equally spaced nodes. Both constructions are polynomial
+interpolation; the difference is the node distribution, not whether Lagrange
+interpolation is being used.
+\end{correction}
+
+\begin{correction}{exo-derivation-fractionionnaire}
+Integration by parts gives $\wh{f'}(\xi)=\imath\xi\wh f(\xi)$, since the
+boundary term vanishes for a Schwartz function. Iterating gives
+$\wh{f^{(m)}}=(\imath\xi)^m\wh f$.
+The proposed multiplier extends these integer powers by fixing arguments
+$\pi/2$ and $-\pi/2$ on the positive and negative frequency axes.
+Its values at opposite frequencies are complex conjugates. Since real input
+also has conjugate-symmetric Fourier coefficients, the output is real.
+For noninteger $\alpha$, this is a particular fractional differentiation
+operator; choosing a different multiplier would define a different operator.
+
+For a period $L$, the discrete frequencies are $2\pi k/L$ with
+$k=-(N-1)/2,\ldots,(N-1)/2$ for odd $N$.
+Program~\ref{listing-derfrac} multiplies the DFT by the specified powers and
+inverts it. At integer orders this differentiates the trigonometric interpolant
+exactly in exact arithmetic. The odd sample count ensures that each nonzero
+frequency has a distinct negative partner, avoiding an ambiguous Nyquist slot.
+The case $\alpha=0$ is explicitly the identity, including on the mean.
+\begin{listing}[H]
+\PythonCode{listing-derfrac}
+\caption{A periodic fractional derivative with explicit order and period.}
+\label{listing-derfrac}
+\end{listing}
+For a rapidly decaying function on $\RR$, the period must be large enough to
+make interactions with periodic copies small, and the spacing fine enough to
+resolve its Fourier content. A Gaussian is not strictly bandlimited; its decay
+allows an approximation, not an exact appeal to Shannon's theorem.
+Positive derivative order also amplifies high-frequency noise and roundoff.
+Negative orders require a separate treatment of the zero frequency and are
+outside the definition in this exercise.
+\end{correction}
+
+\begin{correction}{exo-transforme-partial-fourier}
+\begin{enumerate}
+\item Unitarity implies normality. Since $U^2f=f^\sharp$ and reversal is an
+involution, $U^4=I$. Its spectrum is contained in $\{1,-1,\imath,-\imath\}$.
+The spectral theorem for normal matrices gives an orthonormal eigenbasis.
+The DFT matrix is symmetric but generally not Hermitian.
+\item The orthogonal projectors satisfy
+$P_\lambda P_\mu=\delta_{\lambda\mu}P_\lambda$ and $\sum_\lambda P_\lambda=I$.
+Therefore
+\[
+ U^\alpha U^\beta=\sum_\lambda
+ e^{\imath(\alpha+\beta)\theta_\lambda}P_\lambda=U^{\alpha+\beta}.
+\]
+The multipliers have modulus one, proving unitarity, and
+$e^{\imath\theta_\lambda}=\lambda$ gives $U^1=U$.
+A fixed real phase is a consistent logarithm on each eigenspace;
+independently chosen roots need not have this additive dependence on the exponent.
+\item The matrix $J$ of cyclic reversal has entries
+$J_{ij}=1$ when $i+j\equiv0\pmod N$, and zero otherwise.
+Thus $U^0=I$ and $U^2=J$: index zero stays fixed, and the other nonzero
+entries lie along the reversed diagonal. The intermediate matrices combine
+these two sparse patterns with $U$ and $U^3$ through the projector formulas.
+For the unnormalized transform,
+$\Omega_N^\alpha=N^{\alpha/2}U^\alpha$ and $\Omega_N^2=NJ$.
+\item When the same phase is assigned throughout an eigenspace, its
+contribution is the scalar $e^{\imath\alpha\theta_\lambda}$ times its
+orthogonal projector, which is basis-independent.
+Replacing $\theta_\lambda$ by $\theta_\lambda+2\pi m_\lambda$ for fixed
+integers $m_\lambda$ produces different families at noninteger exponents,
+while preserving the integer powers and the composition law.
+The program exposes these optional integer branch shifts.
+One could also choose different logarithm branches along separately chosen
+orthogonal directions within a repeated eigenspace; that is an additional
+choice, not an automatic consequence of diagonalization.
+\end{enumerate}
+Program~\ref{listing-tfdinterm} uses
+$P_\lambda=\frac14\sum_{j=0}^3\lambda^{-j}U^j$ and cyclic reversal.
+It avoids relying on a general eigenvalue routine to return orthogonal vectors
+inside repeated eigenspaces. Its projector computation needs only one FFT,
+since $U^2$ is reversal and $U^3$ is the reversal of $U$.
+\begin{listing}[H]
+\PythonCode{listing-tfdinterm}
+\caption{Unitary intermediate DFTs from explicit spectral projectors.}
+\label{listing-tfdinterm}
+\end{listing}
+\end{correction}
+
+\begin{correction}{exo-diagonalization-tfd}
+\begin{enumerate}
+\item This follows from the real symmetric spectral theorem.
+\item The circulant matrix $\Gamma$ has first column
+$(-2,1,0,\ldots,0,1)$. Its DFT is
+$2\cos(2\pi k/N)-2$, the diagonal of $\Delta$.
+The convolution theorem gives $\Omega_N\Gamma=\Delta\Omega_N$.
+Taking transposes, using symmetry of all three matrices, gives
+$\Gamma\Omega_N=\Omega_N\Delta$.
+Adding shows $\Omega_NS=S\Omega_N$.
+\item If $A$ and $B$ commute, each eigenspace of $A$ is invariant under $B$.
+The restriction of a diagonalizable operator to an invariant subspace is
+diagonalizable: its minimal polynomial divides that of the operator, which
+has distinct linear factors. Diagonalize $B$ on each eigenspace of $A$ and
+combine the resulting bases. This proves simultaneous diagonalizability.
+It does not assert that an arbitrary eigenbasis chosen for $A$ already
+consists of eigenvectors of $B$.
+\item Cyclic reversal commutes with $S$: the two shifts are interchanged
+and the diagonal cosine is even. Thus the two parity subspaces are invariant.
+In the bases specified in the exercise, the shifts connect only neighboring
+indices $k$ and $k+1$. Their interior off-diagonal entries are one; coupling
+to $e_0$ or, for even $N$, to $e_{N/2}$ gives $\sqrt2$ in the symmetric
+block. When $N$ is odd, coupling across the last pair contributes $+1$ or
+$-1$ to the final diagonal entry of the symmetric or antisymmetric block.
+Hence both blocks are tridiagonal, with every existing subdiagonal entry
+nonzero. There is a zero connection between the two blocks in the full
+transformed matrix; it is not an irreducible tridiagonal matrix.
+\item Let $T$ be a real symmetric tridiagonal matrix with subdiagonal
+entries $b_i\neq0$. In $(T-\lambda I)v=0$, the first row determines $v_2$
+from $v_1$, and each successive row determines $v_{i+1}$ from the preceding
+two coordinates. If $v_1=0$, every coordinate is zero.
+Thus each eigenspace has dimension at most one. Symmetry gives a full
+eigenbasis, so the eigenvalues are distinct. The condition concerns the
+\emph{subdiagonal}, not the diagonal entries.
+It applies separately to each parity block, whose spectra may overlap.
+For $N=4$, the independent vectors $(0,1,0,-1)$ and $(1,-1,-1,-1)$ both
+satisfy $Sv=-4v$, explicitly disproving simplicity of the full spectrum.
+\item The Fourier matrix also preserves parity and commutes with $S$.
+It therefore preserves every one-dimensional eigenspace of each restricted
+block. The union of the two real orthonormal block eigenbases is consequently
+a common eigenbasis, even at eigenvalues shared between the blocks.
+\end{enumerate}
+Program~\ref{listing-vectproprestfd} uses this construction. It orders vectors
+by decreasing eigenvalue of $S$, resolving numerically equal values by putting
+the symmetric block first. It fixes each sign by making a largest-magnitude
+coordinate positive, using the first such coordinate in a tie.
+The rounding used solely for sorting prevents tiny roundoff differences from
+reordering an exact tie. The eigenvectors themselves are not rounded.
+\begin{listing}[H]
+\PythonCode{listing-vectproprestfd}
+\caption{A common eigenbasis obtained by diagonalizing the two parity blocks.}
+\label{listing-vectproprestfd}
+\end{listing}
+\end{correction}
+
+\begin{correction}{exo-orthogonalization-fourier}
+\begin{enumerate}
+\item Substitute $r=x-k$ in the translation sum to obtain
+\[
+ \Ff(k\top f)[t]=\sum_xf[x-k]\omega_n^{-tx}
+ =\omega_n^{-tk}\wh f[t]=(k\bot\wh f)[t].
+\]
+Multiplying $f[x]$ by $\omega_n^{-kx}$ instead gives
+$\wh f[t+k]=((-k)\top\wh f)[t]$. The sign in the second identity is essential.
+\item The unitary transform maps each member of the translation orbit to
+the corresponding modulation of $\Ff f/\sqrt n$, preserving all inner
+products. In the reverse direction, the minus sign merely permutes the orbit
+indices. Using the unnormalized DFT without its scaling would multiply
+squared norms by $n$.
+\item Write $\wt f[x]=\ol{f[-x]}$. Then
+\[
+ \dotp f{k\top f}=\frac1n\sum_xf[x]\ol{f[x-k]}
+                =\frac1n(f*\wt f)[k].
+\]
+Translation is unitary, so the whole orbit is orthonormal precisely when
+$f*\wt f=n\delta_0$. Since $\wh{\wt f}=\ol{\wh f}$, the convolution
+theorem makes this equivalent to $|\wh f[k]|^2=n$ for all $k$.
+\item The prescribed normalization gives exactly this constant magnitude.
+For modulations, the inner products are the Fourier coefficients of $|f|^2$
+with normalized sums, so the orbit is orthonormal precisely when $|f[x]|=1$
+for every $x$. Thus $f[x]/|f[x]|$ is the analogous construction when no
+sample vanishes. Very small denominators make either phase normalization
+sensitive to perturbations, even when exact zeros are absent.
+\item The same correlation calculation gives
+\[
+ \Gg(\varphi)=\frac1n\Ff^{-1}(\wh\varphi\cdot\ol{\wh g}).
+\]
+It costs $O(n\log n)$ and its output consists of the coefficients in the
+orthonormal basis of translates. Therefore
+$\varphi=\sum_k\Gg(\varphi)[k](k\top g)=\Gg(\varphi)*g$.
+\end{enumerate}
+Program~\ref{listing-fftorthog} implements the translation normalization with
+the required factor $\sqrt n$ and preserves complex-valued input.
+\begin{listing}[H]
+\PythonCode{listing-fftorthog}
+\caption{Orthonormalizing cyclic translates for the normalized inner product.}
+\label{listing-fftorthog}
+\end{listing}
+\end{correction}

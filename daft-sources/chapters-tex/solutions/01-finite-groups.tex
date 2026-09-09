@@ -1,0 +1,351 @@
+\section{Fourier analysis on finite groups}
+
+\begin{correction}{exo-determinant-circulating}
+\begin{enumerate}
+\item Directly from convolution and multiplicativity,
+\[
+ (f*\chi)(x)=\sum_{h\in G}f(h)\chi(h^{-1}x)
+ =\chi(x)\sum_{h\in G}f(h)\chi(h)^{-1}
+ =\wh f(\chi^{-1})\chi(x).
+\]
+Thus the eigenvalue associated with $\chi$ is $\wh f(\chi^{-1})$.
+\item The coefficient of $\delta_h$ in $f*\delta_g$ is $f(hg^{-1})$.
+In additive cyclic coordinates this gives $A_{ij}=f(i-j)$, with indices
+modulo $n$. Since the characters form an eigenbasis,
+\[
+ \det A=\prod_{\chi\in\wh G}\wh f(\chi^{-1})
+       =\prod_{\chi\in\wh G}\wh f(\chi).
+\]
+\item For the matrix displayed in the exercise, choose $f(k)=a_{-k}$,
+so that $A_{ij}=a_{j-i}$. Its eigenvalue on $\chi_i$ is
+$\sum_j a_j\omega^{ij}$. Multiplying these eigenvalues gives the formula.
+\item An FFT computes all eigenvalues in $O(n\log n)$ operations; their
+product takes a further $O(n)$ operations. Program~\ref{listing-calcul-det-circ}
+uses NumPy's negative-exponential convention. This changes the order of the
+eigenvalues, but not their product. For large matrices, the product can
+overflow or underflow; summing $\log|\lambda_j|$ and keeping track of the
+phase gives a more useful representation. Near-zero eigenvalues also make a
+determinant sensitive to rounding.
+\begin{listing}[H]
+\PythonCode{listing-calcul-det-circ}
+\caption{A circulant determinant from its first row.}
+\label{listing-calcul-det-circ}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-dual-so3}
+\begin{enumerate}
+\item Choose positively oriented orthonormal frames adapted to the two
+rotation axes. The change-of-frame matrix $\Omega$ belongs to $SO(3)$, and
+conjugation by $\Omega$ takes one rotation to the other. Reversing an axis
+allows every rotation to be described by an angle in $[0,\pi]$.
+\item A homomorphism to an abelian group is constant on conjugacy classes.
+Thus $\chi$ depends only on the angle.
+\item Matrix multiplication gives
+\[
+ \Tr(r_\alpha s_\alpha^{-1})=2\cos\alpha+\cos^2\alpha.
+\]
+Since a rotation through $\beta$ has trace $1+2\cos\beta$,
+\[
+ \cos\beta=\frac{(1+\cos\alpha)^2-2}{2}.
+\]
+This expression is continuous and strictly decreasing from $1$ to $-1$ as
+$\alpha$ increases from $0$ to $\pi$. Hence $\beta$ covers $[0,\pi]$.
+Program~\ref{listing-calcul-trace-beta} verifies the trace symbolically using
+SymPy, imported as \texttt{sp}.
+\begin{listing}[H]
+\PythonCode{listing-calcul-trace-beta}
+\caption{Symbolic trace of a product of rotations.}
+\label{listing-calcul-trace-beta}
+\end{listing}
+\item The rotations $r_\alpha$ and $s_\alpha$ are conjugate, so
+$\chi(r_\alpha s_\alpha^{-1})=1$. Every rotation angle occurs in such a product,
+and $\chi$ depends only on that angle. Therefore $\chi=1$ on all of $SO(3)$.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-enombrement-solutions}
+Dual orthogonality gives, for each tuple,
+\[
+ \mathbf{1}_{\{\varphi(g_1,\ldots,g_n)=h\}}
+ =\frac1{|G|}\sum_{\chi\in\wh G}
+   \chi\big(\varphi(g_1,\ldots,g_n)h^{-1}\big).
+\]
+Sum over all tuples and use $\chi(h^{-1})=\ol{\chi(h)}$.
+The factor $1/|G|$ remains in both sums.
+\end{correction}
+
+\begin{correction}{exo-indicator-functions}
+Write $n=|G|$ and $a=|A|$.
+\begin{enumerate}
+\item The definitions give $\norm{f_A}_2^2=a/n$ and
+$\wh f_A(\chi_0)=a$.
+\item Plancherel yields $\sum_\chi|\wh f_A(\chi)|^2=na$.
+Separating the trivial character and bounding the other $n-1$ terms gives
+\[
+ na\leq a^2+(n-1)\Phi(A)^2,\qquad
+ \Phi(A)^2\geq\frac{a(n-a)}{n-1}\geq\frac a2
+\]
+when $a\leq n/2$. Also,
+$|\wh f_A(\chi)|\leq\sum_{x\in A}|\chi(x)|=a$.
+\item Since $f_{G\setminus A}=1-f_A$, their nontrivial Fourier coefficients
+are negatives of one another. Thus $\Phi(G\setminus A)=\Phi(A)$.
+For $a>n/2$, apply the preceding bounds to obtain
+$\sqrt{(n-a)/2}\leq\Phi(A)\leq n-a$.
+\item We have
+$\wh f_{\alpha(A)}(\chi)=\wh f_A(\chi\circ\alpha)$.
+Composition with an automorphism permutes the nontrivial characters.
+For a translation, instead use
+$\wh f_{A+b}(\chi)=\chi(b)\wh f_A(\chi)$ and $|\chi(b)|=1$.
+A nonzero translation is generally \emph{not} a group automorphism.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-eqn-grpe-abelien-finite}
+\begin{enumerate}
+\item Replace $A_1$ by $A_1-a=\{x-a:x\in A_1\}$.
+This preserves the number of solutions and reduces the equation to $a=0$.
+Character orthogonality then gives
+\begin{equation}
+\label{eq-correction-exoe-qn-grpe-abelien}
+ N=\frac1{|G|}\sum_{\chi\in\wh G}
+     \sum_{x_i\in A_i}\chi(x_1+\cdots+x_k)
+  =\frac1{|G|}\sum_{\chi\in\wh G}\prod_{i=1}^k\wh f_{A_i}(\chi).
+\end{equation}
+The trivial character contributes $|A_1|\cdots|A_k|/|G|$; the remaining
+characters contribute $R$.
+\item For $k=3$, bound the third factor by $\Phi(A_3)$ and enlarge the sum
+to all characters. Cauchy--Schwarz and Plancherel give
+\begin{align*}
+ |R|&\leq\frac{\Phi(A_3)}{|G|}
+       \sum_\chi|\wh f_{A_1}(\chi)|\,|\wh f_{A_2}(\chi)|\\
+ &\leq\frac{\Phi(A_3)}{|G|}
+       \sqrt{\sum_\chi|\wh f_{A_1}(\chi)|^2}
+       \sqrt{\sum_\chi|\wh f_{A_2}(\chi)|^2}\\
+ &=\Phi(A_3)\sqrt{|A_1|\,|A_2|}.
+\end{align*}
+For general $a$, the Fourier expression acquires factors $\ol{\chi(a)}$
+of modulus one, so the bound is unchanged.
+\item The hypothesis implies
+$|R|<|A_1||A_2||A_3|/|G|$. Therefore the main term in
+\eqref{eq-correction-exoe-qn-grpe-abelien} is larger than the possible error,
+and $N>0$.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-groupe-heisenberg}
+\begin{enumerate}
+\item Associativity follows from multiplicativity of each character.
+The identity is $(1,1,\chi_0)$, and
+\[
+ (\lambda,x,\chi)^{-1}
+ =(\lambda^{-1}\chi(x),x^{-1},\chi^{-1}).
+\]
+For example, the scalar part of a triple product is
+$\lambda\mu\nu\tau(x)\eta(x)\eta(y)$ with either parenthesization.
+\item Composing the proposed actions gives
+\[
+ \lambda\chi(z)\mu\tau(xz)f(yxz)
+ =\lambda\mu\tau(x)(\chi\tau)(z)f(xyz),
+\]
+which is the action of the product in $\Hh(G)$. The identity acts trivially.
+\item The action is $D_\lambda M_\chi T_x f$. Its multiplication rule follows
+from $T_xM_\tau=\tau(x)M_\tau T_x$. Direct changes of variable give
+\[
+ \widehat{T_xf}(\tau)=\tau(x)^{-1}\wh f(\tau),\qquad
+ \widehat{M_\chi f}(\tau)=\wh f(\chi\tau),\qquad
+ \widehat{D_\lambda f}=\lambda\wh f.
+\]
+Thus translation becomes modulation and modulation becomes translation, just
+as for the continuous Fourier transform with consistent sign conventions.
+\item Evaluation identifies $x\in G$ with a character of $\wh G$.
+Consequently,
+\[
+ (\lambda,\chi,x)(\mu,\tau,y)
+ =(\lambda\mu\chi(y),\chi\tau,xy),\qquad
+ ((\lambda,\chi,x)\cdot\varphi)(\tau)
+ =\lambda\tau(x)\varphi(\chi\tau).
+\]
+\item Substitution in the two multiplication laws proves that $\alpha$ is a
+homomorphism. Its inverse is
+$\alpha^{-1}(\mu,\chi,y)=(\mu\chi(y)^{-1},y^{-1},\chi)$.
+Furthermore,
+\[
+ \widehat{D_\lambda M_\chi T_xf}(\tau)
+ =\lambda\chi(x)^{-1}\tau(x)^{-1}\wh f(\chi\tau),
+\]
+which is exactly the action of $\alpha(\lambda,x,\chi)$ on $\wh f$.
+\item Commutation with all modulations implies that $\Phi\delta_a$ is supported
+at $a$: indeed, $M_\chi\delta_a=\chi(a)\delta_a$, and characters separate
+points. Thus $\Phi$ is diagonal in the Dirac basis. Commutation with
+translations forces all diagonal entries to be equal, giving $\Phi=rI$.
+This argument also proves irreducibility without assuming it in an appeal
+to Schur's lemma. Notice that $\Hh(G)$ itself is infinite because it contains
+$\Uu$; finite-dimensionality of the representation is the relevant feature.
+
+If $\Psi$ intertwines the two actions through $\alpha$, then
+$\Ff^{-1}\Psi$ commutes with the original action. Hence $\Psi=r\Ff$.
+It is invertible exactly when $r\neq0$. The intertwining isomorphism is
+therefore supplied by the Fourier transform itself.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-series-fourier-orthogonalisation}
+\begin{enumerate}
+\item The nonnegative periodization
+$S(\omega)=\sum_k|\wh f(\omega+2\pi k)|^2$
+belongs to $L^1([0,2\pi])$ by Tonelli's theorem and Plancherel. For $m=n-p$,
+\begin{align}
+\label{eqn-ortho-series-fourier}
+ \dotp{\tau_nf}{\tau_pf}
+ &=\frac1{2\pi}\int_{\RR}|\wh f(\omega)|^2e^{-\imath m\omega}\,\d\omega
+ \nonumber\\
+ &=\frac1{2\pi}\int_0^{2\pi}S(\omega)e^{-\imath m\omega}\,\d\omega.
+\end{align}
+The second equality follows by partitioning $\RR$ into intervals of length
+$2\pi$; absolute integrability justifies the rearrangement.
+Thus orthonormality says that the Fourier coefficients of $S$ equal those
+of the constant function $1$. Uniqueness of Fourier coefficients in $L^1$
+gives $S=1$ almost everywhere, and the converse follows from the same formula.
+\item The lower bound on $S$ gives
+$|\wh\varphi|\leq A^{-1/2}|\wh f|$, so $\varphi\in L^2$.
+Since $S$ is $2\pi$-periodic,
+\[
+ \sum_k|\wh\varphi(\omega+2\pi k)|^2
+ =\frac{\sum_k|\wh f(\omega+2\pi k)|^2}{S(\omega)}=1
+\]
+almost everywhere. Apply the first part.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-orthogonalization-abelian-group}
+Write $n=|G|$.
+\begin{enumerate}
+\item Unitarity gives $\dotp{Ab}{Bb}=\psi_b(B^{-1}A)$.
+The indexed orbit is therefore orthonormal exactly when $\psi_b=\delta_I$,
+or equivalently $\wh\psi_b=1$. Linearity in the first argument gives
+$\wh\psi_b(\chi)=n\dotp{\Uu_\chi b}{b}$.
+\item Substituting $R=UV$ and using character orthogonality,
+\begin{align*}
+ \Uu_\chi\Uu_\eta
+ &=\frac1{n^2}\sum_{U,R\in G}\chi(U)\eta(U^{-1}R)R\\
+ &=\frac1{n^2}\left(\sum_U\chi(U)\ol{\eta(U)}\right)
+                     \left(\sum_R\eta(R)R\right)
+ =\delta_\chi^\eta\Uu_\eta.
+\end{align*}
+Also,
+\[
+ \Uu_\chi^*=\frac1n\sum_U\ol{\chi(U)}U^{-1}
+ =\frac1n\sum_V\chi(V)V=\Uu_\chi.
+\]
+Dual orthogonality gives $\sum_\chi\Uu_\chi=I$. These are therefore mutually
+orthogonal spectral projectors, and
+$\dotp{\Uu_\chi b}{b}=\norm{\Uu_\chi b}^2$.
+\item Orthogonality of the projectors implies
+\[
+ \Uu_\chi\wt b=\frac{\Uu_\chi b}{\sqrt{\wh\psi_b(\chi)}},
+ \qquad
+ n\norm{\Uu_\chi\wt b}^2
+ =\frac{n\norm{\Uu_\chi b}^2}{\wh\psi_b(\chi)}=1.
+\]
+The criterion in the first part proves orthonormality. The normalization is
+$\norm{\Uu_\chi\wt b}^2=1/n$, not $1$.
+\item Both constructions normalize the spectral energy of an orbit. In the
+continuous exercise the acting group is $\ZZ$, through integer translations
+on $L^2(\RR)$. Here it is a finite group of unitary operators.
+An orthonormal family of $n$ vectors requires $n\leq\dim V$.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-repartition-proba}
+\begin{enumerate}
+\item We have $\wh P(\chi_0)=1$ and $\wh U=\delta_{\chi_0}$.
+Plancherel, with the normalized inner products, gives
+\[
+ \norm{P-U}_2^2=\frac1{|G|^2}
+                 \sum_{\chi\neq\chi_0}|\wh P(\chi)|^2.
+\]
+\item For each $g$,
+\[
+ |P(g)-U(g)|^2\leq\sum_{x\in G}|P(x)-U(x)|^2
+ =|G|\norm{P-U}_2^2.
+\]
+Insert the expression from the first part. The square on the left is
+essential.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-marche-aleatoire}
+\begin{enumerate}
+\item Conditioning on $X_k$ gives
+$p^{(k+1)}_j=\sum_i p_{i,j}p^{(k)}_i$.
+Since $P_{j,i}=p_{i,j}$, this is $p^{(k+1)}=Pp^{(k)}$. Iterate to obtain
+$p^{(k)}=P^kp^{(0)}$.
+\item The nearest-neighbor transition satisfies
+$(Px)(j)=(1-p)x(j-1)+px(j+1)=(v*x)(j)$.
+Equivalently, $X_k=X_0+Y_1+\cdots+Y_k$ with independent increments of law $v$;
+convolution gives the law of the sum.
+\item The convolution theorem yields
+$\wh p^{(k)}(\chi)=\wh v(\chi)^k\wh p^{(0)}(\chi)$.
+For $\chi_j(x)=e^{2\pi\imath jx/n}$,
+\[
+ \wh v(\chi_j)=(1-p)e^{2\pi\imath j/n}+pe^{-2\pi\imath j/n}.
+\]
+Since both weights are positive, its modulus is one exactly when the two
+unit complex numbers agree, that is, when $2j=0$ modulo $n$.
+For odd $n$, only $j=0$ qualifies, so all nontrivial coefficients decay and
+inversion gives convergence to uniformity. For even $n$,
+$\wh v(\chi_{n/2})=-1$. Starting from $0$, the walk alternates between even
+and odd sites, so its law does not converge.
+\item For any increment law, $|\wh v(\chi)|\leq\sum_xv(x)=1$.
+Convergence to uniformity from every starting law is equivalent to
+$|\wh v(\chi)|<1$ for every nontrivial $\chi$. Sufficiency follows by decay
+of those coefficients. Necessity follows by starting at a point mass, whose
+Fourier coefficients all have modulus one.
+
+Equality $|\wh v(\chi)|=1$ holds precisely when $\chi$ is constant on the
+support of $v$, by equality in the triangle inequality. A constant value
+$1$ gives a persistent coefficient; another unit value gives an oscillating
+coefficient. For a particular initial law, an exceptional coefficient matters
+only if the corresponding initial Fourier coefficient is nonzero.
+Program~\ref{listing-calcul-proba-pk} computes the law directly in Fourier
+coordinates. Real projection removes numerical roundoff in the imaginary part.
+\begin{listing}[H]
+\PythonCode{listing-calcul-proba-pk}
+\caption{The probability law after $k$ steps of a cyclic random walk.}
+\label{listing-calcul-proba-pk}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-principle-uncertainty-discrete}
+\begin{enumerate}
+\item Write $\Supp f=\{a_1,\ldots,a_p\}$ and
+$\omega=e^{2\pi\imath/n}$. If $\wh f(0),\ldots,\wh f(p-1)$ all vanish,
+then the vector $(f(a_j))_{j=1}^p$ lies in the kernel of the Vandermonde matrix
+$V_{rj}=(\omega^{a_j})^r$, $0\leq r<p$. Its nodes are distinct, so $V$ is
+invertible, a contradiction. For a block starting at another frequency,
+modulate $f$ to reduce to this case without changing its support.
+
+Let $q=|\Supp\wh f|$. Between successive nonzero coefficients on the frequency
+circle there can be at most $p-1$ zeros, so the cyclic distance between them
+is at most $p$. Summing the $q$ distances gives $n\leq pq$.
+This also covers the case where $p$ does not divide $n$.
+\item The first bound follows from $|f(x)|\leq M$ on its support.
+Inversion and $|\chi(x)|=1$ give the second. If $B=\Supp\wh f$,
+Cauchy--Schwarz and Plancherel imply
+\[
+ M^2\leq\frac1{|G|^2}\left(\sum_{\chi\in B}|\wh f(\chi)|\right)^2
+ \leq\frac{|B|}{|G|^2}\sum_\chi|\wh f(\chi)|^2
+ =|B|\norm f_2^2.
+\]
+Combining with $\norm f_2^2\leq M^2|\Supp f|/|G|$ and canceling the positive
+quantity $\norm f_2^2$ proves the result.
+\item Character orthogonality on $H$ gives
+$\wh f_H(\chi)=\sum_{h\in H}\chi(h)=|H|$ if $\chi|_H=1$, and $0$ otherwise.
+By the exact sequence in Lemma~\ref{lem-suite-exact},
+$|H^\sharp|=|\widehat{G/H}|=|G|/|H|$.
+The support sizes therefore attain equality.
+\end{enumerate}
+\end{correction}

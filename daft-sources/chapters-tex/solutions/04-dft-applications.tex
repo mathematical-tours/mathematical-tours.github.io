@@ -1,0 +1,542 @@
+\section{Applications of the discrete Fourier transform}
+
+\begin{correction}{exo-transforme-sup-comp}
+Compact support and Cauchy--Schwarz give $\wh f\in L^1$. Fourier inversion
+therefore defines a continuous representative. Differentiating under the
+integral, with the bound $|\xi|^n\leq A^n$, gives
+\[
+ f^{(n)}(t_0)=\frac1{2\pi}\int_{-A}^A
+             (\imath\xi)^n\wh f(\xi)e^{\imath\xi t_0}\d\xi.
+\]
+For every $z\in\CC$, the exponential series is dominated on this interval by
+$e^{A|z-t_0|}|\wh f(\xi)|$, an integrable function. Thus
+\[
+ \frac1{2\pi}\int_{-A}^A\wh f(\xi)e^{\imath\xi z}\d\xi
+ =\sum_{n=0}^\infty\frac{f^{(n)}(t_0)}{n!}(z-t_0)^n.
+\]
+This constructs an entire extension of $f$. If its real restriction vanishes
+on an open interval, all derivatives at an interior point vanish, so the
+series shows it is identically zero. If $f$ also has compact support,
+its continuous representative vanishes outside that support and hence on an
+open interval. Therefore $f=0$, proving the proposition.
+\end{correction}
+
+\begin{correction}{exo-resol-eq-heat-diff-finies}
+\begin{enumerate}
+\item Use the forward difference $(u(t+h,x)-u(t,x))/h$ in time and the
+centered difference $(u(t,x+d)-2u(t,x)+u(t,x-d))/d^2$ in space.
+The local consistency errors are $O(h)$ and $O(d^2)$ for smooth $u$.
+\item The kernel is $g[0]=1-2s$, $g[\pm1]=s$. One direct step costs $O(N)$;
+an FFT at every step would cost $O(N\log N)$. If only step $m$ is wanted,
+two FFTs and the multipliers $\wh g[k]^m$ avoid computing all intermediate
+steps. Program~\ref{listing-resolexplicite} implements the local stencil.
+\begin{listing}[H]
+\PythonCode{listing-resolexplicite}
+\caption{Explicit heat evolution by a three-point stencil.}
+\label{listing-resolexplicite}
+\end{listing}
+\item The multiplier is
+\[
+ r_k=1-4s\sin^2(\pi k/N).
+\]
+The DFT diagonalizes every power of the iteration. Boundedness for every
+initial vector is equivalent to $|r_k|\leq1$ at every frequency, hence
+$2s\mu_N\leq1$, where
+\[
+ \mu_N=\max_k\sin^2(\pi k/N)=
+ \begin{cases}1,&N\text{ even},\\\cos^2(\pi/(2N)),&N\text{ odd}.\end{cases}
+\]
+This gives the stated bounds. The name CFL abbreviates
+Courant--Friedrichs--Lewy. For $s\leq1/2$, the stencil is a convex average,
+which also proves contraction in the maximum norm uniformly over grid sizes.
+At the even-grid endpoint, the alternating mode has multiplier $-1$ and
+remains bounded without decaying.
+\item Write $a_k=-4s\sin^2(\pi k/N)\leq0$. The transformed equation gives
+\[
+ \wh u^{m+1}[k]=r_k\wh u^m[k],\qquad
+ r_k=\frac{1+(1-\theta)a_k}{1-\theta a_k}.
+\]
+The denominator is positive, and $r_k\leq1$. The condition $r_k\geq-1$
+is equivalent to $2+(1-2\theta)a_k\geq0$.
+Thus the method is unconditionally stable for $\theta\geq1/2$.
+For $\theta<1/2$, the exact fixed-grid condition is
+$2s(1-2\theta)\mu_N\leq1$. The threshold is $1/2$, not $1/4$.
+Program~\ref{listing-resolimplicite} evaluates any nonnegative integer
+number of steps directly in Fourier coordinates.
+\begin{listing}[H]
+\PythonCode{listing-resolimplicite}
+\caption{The one-dimensional theta method in Fourier coordinates.}
+\label{listing-resolimplicite}
+\end{listing}
+\item On a square grid,
+\[
+ a_{kl}=-4s\bigl(\sin^2(\pi k/N)+\sin^2(\pi l/N)\bigr).
+\]
+For $\theta<1/2$, stability requires
+$4s(1-2\theta)\mu_N\leq1$. In particular, the even-grid explicit bound
+is $s\leq1/4$, not the one-dimensional bound $1/2$.
+For $\theta\geq1/2$, stability is unconditional.
+At $\theta=1/2$, $r_{kl}$ approaches $-1$ as $-a_{kl}$ grows:
+high-frequency components alternate in sign while decaying very slowly.
+At $\theta=1$, $r_{kl}=1/(1-a_{kl})$ approaches zero, so these components
+are strongly damped. Program~\ref{listing-resolimplicite2d} implements both.
+\begin{listing}[H]
+\PythonCode{listing-resolimplicite2d}
+\caption{The theta method on a periodic rectangular grid.}
+\label{listing-resolimplicite2d}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-unicite-eq-heat}
+\begin{enumerate}
+\item For $t>0$, absolute uniform convergence permits exchange of the integral
+and the series:
+\[
+ p_t*f(x)=\sum_n e^{-2\pi^2n^2t}e^{2\pi\imath nx}
+          \int_0^1f(y)e^{-2\pi\imath ny}\d y.
+\]
+On $t\geq\epsilon>0$, every differentiated series is dominated by a
+polynomial in $|n|$ times $e^{-2\pi^2n^2\epsilon}$. Hence the convolution
+is smooth and solves $u_t=\tfrac12u_{xx}$.
+\item Two integrations by parts give $|c_n(f)|=O(|n|^{-2})$ for $n\ne0$.
+Consequently,
+\[
+ \|u(t,\cdot)-f\|_\infty
+ \leq\sum_n|c_n(f)|\,|e^{-2\pi^2n^2t}-1|\longrightarrow0
+ \quad(t\downarrow0)
+\]
+by dominated convergence.
+\item If $u(t_0,x_0)<0$, then $v=e^{\beta t}u$ attains a negative minimum
+$\alpha$ on the compact cylinder $[0,t_0]\times S^1$.
+Since the initial values are nonnegative, its minimizing time $t_1$ is
+positive. At that point $v_{xx}\geq0$ and $v_t\leq0$; the latter also
+holds at $t_1=t_0$ by the left derivative. But
+$0\geq v_t=\beta\alpha+\tfrac12v_{xx}\geq\beta\alpha>0$
+when $\beta<0$, a contradiction.
+\item Apply positivity to smooth nonnegative initial functions, for which
+continuity at $t=0$ was proved above. If $p_t$ were negative somewhere,
+a nonnegative smooth bump supported near that point would give a negative
+convolution value. Thus $p_t\geq0$. Its zeroth Fourier coefficient is one,
+so its integral is one, and the integral triangle inequality gives
+$\|p_t*f\|_\infty\leq\|f\|_\infty$.
+For uniqueness, apply the minimum argument directly to $w$ and $-w$, where
+$w$ is the difference of two real classical solutions with the same initial
+values. Both have zero initial data, so $w=0$. For complex solutions apply
+this to real and imaginary parts. This avoids assuming a representation
+formula for an arbitrary solution.
+\item Choose smooth periodic $f_j$ converging uniformly to $f$. Then
+\[
+ \|p_t*f-f\|_\infty
+ \leq2\|f-f_j\|_\infty+\|p_t*f_j-f_j\|_\infty.
+\]
+First choose $j$ large, then let $t\downarrow0$. The first term is uniformly
+small and the second tends to zero. This proves existence with the required
+initial continuity, and the preceding maximum argument proves uniqueness.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-potential-electric-3d}
+The stencil has coefficient $-6/h^2$ at the center and $1/h^2$ at each
+of the six nearest neighbors. Each prescribed boundary neighbor is subtracted
+from the right-hand side with factor $h^{-2}$. Odd extension in every
+coordinate makes the boundary values zero and yields a $2N$-periodic array.
+Its symbol is
+\[
+ -\frac4{h^2}\left(\sin^2\frac{\pi k}{2N}
+                  +\sin^2\frac{\pi l}{2N}
+                  +\sin^2\frac{\pi m}{2N}\right).
+\]
+Divide the transformed right-hand side by this symbol away from zero and
+set the zero coefficient to zero. Invert the transform, retain the interior,
+and restore the prescribed boundary. Program~\ref{listing-antisymmetrise}
+constructs the odd extension in any dimension. The general solver in
+Program~\ref{fish-listing} likewise works in two or three dimensions.
+\begin{listing}[H]
+\PythonCode{listing-antisymmetrise}
+\caption{Odd extension along every coordinate axis.}
+\label{listing-antisymmetrise}
+\end{listing}
+\end{correction}
+
+\begin{correction}{exo-formulation-matrix-fish}
+\begin{enumerate}
+\item Multiplication by $T$ on the left takes second differences in the first
+index; multiplication on the right takes them in the second. Their sum is
+the five-point stencil with zero boundary values.
+\item A boundary value is a known contribution to that stencil, so move it
+to the right with coefficient $-h^{-2}$. Summing the contributions at corners
+of the interior grid gives precisely $\wt F$ in the main text.
+\item With $V_j[i]=\sin(\pi ij/N)$ and zero values at $i=0,N$,
+\[
+ (TV_j)[i]=\lambda_jV_j[i],\qquad
+ \lambda_j=-4h^{-2}\sin^2(\pi j/(2N)).
+\]
+These eigenvalues are negative and distinct for $1\leq j<N$.
+Let $U_0=V^{-1}\wt UV$ and $F_0=V^{-1}\wt FV$. Then
+$(\lambda_i+\lambda_j)(U_0)_{ij}=(F_0)_{ij}$, so division determines
+$U_0$ uniquely; no denominator vanishes. Finally $\wt U=VU_0V^{-1}$.
+\item Symmetry of $T$ gives orthogonality between distinct eigenvectors,
+and the identity $\sum_{i=1}^{N-1}\sin^2(\pi ij/N)=N/2$ gives
+$V^TV=(N/2)I$. Since $V=V^T$, its inverse is $(2/N)V$.
+Thus $V$ is \emph{scaled orthogonal}; $Q=\sqrt{2/N}V$ is orthogonal.
+The product $Vx$ is the unnormalized sine transform $\Ss x$.
+\item For the length-$2N$ odd extension
+$x^o=(0,x[1],\ldots,x[N-1],0,-x[N-1],\ldots,-x[1])$,
+\[
+ \widehat{x^o}[k]
+ =\sum_{j=1}^{N-1}x[j](e^{-\pi\imath jk/N}-e^{\pi\imath jk/N})
+ =-2\imath\Ss(x)[k].
+\]
+Hence $\Ss x=\widehat{x^o}[1:N]/(-2\imath)$ and
+$\Ss^{-1}=(2/N)\Ss$. The identity holds for complex data as well; taking
+an imaginary part alone would discard information in that case.
+Program~\ref{listing-transfo-sinus} preserves complex input.
+\begin{listing}[H]
+\PythonCode{listing-transfo-sinus}
+\caption{The unnormalized sine transform, preserving complex data.}
+\label{listing-transfo-sinus}
+\end{listing}
+For an interior matrix $F$, applying the transform in both coordinates gives
+$\Ss_2(F)=VFV$, with inverse $(2/N)^2\Ss_2$.
+The doubled odd array satisfies
+$\widehat{F^o}[k,l]=-4(VFV)_{kl}$ on the interior frequencies.
+Thus both constructions divide by the same eigenvalue sums and reconstruct
+the same solution. Program~\ref{listing-transfo-sinus-2d} applies the
+one-dimensional transform along the two axes.
+\begin{listing}[H]
+\PythonCode{listing-transfo-sinus-2d}
+\caption{A two-dimensional sine transform.}
+\label{listing-transfo-sinus-2d}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-lissage-image}
+Program~\ref{listing-calculfiltre} samples a Gaussian and normalizes its
+finite sum to one. Its default radius is $\lceil4\sigma\rceil$ pixels.
+Program~\ref{listing-appliquefiltre} reads a grayscale image and convolves
+a reflected extension with this kernel, retaining the valid output.
+Reflection preserves constant images and avoids an artificial dark border.
+The noise is reduced at the cost of some edge and texture detail.
+\begin{listing}[H]
+\PythonCode{listing-calculfiltre}
+\caption{A finite Gaussian kernel with unit sum.}
+\label{listing-calculfiltre}
+\end{listing}
+\begin{listing}[H]
+\PythonCode{listing-appliquefiltre}
+\caption{Gaussian image smoothing with reflected boundaries.}
+\label{listing-appliquefiltre}
+\end{listing}
+\end{correction}
+
+\begin{correction}{exo-correlation-2d}
+\begin{enumerate}
+\item Expanding the square gives
+\[
+ d(f,g)[u,v]^2=E_f[u,v]+\|g\|_2^2-2\Corr(f,g)[u,v].
+\]
+If $E_f$ is constant, minimizing the squared discrepancy is exactly equivalent
+to \emph{maximizing} correlation. If it varies little, this is only an approximation.
+Full-template positions are essential here: otherwise the norm of the
+visible part of $g$ also depends on the position.
+\item Let $\check g[i,j]=g[-i,-j]$, with zero extension. Then
+$\Corr(f,g)[u,v]=(f\star\check g)[u,v]$.
+When the reflected template is stored as the ordinary array
+$g[P-1-i,P-1-j]$, the corresponding full-convolution indices are
+$(u+P-1,v+P-1)$. Padding to at least $N+P-1$ in both coordinates avoids
+wraparound; extracting the valid part gives all complete-template positions.
+\item Center the patch and template, writing their vectorized forms as
+$a$ and $b$. For nonzero $a,b$,
+$\rho=\langle a,b\rangle/(\|a\|_2\|b\|_2)$.
+Cauchy--Schwarz gives $|\rho|\leq1$; equality $\rho=1$ means
+$a=cb$ for some $c>0$, not necessarily $a=b$.
+Offsets and positive rescalings of either intensity leave $\rho$ unchanged;
+a negative rescaling of one image reverses its sign. A constant template
+or patch has zero variance, so normalized correlation is undefined there.
+\item Since $g_0=g-\mu_g$ has zero sum, the numerator is
+$\sum_{i,j}f[u+i,v+j]g_0[i,j]$. This is one FFT-based correlation.
+The patch variance is $s_2-s_1^2/P^2$, and the template variance
+$\sum_{i,j}g_0[i,j]^2$ is computed once.
+The stated recurrence follows by inclusion--exclusion of four overlapping
+windows; the four corner terms must all contain the power $k$.
+A summed-area table gives the equivalent formula
+\[
+ s_k[u,v]=I_k[u+P,v+P]-I_k[u,v+P]-I_k[u+P,v]+I_k[u,v],
+\]
+where $I_k[a,b]=\sum_{i<a,j<b}f[i,j]^k$.
+Two cumulative sums construct $I_k$ in $O(N^2)$ work, after which each
+window costs four lookups. Program~\ref{sliding-sum-listing} implements this.
+\begin{listing}[H]
+\PythonCode{sliding-sum-listing}
+\caption{Sliding sums from a summed-area table.}
+\label{sliding-sum-listing}
+\end{listing}
+Program~\ref{listing-correlation-normalized} combines these sums with FFT
+correlation, for total cost $O(N^2\log N)$. It uses the Frobenius norm of
+the template, subtracts a global image offset to reduce cancellation, and
+marks zero-variance patches with \texttt{NaN}. Tiny negative computed
+variances are clipped to zero before square roots; this corrects roundoff,
+not the mathematical definition.
+\begin{listing}[H]
+\PythonCode{listing-correlation-normalized}
+\caption{Normalized correlation at complete-template positions.}
+\label{listing-correlation-normalized}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-fft-rotation}
+\begin{enumerate}
+\item For signed frequencies $k,l$,
+\[
+ \widehat{T_vf}[k,l]=e^{-2\pi\imath(kv_1+lv_2)/N}\wh f[k,l].
+\]
+For integer shifts, this follows by changing indices. For fractional shifts,
+it defines translation of the chosen trigonometric interpolant. Using
+unsigned frequencies instead would select a different interpolation between
+samples. Odd sizes avoid the unmatched real Nyquist mode of even sizes.
+Program~\ref{listing-ffttranslation} implements the formula.
+\begin{listing}[H]
+\PythonCode{listing-ffttranslation}
+\caption{Fractional translation using signed Fourier frequencies.}
+\label{listing-ffttranslation}
+\end{listing}
+For an $x$-shear, translate each fixed-$y$ column by $\lambda y$; for a
+$y$-shear, translate each fixed-$x$ row by $\lambda x$. Centered coordinates
+place the center of the image at the origin.
+Program~\ref{listing-ffttransvec} implements either axis.
+\begin{listing}[H]
+\PythonCode{listing-ffttransvec}
+\caption{A centered shear along either image coordinate.}
+\label{listing-ffttransvec}
+\end{listing}
+\item Multiply the three matrices with
+$a=-\tan(\theta/2)$ and $b=\sin\theta$. The diagonal entries are
+$1+ab=\cos\theta$, the lower-left entry is $b$, and the upper-right entry
+is $2a+a^2b=-\sin\theta$. Since pullbacks compose in the corresponding
+matrix order,
+$R_\theta=S_a^{(x)}S_b^{(y)}S_a^{(x)}$ for continuous functions.
+\item Each discrete line translation is unitarily diagonalized by the DFT,
+with unit-modulus multipliers. Its inverse negates the shift, so each shear
+and their product are invertible. Reversing the three steps and negating
+their parameters gives the inverse; the symmetric three-step pattern makes
+it the algorithm with angle $-\theta$.
+\begin{listing}[H]
+\PythonCode{listing-fftrotation}
+\caption{Rotation by three discrete shears.}
+\label{listing-fftrotation}
+\end{listing}
+Nevertheless, intermediate sheared functions do not generally belong to
+the original finite tensor-product trigonometric space. Resampling and
+periodic wrapping therefore prevent these discrete matrices from forming
+an exact representation of all planar rotations:
+$R_\alpha R_\beta\ne R_{\alpha+\beta}$ in general.
+Taking real parts on even grids or cropping intermediate results can also
+destroy invertibility. The odd-grid implementation preserves real data
+without discarding a Nyquist component, and preserves complex data as complex.
+
+Padding moves wraparound away from the image of interest; it does not make
+band-limited interpolation exact for arbitrary continuous images.
+Program~\ref{listing-applies-rotation} supplies a white margin for a small
+rotation gallery. Larger angles should be split into bounded steps or
+reduced using quarter-turn permutations to avoid very large shears.
+The arithmetic cost is $O(N^2\log N)$ for a square padded grid.
+\begin{listing}[H]
+\PythonCode{listing-applies-rotation}
+\caption{A rotation gallery with a padded white margin.}
+\label{listing-applies-rotation}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-creation-low-pass-filter}
+\begin{enumerate}
+\item Form the real even sampled response $H[k]=\mathbf1_{|\omega_k|<\pi/2}$,
+with half-values at any cutoff samples, and take its inverse DFT.
+The resulting circular kernel is real and symmetric, and its sum is $H[0]=1$.
+\begin{listing}[H]
+\PythonCode{listing-low-pass-filter}
+\caption{A sharp sampled low-pass response and its inverse transform.}
+\label{listing-low-pass-filter}
+\end{listing}
+\item Assign kernel indices to $-(N-1)/2,\ldots,(N-1)/2$, then embed them
+modulo a larger plotting length. Padding the negative-index terms at the
+wrong end would change the response. The resulting FFT samples
+$G(\omega)=\sum_jg[j]e^{-\imath j\omega}$, which agrees with $H$ at the
+original frequencies but oscillates between them near the cutoff.
+Program~\ref{listing-drawing-filter-zero-padding} returns the frequencies
+and the complex response; for this symmetric real kernel it is real up to roundoff.
+\begin{listing}[H]
+\PythonCode{listing-drawing-filter-zero-padding}
+\caption{Dense frequency-response evaluation with centered kernel indices.}
+\label{listing-drawing-filter-zero-padding}
+\end{listing}
+\item Let $r=|\omega|$, $a=(1-\epsilon)\pi/2$, and
+$b=(1+\epsilon)\pi/2$. Use response one for $r\leq a$, zero for $r\geq b$,
+and $\tfrac12[1+\cos(\pi(r-a)/(b-a))]$ in the transition.
+At $\epsilon=0$ use the sharp-cutoff definition separately.
+Increasing the transition width reduces the long oscillatory tails of the
+impulse response. The endpoint $\epsilon=1$ is included without creating
+a negative array length.
+\begin{listing}[H]
+\PythonCode{configurable-filter-listing}
+\caption{A raised-cosine transition, including both endpoint parameters.}
+\label{configurable-filter-listing}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-iterations-integers}
+\begin{enumerate}
+\item The rounded update is
+$a_j^{m+1}=2\lceil(a_j^m+a_{j-1}^m)/4\rceil$.
+Its minimum is nondecreasing and its maximum nonincreasing, since both are
+even. If the current minimum is $q$, an updated count equals $q$ exactly
+when both contributing counts equal $q$. Thus its new minimum set is the
+intersection of the old minimum set and its one-step translate.
+A nonempty proper subset of a cycle cannot be invariant under a one-step
+translation, so its cardinality strictly decreases while the minimum stays
+fixed. Within at most $n$ steps, either consensus is reached or the minimum
+increases by at least two. It is bounded above by the initial maximum,
+so consensus occurs after finitely many steps. This argument excludes the
+already-constant case before claiming strict decrease.
+\item Without rounding, the kernel is $(1/2,1/2,0,\ldots,0)$.
+Its nonconstant Fourier multipliers have modulus less than one, so the limit
+is the constant vector with value $n^{-1}\sum_ja_j^0$.
+\item With half sent to each neighbor, the multiplier is
+$\cos(2\pi k/n)$. For odd $n$, its modulus is less than one except at zero,
+so the fractional process converges to the mean. For even $n$, the
+alternating mode has multiplier $-1$: alternating counts $0,2,0,2,\ldots$
+are exchanged at every step and do not converge, even with rounding.
+For the rounded process on an odd cycle, a site remains at the current
+minimum exactly when both its neighbors were at that minimum.
+If the minimum set failed to shrink, it would be invariant under translation
+by two. Since two generates an odd cycle, a proper nonempty minimum set
+cannot have this property. The preceding finite-consensus argument therefore
+applies to odd $n$ as well.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-algo-karatsuba}
+\begin{enumerate}
+\item The terms are $R_0=P_0Q_0$, $R_2=P_1Q_1$, and
+$R_1=P_0Q_1+P_1Q_0$.
+\item Compute
+$R_1=(P_0+P_1)(Q_0+Q_1)-R_0-R_2$.
+The cross term needs one new product, two additions, and two subtractions.
+\item After padding to length $n=2^p$, the recurrence is
+$C(n)=3C(n/2)+O(n)$, hence
+\[
+ C(n)=O\!\left(\sum_{j=0}^{p-1}3^j\frac n{2^j}+3^p\right)
+     =O(n^{\log_2 3}).
+\]
+Padding arbitrary lengths increases them by less than a factor two and
+preserves the bound. Programs~\ref{listing-karatsuba} and \ref{listing-add}
+use Python lists, so integer coefficients retain arbitrary precision.
+The algebra also works over other coefficient rings supporting addition,
+subtraction, and multiplication. There is no universal crossover degree:
+benchmark comparable implementations and include conversion and precision costs.
+\begin{listing}[H]
+\PythonCode{listing-karatsuba}
+\caption{Karatsuba multiplication with exact Python integer coefficients.}
+\label{listing-karatsuba}
+\end{listing}
+\begin{listing}[H]
+\PythonCode{listing-add}
+\caption{Addition of coefficient vectors of different lengths.}
+\label{listing-add}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-spline-filtering}
+\begin{enumerate}
+\item The interpolation equations are $u_d=a*\psi_d$.
+Since $\psi_d$ is finitely supported, its transform $D=\widehat{\psi_d}$
+is continuous and periodic. Nonvanishing therefore implies
+$\min_{[-\pi,\pi]}|D|>0$, so multiplication by $D$ is a boundedly
+invertible operator on $L^2$ of the circle. This proves the unique solution
+$\widehat a=\widehat{u_d}/D$.
+Let $b$ have Fourier series $1/D$ and set
+$\varphi(x)=\sum_kb[k]\psi(x-k)$. At each $x$, this sum has finitely many
+nonzero terms; moreover $b*\psi_d=\delta_0$, so $\varphi(j)=\delta_{j0}$.
+Then $a=b*u_d$ gives the direct form with kernel $\varphi$.
+The inverse filter generally has infinitely many coefficients, so compact
+support of $\psi$ need not imply compact support of $\varphi$.
+\item Repeated convolution gives
+$\Supp(\beta^n)=[-(n+1)/2,(n+1)/2]$ (as a closed support).
+Direct interpolation requires $\beta^n(j)=\delta_{j0}$.
+This holds for $n=0$ and $n=1$, giving piecewise constant and piecewise linear
+interpolation. It fails for $n\geq2$; these degrees require a prefilter.
+\item Put $r=n+1$. The continuous convolution theorem gives
+\[
+ B_r(\xi):=\widehat{\beta^n}(\xi)
+          =\left(\frac{\sin(\xi/2)}{\xi/2}\right)^r.
+\]
+For $n\geq1$, Poisson summation, with absolutely convergent frequency tails,
+gives
+\[
+ D_n(\xi)=\sum_{k\in\ZZ}\beta^n(k)e^{-\imath k\xi}
+         =\sum_{m\in\ZZ}B_r(\xi+2\pi m).
+\]
+There is no factor $2\pi$ in this identity. By evenness and periodicity it
+suffices to take $0\leq\xi\leq\pi$.
+If $r$ is even, every summand is nonnegative and $B_r(\xi)>0$.
+If $r\geq3$ is odd, put $x=\xi/(2\pi)$. For $0<x\leq1/2$, pairing the
+terms $m=j$ and $m=-j$ gives
+\[
+ D_n(\xi)=B_r(\xi)+\left(\frac{\sin(\pi x)}\pi\right)^r
+ \sum_{j=1}^\infty(-1)^{j+1}
+       \left((j-x)^{-r}-(j+x)^{-r}\right).
+\]
+The parenthesized quantities are positive and decrease to zero: their
+derivative as a function of $j$ is negative. The alternating sum is
+nonnegative. Thus in both parity cases
+$D_n(\xi)\geq B_r(\xi)>0$ on $[-\pi,\pi]$; at zero both sides equal one.
+For $n=0$, the sampled sequence is simply $\delta_0$, so $D_0=1$.
+\item The transform of the cardinal kernel is $H_r=B_r/D_n$.
+For $|\eta|\leq\pi$ and $m\in\ZZ$,
+\[
+ |H_r(\eta+2\pi m)|
+ \leq\left|\frac{\eta}{\eta+2\pi m}\right|^r,
+\]
+with the $m=0$ ratio interpreted as one. This follows from
+$D_n(\eta)\geq B_r(\eta)>0$ and the ratio of the two sinc powers.
+For $|\eta|<\pi$, every ratio with $m\ne0$ is strictly less than one, and
+the shifted series shows $D_n(\eta)/B_r(\eta)\to1$ as $r\to\infty$.
+Consequently $H_r(\eta)\to1$ and $H_r(\eta+2\pi m)\to0$ for $m\ne0$,
+except at a set of endpoints of measure zero.
+
+For $r\geq2$ and $m\ne0$, the squared terms are bounded by
+$(2|m|-1)^{-4}$. This bound is summable in $m$ and integrable over
+$\eta\in[-\pi,\pi]$, while $|H_r(\eta)|\leq1$ on the central interval.
+Dominated convergence on these intervals therefore proves
+$H_r\to\mathbf1_{[-\pi,\pi]}$ in $L^2(\RR)$.
+Since $\widehat{\sinc}=\mathbf1_{[-\pi,\pi]}$ in our convention,
+Plancherel gives $\beta^n_{\mathrm{card}}\to\sinc$ in $L^2$.
+The argument keeps the alternating signs for even spline degrees; dropping
+them would give a different cardinal kernel.
+
+For the cubic spline, $D_3(\xi)=(2+\cos\xi)/3$ and its inverse filter is
+$b[k]=\sqrt3(\sqrt3-2)^{|k|}$. Hence
+\[
+ \beta^3_{\mathrm{card}}(x)=\sqrt3\sum_{k\in\ZZ}
+              (\sqrt3-2)^{|k|}\beta^3(x-k).
+\]
+It has unbounded, exponentially decaying tails, whereas sinc decays only
+algebraically. The limiting cardinal interpolation uses sinc translates,
+as in Shannon's sampling theorem.
+\item For a finite vector, division by sampled values of $D_n$ followed by
+an inverse FFT computes the \emph{periodic} prefilter exactly for that finite
+model. It approximates the infinite-grid problem only after a boundary model
+and sufficient extension have been chosen. The principal issue is the
+unintended periodic boundary condition, rather than an unavoidable failure
+of FFT convolution. Recursive causal and anticausal filters exploit the
+roots of the spline symbol; Exercise~\ref{exo-calcul-spline-iir} develops
+this method for cubic splines. Natural and not-a-knot finite-interval splines
+solve different boundary-value problems and should not be conflated with
+periodic or infinite-grid interpolation.
+\end{enumerate}
+\end{correction}

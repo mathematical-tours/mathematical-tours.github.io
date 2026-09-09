@@ -1,0 +1,404 @@
+\section{Finite fields, rings, and error-correcting codes}
+
+\begin{correction}{exo-calculus-pol-cyclotomic}
+For $n>1$, write $r=\operatorname{rad}(n)$ for the product of its distinct
+prime factors. Then $\Phi_n(X)=\Phi_r(X^{n/r})$, so repeated prime
+factors only insert zero coefficients. For odd $r>1$,
+$\Phi_{2r}(X)=\Phi_r(-X)$, which preserves absolute values. Thus a first
+occurrence of an absolute value greater than one must have an odd
+squarefree index. The value one first occurs at $n=1$, since
+$\Phi_1=X-1$; there is no cyclotomic polynomial $\Phi_0$ in this convention.
+For distinct primes $p,q$, the coefficients of $\Phi_{pq}$ also have
+absolute value at most one. Indeed,
+\[
+ \Phi_{pq}(X)=\frac{(1-X^{pq})(1-X)}{(1-X^p)(1-X^q)}.
+\]
+Below degree $pq$, its coefficient at $k$ is $N(k)-N(k-1)$, where
+$N(k)$ counts nonnegative solutions of $up+vq=k$. There is at most
+one such solution when $k<pq$: two would differ by $(q,-p)$ times
+a nonzero integer and force one representation to have value at
+least $pq$. Since $\deg\Phi_{pq}<pq$, all coefficients belong to
+$\{-1,0,1\}$. Prime indices give coefficients equal to one.
+
+Program~\ref{listing-calcul-pol-cyclo} can therefore skip indices with
+fewer than three distinct prime factors when seeking magnitudes above
+one. The exact identity
+$\Phi_n(X)=\prod_{d\mid n}(1-X^d)^{\mu(n/d)}$ for $n>1$
+allows efficient coefficient computation: multiply or divide by
+$1-X^d$ in a power series truncated at degree $\varphi(n)$.
+The two loop directions in the program implement these operations
+without symbolic polynomial expansion.
+
+Searching through $20615$ gives the first indices for $a=1,\ldots,27$:
+\[
+\begin{array}{c|rrrrrrrrr}
+a&1&2&3&4&5&6&7&8&9\\\hline
+n&1&105&385&1365&1785&2805&3135&6545&6545\\[2pt]
+a&10&11&12&13&14&15&16&17&18\\\hline
+n&10465&10465&10465&10465&10465&11305&11305&11305&11305\\[2pt]
+a&19&20&21&22&23&24&25&26&27\\\hline
+n&11305&11305&11305&15015&11305&17255&17255&20615&20615
+\end{array}
+\]
+These values need not increase: the first index for magnitude $23$
+is smaller than that for magnitude $22$. The explicit search limit
+also distinguishes an incomplete search from a proof of nonexistence.
+\begin{listing}[H]
+\input{listings/tex/listing-calcul-pol-cyclo}
+\caption{First occurrences of cyclotomic coefficient magnitudes.}
+\label{listing-calcul-pol-cyclo}
+\end{listing}
+\end{correction}
+
+\begin{correction}{exo-demo-cns-existance-ntt}
+\begin{enumerate}
+\item Over a field, every nonzero element is regular, so principality
+means exact order $n$. The cyclic group $\FF_p^*$ has an element of that
+order precisely when $n\mid p-1$.
+\item The integer $a$ is prime to $p$, hence invertible modulo $p^r$.
+As $a^n=1+pc$ for some integer $c$, repeated use of
+$(1+p^ju)^p\equiv1\pmod{p^{j+1}}$ gives
+\[
+ \zeta_0^n=(1+pc)^{p^{r-1}}\equiv1\pmod{p^r}.
+\]
+Frobenius is the identity on $\FF_p$, so
+$a^{p^{r-1}}\equiv a\pmod p$. These are separate requirements: merely
+showing $\zeta_0^{p-1}=1$ would not establish its order divides $n$.
+\item For $1\leq s<n$, $a^s\ne1\pmod p$. Thus
+$1-\zeta_0^s$ is prime to $p$ and therefore a unit modulo $p^r$.
+This proves principality.
+\item If $n\mid p_i-1$ for every $i$, combine the lifted roots by the
+Chinese remainder theorem. Their differences from lower powers of one
+are units in every component, hence units modulo $m$. Conversely, in a
+finite ring a regular element is a unit. Reducing a principal root modulo
+each $p_i$ therefore preserves all the nonvanishing differences
+$1-\zeta^s$, so its order remains exactly $n$. Thus every $p_i-1$ is
+divisible by $n$.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-root-square-primitive}
+\begin{enumerate}
+\item If $\zeta$ is principal of order $nm$, the powers in the question
+are principal by direct substitution into the definition. Conversely,
+the two assumptions imply $\zeta^{nm}=1$. Suppose $a\zeta^i=a$ with
+$1\leq i<nm$, and write $i=nq+r$, $0\leq r<n$. If $r=0$, then
+$1\leq q<m$, so principality of $\zeta^n$ gives $a=0$. If $r>0$,
+raising the equality through $m$ successive multiplications gives
+$a(\zeta^m)^r=a$; principality of $\zeta^m$ again gives $a=0$.
+\item If $\zeta^2=1$ and $\zeta-1$ is regular, then
+$(\zeta-1)(\zeta+1)=0$ forces $\zeta=-1$. This root is principal
+exactly when $-2$ is regular. A general ring can have other square roots
+of unity, but they are not principal in this sense.
+\item Necessity follows by taking the $2^{k-1}$st power and applying the
+preceding part. For sufficiency, use induction. When $k>1$, $\zeta^2$
+is a principal $2^{k-1}$st root by induction, while
+$\zeta^{2^{k-1}}=-1$ is a principal square root. Part~1 concludes.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-boolean-functions}
+\begin{enumerate}
+\item The point indicator at $u\in\FF_2^n$ is the multilinear polynomial
+\[
+ \delta_u(x)=\prod_{j:u_j=1}x_j\prod_{j:u_j=0}(1+x_j).
+\]
+Thus such polynomials span all functions. There are $2^n$ monomials,
+so both the polynomial space and the function space have dimension
+$2^n$ over $\FF_2$; the representation is unique. Each space contains
+$2^{2^n}$ elements. Distance zero from the affine subspace means exactly
+that the function is affine.
+\item The signed correlation with the affine function $(a,b)$ is
+\[
+ \sum_x(-1)^{\widetilde f(x)+\dotp{a}{x}+b}
+    =(-1)^b\Ww f(a)=2^n-2d(\widetilde f,\widetilde f_{a,b}).
+\]
+Optimize first over $b$, then over all $a$, including zero. The FWT
+computes these correlations in $O(n2^n)$ operations.
+\item Parseval gives $\sum_a|\Ww f(a)|^2=2^{2n}$. Hence the largest
+squared coefficient is at least $2^n$, with equality precisely when
+all squared magnitudes equal $2^n$. Walsh coefficients are integers,
+so the magnitude $2^{n/2}$ is possible only for even $n$.
+\item Since $h(u,v)=f(u)g(v)$, its transform factors as
+$\Ww h(a,b)=\Ww f(a)\Ww g(b)$. Flat spectra give a flat product.
+Conversely, if the product is flat and nonzero, fixing either index
+shows that each factor has constant magnitude; Parseval fixes their
+magnitudes to the bent values. The truth table of $u_1u_2$ has signed
+Walsh transform $(2,2,2,-2)$. Consequently
+$u_1u_2+u_3u_4+\cdots+u_{n-1}u_n$ is bent for even $n$.
+\item The truth-table code has length $2^n$, dimension $n+1$, and
+$2^{n+1}$ words. A nonconstant affine function is balanced; the
+constant-one function has weight $2^n$. Thus its minimum distance is
+$2^{n-1}$. If $a$ is stored as a binary integer, the Walsh transform of
+$\delta_a$ is the sign table of $\dotp{a}{x}$. Program~\ref{listing-encode-rm}
+converts this to bits and adds $b$. For decoding, transform the received
+sign table, maximize absolute correlation over every index, and use the
+sign to choose $b$. Ties correspond to multiple nearest codewords;
+the program chooses the first maximizing index.
+\begin{listing}[H]
+\input{listings/tex/listing-encode-rm}
+\caption{Encoding a first-order Reed--Muller word.}
+\label{listing-encode-rm}
+\end{listing}
+\begin{listing}[H]
+\input{listings/tex/listing-decode-rm}
+\caption{Nearest-word Reed--Muller decoding by Walsh correlation.}
+\label{listing-decode-rm}
+\end{listing}
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-learning-boolean-functions}
+\begin{enumerate}
+\item Orthogonality of the Walsh basis and $\mathbb E[f^2]=1$ give
+$\mathbb E[(f-a_\beta\chi_\beta)^2]=1-a_\beta^2$.
+\item If the predicted sign is wrong, $f$ and $h$ lie on opposite
+sides of zero, or $h=0$ and $f=-1$. In either case $|f-h|\geq1$.
+Thus the error indicator is bounded pointwise by $(f-h)^2$; take expectations.
+\item Apply Hoeffding to $Z_j=f(X_j)\chi_\beta(X_j)$, whose mean is
+$a_\beta$. The sample-size condition makes the failure probability at
+most $\delta$. Conditional on $|\widetilde a_\beta-a_\beta|\leq\lambda$,
+orthogonal projection gives
+\[
+ \mathbb E_X[(f-\widetilde a_\beta\chi_\beta)^2]
+   =1-a_\beta^2+(a_\beta-\widetilde a_\beta)^2
+   \leq1-a_\beta^2+\lambda^2.
+\]
+The sign bound then proves the assertion. The fixed-index assumption
+matters: choosing an index from the data requires a simultaneous bound.
+\item Use $\lambda=\sqrt{\epsilon/M}$. For each of the $M$ retained
+coefficients, Hoeffding bounds the probability of an error greater than
+$\lambda$ by $\delta/M$. A union bound implies that \emph{all} errors
+are at most $\lambda$ with probability at least $1-\delta$; these
+coefficient errors need not be independent. On that event, Parseval gives
+\[
+ \mathbb E[(f-\varphi)^2]=\sum_{w(s)>d}a_s^2+
+            \sum_{w(s)\leq d}(a_s-\widetilde a_s)^2
+       \leq\alpha+M\lambda^2=\alpha+\epsilon.
+\]
+Apply part~2. The exact count $M=\sum_{j=0}^d\binom nj$ also covers
+$d=0$ and small $n$; replacing it indiscriminately by $n^d$ does not.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-matrices-generator-control}
+\begin{enumerate}
+\item A generator of $\Cc^\bot$ is $H^{\mathsf T}$ and a parity-check
+matrix is $G^{\mathsf T}$, since $HG=0$ and both have the required rank.
+\item If $G=\begin{pmatrix}I_m\\A\end{pmatrix}$, then
+$H=\begin{pmatrix}-A&I_{n-m}\end{pmatrix}$. The first $m$ coordinates
+of $Gu$ are the message $u$. The minus sign disappears only in
+characteristic two.
+\item Choose $m$ independent rows of $G$ and move them to the top by
+a coordinate permutation. If the resulting top block is $B$, multiply
+$G$ on the right by $B^{-1}$. The permutation gives an equivalent code;
+the invertible change of message basis preserves the code itself.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-codes-hamming}
+\begin{enumerate}
+\item The matrix $H$ contains every coordinate vector, so it has rank
+$k$ and nullity $2^k-1-k$. No column is zero and no two are equal;
+therefore no nonzero codeword has weight one or two. For distinct nonzero
+vectors $a,b$, the three distinct columns $a,b,a+b$ sum to zero, giving
+minimum distance three. If a single error occurs in position $j$,
+its syndrome is column $j$ of $H$. With columns ordered by the binary
+integers $1,\ldots,n$, the syndrome directly encodes $j+1$ when positions
+are numbered from zero.
+\begin{listing}[H]
+\input{listings/tex/listing-decodage-hamming}
+\caption{Syndrome decoding with columns ordered by binary integers.}
+\label{listing-decodage-hamming}
+\end{listing}
+\begin{listing}[H]
+\input{listings/tex/binary-writing-listing}
+\caption{Binary digits, least significant coordinate first.}
+\label{binary-writing-listing}
+\end{listing}
+\item Let $\alpha$ generate $\FF_{2^k}^*$. A binary polynomial $P$
+satisfies $P(\alpha^2)=P(\alpha)^2$, so the BCH conditions for designed
+distance three reduce to $P(\alpha)=0$. Expanding
+$\sum_{j=0}^{n-1}P_j\alpha^j=0$ in a basis of the extension gives a
+binary check matrix whose columns enumerate every nonzero vector of
+$\FF_2^k$. This is a Hamming code; requiring all $n$ roots to vanish
+would instead give the zero code.
+\item Each radius-one ball has $n+1=2^k$ elements. The balls are
+disjoint because the minimum distance is three, and their total size
+is $2^{n-k}2^k=2^n$. For the coordinate order of
+Example~\ref{exmp-code-hamming-7}, a matching matrix is
+\[
+ H=\begin{pmatrix}1&0&0&1&0&1&1\\0&1&0&1&1&1&0\\0&0&1&0&1&1&1\end{pmatrix}.
+\]
+Its columns are the coordinates of $1,\alpha,\ldots,\alpha^6$ modulo
+$\alpha^3+\alpha+1$, and direct multiplication gives $HG=0$.
+It is a column permutation of the canonical binary-integer check matrix.
+\item Every nonzero dual word is $(\dotp{u}{v})_{v\ne0}$ for some
+$u\ne0$. A nonzero linear functional on $\FF_2^k$ takes each value
+$2^{k-1}$ times. Removing the zero input does not remove a one, so its
+weight is $2^{k-1}$. Differences of distinct dual words are nonzero
+dual words, hence all pairwise distances have this value.
+\item Use one nonzero representative from each projective line in
+$\FF_q^k$. There are $n=(q^k-1)/(q-1)$ such lines. The check matrix
+has rank $k$; no two columns are proportional, while three columns in
+a common two-dimensional subspace are dependent. Thus the parameters
+are $[n,n-k,3]$. A radius-one ball has $1+n(q-1)=q^k$ elements,
+which again proves perfection.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-pol-enumerateur-hamming}
+\begin{enumerate}
+\item Enumeration gives $W_\Cc=X^7+7X^4Y^3+7X^3Y^4+Y^7$.
+\item The simplex dual has one zero word and $2^k-1=n$ words of
+weight $2^{k-1}=(n+1)/2$. Hence
+\[
+ W_{\Cc^\bot}=X^n+nX^{(n-1)/2}Y^{(n+1)/2}.
+\]
+\item Apply the MacWilliams identity to $\Cc^\bot$, whose cardinality
+is $n+1$, and use $(\Cc^\bot)^\bot=\Cc$.
+\item Expanding at $X=1$ gives
+\[
+ \begin{aligned}
+ A_1=A_2&=0,& A_3&=\frac{n(n-1)}6,\\
+ A_4&=\frac{n(n-1)(n-3)}{24},&
+ A_5&=\frac{n(n-1)(n-3)(n-7)}{120},\\
+ A_6&=\frac{n(n-1)(n-3)(n-5)(n-7)}{720}.
+ \end{aligned}
+\]
+Program~\ref{listing-repartition-hamming} computes the entire enumerator
+with exact symbolic arithmetic. Alternatively, each pair of distinct
+columns of $H$ has a unique third column equal to their sum. Every
+weight-three word is counted by three such pairs, giving
+$A_3=\binom n2/3$.
+\begin{listing}[H]
+\input{listings/tex/listing-repartition-hamming}
+\caption{Exact weight distribution of a binary Hamming code.}
+\label{listing-repartition-hamming}
+\end{listing}
+\item Each row of $H$ contains $2^{k-1}$ ones, an even number for
+$k\geq2$. Thus $H\mathbf1=0$, and $x\mapsto x+\mathbf1$ bijects words
+of weight $i$ with words of weight $n-i$.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-code-hamming-extended}
+Appending parity maps weights three and four to four, and weight seven
+to eight. The code therefore has parameters $[8,4,4]$ and enumerator
+$X^8+14X^4Y^4+Y^8$. Its words, in the order of the messages used in
+Example~\ref{exmp-code-hamming-7}, are
+\[
+ \input{chapters-tex/tables/hamming-eight}
+\]
+Each column of the generator $G$ in that example has weight three, so
+the extended generator is $G_8=\begin{pmatrix}G\\1\;1\;1\;1\end{pmatrix}$.
+Directly, $G_8^{\mathsf T}G_8=0$ over $\FF_2$. Its rank is four, so its
+image is self-orthogonal of dimension half the length and is therefore
+self-dual. The enumerator's invariance is a consequence of this argument;
+by itself it would only show that the code and its dual have the same
+weight distribution.
+\end{correction}
+
+\begin{correction}{exo-code-repetition}
+\begin{enumerate}
+\item The code has dimension one, minimum distance $n$, and enumerator
+$W_\Cc=X^n+(q-1)Y^n$.
+\item The dual is $\{x:\sum_i x_i=0\}$, of dimension $n-1$ and
+minimum distance two for $n\geq2$: $(1,-1,0,\ldots,0)$ is a word,
+whereas no weight-one word satisfies the check. Its enumerator is
+\[
+ W_{\Cc^\bot}=\frac{(X+(q-1)Y)^n+(q-1)(X-Y)^n}{q}.
+\]
+Self-duality first forces $1=n-1$, hence $n=2$. In that case it holds
+exactly when $(1,1)$ is orthogonal to itself, namely in characteristic two.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-codes-hadamard}
+\begin{enumerate}
+\item For the Walsh matrix of order $2^k$, the rows after conversion
+are the truth tables of the linear forms $x\mapsto\dotp{a}{x}$.
+Removing the coordinate $x=0$ gives the simplex code of dimension $k$.
+Adding complements supplies all affine forms and gives the punctured
+Reed--Muller code of dimension $k+1$. Both are linear. Linearity is not
+guaranteed for a general Hadamard matrix: for order twelve, the two
+cardinalities are twelve and twenty-four, neither a power of two.
+One Paley construction gives the following twelve words and their
+complements:
+\[
+\begin{array}{c|c}
+ \Aa_{12}&\Bb_{12}\setminus\Aa_{12}\\\hline
+ 00000000000&11111111111\\11011100010&00100011101\\
+ 01101110001&10010001110\\10110111000&01001000111\\
+ 01011011100&10100100011\\00101101110&11010010001\\
+ 00010110111&11101001000\\10001011011&01110100100\\
+ 11000101101&00111010010\\11100010110&00011101001\\
+ 01110001011&10001110100\\10111000101&01000111010
+\end{array}.
+\]
+\item Orthogonal sign rows agree in $n/2$ positions and disagree in
+$n/2$. The removed first position was common to all rows, so the code
+$\Aa_n$ has length $n-1$, cardinality $n$, and all distinct-word distances
+$n/2$. For distinct $u,v\in\Aa_n$,
+\[
+ d(u,\overline v)=(n-1)-d(u,v)=n/2-1,
+ \qquad d(u,\overline u)=n-1.
+\]
+The original and complemented sets are disjoint, since $n/2<n-1$ for
+$n\geq4$. Thus $\Bb_n$ has length $n-1$, cardinality $2n$, and minimum
+distance $n/2-1$.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-polynomials-mds}
+\begin{enumerate}
+\item The coefficient of $Y^k$ in $(1+Y)^{n-i}(1-Y)^i$ is $P_k(i)$.
+Comparing coefficients in $2^mW_{\Cc^\bot}(1,Y)=W_\Cc(1+Y,1-Y)$
+gives the formula.
+\item Start with
+$2^{n-m}W_\Cc(X,1)=\sum_i A'_i(X+1)^{n-i}(X-1)^i$.
+After $k$ derivatives, the left side at $X=1$ is
+$2^{n-m}k!\sum_{i=0}^{n-k}\binom{n-i}{k}A_i$.
+For the summand indexed by $i$ on the right, only the Leibniz term
+that differentiates $(X-1)^i$ exactly $i$ times can survive at $X=1$.
+For $i\leq k$ its value is
+\[
+ k!\binom{n-i}{k-i}2^{n-k}A'_i.
+\]
+Divide by $2^{n-m}k!$ and use
+$\binom{n-i}{k-i}=\binom{n-i}{n-k}$.
+\item Let $H$ be a full-rank $(n-m)\times n$ check matrix of $\Cc$.
+The MDS distance means that every $n-m$ columns are independent.
+A nonzero word of the dual has the form $u^{\mathsf T}H$, with $u\ne0$.
+If it had $n-m$ zero coordinates, $u$ would annihilate an invertible
+submatrix of $H$, a contradiction. Its weight is therefore at least
+$m+1$, and Singleton's bound gives equality. In the moment identity
+for $k<m$, only $A'_0=1$ survives on the right; on the left, isolate
+$A_0=1$ and use $A_1=\cdots=A_{d-1}=0$.
+\item Take the equations in the order $k=m-1,m-2,\ldots,0$. The first
+contains only $A_d$; each following equation introduces one new
+coefficient, with coefficient one. They determine $A_d,\ldots,A_n$
+successively. The first gives
+$A_d=\binom n{m-1}=\binom nd$.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-terminal-linear-programming}
+\begin{enumerate}
+\item The coefficient comparison in the preceding exercise applies to
+$W_{D_\Cc}$ as well: $|\Cc|B'_k=\sum_i B_iP_k(i)$. Proposition~\ref{prop-positivite-repartition-duale}
+makes this nonnegative.
+\item For minimum distance at least $d$, $B_1,\ldots,B_{d-1}$ vanish,
+$B_0=1$, all other $B_i$ are nonnegative, and $\sum_iB_i=|\Cc|$.
+Every code therefore supplies a feasible point with objective value its
+cardinality, proving the upper bound.
+To see boundedness, put $z_k=\sum_i x_iP_k(i)\geq0$. The generating
+identity $\sum_kP_k(i)Y^k=(1+Y)^{n-i}(1-Y)^i$ at $Y=1$ gives
+\[
+ \sum_k z_k=2^n x_0=2^n.
+\]
+Since $z_0=\sum_i x_i$ and the $z_k$ are nonnegative, the objective
+is at most $2^n$. Each nonnegative $x_i$ is bounded by the same value.
+The feasible set is closed and nonempty, so the maximum is attained.
+\end{enumerate}
+\end{correction}

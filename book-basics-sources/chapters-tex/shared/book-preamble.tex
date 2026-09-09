@@ -1,0 +1,138 @@
+% Shared typography for the complete book and the individual chapters.
+\makeatletter
+\def\input@path{{chapters-tex/shared/}}
+\makeatother
+\input{chapters-tex/shared/book-metadata}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[numbers,sort&compress]{natbib}
+\ifdefined\FrenchBook
+  \usepackage[french]{babel}
+  \frenchsetup{StandardLists=true}
+\else
+  \usepackage[english]{babel}
+\fi
+\usepackage{newpxtext}
+\usepackage[scaled=.94]{sourcesanspro}
+\input{chapters-tex/shared/basics-macros.tex}
+\let\BookTranspose\transp
+\let\transp\relax
+\usepackage{newpxmath}
+\let\transp\BookTranspose
+% These legacy symbol families ship scalable outlines but discrete NFSS sizes.
+\input{ursfs.fd}
+\DeclareFontShape{U}{rsfs}{m}{n}{<5-7>rsfs5 <7-8>rsfs7 <8->rsfs10}{}
+\usepackage{microtype}
+\usepackage[a4paper,inner=23mm,outer=20mm,top=24mm,bottom=24mm,
+  headheight=15pt,headsep=8mm,footskip=12mm]{geometry}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[font=small,labelfont={bf,sf},labelsep=period]{caption}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{needspace}
+\setlength{\multicolsep}{4pt}
+\usepackage[nottoc,notlof,notlot]{tocbibind}
+\settocbibname{\ifdefined\FrenchBook Références\else References\fi}
+\usepackage[unicode,bookmarksdepth=2,colorlinks=true,hypertexnames=false,
+  linkcolor=BookAccent,citecolor=BookAccent,urlcolor=BookAccent,
+  pdfauthor={\BookAuthor},
+  pdftitle={\BookTitle}]{hyperref}
+\usepackage{bookmark}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning,decorations.pathmorphing}
+\floatstyle{plain}
+\restylefloat{listing}
+\urlstyle{same}
+
+\definecolor{BookInk}{HTML}{203746}
+\definecolor{BookAccent}{HTML}{146C78}
+\definecolor{BookMuted}{HTML}{667780}
+\graphicspath{{figures/}{figures/images/}{figures/shannon/}{figures/sparsity/}{figures/neural-networks/}}
+\renewcommand{\baselinestretch}{1.06}
+\setlength{\parindent}{1.25em}
+\setlength{\emergencystretch}{2em}
+\raggedbottom
+\setlength{\textfloatsep}{14pt plus 2pt minus 2pt}
+\renewcommand{\topfraction}{.9}
+\renewcommand{\bottomfraction}{.8}
+\renewcommand{\textfraction}{.08}
+\renewcommand{\floatpagefraction}{.8}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{18pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+\makeatother
+\floatplacement{listing}{H}
+% The digital edition starts sections immediately, without blank verso pages.
+\let\cleardoublepage\clearpage
+\setlist{topsep=.5\baselineskip,itemsep=.15\baselineskip,parsep=0pt}
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{2}
+\newcommand{\BookStandaloneMasthead}{%
+  {\normalfont\sffamily\color{BookInk}%
+    {\large\bfseries\BookTitle\par}%
+    \vspace{4pt}%
+    {\normalsize\BookAuthor\par}%
+    {\small\color{BookMuted}\BookAffiliation\par}}%
+  \vspace{16pt}}
+\titleformat{\chapter}[display]
+  {\sffamily\bfseries\color{BookInk}\raggedright\hyphenpenalty=10000}
+  {\ifdefined\StandaloneChapter\BookStandaloneMasthead\fi
+   \large\color{BookAccent}\MakeUppercase{\chaptertitlename}\enspace\thechapter}
+  {10pt}{\huge}
+  [\vspace{10pt}{\color{BookAccent}\titlerule[1pt]}]
+\titlespacing*{\chapter}{0pt}{18pt}{30pt}
+% A brief motivation and roadmap opens every numbered chapter.
+\newcommand{\chapteroverview}[1]{%
+  \begingroup
+    \sffamily\setlength{\parindent}{0pt}%
+    \ifdefined\StandaloneChapter
+      \noindent{\small\color{BookMuted}\BookEditionDate}\par
+      \nobreak\smallskip
+    \fi
+    \noindent\color{BookInk}#1\par
+  \endgroup
+  \medskip}
+\titleformat{\section}{\Large\sffamily\bfseries\color{BookInk}}{\thesection}{.7em}{}
+\titleformat{\subsection}{\large\sffamily\bfseries\color{BookInk}}{\thesubsection}{.7em}{}
+\titleformat{\paragraph}[runin]{\normalsize\bfseries}{\theparagraph}{.5em}{}
+\titlespacing*{\section}{0pt}{2.2ex plus .8ex}{1ex}
+\titlespacing*{\subsection}{0pt}{1.8ex plus .6ex}{.8ex}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\sffamily\color{BookMuted}\nouppercase{\leftmark}}
+\fancyhead[RO]{\small\sffamily\color{BookMuted}\nouppercase{\rightmark}}
+\fancyfoot[LE,RO]{\small\sffamily\color{BookInk}\thepage}
+\renewcommand{\headrulewidth}{.3pt}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter\enspace #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\enspace #1}}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[LE,RO]{\small\sffamily\thepage}\renewcommand{\headrulewidth}{0pt}}
+\renewcommand{\bibname}{\ifdefined\FrenchBook Références\else References\fi}
+
+% Use actual norm delimiters with consistent spacing and sizing.
+\renewcommand{\norm}[1]{\lVert#1\rVert}
+
+
+\AtBeginDocument{%
+  \renewcommand{\bibname}{\ifdefined\FrenchBook Références\else References\fi}%
+  \renewcommand{\d}{\mathrm{d}}%
+  \renewcommand{\th}{\theta}%
+  \renewcommand{\SS}{\mathbb{S}}}
+
+
+
+\ifdefined\FrenchBook
+  \renewcommand{\guill}[1]{\og #1\fg{}}
+\else
+  \renewcommand{\guill}[1]{``#1''}
+\fi
+\input{glyphtounicode}
+\pdfgentounicode=1
+\newcommand{\BookBibliography}{%
+  \bibliographystyle{plainnat}%
+  \bibliography{chapters-tex/shared/references}}
+\input{chapters-tex/shared/figure-macros}

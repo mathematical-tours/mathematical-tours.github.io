@@ -1,0 +1,249 @@
+\chapter{Python programs for numerical computation}
+\label{appendix-python-numerical}
+\chapteroverview{The programs in this appendix connect transform identities
+with working numerical algorithms. They implement fast transforms, integer
+products, and Fourier solvers for differential equations. Explicit conventions
+and independent reference calculations make it possible to understand both
+the algorithms and the limits of floating-point arithmetic.}
+
+\section*{Using the programs}
+The accompanying \texttt{listings/} directory contains ordinary Python
+modules with their imports and shared helpers. The printed functions are
+extracted directly from these files; functions in the same module can call
+one another without being copied into separate files. From the source
+directory, this example makes the modules available and checks an FFT:
+\begin{lstlisting}[language=Python]
+import sys
+sys.path.insert(0, "listings")
+import numpy as np
+from fft_algorithms import fft_dit
+x = np.array([1, 2, 0, -1], dtype=complex)
+assert np.allclose(fft_dit(x), np.fft.fft(x))
+\end{lstlisting}
+The repository README gives installation and verification instructions.
+NumPy arrays use zero-based indices, \texttt{a*b} is entrywise multiplication,
+and \texttt{a @ b} is matrix multiplication. Numerical Fourier transforms
+use the negative exponential and an unnormalized forward transform; the
+inverse includes $1/N$. Unless otherwise stated, vectors are one-dimensional
+arrays, polynomial coefficients increase with degree, and real data may
+produce complex intermediate arrays. All random demonstrations fix their seed.
+
+The implementations favor readable algorithms. Recursive versions allocate
+temporary arrays; they are not in-place routines. For large numerical
+computations, NumPy and SciPy provide compiled transforms; FFTW is another
+established implementation \cite{fftw-software}. The checks supplied here
+compare the teaching algorithms with direct mathematical formulas and
+independent numerical or exact references.
+
+\section{Fast Walsh transform}
+\label{sect1-listing-fwt}
+The function \texttt{fwt}, in \texttt{transforms.py}, follows the tensor
+factorization of Section~\ref{sect2-fwt}. Its length must be a positive
+power of two. The transform satisfies $H_N^2=NI$, so applying the same
+function and dividing by $N$ gives its inverse. The displayed recursion
+uses $O(N\log N)$ arithmetic and creates temporary arrays at each level.
+\begin{listing}[H]
+\PythonCode{listing-fwt}
+\caption{A recursive fast Walsh transform.}
+\label{listing-fwt}
+\end{listing}
+
+\section{Fast Hartley transform}
+\label{sect1-listing-fht}
+The module \texttt{hartley.py} implements the real-kernel transform
+of Section~\ref{sect2-algo-de-calcul-hartley}. The radix-two function
+\texttt{fht} calls \texttt{hartley\_twiddle}, which combines the paired
+frequencies $k$ and $-k$. Its inverse is again obtained by dividing
+the forward transform by $N$. For real input, this recursion uses real
+arithmetic throughout.
+
+The convolution function accepts two nonempty vectors of the same length.
+It uses \texttt{hartley}, an FFT-based helper valid at arbitrary lengths,
+and combines the transforms of \emph{both} inputs. The result is circular
+convolution. To compute linear convolution, first pad both vectors to a
+common length at least the sum of their lengths minus one.
+\begin{listing}[H]
+\PythonCode{listing-fht}
+\caption{A radix-two fast Hartley transform.}
+\label{listing-fht}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-operator_chi}
+\caption{The paired-frequency twiddle operator for the FHT.}
+\label{listing-operator_chi}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-fht_convol}
+\caption{Circular convolution from Hartley transforms of both inputs.}
+\label{listing-fht_convol}
+\end{listing}
+
+\section{Fast Fourier transforms}
+\label{sect1-listing-fft}
+The module \texttt{fft\_algorithms.py} provides three radix-two FFTs:
+\texttt{fft\_recursive} follows the time-decimation identity directly;
+\texttt{fft\_dit} iterates butterflies after bit reversal;
+\texttt{fft\_dif} performs frequency-decimation butterflies before the
+final reordering. All return frequencies in the usual order and accept
+\texttt{inverse=True}, which reverses the phase and includes $1/N$.
+Their mathematical derivations are in Sections~\ref{sect2-present-algo-fft},
+\ref{sect2-impl-concrete}, and~\ref{sect2-frequency-decimation}.
+
+The remaining helpers multiply by a linear phase, construct the full
+bit-reversal permutation, and reverse the specified number of bits of
+a single integer. The two iterative FFTs keep a working array and use
+temporary vectors for each butterfly block; no claim of strict in-place
+operation is needed.
+\begin{listing}[H]
+\PythonCode{listing-fft-rec}
+\caption{A recursive radix-two FFT, with inverse support.}
+\label{listing-fft-rec}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-fft_dit}
+\caption{An iterative FFT with decimation in time.}
+\label{listing-fft_dit}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-fft_dif}
+\caption{An iterative FFT with decimation in frequency.}
+\label{listing-fft_dif}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-operator_s}
+\caption{Multiplication by a linear phase.}
+\label{listing-operator_s}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-rev_bits}
+\caption{Bit-reversal indices in linear total work.}
+\label{listing-rev_bits}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-rev_index}
+\caption{Reversing the bits of a single index.}
+\label{listing-rev_index}
+\end{listing}
+
+\section{Integer multiplication by FFT}
+\label{sect1-listing-mult-integers}
+The module \texttt{polynomials.py} stores the base-$b$ digits of a
+nonnegative integer from least to most significant. The conversion
+functions use exact Python integers, whose precision is not fixed.
+The function \texttt{multiply\_digits} pads to cover the linear
+convolution, rounds its floating-point coefficients, and propagates
+the carries. It rejects an excessive coefficient bound and independently
+verifies the reconstructed result using Python's exact multiplication.
+This verification is deliberate: rounding near an integer alone cannot
+certify a floating-point computation.
+
+The short example compares a transform product with the exact result.
+For an algorithm whose transform arithmetic is itself exact, use the
+modular method in Section~\ref{sect1-listing-mult-large-integers-ring}.
+Neither teaching implementation is intended to improve on Python's
+built-in large-integer multiplication.
+\begin{listing}[H]
+\PythonCode{listing-mult-integers}
+\caption{FFT digit convolution and carry propagation, with exact verification.}
+\label{listing-mult-integers}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-number2vector}
+\caption{Exact conversion from a nonnegative integer to base-$b$ digits.}
+\label{listing-number2vector}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-vector2number}
+\caption{Reconstruction of an integer from its digits.}
+\label{listing-vector2number}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-test-mult-integers}
+\caption{Verification of a large-integer product.}
+\label{listing-test-mult-integers}
+\end{listing}
+
+\section{The Dirichlet Poisson equation}
+\label{sect1-listing-fish}
+The routines in \texttt{pde.py} implement the finite-difference problem
+of Section~\ref{sect2-resol-eq-Poisson}. The full source and boundary
+arrays share a grid; only the boundary entries of the second array are
+used. Boundary contributions are subtracted from the interior right-hand
+side, which is solved by an odd extension and a multidimensional FFT.
+The helper \texttt{poisson\_zero\_boundary} includes the grid-spacing
+factor in the discrete Laplacian symbol.
+
+The manufactured solution $u(x,y)=e^{xy}$ gives
+$\Delta u=(x^2+y^2)e^{xy}$ and supplies exact boundary values on the
+unit square. Its left and bottom edges are constant one, while the
+right and top edges are $e^y$ and $e^x$. The driver computes the grid,
+numerical solution, and reference array. Refining the grid checks
+second-order spatial convergence; the manufactured solution is a
+verification device, not information used in the interior solve.
+\begin{listing}[H]
+\PythonCode{fish-listing}
+\caption{A Dirichlet Poisson solver and a manufactured-solution example.}
+\label{fish-listing}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-f}
+\caption{The source term for the exact solution $e^{xy}$.}
+\label{listing-f}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-sol}
+\caption{An exact reference solution for the Poisson test.}
+\label{listing-sol}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-u_0y}
+\caption{The reference boundary value at $x=0$.}
+\label{listing-u_0y}
+\end{listing}
+
+\section{The periodic heat equation}
+\label{sect1-listing-heat}
+The function \texttt{heat\_periodic}, also in \texttt{pde.py}, evolves
+a periodic trigonometric interpolant for
+$\partial_t u=\kappa\,\partial_{xx}u$. On a period $L$, each Fourier
+coefficient is multiplied by
+$\exp(-\kappa t(2\pi k/L)^2)$. The grid omits the repeated endpoint.
+This is spectral evolution at the requested time, rather than a
+time-stepping approximation.
+
+The driver starts from the interval indicator returned by
+\texttt{heat\_initial} and returns the solutions at several times.
+Changing the initial array, conductivity, period, or time does not
+change the transform algorithm. Section~\ref{sect2-resol-eq-heat}
+also discusses finite-difference time stepping and its separate
+stability conditions.
+\begin{listing}[H]
+\PythonCode{heat-listing}
+\caption{Heat evolution at several times from the same initial data.}
+\label{heat-listing}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-solve_eq}
+\caption{Spectral heat evolution with an explicit period and conductivity.}
+\label{listing-solve_eq}
+\end{listing}
+
+\begin{listing}[H]
+\PythonCode{listing-f-heat}
+\caption{An interval indicator as initial temperature.}
+\label{listing-f-heat}
+\end{listing}

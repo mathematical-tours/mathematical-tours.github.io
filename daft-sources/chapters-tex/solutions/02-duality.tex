@@ -1,0 +1,444 @@
+\section{Duality, Gauss sums, and Walsh transforms}
+
+\begin{correction}{exo-proof-geom-reciprocite}
+\begin{enumerate}
+\item For $1\leq b<p$, the representative of $(-1)^bb$ is $b$ if $b$ is
+even and $p-b$ if $b$ is odd; it is therefore even in both cases.
+If two representatives coming from $a,a'\in E$ coincide, then
+$ra\equiv\pm ra'\pmod p$, so $a\equiv\pm a'\pmod p$.
+The plus sign gives $a=a'$. For the minus sign, $a+a'$ would be $p$,
+which is impossible because the sum is even. The map is injective, and
+both sets have $(p-1)/2$ elements.
+\item Taking products modulo $p$ gives
+\[
+ \prod_{b\in B_r}b\equiv r^{(p-1)/2}\prod_{a\in E}a,
+ \qquad
+ \prod_{a\in E}a\equiv(-1)^{\sum_{b\in B_r}b}\prod_{b\in B_r}b.
+\]
+All factors are nonzero modulo $p$, so they can be canceled.
+Euler's criterion gives the assertion, first as a congruence and then as an
+equality of signs, since $p$ is odd.
+\item Sum $ra=p\lfloor ra/p\rfloor+[ra]_p$ over $E$.
+The left-hand side is even, while $p$ is odd. Thus the sum of the remainders
+and the sum of the quotients have the same parity.
+\item A lattice point on the open segment would satisfy $py=rx$ with
+$0<x<p$. Coprimality forces $p\mid x$, a contradiction.
+For each integer $a\in\{1,\ldots,p-1\}$, the height $ra/p$ is not an integer,
+so the positive integer ordinates below it are $1,\ldots,t_a$.
+\item Since $ra/p$ is not an integer,
+\[
+ t_{p-a}=\left\lfloor r-\frac{ra}{p}\right\rfloor=r-1-t_a.
+\]
+The two terms have the same parity because $r-1$ is even.
+Choose one representative $a\leq(p-1)/2$ from each pair $\{a,p-a\}$.
+Exactly one member of the pair is even, so summing over the even members
+or over these smaller representatives gives the same parity.
+For such $a$, $ra/p<r/2$, hence $\sum_{a=1}^{(p-1)/2}t_a$ counts exactly
+the interior lattice points of $AKH$.
+This pairing is the needed counting argument; reflection across the oblique
+diagonal is not a lattice-preserving symmetry in general.
+\item Interchanging the coordinate axes identifies the analogous count for
+$\legsymb pr$ with the interior lattice points of $AHL$.
+There is no lattice point on their common diagonal, nor on the half-integer
+outer edges $x=p/2$ and $y=r/2$. Together the two triangles contain
+$(p-1)(r-1)/4$ lattice points. Consequently,
+\[
+ \legsymb rp\legsymb pr=(-1)^{(p-1)(r-1)/4}.
+\]
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-thm-fermat-finite-body}
+\begin{enumerate}
+\item The cyclic group $\FF_q^*=\langle g\rangle$ has a unique subgroup
+of each order dividing $q-1$. If $k\mid q-1$, its $k$th powers are
+$H_k=\langle g^k\rangle$, of order $(q-1)/k$.
+\item Orthogonality in the quotient gives
+$\sum_{i=0}^{k-1}\chi_i(x)=k\mathbf1_{H_k}(x)$ for $x\neq0$.
+Multiplying by $\psi(x)$ and summing proves the formula.
+If $\psi$ is nontrivial, the trivial multiplicative character contributes a
+Gauss sum of modulus one, while the other $k-1$ sums have modulus $\sqrt q$.
+Thus
+\[
+ |\wh{f_{H_k}}(\psi)|\leq\frac{1+(k-1)\sqrt q}{k}<\sqrt q.
+\]
+\item Each element of $H_k$ has exactly $k$ nonzero $k$th roots, so
+$N=kN'$. Count $x+y+v=0$ with $v\in-H_k$.
+The Fourier coefficients of $f_{-H_k}$ are those of $f_{H_k}$ with the
+characters inverted; hence $\Phi(-H_k)=\Phi(H_k)$.
+Exercise~\ref{exo-eqn-grpe-abelien-finite} yields
+\[
+ \left|N'-\frac{|A_1||A_2||H_k|}{q}\right|
+ \leq\Phi(H_k)\sqrt{|A_1||A_2|}<\sqrt{|A_1||A_2|q}.
+\]
+Multiply by $k$ and use $k|H_k|=q-1$.
+\item The main term in \eqref{eqn-fermat-majoration} exceeds its error bound
+provided $k^2l_1l_2q^3<(q-1)^4$.
+Under the proposed hypothesis,
+\[
+ k^2l_1l_2q^3\leq(q-4)q^3<(q-1)^4,
+\]
+because the difference on the right is $6q^2-4q+1>0$.
+Thus $N>0$. For general $k$, in the cyclic group of order $q-1$,
+$\langle g^k\rangle=\langle g^d\rangle$ for $d=\gcd(k,q-1)$.
+Apply the result with $d\leq k$. A nonzero $d$th-power right-hand side is
+also a $k$th power, which gives the required solution for the original exponent.
+\item With $A_1=A_2=H_d$, we have $l_1=l_2=d\leq k$.
+Thus $q\geq k^4+4$ implies the preceding criterion. All three entries are
+nonzero powers, so taking their $k$th roots gives a solution of
+\eqref{eq-thm-fermat-finite-body} in $(\FF_q^*)^3$.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-transforme-walsh-statistic}
+The character indexed by the bit mask of $S$ is precisely
+$\prod_{s\in S}s$ under the encoding $+=0$, $-=1$.
+In natural binary order,
+\[
+ W_8f=(8\mu,4\mu_a,4\mu_b,4\mu_{ab},4\mu_c,4\mu_{ac},4\mu_{bc},4\mu_{abc})
+     =(586,-92,20,6,-6,40,0,-2).
+\]
+An FWT followed by the indicated rescalings computes all quantities:
+\[
+\begin{array}{c|rrrrrrrr}
+ &\mu&\mu_a&\mu_b&\mu_{ab}&\mu_c&\mu_{ac}&\mu_{bc}&\mu_{abc}\\\hline
+ \text{cm}&73.25&-23&5&1.5&-1.5&10&0&-0.5
+\end{array}
+\]
+For example, high lighting is associated with a mean height $23$ cm below
+that at low lighting, after averaging over the other factors.
+The relatively large $ac$ contrast indicates that the lighting contrast
+changes with the fertilizer level. These are descriptive effects, without
+an uncertainty estimate from this unreplicated table.
+\end{correction}
+
+\begin{correction}{exo-wavelet-haar}
+\begin{enumerate}
+\item Each wavelet has squared norm $2^j2^{-j}=1$ and integral zero.
+Wavelets at the same scale have disjoint supports. At different scales,
+the coarser wavelet is constant on the support of the finer one, so their
+inner product vanishes. The constant $\psi_0$ is orthogonal to them all.
+The first $2^J$ functions belong to $F_J$ and form an orthonormal family
+with $\dim F_J=2^J$ members; they are therefore a basis.
+\item For a dyadic cell $I$ of length $2^{-J}$, orthogonal projection onto
+constants gives $f_J|_I=|I|^{-1}\int_I f$. Define the modulus of continuity
+$\omega_f(h)=\sup_{|x-y|\leq h}|f(x)-f(y)|$. Then
+\[
+ |f_J(x)-f(x)|\leq\frac1{|I|}\int_I|f(y)-f(x)|\,\d y
+                  \leq\omega_f(2^{-J}).
+\]
+The same bound holds at the endpoint under our convention.
+Adding a wavelet coefficient at level $J$ replaces the average on its
+support by the two averages on the half intervals. Distinct wavelets at
+that level have disjoint supports. Every intermediate partial sum is
+therefore an averaging operator on a partition whose largest cell has
+length $2^{-J}$, and satisfies the same bound.
+As $\omega_f(2^{-J})\to0$, all partial sums converge uniformly.
+Continuous functions are dense in $L^2([0,1])$, so the span of the Haar
+family is dense there. Together with orthonormality, this proves completeness.
+\item The normalized indicators $\varphi_{j,k}$ are an orthonormal basis
+of $F_j$. Directly on the two half intervals,
+\begin{equation}
+\label{eqn-recurrence-wavelets-haar}
+ \varphi_{j,k}=\frac{\varphi_{j+1,2k}+\varphi_{j+1,2k+1}}{\sqrt2},
+ \qquad
+ \psi_{j,k}=\frac{\varphi_{j+1,2k}-\varphi_{j+1,2k+1}}{\sqrt2}.
+\end{equation}
+The $2^j$ wavelets at level $j$ are orthogonal to $F_j$ and belong to
+$F_{j+1}$. Dimension counting gives the asserted orthogonal decomposition.
+\item If $f$ has value $v_k$ on cell $k$, then
+$x^{(0)}[k]=2^{-J/2}v_k$.
+Each pair is transformed by
+\[
+ \frac1{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix}.
+\]
+This matrix is orthogonal and has determinant $-1$: it is a reflection,
+not a rotation. Applying it to disjoint pairs and rearranging the outputs
+is still orthogonal. Also,
+\[
+ \sum_kx^{(i)}[k]=2^{-i/2}\sum_kx^{(0)}[k],
+ \qquad x^{(J)}[0]=2^{-J/2}\sum_kx^{(0)}[k].
+\]
+Since the input has $2^J$ entries, the last expression is
+$2^{J/2}\operatorname{mean}(x^{(0)})$.
+\item Take inner products with $f$ in
+\eqref{eqn-recurrence-wavelets-haar} and proceed by induction on $i$.
+The initial statement holds by definition of $x^{(0)}$.
+Each stage produces the coefficients of $\varphi_{J-i,k}$ and
+$\psi_{J-i,k}$. The final scaling function is $\varphi_{0,0}=\psi_0$.
+The total number of input entries processed is
+$N+N/2+\cdots+2=2N-2$, so the cost is $O(N)$.
+\item Orthogonality at each stage gives
+\[
+ \norm{x^{(0)}}_2^2
+ =\sum_{i=1}^J\norm{d^{(i)}}_2^2+|x^{(J)}[0]|^2
+ =\norm{\Gamma x^{(0)}}_2^2.
+\]
+Thus $\Gamma^{\mathsf T}\Gamma=I$. Its rows, or equivalently the vectors
+$\Gamma^{\mathsf T}e_m$, form the basis whose inner products are the output
+coefficients. They are the discrete Haar wavelets, followed by the normalized
+constant vector, in the specified packing. Fine wavelets are localized on
+short dyadic blocks; Walsh functions have full support. Haar analysis costs
+$O(N)$ operations, compared with $O(N\log N)$ for the FWT.
+\end{enumerate}
+Program~\ref{listing-transfo-haar} implements precisely these signs and
+normalizations. The accompanying Python module also provides the inverse.
+\begin{listing}[H]
+\PythonCode{listing-transfo-haar}
+\caption{Orthonormal Haar analysis, with details stored from fine to coarse.}
+\label{listing-transfo-haar}
+\end{listing}
+\end{correction}
+
+\begin{correction}{exo-compression-walsh}
+\begin{enumerate}
+\item For an $N\times N$ array $f$, the transform is $W_NfW_N^{\mathsf T}$,
+with entries
+\[
+ \wh f[i,j]=\sum_{s,t=0}^{N-1}f[s,t]\chi_i(s)\chi_j(t).
+\]
+Since $W_N^2=NI$, the inverse applies the same transform and divides by $N^2$.
+Transforming rows and then columns costs $O(N^2\log N)$.
+Program~\ref{listing-fftw2d} also handles rectangular arrays when each side
+length is a power of two; the inverse divisor is the total number of pixels.
+\begin{listing}[H]
+\PythonCode{listing-fftw2d}
+\caption{A separable two-dimensional Walsh transform and a sequency approximation.}
+\label{listing-fftw2d}
+\end{listing}
+\item Write $n_i^{(k)}$ for the sequency of row $i$ of $W_{2^k}$.
+The two rows above index $i$ at the next level are concatenations
+$(\chi_i,\chi_i)$ and $(\chi_i,-\chi_i)$.
+Every row starts with $1$; let $\epsilon_i^{(k)}$ be zero or one according
+as its last entry is $1$ or $-1$. Counting internal and middle sign changes,
+\begin{equation}
+\label{eqn-rec-num-change-signs}
+ n_i^{(k+1)}=2n_i^{(k)}+\epsilon_i^{(k)},\qquad
+ n_{i+2^k}^{(k+1)}=2n_i^{(k)}+1-\epsilon_i^{(k)}.
+\end{equation}
+The pair supplies exactly $2n_i^{(k)}$ and $2n_i^{(k)}+1$.
+Starting from $n_0^{(0)}=0$, induction proves that the sequencies are all
+distinct and exhaust $\{0,\ldots,2^k-1\}$.
+\item The endpoint parities satisfy
+$\epsilon_i^{(k+1)}=\epsilon_i^{(k)}$ and
+$\epsilon_{i+2^k}^{(k+1)}=1-\epsilon_i^{(k)}$.
+Program~\ref{listing-nbrchgtsigne} computes the sequencies from these
+recurrences. Sorting them gives the permutation to apply to the spectrum.
+For $N=8$, their natural-order values are $(0,7,3,4,1,6,2,5)$.
+Small sequency means few changes along the ordered sample axis; small
+Hamming degree instead counts the factors in a Boolean character.
+\begin{listing}[H]
+\PythonCode{listing-nbrchgtsigne}
+\caption{The number of sign changes in each naturally ordered Walsh row.}
+\label{listing-nbrchgtsigne}
+\end{listing}
+\item The approximation is the orthogonal projection onto the first $M$
+sequency-ordered functions. Its normalized squared error is
+\[
+ \norm{f-f_M}_2^2=\frac1{N^2}\sum_{m=M}^{N-1}|\Ww_k(f)[i_m]|^2.
+\]
+Only the retained coefficients need be stored because their positions are
+fixed by the ordering. Walsh reconstruction is piecewise constant and can
+introduce visible steps. Fourier reconstruction uses smooth trigonometric
+functions but can oscillate near discontinuities. The relative error depends
+on the signal; neither basis is uniformly better. Finite-bit compression
+also quantizes the retained coefficients.
+\item If $s_i$ and $s_j$ are the vertical and horizontal sequencies,
+respectively, order coefficient $(i,j)$ by the pair $(s_i+s_j,s_i)$.
+Retain the first $M$ coefficients and invert the transform.
+The function \texttt{walsh\_approx2d} in Program~\ref{listing-fftw2d}
+implements this rule, resolving ties by vertical sequency.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-matrices-hadamard}
+\begin{enumerate}
+\item This is the identity $W_{2^k}W_{2^k}^{\mathsf T}=2^kI$.
+\item Sign changes and permutations preserve pairwise row orthogonality.
+Normalize the first row by column sign changes, then the first column by
+row sign changes. Group columns by the sign pairs in rows two and three.
+The counts obey
+\[
+ i+j+k+l=N,\quad i+j-k-l=0,\quad
+ i-j+k-l=0,\quad i-j-k+l=0.
+\]
+Solving gives $i=j=k=l=N/4$. For orders below three, the matrices $(1)$ and
+$W_2$ supply the two exceptions.
+\item Since $\eta(-1)=-1$, we have $Q_{ji}=-Q_{ij}$.
+For $c\neq0$, substitute $z=(b+c)/b$ on $\FF_p^*$ to obtain
+\[
+ \sum_{b\in\FF_p}\eta(b)\eta(b+c)
+ =\sum_{z\in\FF_p\setminus\{1\}}\eta(z)=-1.
+\]
+For $c=0$ the sum is $p-1$, since the nonzero values of $\eta$ have square
+one. Therefore the diagonal entries of $QQ^{\mathsf T}$ are $p-1$ and its
+off-diagonal entries are $-1$, giving $pI_p-J$.
+Each row and column of $Q$ sums to $\sum_b\eta(b)=0$, so $QJ=JQ=0$.
+\item The off-diagonal blocks in $HH^{\mathsf T}$ vanish because
+$Q\mathbf1=Q^{\mathsf T}\mathbf1=0$.
+The top-left entry is $p+1$, and the bottom-right block is
+\[
+ J+(Q-I_p)(Q^{\mathsf T}-I_p)
+ =J+(pI_p-J)-Q-Q^{\mathsf T}+I_p=(p+1)I_p.
+\]
+The two Python programs below construct $H$ and check its Gram matrix
+using exact integer arithmetic; $p=7$ gives an order-eight example.
+\item By the determinant bound from Gram--Schmidt, the volume is at most
+the product of the column norms. Each norm is at most $\sqrt N$, proving
+\eqref{eq-borne-hadamard}. For a Hadamard matrix,
+$|\det H|^2=\det(HH^{\mathsf T})=N^N$.
+Finally, compactness gives a maximizer on the entrywise cube.
+With all other entries fixed, the determinant is affine in one entry, so
+its absolute value is convex and attains a maximum at an endpoint of that
+entry's interval. Move entries successively to $\pm1$ without decreasing
+$|\det A|$. The resulting vertex is also a maximizer.
+\end{enumerate}
+\begin{listing}[H]
+\PythonCode{listing-matrixpaley}
+\caption{The Paley construction for a prime $p\equiv3\pmod4$.}
+\label{listing-matrixpaley}
+\end{listing}
+\begin{listing}[H]
+\PythonCode{listing-testpaley}
+\caption{Verifying the Paley construction at order $32$.}
+\label{listing-testpaley}
+\end{listing}
+\end{correction}
+
+\begin{correction}{exo-tensor-product}
+\begin{enumerate}
+\item Block multiplication gives
+$(A\otimes B)(C\otimes D)=AC\otimes BD$ whenever the dimensions match,
+and $(A\otimes B)^*=A^*\otimes B^*$.
+Thus $A^{\otimes n}(A^{\otimes n})^*=(AA^*)^{\otimes n}=s^nI_{s^n}$.
+\item With $A=\bigl(\begin{smallmatrix}1&1\\1&-1\end{smallmatrix}\bigr)$,
+the Walsh recursion gives $W_{2^n}=A^{\otimes n}$.
+\item Split the input into $s$ consecutive blocks. Recursively apply
+$A^{\otimes(n-1)}$ to each, then mix the resulting blocks by $A$.
+Program~\ref{tensor-product-listing} implements this recursion.
+For $N=s^n$, its cost is $O(sN\log_sN)$ with dense base multiplication,
+or $O(N\log_sN)$ for fixed $s$. The inverse is
+\[
+ x=s^{-n}(A^*)^{\otimes n}y.
+\]
+Use the same algorithm with $A^*$ and divide the result by $s^n$.
+\begin{listing}[H]
+\PythonCode{tensor-product-listing}
+\caption{Applying a tensor power without forming its matrix.}
+\label{tensor-product-listing}
+\end{listing}
+\item The normalized base matrix $A_\alpha/\sqrt2$ is orthogonal, hence so
+is its tensor power. At $\alpha=\pi/4$,
+$U_\alpha=2^{-n/2}W_{2^n}$. At $\alpha=0$ it is diagonal, multiplying
+entry $j$ by $(-1)^{w(j)}$, where $w(j)$ is its binary Hamming weight.
+At $\alpha=\pi/2$ the base interchanges $0$ and $1$ in each coordinate.
+Its tensor power complements every bit: $j\mapsto2^n-1-j$, which reverses
+the sample vector. It does not reverse the order of bits within $j$.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-generalization-mac-williams}
+\begin{enumerate}
+\item If $a\neq0$, choose a coordinate $i$ with $a_i\neq0$ and set
+$x=a_i^{-1}e_i$. Then $\dotp ax=1$. The linear map
+$a\mapsto\dotp a{\cdot}$ is injective between spaces of dimension $k$,
+so it is an isomorphism onto $E^*$.
+\item The character map is a group homomorphism. If $a\neq0$, the same
+coordinate choice lets $\dotp ax$ take every value of $\FF_q$.
+The trace is surjective onto $\FF_p$, so some $x$ satisfies
+$\operatorname{Tr}(\dotp ax)=1$ and $\chi_a(x)=e^{2\pi\imath/p}\neq1$.
+Thus the map is injective; both groups have $q^k$ elements, so it is bijective.
+The character $\psi_1$ itself need not be injective when $q$ is not prime.
+\item If $a\in H^\perp$, then clearly $\chi_a(h)=1$ on $H$.
+Conversely, if $\chi_a(h)=1$ for every $h\in H$, scalar closure gives
+\[
+ \operatorname{Tr}(\lambda\dotp ah)=0
+ \quad\text{for every }\lambda\in\FF_q\text{ and }h\in H.
+\]
+The trace pairing is nondegenerate, so $\dotp ah=0$ for every $h$.
+Without scalar closure this inference fails. For example, the subfield
+$\{0,1\}\subset\FF_4$ is an additive subgroup but not an $\FF_4$-linear
+subspace: multiplication of $1$ by an element outside $\FF_2$ leaves it.
+\item Apply finite Poisson summation to
+$f(t)=x^{k-w(t)}y^{w(t)}$. The transform factors over coordinates.
+At a coordinate with $a_i=0$, the factor is $x+(q-1)y$.
+At a coordinate with $a_i\neq0$, character orthogonality gives
+$\sum_{t_i\neq0}\psi_1(a_it_i)=-1$, so the factor is $x-y$.
+Therefore
+\[
+ \wh f(\chi_a)=\bigl(x+(q-1)y\bigr)^{k-w(a)}(x-y)^{w(a)}.
+\]
+Since $|H^\perp|=q^k/|H|$, Poisson summation over $H^\perp$ gives the
+claimed identity for every $x,y\in\CC$, and hence as a polynomial identity.
+\end{enumerate}
+\end{correction}
+
+\begin{correction}{exo-formula-fish-distrib}
+For a Schwartz function $\varphi$, the series
+$\sum_n|\varphi(ns)|$ is bounded by a constant times the Schwartz seminorm
+$\sup_x(1+|x|)^2|\varphi(x)|$. Thus $\Pi_s$ is tempered.
+Under the stated Fourier convention, rescaled Poisson summation gives
+\[
+ \sum_{n\in\ZZ}\wh\varphi(ns)
+       =\frac{2\pi}s\sum_{k\in\ZZ}\varphi(2\pi k/s).
+\]
+Both sums converge absolutely. By the definition of the distributional
+transform, the left side is
+$\langle\Pi_s,\wh\varphi\rangle=\langle\wh{\Pi_s},\varphi\rangle$;
+the right side is $\langle(2\pi/s)\Pi_{2\pi/s},\varphi\rangle$.
+Equality for all Schwartz test functions proves the formula.
+\end{correction}
+
+\begin{correction}{exo-sample-shannon}
+\begin{enumerate}
+\item Compact support and Cauchy--Schwarz imply $\wh f\in L^1$.
+Fourier inversion therefore gives the continuous representative
+\[
+ f(t)=\frac1{2\pi}\int_{I_T}\wh f(\omega)e^{\imath\omega t}\,\d\omega.
+\]
+Multiplication by any power of $\omega$ preserves integrability on $I_T$,
+so differentiation under the integral proves smoothness. Two continuous
+representatives equal almost everywhere must agree everywhere.
+Cauchy--Schwarz and Plancherel also give
+\[
+ |f(t)|\leq\frac1{2\pi}\sqrt{\frac{2\pi}T}\norm{\wh f}_2
+         =T^{-1/2}\norm f_2.
+\]
+\item The functions $e_n(\omega)=\sqrt{T/(2\pi)}e^{-\imath nT\omega}$
+form an orthonormal basis of $L^2(I_T)$.
+Their coefficients are
+$\dotp{\wh f}{e_n}=\sqrt{2\pi T}\,f(nT)$, so
+\[
+ \wh f(\omega)=T\sum_{n\in\ZZ}f(nT)e^{-\imath nT\omega}
+ \quad\text{in }L^2(I_T),\qquad
+ \norm f_2^2=T\sum_{n\in\ZZ}|f(nT)|^2.
+\]
+Extend this series periodically with period $2\pi/T$.
+It defines the periodization of $\wh f$, since $\wh f$ vanishes outside
+one period up to null sets. On the other hand, the transform of
+$f_d=\sum_nf(nT)\delta_{nT}$ is the series
+$\sum_nf(nT)e^{-\imath nT\omega}$ in tempered distributions.
+The $\ell^2$ bound on the samples justifies this distributional series.
+Comparing gives the stated periodization identity; in the interior of the
+base interval only its unshifted term is nonzero almost everywhere.
+This argument also supplies the convergence needed to use the sampling identity.
+\item Direct integration gives
+$\Ff^{-1}(\mathbf1_{I_T})=T^{-1}\sinc_T$.
+Invert the $L^2(I_T)$ Fourier series from the previous question, extending
+each term by zero outside $I_T$. This gives
+\eqref{eqn-formula-reconstruction-shannon} in $L^2(\RR)$.
+Every finite sum and the remainder belong to $E_T$; the bound from the
+first question makes $L^2$ convergence imply uniform convergence.
+\item The transform of $g_n=\sinc_T(\cdot-nT)$ is
+$T\mathbf1_{I_T}(\omega)e^{-\imath nT\omega}$.
+Plancherel gives $\dotp{g_n}{g_m}=T\delta_{nm}$, and completeness follows
+from the exponential basis. Thus $g_n/\sqrt T$ is orthonormal and complete.
+For arbitrary $g\in L^2(\RR)$, the orthogonal projection is
+\[
+ P_{E_T}g=\Ff^{-1}(\mathbf1_{I_T}\wh g)
+         =\frac1T\sum_{n\in\ZZ}\dotp g{g_n}\,g_n.
+\]
+When $f\in E_T$, inversion also gives $\dotp f{g_n}=T f(nT)$.
+The factor $T$ is essential unless the sample spacing is one.
+\end{enumerate}
+\end{correction}
