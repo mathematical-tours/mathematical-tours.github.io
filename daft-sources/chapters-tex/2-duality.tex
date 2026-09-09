@@ -15,6 +15,11 @@ interact. For a detailed treatment of finite fields and character sums, see
 Lidl and Niederreiter~\cite{lidl} and Langevin~\cite{langevin}.
 
 \subsection{Quadratic residues}
+
+Solving a quadratic congruence requires knowing which residues are squares.
+We begin with a simple integer equation, then introduce the quadratic
+character that records this information multiplicatively.
+
 Consider the integer equation
 \begin{equation}
 \label{eq-example-quadratic-equation}
@@ -74,11 +79,19 @@ of the symbols at $-1$ and $2$, it gives an efficient way to compute
 Legendre symbols.
 
 \subsection{Additive and multiplicative characters}
+
+A finite field supports two different Fourier theories, one for addition and
+one for multiplication. We describe their characters explicitly and use the
+field trace to connect extension fields with the prime field.
+
 Let $q=p^r$, where $p$ is prime. The field $\FF_q$ has characteristic $p$
 and dimension $r$ over its prime subfield $\FF_p$. Its additive group is
 isomorphic to $(\ZZ/p\ZZ)^r$; its multiplicative group $\FF_q^*$ is cyclic
 of order $q-1$. Further details appear in
 Section~\ref{sect1-calculations-finite-field}.
+
+\statementintro{We distinguish the two kinds of character by the operation they preserve and
+by their domains of definition.}
 
 \begin{defn}[Additive and multiplicative characters]
 An \emph{additive character} is a homomorphism
@@ -104,6 +117,9 @@ The trace from $K$ to $k$ is
 For $K=\FF_q$ and $k=\FF_p$, we abbreviate it to $\Tr$.
 \end{defn}
 
+\statementintro{The Frobenius automorphism explains why the trace takes its values in the
+smaller field.}
+
 \begin{prop}[Frobenius and subfields]
 Let $K$ be a finite field of characteristic $p$.
 The Frobenius map $x\mapsto x^p$ is a field automorphism, as are its iterates.
@@ -116,6 +132,9 @@ Injectivity and finiteness give bijectivity. The elements of $k$ are roots
 of $X^s-X$; since this polynomial has degree $s$, there are no additional
 roots in $K$.
 \end{proof}
+
+\statementintro{These Frobenius identities give the properties needed to build additive
+characters from the trace.}
 
 \begin{prop}[Properties of the trace]
 The trace $\Tr_{K/k}:K\to k$ is a nonzero $k$-linear map, and hence is
@@ -131,6 +150,9 @@ $s^{t-1}<|K|$, so it cannot vanish at every element of $K$.
 A nonzero linear map to the one-dimensional $k$-space $k$ is surjective.
 \end{proof}
 
+\statementintro{Composing the trace with the standard exponential on the prime field
+provides a distinguished additive character.}
+
 \begin{defn}[Canonical additive character]
 \label{defn-character-additive-canonical}\label{notation-27}
 Define
@@ -140,6 +162,9 @@ Define
 In the exponential, a value of $\Tr(x)\in\FF_p$ is represented by an integer;
 the result is independent of the representative.
 \end{defn}
+
+\statementintro{Rescaling its input generates all additive characters, with no further
+choice of basis.}
 
 \begin{prop}
 \label{prop-characters-any-additives}
@@ -158,12 +183,18 @@ Thus the $q$ characters are distinct. Since the dual has order $q$, they
 exhaust it.
 \end{proof}
 
+\statementintro{Before combining the two character theories, we fix the conventions for
+their trivial characters, especially at zero.}
+
 \begin{rem}[The two trivial characters]
 The trivial additive character $\psi_0$ equals $1$ on all of $\FF_q$.
 The trivial multiplicative character $\chi_0$ equals $1$ on $\FF_q^*$.
 When extending multiplicative characters to the whole field below, we assign
 value $0$ at the origin, including for $\chi_0$.
 \end{rem}
+
+\statementintro{The trace construction is also compatible with passing through intermediate
+fields.}
 
 \begin{rem}[Compatibility with field extensions]
 For $K=\FF_{q^t}$, the trace is transitive:
@@ -175,6 +206,9 @@ $rt-1$ exactly once. Therefore the canonical character $\mu_1$ of $K$ satisfies
  \mu_1(\beta)=\psi_1\big(\Tr_{K/\FF_q}(\beta)\big).
 \end{equation}
 \end{rem}
+
+\statementintro{The quadratic character introduced for prime fields extends naturally to
+every finite field of odd order.}
 
 \begin{exmp}[The quadratic character]
 \label{notation-28}
@@ -196,6 +230,9 @@ For $a,b\in\FF_q$,
 \end{align}
 \end{prop}
 
+\statementintro{For multiplication, the same orthogonality principle applies on the nonzero
+elements, so the normalization uses $q-1$.}
+
 \begin{prop}[Multiplicative orthogonality]
 For $a,b\in\FF_q^*$ and multiplicative characters $\chi,\tau$,
 \begin{align}
@@ -212,6 +249,11 @@ the rows and columns of the corresponding character table.
 
 \subsection{Gauss sums}
 \label{sect2-are-gauss}
+
+Gauss sums pair an additive character with a multiplicative one. Their
+Fourier interpretation lets us compute their magnitudes and symmetries,
+preparing the arithmetic applications that follow.
+
 \begin{defn}[Gauss sum]
 \label{defn-sum-gauss}\label{notation-29}\index{Gauss sum}
 For a multiplicative character $\chi$ and an additive character $\psi$, define
@@ -238,6 +280,9 @@ we have
 The extension is a function on the additive group; it is not an additive
 character.
 
+\statementintro{Fourier inversion therefore expresses a multiplicative character as a
+combination of additive characters, with Gauss sums as coefficients.}
+
 \begin{prop}[Additive Fourier expansion]
 For a multiplicative character extended by zero,
 \[
@@ -248,6 +293,9 @@ For a multiplicative character extended by zero,
 Its Fourier coefficient along $\psi$ is
 $\dotp{\wt\chi}\psi=G(\chi,\ol\psi)/q$. Expand in the additive character basis.
 \end{proof}
+
+\statementintro{Changes of variable give a few identities that reduce many Gauss-sum
+calculations to a single reference sum.}
 
 \begin{prop}[Elementary identities]
 \label{prop-ptes-are-gauss}
@@ -264,6 +312,9 @@ $\chi(a^{-1})=\ol{\chi(a)}$. The second follows by taking $a=-1$, because
 $\psi(-x)=\ol{\psi(x)}$. Conjugate this identity to obtain the third, using
 $\chi(-1)\in\{1,-1\}$.
 \end{proof}
+
+\statementintro{Orthogonality and Plancherel's formula then determine the magnitude,
+including the exceptional cases involving trivial characters.}
 
 \begin{prop}[Magnitudes of Gauss sums]
 \label{prop-calcul-sums-gauss}
@@ -297,6 +348,9 @@ Finally, the conjugation identity gives
 $G(\chi,\psi)G(\ol\chi,\psi)=\chi(-1)|G(\chi,\psi)|^2$.
 \end{proof}
 
+\statementintro{The remaining factor $\chi(-1)$ can be read directly from the order of the
+character.}
+
 \begin{prop}
 \label{prop-calcul-psi-1}
 If a multiplicative character $\chi$ has order $m$, then $\chi(-1)=-1$
@@ -314,7 +368,12 @@ Then
 \end{proof}
 
 \subsection{Quadratic reciprocity}
-We first evaluate the quadratic Gauss sum, including its sign. Restrict the
+
+Quadratic reciprocity relates the solvability of two congruences with their
+prime moduli exchanged. Gauss sums give an algebraic proof; we first refine
+their evaluation by determining the phase of the quadratic sum.
+
+Restrict the
 additive transform to nonzero inputs and outputs:
 \[
  T:\CC[\FF_q^*]\longrightarrow\CC[\FF_q^*],\qquad
@@ -328,6 +387,9 @@ The elementary scaling identity gives
 \end{equation}
 For the determinant argument, take $q=p$ with $p$ an odd prime and write
 $\zeta=e^{2\pi\imath/p}$.
+
+\statementintro{Computing the determinant in the multiplicative character basis isolates the
+quadratic Gauss sum as the only undetermined factor.}
 
 \begin{lem}
 \label{lem-calcul-det-T}
@@ -354,6 +416,9 @@ therefore gives
 Since $s+1=(p-1)/2$ and
 $(-1)^{s(s+1)/2}=\imath^{(p-1)(p-3)/4}$, this is the claimed formula.
 \end{proof}
+
+\statementintro{A second determinant calculation fixes the phase and selects the correct
+square root.}
 
 \begin{prop}[The sign of the quadratic Gauss sum]
 \label{prop-sign-are-gauss}
@@ -403,6 +468,9 @@ It follows that
 \]
 Comparison with \eqref{eq-expr-det-T-unknown-sign} forces $\epsilon_p=1$.
 \end{proof}
+
+\statementintro{For comparison, the corresponding evaluation over extension fields contains
+an additional phase factor.}
 
 \begin{rem}[Extension fields]
 For $q=p^s$ with $p$ odd, let $\eta$ be the quadratic character of $\FF_q^*$
@@ -480,6 +548,11 @@ joining vectors that differ in one coordinate.
 
 \subsection{Characters of the Boolean cube}
 \label{sect2-presentation-transforme-walsh}
+
+On the Boolean cube, each character tests the parity of a chosen set of
+coordinates. Writing these tests in a fixed order produces the Walsh matrix
+and a concrete transform for binary-indexed data.
+
 For $a=(a_0,\ldots,a_{k-1})\in\FF_2^k$, define
 \begin{equation}
 \label{eq-denf-base-walsh}
@@ -491,6 +564,9 @@ with the integer $\sum_jx_j2^j$ in $\{0,\ldots,2^k-1\}$. This gives a
 \emph{natural order} of both the group elements and their characters.
 The identification is a bijection of sets; binary-vector addition corresponds
 to bitwise exclusive-or, not integer addition modulo $2^k$.
+
+\statementintro{The three-dimensional cube makes the sign pattern and the indexing
+convention explicit.}
 
 \begin{exmp}
 \label{notation-32}
@@ -509,7 +585,7 @@ For $k=3$, the character table is the Walsh matrix
  \end{pmatrix}.
 \end{equation}
 Its entry $(i,j)$ is $\chi_i(j)$. Figure~\ref{fig-matrices-walsh} shows
-$W_{64}$, with white entries for $1$ and black entries for $-1$.
+$W_{64}$, with white entries for $1$ and dark teal entries for $-1$.
 
 \begin{figure}[tbp]
 \centering
@@ -518,6 +594,9 @@ $W_{64}$, with white entries for $1$ and black entries for $-1$.
 \label{fig-matrices-walsh}
 \end{figure}
 \end{exmp}
+
+\statementintro{Multiplication by this character table defines the Walsh transform with the
+same unnormalized convention as before.}
 
 \begin{defn}[Walsh transform]
 \label{notation-33}
@@ -539,6 +618,9 @@ analysis. A different ordering, by the number of sign changes along the
 integer-indexed row, is called \emph{sequency order}. The two notions should
 not be confused; Exercise~\ref{exo-compression-walsh} develops the latter.
 
+\statementintro{Orthogonality makes inversion especially simple: applying the same transform
+twice recovers the data up to a scalar factor.}
+
 \begin{prop}[Inversion]
 \label{prop-pte-matrix-hadamard}
 The Walsh matrix is real and symmetric and satisfies
@@ -556,6 +638,12 @@ $W_{2^k}W_{2^k}^{\mathsf T}=2^kI$, which proves the assertions.
 
 \subsection{A fast algorithm}
 \label{sect2-fwt}
+
+The binary product structure makes it possible to compute the Walsh
+transform recursively. Splitting one coordinate at a time reduces the cost
+from a dense matrix multiplication to a sequence of additions and
+subtractions.
+
 \index{Fast Walsh transform}\index{Divide and conquer}
 Split $f$ into its first and second halves, $f_1$ and $f_2$, each of length
 $2^{k-1}$. Separating the highest binary coordinate in
@@ -609,6 +697,11 @@ identity for weight enumerators.
 \subsection{The finite-group formula}
 \label{abelian-finite-grpe-fish-formula}
 \label{notation-34}\label{notation-35}\label{notation-36}
+
+Summing a function over a subgroup preserves only those frequencies that are
+trivial on that subgroup. We formalize this observation through
+annihilators, starting with their linear-algebraic analogue.
+
 Recall first the linear-algebraic pairing between a finite-dimensional
 $k$-vector space $E$ and its dual $E^*=\Hom_k(E,k)$:
 $\dotp x\ell=\ell(x)$. For $A\subset E$, its annihilator is
@@ -620,6 +713,9 @@ It is a subspace of $E^*$. Conversely, for $B\subset E^*$,
 $B^0=\{x\in E:\ell(x)=0\text{ for every }\ell\in B\}$ is a subspace of $E$.
 On subspaces, these operations are inverse, inclusion-reversing bijections.
 See Ramis, Deschamps, and Odoux~\cite{ramis-1}.
+
+\statementintro{For a group, characters that are trivial on a subgroup play the role of
+linear forms vanishing on a subspace.}
 
 \begin{defn}[Annihilator of a subgroup]
 \label{defn-orthogonal-abelian-subgroup}\label{notation-37}
@@ -635,6 +731,9 @@ identification $H^\sharp\simeq\widehat{G/H}$ and
 $|H^\sharp|=|G|/|H|$. The operation reverses inclusions, and
 $(H^\sharp)^\sharp=H$ after identifying $G$ with its bidual.
 Indeed, the double annihilator contains $H$ and has the same order.
+
+\statementintro{The annihilator identifies exactly the frequencies that survive a sum over a
+coset.}
 
 \begin{thm}[Finite Poisson summation]
 \index{Poisson summation!finite groups}
@@ -707,6 +806,12 @@ $\wh f_g(\chi)=\chi(g)^{-1}\wh f(\chi)$, then reindex by inversion.
 
 \subsection{The MacWilliams identity}
 \label{sect2-application-id-mac-williams}
+
+Poisson summation links the weight distribution of a binary linear code to
+that of its orthogonal code. We translate group annihilators into
+vector-space orthogonality and encode the resulting counting information in
+a polynomial.
+
 \index{MacWilliams identity}
 Take $G=\FF_2^k$. Every additive subgroup is an $\FF_2$-linear subspace,
 because multiplication by either scalar $0$ or $1$ preserves it.
@@ -727,6 +832,9 @@ For extension fields, an additive subgroup need not be a linear subspace
 over the whole field. Exercise~\ref{exo-generalization-mac-williams} treats
 the generalization with the required linearity assumption.
 
+\statementintro{In binary coordinates, finite Poisson summation consequently takes the
+following symmetric pair of forms.}
+
 \begin{prop}[Vector-space Poisson summation]
 \label{prop-formula-vector-fish}
 For an $\FF_2$-linear subspace $H\subset\FF_2^k$ and a function
@@ -746,6 +854,9 @@ The first identity is finite Poisson summation under
 For the second, replace $H$ by $H^\perp$, using
 $|H^\perp|=2^k/|H|$ and $(H^\perp)^\perp=H$.
 \end{proof}
+
+\statementintro{To apply these formulas to codes, we first measure how many coordinates
+distinguish two binary vectors.}
 
 \begin{defn}[Hamming weight and distance]
 \label{notation-38}\label{notation-39}\index{Hamming distance}
@@ -768,6 +879,9 @@ For $H\subset\FF_2^k$, define
 \]
 where $A_i$ is the number of vectors in $H$ of weight $i$.
 \end{defn}
+
+\statementintro{Poisson summation determines the weight enumerator of the orthogonal code by
+a simple change of variables.}
 
 \begin{thm}[MacWilliams identity]
 \label{thm-id-mac-williams}
@@ -794,6 +908,12 @@ dual. Section~\ref{sect1-codes-correctors-duality} develops its coding-theoretic
 consequences.
 
 \subsection{Continuous Poisson summation}
+
+The same relation between sampling and periodization survives on the real
+line, where convergence becomes an essential part of the argument. We prove
+a continuous Poisson formula under explicit decay assumptions and apply it
+to Gaussian sums.
+
 \index{Poisson summation!continuous}
 For this subsection, use the frequency convention
 \begin{equation}
@@ -845,6 +965,9 @@ have identical Fourier coefficients; uniqueness and continuity imply
 Set $x=0$.
 \end{proof}
 
+\statementintro{The quotient interpretation explains why the finite and continuous arguments
+have the same structure.}
+
 \begin{rem}[The quotient viewpoint]
 Here the subgroup is $\ZZ\subset\RR$, and periodization produces a function
 on $\RR/\ZZ$. Its characters are $x\mapsto e^{2\pi\imath mx}$, indexed by
@@ -853,6 +976,9 @@ finite and continuous formulas. In the continuous setting the constants
 are determined by the chosen Haar measures and Fourier convention.
 \end{rem}
 
+\statementintro{A particularly useful application concerns a sum of Gaussian samples,
+recorded by the theta function.}
+
 \begin{defn}[Jacobi's theta function]
 \index{Theta function}
 For $t>0$, define
@@ -860,6 +986,9 @@ For $t>0$, define
  \theta(t)=\sum_{n\in\ZZ}e^{-\pi n^2t}.
 \]
 \end{defn}
+
+\statementintro{To apply Poisson summation to this series, we need the Gaussian Fourier
+transform with the chosen frequency convention.}
 
 \begin{lem}[Fourier transform of a Gaussian]
 \label{lem-tf-gaussienne}
@@ -886,6 +1015,9 @@ $I=\int_\RR e^{-u^2/2}\,\d u$. Tonelli's theorem and polar coordinates yield
 Since $I>0$, the constant is $\sqrt{2\pi t}$.
 \end{proof}
 
+\statementintro{Combining the Gaussian transform with Poisson summation relates the theta
+series at reciprocal scales.}
+
 \begin{thm}[Jacobi's identity]
 \begin{equation}
 \label{eq-id-jacobi}
@@ -910,6 +1042,10 @@ The computed value is still subject to floating-point rounding; the identity
 reduces the number of terms, not the machine's rounding error.
 
 \section{Exercises}
+
+These exercises develop the arithmetic, computational, and analytic
+consequences of duality. We start with a lattice-point argument that gives a
+geometric alternative to the Gauss-sum proof of quadratic reciprocity.
 
 \begin{exo}[A geometric proof of quadratic reciprocity]
 \label{exo-proof-geom-reciprocite}
@@ -954,6 +1090,9 @@ lattice points strictly inside $AKHL$. Deduce quadratic reciprocity.
 \end{figure}
 \end{exo}
 
+\statementintro{Gauss-sum bounds can guarantee nonzero solutions to polynomial equations
+over sufficiently large finite fields.}
+
 \begin{exo}[Fermat's equation over a finite field]
 \label{exo-thm-fermat-finite-body}\index{Fermat's equation}
 Let $q$ be a prime power and $k\geq1$ an integer. Using the counting estimates
@@ -997,6 +1136,9 @@ for \eqref{eq-thm-fermat-finite-body}.
 \end{enumerate}
 \end{exo}
 
+\statementintro{For a factorial experiment, Walsh coefficients separate the contributions of
+individual factors and their interactions.}
+
 \begin{exo}[Walsh transforms and factorial contrasts]
 \label{exo-transforme-walsh-statistic}
 This example, adapted from Maslen and Rockmore~\cite{rockmore-generalized},
@@ -1028,6 +1170,9 @@ mean using a single Walsh transform, and compute them for the given data.
 These contrasts describe the observations; assessing statistical significance
 would also require a model for experimental variability.
 \end{exo}
+
+\statementintro{The Haar basis offers a different decomposition of binary-scale data,
+organized by location and resolution.}
 
 \begin{exo}[The Haar basis and its fast transform]
 \label{exo-wavelet-haar}\index{Wavelet!Haar}\index{Basis!Haar}
@@ -1112,10 +1257,11 @@ construction developed by Mallat~\cite{mallat}. See also
 Exercise~\ref{exo-wavelets-finite-fields} for wavelets over finite fields.
 \end{exo}
 
+\statementintro{Ordering Walsh functions by their oscillations makes it possible to explore
+approximation and compression.}
+
 \begin{exo}[Compression with Walsh functions]
 \label{exo-compression-walsh}\index{Compression}\index{Walsh transform!sequency}
-The purpose of this exercise is to order the Walsh basis so that initial
-segments provide useful approximations to signals and images.
 \begin{enumerate}
 \item For $N=2^k$, define the two-dimensional basis functions
 $\chi_{i,j}(s,t)=\chi_i(s)\chi_j(t)$, for $0\leq i,j,s,t<N$.
@@ -1176,6 +1322,9 @@ Implement the corresponding image approximation in Python.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Walsh matrices belong to a broader family of orthogonal sign matrices whose
+possible sizes have strong arithmetic constraints.}
+
 \begin{exo}[Hadamard matrices]
 \label{exo-matrices-hadamard}\index{Hadamard matrix}\index{Paley matrix}
 A real $N\times N$ matrix $H_N$ with entries in $\{1,-1\}$ is a
@@ -1219,6 +1368,9 @@ existence for particular families of orders.
 Exercise~\ref{exo-codes-hadamard} applies these matrices to error-correcting codes.
 \end{exo}
 
+\statementintro{Tensor products explain the recursive structure of Walsh matrices and
+suggest a wider family of fast transforms.}
+
 \begin{exo}[Tensor products of matrices]
 \label{exo-tensor-product}\index{Tensor product}
 For $A\in\CC^{s\times s}$ and $B\in\CC^{t\times t}$, their tensor product
@@ -1256,6 +1408,9 @@ Exercise~\ref{exo-grpe-quaternionique} constructs another possible base matrix
 using representation theory.
 \end{exo}
 
+\statementintro{The binary MacWilliams identity extends to larger alphabets once field
+linearity and the trace pairing are handled carefully.}
+
 \begin{exo}[The MacWilliams identity over a finite field]
 \label{exo-generalization-mac-williams}\index{MacWilliams identity}
 Let $q=p^r$ be a prime power, and set $E=\FF_q^k$.
@@ -1281,6 +1436,9 @@ $A_H(X,Y)=\sum_{c\in H}X^{k-w(c)}Y^{w(c)}$, prove
 \end{enumerate}
 \end{exo}
 
+\statementintro{The language of distributions packages all lattice samples into a single
+object and gives a concise form of Poisson summation.}
+
 \begin{exo}[Poisson summation for distributions]
 \label{exo-formula-fish-distrib}\label{notation-41}
 \index{Distribution}\index{Dirac comb}
@@ -1297,6 +1455,9 @@ Explain why it is tempered. Use Poisson summation, with the appropriate
 rescaling, to prove $\wh{\Pi_s}=(2\pi/s)\Pi_{2\pi/s}$.
 Here the distribution pairing is bilinear and contains no complex conjugation.
 \end{exo}
+
+\statementintro{For band-limited functions, frequency orthogonality turns this sampling
+structure into an exact reconstruction theorem.}
 
 \begin{exo}[Shannon sampling]
 \label{exo-sample-shannon}\index{Sampling theorem}\index{Shannon sampling}
@@ -1333,3 +1494,5 @@ orthonormal basis of $E_T$. Give the orthogonal projection of any
 $g\in L^2(\RR)$ onto $E_T$, both in frequency and in this basis.
 \end{enumerate}
 \end{exo}
+
+\input{chapters-tex/solutions/02-duality}

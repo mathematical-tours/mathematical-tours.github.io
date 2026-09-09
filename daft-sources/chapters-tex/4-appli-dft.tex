@@ -15,6 +15,12 @@ two roles separate prevents several common numerical errors.
 
 \subsection{The continuous Fourier transform}
 \label{sect2-transforme-fourier-continue}
+
+To compare a finite DFT with a continuous transform, we first fix the
+latter's normalization and reconstruction formula. The character
+interpretation explains why the same exponential functions appear in both
+settings.
+
 \index{Fourier transform!on $\RR$}
 For $f\in L^1(\RR)$, use the angular-frequency convention
 \begin{equation}
@@ -30,6 +36,9 @@ $L^2(\RR)$, with the Plancherel identity
 \]
 Thus energy is conserved after normalization by $1/\sqrt{2\pi}$.
 See Rudin~\cite{rudin} for the analytic construction.
+
+\statementintro{With the frequency convention fixed, integrability of the transform gives
+the following pointwise reconstruction formula almost everywhere.}
 
 \begin{prop}[Fourier inversion]
 \index{Inversion formula}
@@ -73,6 +82,11 @@ see also Dym and McKean~\cite[Chapter~4]{dym}.
 
 \subsection{Approximating a continuous transform}
 \label{sect2-calculus-trans-fourier-approach}
+
+A numerical Fourier transform depends on both the observation window and the
+spacing of the samples. We derive the DFT approximation from a quadrature
+rule so that its scale factors and sources of error are explicit.
+
 \index{Sampling}\index{Method!of rectangles}
 Suppose that the observed samples are $f[n]=f(n\Delta)$ for $0\leq n<N$,
 where $\Delta>0$ and $T=N\Delta$. If the contribution outside $[0,T]$
@@ -104,7 +118,14 @@ For a window starting at $a$ rather than zero, multiply the approximation
 by $e^{-\imath\xi_k a}$.
 
 \subsection{Sampling and zero padding}
-\label{sect2-addition-zeros}\index{Zero padding}
+\label{sect2-addition-zeros}
+
+Frequency range, frequency spacing, and the ability to resolve nearby
+components depend on different features of the data. Distinguishing these
+effects clarifies what additional measurements can achieve and what zero
+padding alone can provide.
+
+\index{Zero padding}
 Reducing $\Delta$ increases the unaliased frequency interval. Increasing the
 observation length $T$ reduces the natural frequency spacing $2\pi/T$.
 These changes require additional measurements and have different effects.
@@ -127,7 +148,8 @@ frequency responses.
 \subsection{Time--frequency duality}
 \label{sect2-duality-time-frequency}\index{Uncertainty!principle}
 Concentration in time and concentration in frequency constrain one another.
-A particularly sharp statement concerns compact support.
+We focus on compact support, where the obstruction is absolute and
+connects frequency localization with analyticity.
 \begin{prop}
 \label{prop-trans-fourier-support-compact}\index{Support!compact}
 A nonzero function $f\in L^2(\RR)$ and its Fourier transform cannot both
@@ -147,6 +169,12 @@ frequency, while the convolution kernel describes its local action.
 
 \subsection{Linear filters}
 \label{sec2-linear-filters}\label{notation-53}
+
+A translation-invariant filter is specified by how it combines shifted
+copies of the input. We begin with finite kernels, where this operation is
+well defined without convergence assumptions, and explain how to implement
+it on finite data.
+
 \index{Filter!linear}\index{Impulse!response}
 For a finitely supported sequence $g$, define
 \[
@@ -185,6 +213,11 @@ regularity theorem for a finite vector.
 
 \subsection{Responses and stability}
 \label{sect2-responses-stability}
+
+A kernel can be understood through its action on impulses, sinusoids, or
+steps. These complementary descriptions guide filter design, while stability
+asks whether bounded input can ever produce unbounded output.
+
 \index{Frequency response}\index{Step!response}
 Besides its impulse response, a filter has two useful descriptions:
 \begin{itemize}
@@ -212,6 +245,9 @@ impulse response; neither description alone captures every design tradeoff.
 \label{fig-diff-types-responses}
 \end{figure}
 
+\statementintro{To control a filter's response to arbitrary bounded data, we use an operator
+notion of stability.}
+
 \begin{defn}[Bounded-input bounded-output stability]
 \label{notation-54}\index{Stability}
 A convolution filter is stable if it defines a bounded operator on
@@ -230,7 +266,13 @@ Every FIR filter is stable; recursive filters need not be.
 Section~\ref{sect2-application-trans-z-filters} returns to this distinction.
 
 \subsection{Image filtering}
-\label{sect2-filtering-2d}\index{Filter!2D}\index{Image smoothing}
+\label{sect2-filtering-2d}
+
+Smoothing an image trades noise reduction against the loss of fine detail.
+We extend Gaussian filtering to two dimensions and make the kernel scale and
+boundary treatment part of the model.
+
+\index{Filter!2D}\index{Image smoothing}
 An image is an array of intensities, or several such arrays for color channels.
 The two-dimensional version of the Gaussian kernel is
 \[
@@ -266,7 +308,13 @@ are the two coordinates of a vertex. Circular convolution then acts directly
 on shape, and Fourier coefficients expose its long-term behavior.
 
 \subsection{Polygon filtering}
-\label{sect2-filtering-polygons}\index{Polygon}\index{Filter!of polygons}
+\label{sect2-filtering-polygons}
+
+Repeated local averaging changes the shape of a polygon in ways that can be
+read from a few Fourier multipliers. We describe the iteration in complex
+coordinates and determine which frequencies persist, decay, or grow.
+
+\index{Polygon}\index{Filter!of polygons}
 Represent a closed polygon with $N$ ordered vertices by $\Pi\in\CC^N$,
 joining $\Pi[j]$ to $\Pi[j+1\bmod N]$. For a circular filter $g$, let
 \begin{equation}
@@ -297,6 +345,9 @@ Figure~\ref{fig-filter-polygons-1} illustrates these cases.
 \label{fig-filter-polygons-1}
 \end{figure}
 
+\statementintro{Repeatedly replacing adjacent vertices by their midpoint gives a simple
+illustration of the spectral convergence criterion.}
+
 \begin{exmp}[Successive midpoints]
 \index{Center!of gravity}
 For $g=(1/2,1/2,0,\ldots,0)$,
@@ -309,6 +360,10 @@ The vertices therefore converge to their arithmetic mean
 $c=N^{-1}\wh\Pi[0]$. This is the centroid of the vertices, which need not
 be the area centroid of the enclosed region.
 \end{exmp}
+
+\statementintro{Retaining one nonconstant Fourier mode instead produces a nontrivial
+limiting shape when that mode is present initially.}
+
 \begin{exmp}[Keeping a single frequency]
 If $\wh g[1]=1$ and $\wh g[k]=0.8$ for $k\ne1$, then
 \[
@@ -325,9 +380,13 @@ radius $|\wh\Pi[1]|/N$. If that coefficient vanishes, it collapses to zero.
 \end{figure}
 
 \subsection{Polygonal inequalities}
+
+Fourier coordinates relate a polygon's edge lengths, spread about its
+center, and signed area. We use these expressions to prove geometric bounds
+by comparing their contributions frequency by frequency.
+
 \index{Inequality!polygonal}
-The same representation proves geometric inequalities; this example follows
-Terras~\cite{terras}. For $N\geq3$ and $c=N^{-1}\sum_j\Pi[j]$, set
+The argument follows Terras~\cite{terras}. For $N\geq3$ and $c=N^{-1}\sum_j\Pi[j]$, set
 \begin{align*}
  S(\Pi)&=\sum_j|\Pi[j+1]-\Pi[j]|^2,\\
  T(\Pi)&=\sum_j|\Pi[j]-c|^2,\\
@@ -335,6 +394,10 @@ Terras~\cite{terras}. For $N\geq3$ and $c=N^{-1}\sum_j\Pi[j]$, set
 \end{align*}
 The last expression is the signed area, including for self-intersecting
 polygons, where it counts regions with their winding multiplicities.
+
+\statementintro{Expressing these three quantities in Fourier coordinates gives two bounds
+valid for every closed polygon.}
+
 \begin{prop}
 For every such polygon,
 \[
@@ -358,6 +421,12 @@ $\sin^2(\pi k/N)\geq\sin^2(\pi/N)$ in the third.
 \end{proof}
 
 \subsection{Fourier descriptors}
+
+For shape comparison, a useful descriptor should ignore translation, scale,
+rotation, and the chosen starting vertex. We examine how these operations
+change the Fourier coefficients and identify both the resulting invariants
+and the information they discard.
+
 \index{Fourier descriptor}\index{Pattern recognition}
 A translation changes only $\wh\Pi[0]$. An orientation-preserving similarity
 $z\mapsto a+bz$, with $b\ne0$, multiplies every other coefficient by $b$.
@@ -397,6 +466,11 @@ sines for homogeneous Dirichlet conditions.
 
 \subsection{Computing Fourier coefficients}
 \label{sect2-calcul-coef-fourier}
+
+A spectral solver needs Fourier coefficients of its initial data or source,
+but a computation usually starts from samples. We examine the periodic
+quadrature that connects the two and the aliasing error that remains.
+
 For a continuous $T$-periodic function, let
 \[
  c_k(f)=\frac1T\int_0^T f(t)e^{-2\pi\imath kt/T}\d t.
@@ -422,7 +496,13 @@ Increasing the sampling rate reduces this error. Zero padding alone does
 not produce additional independent Fourier-series coefficients of $f$.
 
 \subsection{The heat equation}
-\label{sect2-resol-eq-heat}\index{Equation!heat}
+\label{sect2-resol-eq-heat}
+
+Diffusion damps each Fourier mode at a rate determined by its frequency.
+This diagonal evolution gives an explicit solution of the periodic heat
+equation and a direct way to compute its smoothing effect.
+
+\index{Equation!heat}
 On the unit circle $S^1=\RR/\ZZ$, consider
 \begin{equation}
 \label{heat-eq}
@@ -465,7 +545,13 @@ Heat evolution is one particular family of low-pass filters. A general
 symmetric smoothing filter need not equal heat evolution at any time.
 
 \subsection{The Poisson equation with Dirichlet data}
-\label{sect2-resol-eq-Poisson}\index{Poisson's equation}
+\label{sect2-resol-eq-Poisson}
+
+Prescribed boundary values change the basis needed to solve a Poisson
+problem. We discretize the equation on a square and use odd extensions to
+recover an FFT-based solver that respects the Dirichlet conditions.
+
+\index{Poisson's equation}
 On the square, consider
 \begin{equation}
 \label{eq-fish}
@@ -555,7 +641,14 @@ Bailey~\cite{bailey-pi} gives historical examples involving high-precision
 computation.
 
 \subsection{Evaluation and interpolation}
-\label{sect2-presentation-theoretical}\index{Polynomial!evaluation}
+\label{sect2-presentation-theoretical}
+
+Polynomial multiplication is easy when polynomials are represented by their
+values at suitable nodes. Evaluation and interpolation provide the change of
+coordinates, with quotient algebras explaining exactly which product is
+recovered.
+
+\index{Polynomial!evaluation}
 Choose \emph{distinct} points $\xi_0,\ldots,\xi_{M-1}$ and set
 $Q(X)=\prod_{j=0}^{M-1}(X-\xi_j)$. Evaluation induces an algebra isomorphism
 \[
@@ -576,6 +669,11 @@ representation. Roots of unity make these changes fast.
 
 \subsection{Multiplication modulo \texorpdfstring{$X^N-1$}{X\^N-1}}
 \label{sect2-multiplication-polynomials-modulo-xn-1}
+
+Roots of unity make both evaluation and interpolation fast through the DFT.
+The resulting product is naturally taken modulo $X^N-1$, so its coefficients
+wrap around just as in circular convolution.
+
 \index{Polynomial!multiplication}
 For $\xi_k=e^{-2\pi\imath k/N}$, evaluation of a polynomial
 $P=\sum_{j=0}^{N-1}P_jX^j$ is exactly the DFT of its coefficient vector.
@@ -608,6 +706,11 @@ in Chapter~\ref{chap-tfd} illustrates.
 
 \subsection{Ordinary polynomial multiplication}
 \label{sect2-multiplication-polynomials}
+
+To recover the full polynomial product, the transform must leave room for
+every output coefficient. Zero padding prevents reduction modulo the
+transform polynomial from mixing those coefficients.
+
 If $\deg P,\deg Q\leq N-1$, then $\deg(PQ)\leq2N-2$ and
 \begin{equation}
 \label{eq-product-polynomials}
@@ -620,7 +723,14 @@ convolution gives ordinary multiplication. A convenient smooth transform
 length yields an $O(M\log M)$ algorithm.
 
 \subsection{Multiplication of large integers}
-\label{sect2-multiplication-integers}\index{Integer!multiplication}
+\label{sect2-multiplication-integers}
+
+Integer multiplication has the same convolution structure as polynomial
+multiplication, followed by carry propagation. We explain this connection
+while distinguishing exact digit arithmetic from the rounding required by a
+floating-point FFT.
+
+\index{Integer!multiplication}
 Write nonnegative integers in base $b\geq2$ as
 \[
  a=\sum_{j=0}^{N-1}a_jb^j,\qquad 0\leq a_j<b.
@@ -641,6 +751,14 @@ transforms over finite fields and rings, which permit exact modular arithmetic.
 \section{Exercises}
 \label{sect1-chap3-exercises}
 
+These exercises connect the algebraic formulas with analytic proofs and
+numerical implementations. We begin by justifying the compact-support
+obstruction, then explore differential equations, image processing, and fast
+arithmetic.
+
+\statementintro{A compactly supported spectrum forces analyticity, which rules out a second
+compact support in the original variable.}
+
 \begin{exo}[Compact support and analyticity]
 \label{exo-transforme-sup-comp}\index{Support!compact}
 Let $f\in L^2(\RR)$ and suppose $\Supp(\wh f)\subset[-A,A]$.
@@ -654,6 +772,9 @@ for every real $t$. Justify the exchange of summation and integration.
 Deduce that a nonzero $f$ cannot vanish on an open interval, and prove
 Proposition~\ref{prop-trans-fourier-support-compact}.
 \end{exo}
+
+\statementintro{Fourier modes reveal when a time-stepping scheme for diffusion is stable and
+how strongly it damps each spatial frequency.}
 
 \begin{exo}[Finite differences for the heat equation]
 \label{exo-resol-eq-heat-diff-finies}\index{Equation!heat}
@@ -702,6 +823,9 @@ not equivalent.
 \end{figure}
 \end{exo}
 
+\statementintro{The explicit Fourier solution also supports a proof of existence and
+uniqueness for continuous initial data.}
+
 \begin{exo}[Existence and uniqueness for the heat equation]
 \label{exo-unicite-eq-heat}
 Use the conductivity $\kappa=1/2$ of \eqref{heat-eq}, and suppose
@@ -729,6 +853,9 @@ to conclude $\|u(t,\cdot)-f\|_\infty\to0$.
 \end{enumerate}
 \end{exo}
 
+\statementintro{The odd-extension construction extends coordinate by coordinate to a
+three-dimensional Dirichlet problem.}
+
 \begin{exo}[A three-dimensional Poisson problem]
 \label{exo-potential-electric-3d}\index{Electric potential}
 Generalize the Dirichlet solver of Section~\ref{sect2-resol-eq-Poisson} to
@@ -739,6 +866,9 @@ implementation of the extension. To visualize an electric potential, one
 may plot its level surfaces $u(x,y,z)=\lambda$, rather than level surfaces
 of the source $f$.
 \end{exo}
+
+\statementintro{The same solver can be understood through the eigenvectors of a tridiagonal
+matrix, making its connection with sine transforms explicit.}
 
 \begin{exo}[Matrix formulation of the Poisson solver]
 \label{exo-formulation-matrix-fish}
@@ -766,6 +896,9 @@ factors. Explain why this is equivalent to the doubled-grid solver.
 \end{enumerate}
 \end{exo}
 
+\statementintro{A reproducible smoothing experiment must specify both the Gaussian kernel
+and the treatment of image boundaries.}
+
 \begin{exo}[Image smoothing]
 \label{exo-lissage-image}\index{Image smoothing}
 Implement Gaussian smoothing of a grayscale image. Specify the kernel
@@ -774,6 +907,9 @@ Verify that a constant image remains constant with reflection boundaries,
 and compare the effect of several smoothing widths as in
 Figure~\ref{fig-filter-2d}.
 \end{exo}
+
+\statementintro{Expanding a patch-matching error separates local energy from correlation and
+shows when FFT correlation is an appropriate search tool.}
 
 \begin{exo}[Correlation and template matching]
 \label{exo-correlation-2d}\index{Correlation}
@@ -821,6 +957,9 @@ normalized correlation. Lewis~\cite{lewis} discusses fast template matching.
 \end{figure}
 \end{exo}
 
+\statementintro{Fractional translations implemented by Fourier phases can be combined into
+shears and image rotations.}
+
 \begin{exo}[Translation, shears, and rotation by FFT]
 \label{exo-fft-rotation}\index{Rotation}\index{Translation}
 Take an odd sample count $N$ in each coordinate. Interpret noninteger samples
@@ -858,6 +997,9 @@ Discuss large angles and the need to avoid $\tan(\theta/2)$ near its poles.
 \end{figure}
 \end{exo}
 
+\statementintro{Designing a filter in frequency coordinates exposes the tradeoff between a
+sharp cutoff and localization of its impulse response.}
+
 \begin{exo}[Designing a low-pass filter]
 \label{exo-creation-low-pass-filter}\index{Filter!low-pass}
 Use an odd length $N$ and signed frequencies $\omega_k=2\pi k/N$.
@@ -880,6 +1022,9 @@ Compare the impulse responses and the frequency-domain oscillations.
 \end{figure}
 \end{exo}
 
+\statementintro{A sharing process on a circle illustrates how averaging, periodicity, and
+integer rounding affect convergence.}
+
 \begin{exo}[A candy-sharing process]
 \label{exo-iterations-integers}\index{Integer!iteration}
 Place $n\geq3$ children around a circle, each holding a nonnegative even
@@ -898,6 +1043,9 @@ an even-cycle counterexample.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Karatsuba's method offers another route to fast multiplication, based on
+reducing the number of recursive products.}
+
 \begin{exo}[Karatsuba multiplication]
 \label{exo-algo-karatsuba}\index{Algorithm!Karatsuba}
 Let $P,Q$ have degree less than $n$ over a field, and split their coefficient
@@ -913,6 +1061,9 @@ Explain why the crossover with schoolbook or FFT multiplication depends on
 the implementation, coefficient arithmetic, and required exactness.
 \end{enumerate}
 \end{exo}
+
+\statementintro{Spline interpolation can also be formulated as filtering: the coefficients
+are chosen so that the reconstructed function agrees with the samples.}
 
 \begin{exo}[Spline interpolation as filtering]
 \label{exo-spline-filtering}\index{Spline}\index{B-spline}
@@ -979,3 +1130,5 @@ Unser~\cite{unser-splines-perfect-fit} for complementary viewpoints.
 \label{fig-spline-cubic}
 \end{figure}
 \end{exo}
+
+\input{chapters-tex/solutions/04-dft-applications}

@@ -16,6 +16,12 @@ conversion is explicit. All random examples use a fixed seed.
 
 \section{Fourier transforms over finite fields}
 \label{sect1-listing-transform-finite-body}
+
+Finite-field transforms make the algebraic inversion and convolution
+identities executable without rounding. The programs construct a suitable
+coefficient field, verify the root order, and compare fast evaluation with
+the direct sum.
+
 Program~\ref{listing-fft-finite-body} factors $\Phi_n$ over $\FF_p$ and
 uses one irreducible factor to construct a field containing a root of
 \emph{exact} order $n$. It rejects $p\mid n$. The example takes $p=2$
@@ -35,6 +41,12 @@ matters in the inverse transform's normalization.
 
 \section{Fourier transforms over residue rings}
 \label{sect1-listing-transform-ring}
+
+Residue-ring transforms offer exact modular arithmetic without an
+extension-field representation. The implementation checks the conditions
+needed for a dyadic FFT and makes the modular inverse normalization
+explicit.
+
 Program~\ref{listing-fft-ring} uses Python integers reduced modulo $m$.
 For a dyadic transform length $n>1$, it checks that $n$ is invertible and
 $\zeta^{n/2}=-1\pmod m$. These hypotheses make $\zeta$ a principal root
@@ -50,6 +62,11 @@ $n^{-1}\pmod m$.
 
 \section{Multiplication of large integers}
 \label{sect1-listing-mult-large-integers-ring}
+
+Recovering an integer product from modular convolution requires a modulus
+large enough to prevent coefficient ambiguity. The program chooses that
+modulus from a bound and then performs exact carry propagation.
+
 The digit base is an input parameter, and the transform length covers the
 full linear convolution. Program~\ref{listing-mult-large-integers} chooses
 a modulus $m=2^{cn/2}+1$ larger than the coefficient bound; $2^c$ is then
@@ -71,6 +88,12 @@ including operands with hundreds of decimal digits.
 
 \section{BCH encoding and decoding}
 \label{sect1-listing-decoding-bch}
+
+The BCH programs connect generator-polynomial construction with recovery of
+a corrupted message. They follow the syndrome and locator argument of the
+chapter, including the case in which fewer errors occur than the code can
+correct.
+
 The implementation has four parts:
 \begin{enumerate}
 \item Program~\ref{listing-decodage-bch-1} takes the union of the cyclotomic

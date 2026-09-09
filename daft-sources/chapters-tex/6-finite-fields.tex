@@ -17,6 +17,12 @@ carry over automatically.
 
 \subsection{Finite-field Fourier transform}
 \label{sect2-trans-fourier-finite-field}
+
+Exact Fourier arithmetic requires roots of unity inside the coefficient
+field and an invertible transform length. We first specify the root
+condition, then show that it gives the same convolution and inversion
+formulas as over the complex numbers.
+
 \begin{defn}[Primitive root of unity]
 \index{Root of unity!primitive}
 An element $\zeta$ of a field $K$ is a primitive $n$th root of unity if
@@ -28,6 +34,9 @@ $q-1$. It contains a primitive $n$th root if and only if $n\mid q-1$.
 If $\omega$ generates $\FF_q^*$, then $\omega^{(q-1)/n}$ is such a root.
 In particular, the characteristic $p$ cannot divide $n$.
 
+\statementintro{With such a root fixed, we can evaluate the Fourier sum entirely in the
+finite field.}
+
 \begin{defn}[Finite-field Fourier transform]
 Fix a primitive $n$th root $\zeta\in K=\FF_q$. For $f\in K^n$, define
 \begin{equation}
@@ -35,6 +44,10 @@ Fix a primitive $n$th root $\zeta\in K=\FF_q$. For $f\in K^n$, define
  \Ff(f)[j]=\wh f[j]=\sum_{k=0}^{n-1}f[k]\zeta^{-kj},\qquad 0\leq j<n.
 \end{equation}
 \end{defn}
+
+\statementintro{The root sums provide the cancellation needed for both convolution and
+reconstruction, with division performed in the field.}
+
 \begin{prop}[Convolution and inversion]
 \label{prop-prtes-tfd-finite-field}
 The transform is an algebra isomorphism from $K^n$ with unnormalized
@@ -61,6 +74,11 @@ field-valued coefficients.
 
 \subsection{Choosing a root in the base field}
 \label{sect2-a-particular-case}
+
+A usable transform begins with a root whose order has been verified. We
+explain how to find one in a prime field and when the desired transform
+length requires a field extension.
+
 For $n=p-1$, any generator of $\FF_p^*$ suffices. More generally, if
 $n\mid p-1$, raise such a generator to $(p-1)/n$. A candidate $g$ generates
 $\FF_p^*$ precisely when
@@ -75,6 +93,11 @@ extension can supply a primitive $n$th root.
 
 \subsection{Cyclotomic extensions}
 \label{sect2-cyclotomic-field}
+
+When the base field lacks the required root, a polynomial quotient can
+supply it. Cyclotomic polynomials identify the primitive roots, and their
+factorization modulo the characteristic determines the extension degree.
+
 \begin{thmdefn}[Cyclotomic polynomials]
 \label{notation-64}\index{Cyclotomic polynomial}
 For $n\geq1$, the cyclotomic polynomial is
@@ -102,6 +125,9 @@ coefficient of absolute value greater than one.
 \caption{An exact cyclotomic polynomial.}
 \label{listing-calculus-cyclotomic-polynomials}
 \end{listing}
+
+\statementintro{Reducing cyclotomic polynomials modulo a prime reveals the smallest field
+extensions that contain their roots.}
 
 \begin{prop}[Cyclotomic factorization over a finite field]
 \label{prop-cyclotomy-fp}
@@ -134,6 +160,9 @@ generate the multiplicative group $K^*$. Arithmetic uses polynomials of
 degree less than $r$, with coefficients reduced modulo $p$ and products
 reduced modulo $P$. In particular, $\FF_{p^r}$ is not $\ZZ/p^r\ZZ$.
 
+\statementintro{The fifteenth roots in characteristic two give a concrete instance of this
+construction.}
+
 \begin{exmp}
 Over the integers,
 $\Phi_{15}=X^8-X^7+X^5-X^4+X^3-X+1$.
@@ -150,6 +179,9 @@ modulo the characteristic $p$, not modulo the cardinality $q$.
 Factoring over the larger field may split factors that were irreducible
 over $\FF_p$.
 
+\statementintro{The case in which the characteristic divides the desired order behaves
+differently because the polynomial acquires repeated roots.}
+
 \begin{rem}
 \label{rmk-cyclotomy-cas-special}
 If $n=mp^t$ with $p\nmid m$, then
@@ -160,6 +192,11 @@ The invertible DFT construction in this chapter requires $p\nmid n$.
 
 \subsection{Transforms in a cyclotomic extension}
 \label{sect2-trans-cyclotomic-field}
+
+Constructing a suitable extension field makes the transform available for
+data in the base field. We explain where the transformed values live and why
+inversion still recovers the original data exactly.
+
 Once $K$ and $\zeta$ have been constructed, use the same transform formula
 for vectors in $K^n$. If the input lies in $\FF_p^n$, its transform may
 leave the base field, just as the DFT of a real signal can be complex.
@@ -169,6 +206,12 @@ constructs the field, checks the root order, and verifies inversion.
 
 \subsection{Exact convolution and integer products}
 \label{sect2-effective-calculations}
+
+Exact modular convolution gives an integer product only if its coefficients
+can be recovered uniquely from their residues. We bound these coefficients
+and choose the padding and moduli to avoid both cyclic overlap and modular
+ambiguity.
+
 Suppose two nonnegative integers are represented by $a$ and $b$ digits
 in base $B$. Every coefficient of their linear digit convolution is at most
 \[
@@ -201,10 +244,20 @@ since its length is not a unit there.
 
 \subsection{Principal roots of unity}
 \label{sect2-main-roots}
+
+Over a ring, cancellation can fail even when a root has the expected
+multiplicative order. We impose a regularity condition on the root
+differences, then use it to recover the root sums and the invertibility
+criterion needed by Fourier analysis.
+
 Throughout, rings are commutative, with $1\ne0$. An element is called
 \emph{regular} if multiplication by it is injective; in particular zero
 is not regular. This formulation avoids ambiguity in the expression
 ``not a zero divisor.''
+
+\statementintro{The required cancellation property is captured by the following definition
+of a principal root.}
+
 \begin{defn}[Principal root of unity]
 \index{Root of unity!principal}
 A principal $n$th root in a ring $A$ is an element $\zeta$ such that
@@ -217,6 +270,9 @@ Some references define principality by vanishing root sums instead.
 The regularity condition used here implies those sums and also gives the
 injectivity statement below.
 
+\statementintro{We distinguish the two signs of the Fourier map before discussing whether
+the inverse normalization is available in the ring.}
+
 \begin{defn}[Fourier maps over a ring]
 For a principal $n$th root $\zeta\in A$, set
 \begin{equation}
@@ -225,6 +281,10 @@ For a principal $n$th root $\zeta\in A$, set
  \widetilde\Ff(f)[j]=\sum_{k=0}^{n-1}f[k]\zeta^{kj}.
 \end{equation}
 \end{defn}
+
+\statementintro{The regularity assumption recovers the root-sum identities and also controls
+multiplication by the transform length.}
+
 \begin{lem}[Root sums]
 \label{lem-transf-fourier-ring}
 One has $\sum_{i=0}^{n-1}\zeta^{ki}=n\,1_A$ if $n\mid k$, and zero
@@ -249,6 +309,9 @@ at $1$ yields
 A product of regular elements is regular.
 \end{proof}
 
+\statementintro{These identities separate two conclusions that coincide over a field:
+injectivity of the Fourier map and existence of a normalized inverse.}
+
 \begin{thm}[Fourier transform over a ring]
 The map $\Ff$ preserves convolution products and satisfies
 $\widetilde\Ff\Ff=\Ff\widetilde\Ff=n\Id$. Both maps are injective.
@@ -265,6 +328,9 @@ The other composition is identical with the signs reversed. The root-sum
 lemma and regularity of $n$ imply injectivity. Reindexing proves the
 convolution identity, and division by $n$ gives the inverse when allowed.
 \end{proof}
+
+\statementintro{For residue rings, the Chinese remainder theorem turns root existence into a
+condition on the prime factors of the modulus.}
 
 \begin{prop}[Existence over a residue ring]
 \label{prop-cns-existance-ntt}
@@ -284,6 +350,11 @@ Exercise~\ref{exo-demo-cns-existance-ntt}.
 
 \subsection{A dyadic FFT over a ring}
 \label{sect2-impl-algo-fft-ring}
+
+Power-of-two lengths admit a simple root criterion that also supports the
+recursive FFT. It yields useful modular transforms even when the chosen
+modulus is composite.
+
 \begin{prop}[Principal dyadic roots]
 \label{prop-cns-square-root-ring}
 For $k\geq1$, an element $\zeta\in A$ is a principal $2^k$th root if and
@@ -301,6 +372,9 @@ or not $m$ is prime. A larger modulus $m=2^{cn/2}+1$ works with
 $\zeta=2^c$ for any positive integer $c$; this flexibility is useful when
 integer coefficients require a larger recovery range.
 
+\statementintro{The familiar Fermat numbers illustrate why convenient FFT moduli need not be
+prime.}
+
 \begin{rem}[Fermat numbers]
 \label{notation-65}\index{Fermat number}
 The Fermat numbers are $\operatorname{Fer}_s=2^{2^s}+1$.
@@ -316,7 +390,6 @@ Section~\ref{sect1-listing-mult-large-integers-ring} uses it for exact
 integer multiplication. The FFT costs $O(n\log n)$ ring operations;
 the bit cost of those operations grows with the modulus size.
 
-
 \section{Error-correcting codes}
 \label{sect1-applications-correctors-codes}
 \index{Code!error-correcting}
@@ -328,11 +401,19 @@ constraints; cyclic codes will connect these constraints directly to
 Fourier transforms. See~\cite{papini,demazure} for further background.
 
 \subsection{Words, errors, and distance}
+
+To assess error detection and correction, we need a transmission model and a
+distance between words. Simple parity and check-digit examples will show
+what information redundancy can reveal about an error.
+
 We use fixed-length words in $\FF_q^n$. A transmission error changes some
 coordinates, giving a received word $y=x+e$. The number of changed symbols,
 rather than their magnitudes, measures the error. This model concerns
 substitutions in a fixed-length word; insertion and deletion errors require
 a different model.
+
+\statementintro{A parity bit is the simplest example of redundancy that detects some
+transmission errors.}
 
 \begin{exmp}[A parity bit]
 \label{exmp-bit-parite}
@@ -343,6 +424,9 @@ an even number is invisible to it. A single parity check does not locate
 an error, but appending such a check to another code can increase its
 minimum distance.
 \end{exmp}
+
+\statementintro{Book identifiers give a practical example in which the choice of weights and
+modulus determines which errors are detected.}
 
 \begin{exmp}[ISBN check digits]
 \index{ISBN}
@@ -364,6 +448,9 @@ detects every single-digit change. Unlike ISBN-10, it can miss an adjacent
 swap when the two digits differ by five. The different moduli and weights
 lead to different detection properties.
 \end{exmp}
+
+\statementintro{These examples motivate a distance that counts altered symbols without
+assigning a magnitude to a field element.}
 
 \begin{defn}[Hamming weight and distance]
 \label{defn-dist-hamming}\label{notation-66}\label{notation-67}
@@ -390,6 +477,9 @@ more information, while widely separated codewords permit more errors to
 be corrected. Sphere-packing viewpoints help explain this tradeoff;
 see~\cite{elkies-ams-1} for connections with discrete geometry.
 
+\statementintro{To quantify the tradeoff between code size and separation, we record both
+word weights and pairwise distances.}
+
 \begin{defn}[Weight and distance distributions]
 \label{notation-68}
 For $0\leq i\leq n$, set
@@ -412,6 +502,9 @@ which is equivalent to $d\geq2t+1$. Hence its guaranteed correction radius is
 $\lfloor(d-1)/2\rfloor$. It can detect every nonzero error of weight at most
 $d-1$, although detection alone need not reveal the transmitted word.
 
+\statementintro{Requiring the code to be a vector subspace makes its size and encoding map
+accessible through linear algebra.}
+
 \begin{defn}[Linear code]
 \index{Code!linear}\index{Generator matrix}
 An $[n,m,d]_q$ linear code is an $m$-dimensional subspace of $\FF_q^n$
@@ -427,12 +520,18 @@ $|\Cc|$ ordered pairs with $x-y=z$. Linear codes are restrictive, but their
 structure makes encoding and many decoding tasks tractable. There is no
 general rule that a linear optimum must be much worse than a nonlinear one.
 
+\statementintro{An alternative matrix description tests whether a received word satisfies
+the code's constraints.}
+
 \begin{rem}[Parity-check matrix]
 \label{rmk-matrices-control}\index{Parity-check matrix}
 A full-row-rank matrix $H\in\FF_q^{(n-m)\times n}$ with $\ker H=\Cc$
 is a parity-check matrix. It satisfies $HG=0$, and the syndrome $Hy$
 tests membership. Both generator and parity-check matrices are nonunique.
 \end{rem}
+
+\statementintro{A repetition code makes the generator and parity-check descriptions easy to
+compare.}
 
 \begin{exmp}[Repetition]
 The binary length-four repetition code has words $0000$ and $1111$, with
@@ -444,6 +543,9 @@ Its orthogonal code is the even-parity code. Generator and parity-check
 matrices exchange roles after transposition; this is explored in
 Exercise~\ref{exo-matrices-generator-control}.
 \end{exmp}
+
+\statementintro{A length-seven Hamming code carries more information while still correcting
+one error, and introduces the cyclic structure studied next.}
 
 \begin{exmp}[The cyclic Hamming code of length seven]
 \label{exmp-code-hamming-7}
@@ -466,6 +568,9 @@ $(1+X+X^3)(1+X+X^2+X^4)=X^7+1$ in $\FF_2[X]$; the next section
 explains why this divisibility guarantees closure under all circular shifts.
 \end{exmp}
 
+\statementintro{No choice of linear code can avoid the basic tradeoff between dimension and
+minimum distance expressed by the Singleton bound.}
+
 \begin{prop}[Singleton bound]
 \label{prop-borne-singleton}
 A linear code with $m\geq1$ satisfies
@@ -485,6 +590,12 @@ injective on any code of minimum distance $d$, so $|\Cc|\leq q^{n-d+1}$.
 
 \subsection{Cyclic codes}
 \label{sect2-cyclic-codes}
+
+Closure under circular shifts gives a linear code additional algebraic
+structure. Representing words by polynomials turns these shifts into
+multiplication and describes the whole code through a single generator
+polynomial.
+
 Identify $x=(x_0,\ldots,x_{n-1})$ with
 $x(X)=\sum_{j=0}^{n-1}x_jX^j$ in $R=\FF_q[X]/(X^n-1)$.
 Multiplication by $X$ sends the word to $(x_{n-1},x_0,\ldots,x_{n-2})$.
@@ -502,7 +613,14 @@ This also includes the zero code, with $g=X^n-1$, and the whole space,
 with $g=1$.
 
 \subsection{Constructing BCH codes}
-\label{sect2-codes-BCH}\index{BCH code}
+\label{sect2-codes-BCH}
+
+A BCH code is designed by forcing a block of consecutive Fourier
+coefficients to vanish. We choose roots compatible with the base field,
+construct the generator polynomial, and prove the resulting lower bound on
+the minimum distance.
+
+\index{BCH code}
 Fix a prime $p$, a length $n$ coprime to $p$, and a primitive $n$th root
 $\alpha$ in a finite extension $K$ of $\FF_p$. For a set
 $I\subseteq\ZZ/n\ZZ$, consider
@@ -512,6 +630,9 @@ $I\subseteq\ZZ/n\ZZ$, consider
 \end{equation}
 This is a divisor of $X^n-1$ in $K[X]$. To define a code over the base
 field, its coefficients must belong to $\FF_p$.
+
+\statementintro{The Frobenius map provides an algebraic test for whether a polynomial with
+extension-field coefficients descends to the base field.}
 
 \begin{lem}[Frobenius criterion]
 A polynomial $Q\in K[X]$ belongs to $\FF_p[X]$ if and only if
@@ -526,6 +647,9 @@ For $Q(X)=\sum_j a_jX^j$, the Frobenius identity gives
 \end{equation}
 which equals $Q(X^p)$ exactly when all the coefficients are fixed.
 \end{proof}
+
+\statementintro{For a product specified by its roots, this test becomes an invariance
+condition on their exponents.}
 
 \begin{prop}[Admissible sets of roots]
 \label{prop-cns-cyclotomic-class}
@@ -553,6 +677,9 @@ is the minimal polynomial of $\alpha^k$ over $\FF_p$: its roots form one
 Frobenius orbit, so no proper nonempty subset can be the roots of a factor
 over $\FF_p$.
 
+\statementintro{Taking the required Frobenius orbits of consecutive exponents gives the
+standard BCH construction.}
+
 \begin{defn}[Narrow-sense BCH code]
 For $2\leq\delta\leq n$, take $I$ to be the union of the cyclotomic
 cosets meeting $\{1,\ldots,\delta-1\}$. The cyclic code generated by
@@ -561,6 +688,9 @@ BCH code of \emph{designed distance} $\delta$.
 \end{defn}
 A union of cosets need not be a single coset. The designed distance is a
 lower bound, not necessarily the exact minimum distance.
+
+\statementintro{Binary codes of length thirty-one illustrate how the root orbits determine
+concrete generator polynomials.}
 
 \begin{exmp}[Binary codes of length 31]
 Fix $K=\FF_2[\alpha]$ with
@@ -601,6 +731,9 @@ $K/\FF_p$ gives base-field parity checks; the expanded rows need not all
 be independent. Equivalently, with Fourier root $\zeta=\alpha^{-1}$,
 these are the conditions $\wh x[i]=0$ for $1\leq i<\delta$.
 
+\statementintro{The consecutive vanishing conditions force every nonzero codeword to have
+sufficiently many nonzero coordinates.}
+
 \begin{prop}[BCH distance bound]
 \label{prop-dist-minimal-code-bch}
 Every nonzero word in the BCH code has weight at least $\delta$.
@@ -628,6 +761,12 @@ Frobenius closure of a smaller exponent.
 
 \subsection{Decoding through the Fourier spectrum}
 \label{sect2-decodage-bch}
+
+The syndromes of a received word reveal a short segment of the error's
+Fourier spectrum. Under the correction-radius assumption, a recurrence
+determined by the error locations lets us recover the missing spectrum and
+then the errors themselves.
+
 Suppose $y=x+e$ is received, where $x$ is a codeword and
 $\nu=w(e)\leq t$. The known syndromes are
 \[
@@ -653,6 +792,10 @@ $\sum_{i\in J}e_i\alpha^{ij}\sigma(\alpha^{-i})$.
 This direct derivation fixes the direction of all indices.
 
 \paragraph{Determining the number of errors.}
+
+The decoder must first determine how many errors actually occurred, since
+this number may be smaller than the guaranteed correction radius.
+
 Form the $t\times t$ Hankel matrix
 $T_t=(S_{a+b+1})_{0\leq a,b<t}$. If $u_i=\alpha^i$, then
 \[
@@ -665,6 +808,10 @@ This avoids treating a size-$t$ locator system as invertible when fewer
 than $t$ errors occur. If $\nu=0$, all errors vanish.
 
 \paragraph{Finding the locator.}
+
+Once the number of errors is known, the syndrome recurrence gives a square
+system for the locator coefficients.
+
 For $\nu>0$, use the recurrence for $j=\nu+1,\ldots,2\nu$:
 \[
  \sum_{l=1}^{\nu}S_{j-l}\sigma_l=-S_j.
@@ -677,6 +824,10 @@ more efficient recurrence algorithms, such as Berlekamp--Massey, avoid
 dense elimination for large correction radii.
 
 \paragraph{Completing the spectrum.}
+
+Extending the syndrome sequence recovers the full error spectrum, so inverse
+transformation can determine the error values directly.
+
 The recurrence now determines $S_{2t+1},\ldots,S_n$ successively from
 known values. Periodicity gives $S_0=S_n$. Inverting the Fourier transform
 recovers each error value:
@@ -707,9 +858,18 @@ develops this combinatorial approach in depth.
 
 \subsection{Weight enumerators}
 \label{sect2-polynomials-enumerators-weight}
+
+A weight enumerator compresses the counting information of a code into a
+polynomial. We recall the dual-code construction and the MacWilliams
+identity, which lets one recover the enumerator of either code from the
+other.
+
 Unless stated otherwise, $\Cc\subset\FF_2^n$ is a linear code of dimension
 $m$. The extension to $\FF_q$ uses additive characters and the substitution
 $(X,Y)\mapsto(X+(q-1)Y,X-Y)$; see Exercise~\oldref{exo-generalization-mac-williams}.
+
+\statementintro{The dual code consists of the linear constraints satisfied by every
+codeword, expressed through the coordinate pairing.}
 
 \begin{defn}[Dual code]
 \label{defn-code-dual}\label{notation-69}
@@ -732,6 +892,9 @@ alone is insufficient. Exercise~\oldref{exo-codes-autoduaux} connects
 self-duality to invariant polynomials.
 \index{Code!self-dual}\index{Code!self-orthogonal}
 
+\statementintro{We package the numbers of codewords at each weight in a homogeneous
+polynomial.}
+
 \begin{defn}[Weight enumerator]
 \label{defn-polynomial-enumerator-code}
 \index{Polynomial!weight enumerator}
@@ -741,6 +904,10 @@ With $A_i=\#\{x\in\Cc:w(x)=i\}$, the weight enumerator is
 \]
 It is homogeneous of degree $n$, with $W_\Cc(1,1)=|\Cc|=2^m$.
 \end{defn}
+
+\statementintro{The MacWilliams identity then relates this polynomial to the corresponding
+one for the dual code.}
+
 \begin{thm}[MacWilliams identity]
 \label{thm-id-mac-williams-correctors-codes}
 \index{Identity!of MacWilliams}
@@ -754,6 +921,11 @@ Below we prove a version for arbitrary functions that includes this identity.
 
 \subsection{Codes as functions on a group}
 \label{sect2-algebre-group-correctors-codes}
+
+Representing a code by its indicator function brings it into the space where
+the Fourier transform acts. This viewpoint recovers linear-code duality and
+suggests a useful extension to functions representing nonlinear codes.
+
 The characters of $G$ are $\chi_a(x)=(-1)^{\dotp{a}{x}}$. Our
 unnormalized Fourier transform is
 \[
@@ -766,6 +938,9 @@ is one on $\Cc$ and zero elsewhere. For a linear code,
  a\in\Cc^\bot\quad\Longleftrightarrow\quad
  \chi_a(x)=1\text{ for every }x\in\Cc.
 \end{equation}
+
+\statementintro{Summing a character over the code makes the annihilator relation visible
+directly in its indicator's Fourier transform.}
 
 \begin{prop}[Transform of an indicator]
 \label{prop-trans-fourier-indicator-function}
@@ -793,6 +968,9 @@ For any function, define
 \]
 This agrees with the code's enumerator when $f=f_\Cc$.
 
+\statementintro{The same coordinatewise character calculation extends the polynomial
+identity from indicators to functions of nonzero total mass.}
+
 \begin{thm}[MacWilliams identity for functions]
 \label{thm-id-mac-williams-functions}
 If $M_f\ne0$, then
@@ -816,6 +994,11 @@ Division by $M_f$ gives the identity.
 \end{proof}
 
 \subsection{Distance distributions of arbitrary codes}
+
+For a nonlinear code, pairwise distances retain information that its linear
+span would lose. We encode these distances by a convolution and use Fourier
+positivity to constrain the possible distance distributions.
+
 Let $\Cc\subset\FF_2^n$ be nonempty; linearity is no longer assumed.
 Its distance function, with the usual unnormalized convolution, is
 \begin{equation}
@@ -830,6 +1013,9 @@ In particular, $D_\Cc(0)=1$, and
 \end{equation}
 If $\Cc$ is linear, each element has exactly $|\Cc|$ decompositions as
 $x+y$ with $x,y\in\Cc$, so $D_\Cc=f_\Cc$.
+
+\statementintro{Grouping the values of this convolution by Hamming weight recovers the
+distance distribution.}
 
 \begin{prop}[Distance distribution]
 \label{prop-repartition-distance-dualite}
@@ -884,6 +1070,9 @@ Nonnegativity, together with the vanishing of $B_1,\ldots,B_{d-1}$ for
 a code of minimum distance $d$, produces the linear programming bound
 in Exercise~\oldref{exo-terminal-linear-programming}.
 
+\statementintro{Hadamard codes illustrate both an actual dual code and a formal dual
+distribution whose coefficients need not be integers.}
+
 \begin{exmp}[Hadamard codes]
 The eight-word code $\Aa_8$ in \eqref{eq-code-hadamard-a8} is a linear
 $[7,3,4]$ simplex code. Its distance enumerator is $X^7+7X^3Y^4$.
@@ -915,6 +1104,13 @@ formal dual distribution cannot be the weight distribution of a code.
 \section{Exercises}
 \label{sect1-trans-fourier-val-finite-field-exercises}
 
+These exercises connect exact transforms, Boolean functions, and algebraic
+coding theory. They begin with cyclotomic computations and root-existence
+proofs, then develop explicit codes and bounds on their possible parameters.
+
+\statementintro{Cyclotomic coefficients provide an exact-arithmetic experiment in which
+apparently simple root sets can produce unexpectedly large coefficients.}
+
 \begin{exo}[Cyclotomic coefficients]
 \label{exo-calculus-pol-cyclotomic}
 Use exact Python arithmetic to find the smallest positive index $n$ such
@@ -929,6 +1125,9 @@ indices after $n=1$. We seek a coefficient of absolute value \emph{exactly}
 $a$, not merely a polynomial whose largest coefficient has magnitude
 at least $a$.
 \end{exo}
+
+\statementintro{Lifting roots through prime powers and combining them by the Chinese
+remainder theorem proves the residue-ring existence criterion.}
 
 \begin{exo}[Existence of principal roots]
 \label{exo-demo-cns-existance-ntt}
@@ -946,6 +1145,9 @@ $\ZZ/m\ZZ$, including its necessity.
 \end{enumerate}
 \end{exo}
 
+\statementintro{The dyadic root criterion follows by analyzing how principal roots behave
+under taking powers.}
+
 \begin{exo}[Principal dyadic roots]
 \label{exo-root-square-primitive}
 Let $A$ be a commutative ring with identity, with the definition of a
@@ -961,6 +1163,10 @@ injective on $A$.
 when $2$ is regular and $\zeta^{2^{k-1}}=-1$.
 \end{enumerate}
 \end{exo}
+
+\statementintro{Walsh coefficients measure how well a Boolean function can be approximated
+by an affine function, connecting Fourier analysis with coding and
+cryptography.}
 
 \begin{exo}[Boolean functions and Reed--Muller codes]
 \label{exo-boolean-functions}
@@ -995,6 +1201,9 @@ Bent functions were introduced in \cite{rothaus-bent}. For cryptographic
 applications and bounds beyond the even-dimensional case, see
 \cite{passalic-boolean}.
 \end{exo}
+
+\statementintro{Random samples can estimate Walsh coefficients and, when the spectrum is
+suitably concentrated, support a provable learning guarantee.}
 
 \begin{exo}[Learning Boolean functions]
 \label{exo-learning-boolean-functions}
@@ -1041,6 +1250,9 @@ equal the degree of the algebraic normal form in the preceding exercise.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Generator and parity-check matrices give complementary descriptions of a
+code, while systematic form makes message recovery explicit.}
+
 \begin{exo}[Generator and parity-check matrices]
 \label{exo-matrices-generator-control}
 Let $\Cc\subset\FF_q^n$ have dimension $m$, with a full-column-rank
@@ -1055,6 +1267,9 @@ message basis, puts any generator in systematic form. Explain which
 operation changes the code and which only changes its parametrization.
 \end{enumerate}
 \end{exo}
+
+\statementintro{Hamming codes use distinct nonzero syndrome columns to locate a single error
+and achieve a perfect packing by radius-one balls.}
 
 \begin{exo}[Hamming codes]
 \label{exo-codes-hamming}
@@ -1078,6 +1293,9 @@ dimension, minimum distance, and size of a radius-one ball.
 \end{enumerate}
 \end{exo}
 
+\statementintro{The simple weight distribution of the dual simplex code determines the full
+Hamming-code enumerator through the MacWilliams identity.}
+
 \begin{exo}[Weight enumerators of Hamming codes]
 \label{exo-pol-enumerateur-hamming}
 Use the preceding exercise, with $n=2^k-1$ and $k\geq2$.
@@ -1096,6 +1314,9 @@ $\Cc$.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Adding one overall parity bit changes the length-seven Hamming code into a
+self-dual length-eight code with larger minimum distance.}
+
 \begin{exo}[Extended Hamming code]
 \label{exo-code-hamming-extended}
 Append an overall parity bit to the length-seven code in
@@ -1106,6 +1327,9 @@ invariance of the weight enumerator under the MacWilliams substitution
 alone does not prove equality of the two codes.
 \end{exo}
 
+\statementintro{Repetition codes provide a small family in which parameters, duality, and
+weight enumerators can all be computed directly.}
+
 \begin{exo}[Repetition codes]
 \label{exo-code-repetition}
 For $n\geq2$, let $\Cc=\{(a,\ldots,a):a\in\FF_q\}$.
@@ -1115,6 +1339,9 @@ For $n\geq2$, let $\Cc=\{(a,\ldots,a):a\in\FF_q\}$.
 determine exactly when the repetition code is self-dual.
 \end{enumerate}
 \end{exo}
+
+\statementintro{Orthogonal sign matrices generate codes whose pairwise distances follow from
+row orthogonality, even when the codes are nonlinear.}
 
 \begin{exo}[Hadamard codes]
 \label{exo-codes-hadamard}
@@ -1139,6 +1366,9 @@ For reference, two constructions give the following codes:
 \end{array}.
 \end{equation}
 \end{exo}
+
+\statementintro{Comparing polynomial coefficients in the MacWilliams identity gives moment
+constraints and determines the weight distribution of an MDS code.}
 
 \begin{exo}[MDS codes and Krawtchouk polynomials]
 \label{exo-polynomials-mds}
@@ -1174,6 +1404,9 @@ and show that $A_d=\binom nd$.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Fourier positivity turns constraints on distance distributions into a linear
+program that bounds the size of an arbitrary binary code.}
+
 \begin{exo}[The linear programming bound]
 \label{exo-terminal-linear-programming}
 Let $R(n,d)$ be the largest cardinality of a binary code of length $n$
@@ -1192,3 +1425,5 @@ prove that its feasible set is bounded. Distance $d$ itself is allowed.
 \]
 \end{enumerate}
 \end{exo}
+
+\input{chapters-tex/solutions/06-finite-fields}

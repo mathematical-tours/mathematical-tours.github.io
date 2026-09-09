@@ -18,7 +18,7 @@ throughout the computational examples.
 
 | Directory | Contents |
 | --- | --- |
-| `chapters-tex/` | Eight chapters, exercise solutions, two Python appendices and shared typography |
+| `chapters-tex/` | Eight chapters with exercises and chapter-end solutions, two Python appendices and shared typography |
 | `listings/` | Executable Python modules; `tex/` selects the exact functions printed in the book |
 | `figures/chapter-title/figure-name/` | The 68 generated figure PDFs used by the book |
 | `figures-code/chapter-title/figure-name/` | Each figure's Python generator and, where applicable, TikZ source |

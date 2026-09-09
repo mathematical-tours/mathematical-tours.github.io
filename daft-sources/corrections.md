@@ -598,7 +598,7 @@ corrections, not an exhaustive list of punctuation and spelling edits.
   Anchored programs near the text that introduces them and aligned figure-only
   pages at the top instead of spreading their contents vertically.
 
-## Validation status
+## Validation status of the September 8 revision
 
 - Original edition archived and SHA-256 verified: 856 files.
 - Mathematical and writing review: all eight chapters, 88 exercises and solutions,
@@ -612,3 +612,77 @@ corrections, not an exhaustive list of punctuation and spelling edits.
   correction log, and French-edition attribution; display and local links checked.
 - Reproduction instructions, pinned Python dependencies, standalone Python download,
   and machine-readable verification reports included with the sources.
+
+## September 9, 2026 — Section openings and introductions to results
+
+- Reviewed the openings of all eight chapters, the preface, all 60 sections,
+  102 subsections, five subsubsections, and eight titled paragraphs, including
+  the eight solution sections and both Python appendices. Added 145 concise,
+  topic-specific openings and refined existing ones where needed. Each explains
+  the purpose of the construction or calculation before introducing its details.
+- Reviewed all 291 formal blocks: 51 definitions, 69 propositions, 15 lemmas,
+  17 theorems, two theorem-definitions, ten corollaries, 25 remarks, 14 examples,
+  and 88 exercises. Added 238 individual lead-in sentences; retained existing
+  introductions and section openings when they already prepare the statement.
+  The transitions explain the role of a result, its connection with the preceding
+  argument, or the method an exercise develops.
+- Made the progression explicit from character extension to orthogonality,
+  from additive and multiplicative characters to Gauss sums, and from finite
+  Fourier identities to implementable FFTs. Clarified the purpose of padding,
+  boundary conventions, convergence regions, cyclotomic extensions, BCH
+  syndromes, averaging operators, and matrix-valued Fourier blocks.
+- Replaced several generic subsection titles with more informative ones,
+  including “Characters and function spaces,” “Hartley coefficients and
+  inversion,” “The Z transform and its calculus,” “Changing the frequency
+  grid,” and “Traces and character identities.” Standardized the Chapter 5
+  solutions heading and removed a redundant exercise-purpose sentence.
+- **Fourier convention correction:** the Chapter 7 explanation incorrectly
+  described Chapter 1's transform as a conjugated character sum. A
+  one-dimensional block is directly the sum of `f(g) chi(g)` used in Chapter 1.
+  The negative exponential of the numerical DFT comes from the character
+  indexing fixed in Chapter 3. The revised explanation distinguishes these
+  conventions without inserting an extra conjugation.
+- Corrected the Walsh-matrix description to match the figure's dark teal
+  negative entries. The figure itself is unchanged.
+- Added a shared layout rule that keeps a statement's introductory paragraph
+  with its opening lines. The PDF review identified and eliminated introductory
+  sentences left alone at page bottoms. Existing fonts and statement styles
+  are retained.
+- **Verification:** the revised PDF has 203 pages and compiles without warnings,
+  undefined references, missing characters, or overfull/underfull boxes.
+  Reviewed contact sheets of every page and detailed views of chapter openings,
+  statement transitions, and the Python appendices. All 591 displayed math
+  blocks, proofs, labels, figure bodies, and program calls are preserved.
+  The executable code, tests, data, and 68 figure files are byte-for-byte
+  unchanged; the previous 84 computational checks therefore remain applicable.
+- Refreshed the 69-page figure comparator against the new book pagination,
+  verified every figure number and caption, and updated the presentation page's
+  eight chapter links, page count, and cover thumbnail. Figure and program
+  inventories now point to the current source locations. Detailed checks are
+  recorded in `docs/editorial-review.json` and `docs/document-verification.json`.
+
+## September 9, 2026 — Exercises and solutions organized by chapter
+
+- Numbered exercises within their chapter: for example, the fourth exercise
+  in Chapter 5 is now Exercise 5.4. All exercise references and solution
+  headings use the same chapter-based numbers.
+- Moved all 88 solutions from the final solutions appendix to a dedicated
+  closing section of the corresponding chapter, immediately after its
+  exercises. Each section starts on a fresh page, appears in the contents
+  and PDF bookmarks, and retains its introductory paragraph.
+- Preserved the complete exercise statements and solution arguments,
+  including every displayed formula, figure, and Python listing. Removed
+  the obsolete solutions-appendix source; the numerical and exact-arithmetic
+  Python appendices are now Appendices A and B.
+- Kept solution headings with the opening lines of their arguments; this
+  repairs page breaks that stranded the headings for Solutions 6.3 and 7.7.
+- Updated the preface, repository description, presentation page, and all
+  eight chapter links. Rebuilt the figure comparator with the revised
+  figure numbers, captions, and page references, and refreshed inventory
+  source locations.
+- **Verification:** the 206-page book and 69-page comparator compile without
+  warnings or unresolved references. The document checks verify all 88
+  exercise numbers, the one-to-one correspondence with solutions, and the
+  placement and order of every printed solution within its own chapter.
+  The contents, all solution pages, and chapter boundaries were visually
+  reviewed. All 68 figures and 88 Python programs remain included.

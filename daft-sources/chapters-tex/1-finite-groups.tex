@@ -19,7 +19,12 @@ A function $f:G\to\CC$ can always be represented by its values. To exploit the
 group structure, we instead seek elementary functions that respect
 multiplication in $G$.
 
-\subsection{Definitions}
+\subsection{Characters and function spaces}
+
+Characters capture the multiplicative structure of a group in scalar-valued
+functions. We introduce them alongside the space of all functions on the
+group, where they will eventually serve as Fourier coordinates.
+
 \begin{defn}[Characters and the dual group]
 \label{notation-0}\label{notation-1}
 \index{Character!of an abelian group}\index{Dual!of a finite abelian group}
@@ -35,6 +40,10 @@ Pointwise multiplication makes $\wh G$ an abelian group:
 \]
 Its identity is the constant character $1$, and the inverse of $\chi$ is
 $x\mapsto\chi(x)^{-1}$.
+
+\statementintro{Because the group is finite, a character can take only a restricted set of
+complex values; the following properties will be used repeatedly in
+inner-product calculations.}
 
 \begin{prop}
 \label{prop-pte-elem-car}
@@ -54,6 +63,9 @@ Lagrange's theorem gives $g^n=1$. Applying $\chi$ yields
 $\chi(g)^n=\chi(g^n)=1$.
 \end{proof}
 
+\statementintro{These restrictions have two immediate consequences for the size of the dual
+and the information carried by a character.}
+
 \begin{rem}
 There are only finitely many maps $G\to\UU_n$, so $\wh G$ is finite.
 Every linear character is constant on conjugacy classes, since
@@ -62,6 +74,9 @@ Every linear character is constant on conjugacy classes, since
  \chi(h^{-1}gh)=\chi(h)^{-1}\chi(g)\chi(h)=\chi(g).
 \end{equation}
 \end{rem}
+
+\statementintro{To discuss expansions in characters, we place them in a vector space with an
+inner product adapted to the uniform measure on the group.}
 
 \begin{defn}[Functions on $G$]
 \label{defn-space-function-g-in-c}
@@ -77,6 +92,9 @@ We equip it with the normalized Hermitian inner product
 The inner product is linear in its first argument.
 \end{defn}
 
+\statementintro{The normalization in this inner product is natural from both the analytic
+and the symmetry viewpoints.}
+
 \begin{rem}
 \label{notation-11}\index{Translation}
 This inner product is the finite analogue of
@@ -85,6 +103,9 @@ Both are translation invariant. For example, setting
 $T_yf(x)=f(xy)$ gives
 $\dotp{T_yf}{T_yg}=\dotp fg$ because $x\mapsto xy$ permutes $G$.
 \end{rem}
+
+\statementintro{Before constructing a frequency basis, we record the coordinate basis
+associated with the individual group elements.}
 
 \begin{prop}
 \label{prop-base-c-g}
@@ -116,6 +137,9 @@ respects translations and simplifies convolution.
 Cyclic groups are both the simplest examples and the domains of the
 one-dimensional discrete transforms used in signal processing.
 
+\statementintro{A character on a cyclic group is determined by its value at a generator,
+which makes the entire dual explicit.}
+
 \begin{prop}[The cyclic case]
 \label{prop-cyclic-case}\label{notation-12}\label{notation-13}
 \index{Group!cyclic}
@@ -144,12 +168,18 @@ $\cos(2\pi jx/12)$ and $\sin(2\pi jx/12)$ at integer values of $x$.
 \label{fig-cyclic-characters}
 \end{figure}
 
+\statementintro{The formula also shows precisely which choices enter the identification of a
+cyclic group with its dual.}
+
 \begin{rem}
 An abstract cyclic group has no preferred generator. Choosing a generator and
 a primitive root of unity determines the isomorphism with its dual. This
 choice dependence is analogous to the choice of a basis when identifying a
 vector space with its dual.
 \end{rem}
+
+\statementintro{For the standard cyclic group, the usual residue coordinates provide a
+particularly convenient choice.}
 
 \begin{rem}
 \label{rmk-zpz-isomorphism}
@@ -162,6 +192,9 @@ identification
 The structure theorem will extend the existence of such an isomorphism to
 all finite abelian groups.
 \end{rem}
+
+\statementintro{These explicit characters supply not just a group isomorphism but an
+orthogonal coordinate system for functions.}
 
 \begin{prop}
 \label{prop-base-ortho-cyclic-case}\label{notation-14}
@@ -191,6 +224,12 @@ subgroup to the whole group.
 
 \subsection{Character extension}
 \label{sec2-approach-algebraic-dual-abelien}
+
+To compare the frequencies of a group with those of a subgroup, we must know
+whether a character on the subgroup extends to the whole group. The
+extension argument below is the key to counting characters without assuming
+the structure theorem for finite abelian groups.
+
 \begin{lem}[Character extension]
 \label{lem-prolongation-caractere}
 \index{Character!extension}
@@ -233,6 +272,9 @@ The root must satisfy $\zeta^n=\chi(x^n)$; it need not be an $n$th root of
 $H=\{1,x^2\}$, and $\chi(x^2)=-1$, then $\zeta$ must be $\imath$ or
 $-\imath$. In general, an extension is not unique.
 
+\statementintro{Restriction and pullback organize the extension lemma into an exact
+sequence, relating the duals of a group, a subgroup, and the quotient.}
+
 \begin{lem}
 \label{lem-suite-exact}\index{Sequence!exact}
 For a subgroup $H$ of a finite abelian group $G$, restriction
@@ -251,6 +293,9 @@ $\Ker\rho$ precisely when it is trivial on $H$, in which case it factors
 uniquely through $G/H$. Hence $\Ker\rho=\Im j$.
 \end{proof}
 
+\statementintro{Counting the kernel and image in this sequence gives the number of
+characters of any finite abelian group.}
+
 \begin{cor}
 \label{cor-order-dual-equal-order-group}
 A finite abelian group and its dual have the same order.
@@ -266,9 +311,11 @@ and the induction hypothesis give
 
 \subsection{Isomorphism with the dual}
 \label{sect2-thm-isomorphism}
-Equality of orders suffices for the orthogonality argument below. A stronger
-statement follows from the structure theorem for finite abelian groups;
-see Artin~\cite{artin} for a proof.
+A finite abelian group and its dual have not only the same order but
+the same group structure. We prove this by decomposing the group into
+cyclic factors, keeping track of the choices in the resulting isomorphism.
+The algebraic input is the following structure theorem; see
+Artin~\cite{artin} for a proof.
 
 \begin{thm}[Structure theorem for finite abelian groups]
 \label{thm-structure-abelian-groups}
@@ -280,6 +327,9 @@ such that
 For the trivial group, the sequence is empty. The integers are unique;
 the isomorphism generally is not.
 \end{thm}
+
+\statementintro{Applying cyclic duality to each factor in the structure theorem yields the
+desired isomorphism.}
 
 \begin{cor}[Isomorphism theorem]
 \label{cor-thm-isomorphism}
@@ -293,6 +343,9 @@ $(g,h)\mapsto\chi(g)\eta(h)$. Apply this to the cyclic factors in the
 structure theorem and use Proposition~\ref{prop-cyclic-case}.
 \end{proof}
 
+\statementintro{It is useful to separate the existence of this isomorphism from the question
+of whether it is canonical.}
+
 \begin{rem}
 The proof requires a choice of cyclic decomposition and generators. It gives
 an isomorphism $G\simeq\wh G$, but no preferred identification for an arbitrary
@@ -301,11 +354,19 @@ finite abelian group. The situation changes when we pass to the bidual.
 
 \subsection{The bidual}
 \label{sect2-bidual}
+
+An isomorphism between a group and its dual requires choices, but passing to
+the dual twice removes this ambiguity. We construct the bidual and show how
+evaluation recovers each group element in a canonical way.
+
 \begin{defn}[Bidual]
 \label{notation-16}\index{Bidual}
 The \emph{bidual} of a finite abelian group $G$ is
 $\whwh G=\widehat{\wh G}$.
 \end{defn}
+
+\statementintro{Evaluation against every character associates a bidual element with each
+group element, without choosing generators.}
 
 \begin{prop}[Canonical isomorphism]
 Evaluation gives a canonical isomorphism
@@ -324,6 +385,9 @@ Lemma~\ref{lem-prolongation-caractere}. Therefore $\Phi(g)\neq1$.
 Since $|G|=|\whwh G|$, injectivity implies surjectivity.
 \end{proof}
 
+\statementintro{This construction has familiar linear-algebraic and broader analytic
+counterparts.}
+
 \begin{rem}
 This is the analogue of the canonical map from a finite-dimensional vector
 space to its double dual. For infinite groups, the choice of characters and
@@ -336,6 +400,11 @@ its canonical identification with its \emph{bidual}.
 
 \subsection{Orthogonality relations}
 \label{sect2-dual-grpe-abelien-rel-orthogonalite}
+
+Orthogonality makes character expansions easy to compute and invert. We
+prove it by exploiting cancellation in character sums, then combine
+orthogonality with the count of characters to obtain a basis.
+
 \begin{lem}
 \label{lem-orth-character-abelien}
 For a character $\chi$ of a finite abelian group $G$,
@@ -355,6 +424,9 @@ $\chi(t)\neq1$. Translation permutes the summation indices, so
 Subtracting and dividing by $\chi(t)-1$ gives the second case.
 \end{proof}
 
+\statementintro{Applying the cancellation lemma to the product of one character with the
+conjugate of another gives orthogonality.}
+
 \begin{prop}[Orthogonality of characters]
 \label{prop-orthogonalite-car-grpe-abelien}
 For $\chi_1,\chi_2\in\wh G$,
@@ -367,6 +439,8 @@ Apply the preceding lemma to the character $\chi_1\ol{\chi_2}$.
 It is trivial exactly when $\chi_1=\chi_2$.
 \end{proof}
 
+\statementintro{The character count now ensures that this orthogonal family is complete.}
+
 \begin{cor}
 The characters of a finite abelian group $G$ form an orthonormal basis of
 $\CC[G]$.
@@ -374,6 +448,9 @@ $\CC[G]$.
 \begin{proof}
 They are orthonormal, and their number is $|G|=\dim_{\CC}\CC[G]$.
 \end{proof}
+
+\statementintro{Biduality lets us exchange the roles of group elements and characters,
+giving a second orthogonality relation.}
 
 \begin{prop}[Dual orthogonality]
 \label{prop-relations-orthogonalite-duale-grpe-abelien}
@@ -392,6 +469,9 @@ $\Phi(g),\Phi(h)$. This gives
 \end{equation}
 \end{proof}
 
+\statementintro{In matrix form, the two relations express the same unitary change of
+coordinates.}
+
 \begin{rem}
 Enumerate $G=\{g_1,\ldots,g_n\}$ and
 $\wh G=\{\chi_1,\ldots,\chi_n\}$. For the character table
@@ -403,11 +483,16 @@ orthogonality of the rows and columns, respectively.
 \section{Dual of a noncommutative group}
 \label{sect1-dual-non-commutative-group}
 For noncommutative groups, linear characters no longer suffice to represent
-all functions. The symmetric group gives a concrete example; its
-abelianization explains the general obstruction.
+all functions. The symmetric group gives a concrete example, and
+the abelianization of a general group explains the obstruction.
 
 \subsection{The symmetric group}
 \label{sect2-exmp-dual-sn}\label{notation-17}
+
+The symmetric group gives a concrete test of how much information scalar
+characters retain. We construct the sign character and show that, apart from
+the trivial character, it is the only one available.
+
 \index{Symmetric group}
 \begin{defn}[Sign of a permutation]
 \index{Sign!of a permutation}
@@ -420,6 +505,9 @@ cycles of length one. If there are $k$ cycles, its \emph{sign} is
 Uniqueness of disjoint cycle decomposition makes this definition unambiguous;
 see Lang~\cite{lang}.
 
+\statementintro{The effect of a single transposition is the essential step in proving that
+the sign is multiplicative.}
+
 \begin{lem}
 For a transposition $\tau$, one has $\epsilon(\sigma\tau)=-\epsilon(\sigma)$.
 \end{lem}
@@ -428,6 +516,9 @@ Write $\tau=(a,b)$. If $a$ and $b$ belong to the same cycle of $\sigma$,
 right multiplication by $\tau$ splits that cycle into two. Otherwise it joins
 their two cycles. In either case the number of cycles changes by one.
 \end{proof}
+
+\statementintro{Iterating this observation relates cycle decomposition to transposition
+parity and proves the character property.}
 
 \begin{prop}
 If $\sigma$ is a product of $p$ transpositions, then
@@ -441,6 +532,8 @@ Concatenating decompositions of two permutations then proves multiplicativity.
 Although a transposition decomposition is not unique, its parity is therefore
 well defined. An alternative definition is the determinant of the permutation
 matrix.
+
+\statementintro{We can now determine all scalar characters of the symmetric group.}
 
 \begin{prop}
 For $n\geq2$, the only nontrivial linear character of $\mathfrak S_n$ is its
@@ -456,6 +549,12 @@ Thus $\widehat{\mathfrak S_n}\simeq\ZZ/2\ZZ$ for $n\geq2$. For $n=1$, both
 $\mathfrak S_1$ and its dual are trivial.
 
 \subsection{The derived subgroup}
+
+The limitation seen for permutations has a general explanation: scalar
+characters cannot detect commutators. We identify the quotient that they do
+detect and use it to measure the information lost when the group is
+noncommutative.
+
 \begin{defn}[Derived subgroup]
 \label{notation-18}\label{notation-19}
 \index{Commutator}\index{Group!derived subgroup}
@@ -466,6 +565,9 @@ The subgroup generated by all commutators,
 \]
 is the \emph{derived subgroup} (or commutator subgroup).
 \end{defn}
+
+\statementintro{The derived subgroup is designed to remove exactly the obstruction to
+commutativity.}
 
 \begin{prop}[Properties of the derived subgroup]
 \label{prop-pte-grpe-derive}
@@ -479,6 +581,9 @@ In particular, inner automorphisms preserve it, proving normality.
 In the quotient, $\ol x\,\ol y\,\ol x^{-1}\ol y^{-1}=1$, so all elements
 commute. Finally, all commutators are trivial exactly when $G$ is abelian.
 \end{proof}
+
+\statementintro{Since complex scalars commute, every character factors through the resulting
+abelian quotient.}
 
 \begin{prop}
 \label{prop-descr-dual-grpe-derive}
@@ -497,6 +602,9 @@ These constructions are inverse homomorphisms. Since $G/D(G)$ is finite
 abelian, Corollary~\ref{cor-thm-isomorphism} gives the final assertion.
 \end{proof}
 
+\statementintro{This factorization also gives a direct count of the scalar characters and
+explains why they cannot form a basis in the nonabelian case.}
+
 \begin{rem}
 The factorization is expressed by the commutative diagram
 \[
@@ -513,6 +621,10 @@ less than $|G|$, so linear characters cannot span $\CC[G]$.
 \label{notation-20}\index{Alternating group}
 The alternating group $\mathfrak A_n=\Ker\epsilon$ is the normal subgroup of
 even permutations.
+
+\statementintro{To identify the derived subgroup of the symmetric group, we first need a
+small generating family for its even permutations.}
+
 \begin{lem}
 For $n\geq3$, the group $\mathfrak A_n$ is generated by $3$-cycles.
 \end{lem}
@@ -523,6 +635,9 @@ product of an even number of these transpositions. Group them into pairs.
 A pair of equal transpositions is the identity; a pair of distinct ones is a
 $3$-cycle.
 \end{proof}
+
+\statementintro{These generators allow us to recover the earlier character calculation from
+the general quotient construction.}
 
 \begin{prop}[The symmetric group]
 For $n\geq3$, $D(\mathfrak S_n)=\mathfrak A_n$ and
@@ -535,6 +650,9 @@ $\tau\sigma\tau^{-1}=\sigma^2$; for instance, exchange two entries of the
 cycle. Then $[\tau,\sigma]=\sigma$. The preceding lemma gives the reverse
 inclusion. The quotient is isomorphic to $\{1,-1\}$ by the sign map.
 \end{proof}
+
+\statementintro{The missing Fourier coordinates require a richer notion of character, which
+will motivate the representation theory developed later.}
 
 \begin{rem}
 To recover Fourier analysis on a noncommutative group, we replace scalar-valued
@@ -551,6 +669,12 @@ now gives a systematic decomposition of every function on $G$.
 
 \subsection{Fourier coefficients and the Fourier transform}
 \label{sect2-coef-fourier-transforme-fourier}
+
+The character basis lets us replace function values by frequency
+coordinates. We distinguish the normalized coefficients of a basis expansion
+from the unnormalized Fourier transform used below, then derive
+reconstruction and energy identities with the corresponding constants.
+
 \begin{defn}[Fourier coefficients]
 \label{notation-21}\index{Fourier coefficient}
 For $f\in\CC[G]$ and $\chi\in\wh G$, define
@@ -560,6 +684,9 @@ For $f\in\CC[G]$ and $\chi\in\wh G$, define
 \]
 This defines a linear map $c:\CC[G]\to\CC[\wh G]$, $f\mapsto c_f$.
 \end{defn}
+
+\statementintro{For convolution and computation, it is convenient to package the same
+information in an unnormalized transform with the following sign convention.}
 
 \begin{defn}[Fourier transform]
 \label{notation-22}
@@ -588,6 +715,9 @@ The coefficient of the trivial character is the sum of the function values.
 \label{fig-decomposition-fourier}
 \end{figure}
 
+\statementintro{Expansion in the character basis gives an explicit formula for recovering
+the original function.}
+
 \begin{prop}[Inversion formula]
 \label{prop-decomposition-serie-fourier}\index{Fourier!inversion}
 For every $f\in\CC[G]$,
@@ -603,6 +733,9 @@ For the second, substitute $c_f(\chi)=\wh f(\chi^{-1})/|G|$ and reindex by
 $\chi\mapsto\chi^{-1}$.
 \end{proof}
 
+\statementintro{The reconstruction formula shows that either choice of Fourier coordinates
+retains all the information in the function.}
+
 \begin{prop}[Fourier isomorphism]
 The maps $c$ and $\Ff$ are vector-space isomorphisms
 $\CC[G]\to\CC[\wh G]$.
@@ -611,6 +744,9 @@ $\CC[G]\to\CC[\wh G]$.
 Inversion gives injectivity. The domain and codomain both have dimension
 $|G|$, so the maps are also surjective.
 \end{proof}
+
+\statementintro{Orthogonality also controls inner products and energy under this change of
+coordinates.}
 
 \begin{prop}[Plancherel's formula]
 \label{prop-formula-floorel}\index{Plancherel's formula}
@@ -629,6 +765,9 @@ eliminates all terms involving distinct characters and gives the first
 identity. The relation between $c_f$ and $\wh f$ gives the second.
 \end{proof}
 
+\statementintro{Keeping track of the normalization makes the geometric meaning of
+Plancherel's formula transparent.}
+
 \begin{rem}[Normalization]
 With the normalized inner products on both $\CC[G]$ and $\CC[\wh G]$,
 Plancherel's formula reads
@@ -642,6 +781,12 @@ transform; see Section~\ref{sect1-link-trans-fourier-R}.
 
 \subsection{The group algebra}
 \label{sect2-algebre-grpe-abelien}
+
+Convolution combines functions in a way that reflects the group law. We
+construct this product and its algebraic properties so that translation,
+multiplication of characters, and Fourier analysis fit into the same
+framework.
+
 \index{Algebra!group algebra}\index{Convolution}
 The pointwise product
 \begin{equation}
@@ -663,12 +808,18 @@ For $f_1,f_2\in\CC[G]$, their convolution is
 \end{equation}
 \end{defn}
 
+\statementintro{Convolution with a function concentrated at one point reveals its direct
+connection with translation.}
+
 \begin{rem}
 Convolution with a Dirac function translates a function:
 $(f*\delta_g)(h)=f(hg^{-1})$.
 For cyclic groups this is circular translation, studied in
 Section~\ref{sect1-tfd-prod-convol}.
 \end{rem}
+
+\statementintro{The elementary properties of convolution make the function space into an
+algebra with an identity element.}
 
 \begin{prop}
 Convolution is bilinear, associative, and commutative, with identity $\delta_1$.
@@ -695,6 +846,9 @@ multiplication of polynomials modulo $X^{16}-1$.
 \label{fig-convolution-intro}
 \end{figure}
 
+\statementintro{Characters interact with this algebra in a particularly simple way: they
+extend uniquely to multiplicative linear functionals.}
+
 \begin{prop}[Extension to the group algebra]
 \label{prop-extension-morphism-grpe-algebra}
 Every homomorphism $\rho:G\to\CC^*$ extends uniquely to a unital
@@ -709,6 +863,9 @@ elements and hence all convolution products. It maps $\delta_1$ to $1$.
 Conversely, a unital algebra homomorphism restricts to a group homomorphism on
 the invertible elements $\delta_g$. The word \emph{unital} excludes the zero
 homomorphism, which cannot take values in $\CC^*$.
+
+\statementintro{Convolution also describes the distribution obtained by combining
+independent random group elements.}
 
 \begin{rem}[Probabilistic interpretation]
 \label{rmk-interpretation-proba}\index{Probability}
@@ -727,6 +884,12 @@ finite-group applications.
 
 \subsection{Convolution and the Fourier transform}
 \label{sect2-convolution-transforme-fourier}
+
+The practical strength of Fourier coordinates is that they turn convolution
+into multiplication. We first establish this property for a single
+character, then assemble the scalar identities into an isomorphism of
+algebras.
+
 \begin{prop}[Fourier evaluation as an algebra homomorphism]
 \label{prop-thm-convol-fourier-grpe-finite}
 For each $\chi\in\wh G$, the map
@@ -737,6 +900,9 @@ extending $\chi$ to $\CC[G]$.
 The extension formula in Proposition~\ref{prop-extension-morphism-grpe-algebra}
 is precisely $\wh f(\chi)=\sum_g f(g)\chi(g)$.
 \end{proof}
+
+\statementintro{Collecting the multiplicative identities for all characters gives the
+convolution theorem in its two normalization conventions.}
 
 \begin{thm}[Convolution theorem]
 \label{thm-convolution-trans-fourier-grpe-abelien}
@@ -760,6 +926,11 @@ of differential equations, and the decoding of error-correcting codes.
 
 \section{Exercises}
 \label{sect1-chap1-exercises}
+
+These exercises use Fourier coordinates to study counting, symmetry, random
+walks, and uncertainty. The first applies the character basis to a
+structured matrix, turning a determinant into a product of scalar
+quantities.
 
 \begin{exo}[Circulant determinant]
 \label{exo-determinant-circulating}\index{Determinant!circulant}
@@ -785,6 +956,9 @@ an FFT. Discuss the numerical limitations of multiplying many eigenvalues.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Rotations provide another example of a noncommutative group whose scalar
+characters reveal very little.}
+
 \begin{exo}[Linear characters of $SO(3)$]
 \label{exo-dual-so3}\index{Rotation}
 Let $SO(3)$ be the group of real orthogonal $3\times3$ matrices of determinant
@@ -801,6 +975,9 @@ As $\alpha$ varies over $[0,\pi]$, show that $\beta$ covers $[0,\pi]$.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Character orthogonality can replace an equation constraint by a sum that is
+easier to manipulate algebraically.}
+
 \begin{exo}[Counting solutions]
 \label{exo-enombrement-solutions}\index{Counting}
 Let $G$ be finite abelian and $\varphi:G^n\to G$ any map. For $h\in G$, let
@@ -810,6 +987,9 @@ $N(h)$ count the tuples satisfying $\varphi(g_1,\ldots,g_n)=h$. Prove that
        \sum_{\chi\in\wh G}\chi\big(\varphi(g_1,\ldots,g_n)\big)\ol{\chi(h)}.
 \]
 \end{exo}
+
+\statementintro{For a subset of a finite group, nontrivial Fourier coefficients measure
+deviations from uniformity.}
 
 \begin{exo}[Indicator functions]
 \label{exo-indicator-functions}\index{Function!indicator}
@@ -836,6 +1016,9 @@ Small nontrivial Fourier coefficients indicate that $A$ has little correlation
 with any nonconstant character. This form of uniform distribution will be
 useful in counting problems and coding theory.
 \end{exo}
+
+\statementintro{The preceding measure of uniformity gives quantitative estimates for
+equations whose variables lie in prescribed subsets.}
 
 \begin{exo}[Equations on a finite abelian group]
 \label{exo-eqn-grpe-abelien-finite}
@@ -869,6 +1052,9 @@ $a\in G$ if
 Exercise~\ref{exo-thm-fermat-finite-body} applies this criterion over a finite
 field to an analogue of Fermat's equation.
 \end{exo}
+
+\statementintro{Translation and modulation jointly characterize the Fourier transform
+through a representation of the Heisenberg group.}
 
 \begin{exo}[The Heisenberg group]
 \label{exo-groupe-heisenberg}\index{Heisenberg group}
@@ -907,6 +1093,9 @@ When is this map invertible?
 \end{enumerate}
 \end{exo}
 
+\statementintro{The following continuous analogue uses Fourier analysis to test when integer
+translates form an orthonormal family.}
+
 \begin{exo}[Fourier analysis and orthogonal translates]
 \label{exo-series-fourier-orthogonalisation}
 Let $f\in L^2(\RR)$ and $\tau_rf=f(\cdot-r)$. Use the convention
@@ -930,6 +1119,9 @@ Show that $\varphi\in L^2(\RR)$ and that its integer translates are orthonormal.
 \end{enumerate}
 The next exercise gives a finite-group counterpart.
 \end{exo}
+
+\statementintro{A parallel construction on finite groups orthogonalizes an orbit by
+adjusting its spectral components.}
 
 \begin{exo}[Orthogonalization on an abelian group]
 \label{exo-orthogonalization-abelian-group}
@@ -963,6 +1155,9 @@ orbit requires $|G|\leq\dim V$.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Plancherel's identity turns spectral information about a probability
+distribution into a bound on its distance from uniformity.}
+
 \begin{exo}[Distance from the uniform distribution]
 \label{exo-repartition-proba}\index{Probability}
 Let $P:G\to[0,1]$ be a probability mass function on a finite abelian group,
@@ -978,6 +1173,9 @@ $\norm{P-U}_2^2$ using the nontrivial Fourier coefficients of $P$.
 \end{enumerate}
 The nontrivial coefficients quantify the departure from uniformity.
 \end{exo}
+
+\statementintro{For a random walk, convolution describes repeated steps and the Fourier
+transform separates their long-term effects.}
 
 \begin{exo}[Random walks]
 \label{exo-marche-aleatoire}\index{Random walk}\index{Markov chain}
@@ -1013,6 +1211,9 @@ asymptotic rate of convergence when that magnitude is less than one.
 \end{figure}
 \end{exo}
 
+\statementintro{The final exercise shows why a nonzero function and its Fourier transform
+cannot both be supported on very small sets.}
+
 \begin{exo}[The discrete uncertainty principle]
 \label{exo-principle-uncertainty-discrete}\index{Uncertainty principle}
 Let $G$ be a finite \emph{abelian} group and $f\in\CC[G]\setminus\{0\}$.
@@ -1047,3 +1248,5 @@ The restriction on simultaneous concentration in space and frequency is also
 useful constructively, for example in the distance bound for BCH codes in
 Proposition~\ref{prop-dist-minimal-code-bch}.
 \end{exo}
+
+\input{chapters-tex/solutions/01-finite-groups}

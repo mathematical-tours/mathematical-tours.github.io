@@ -16,7 +16,14 @@ and \emph{Numerical Recipes}~\cite{nr}. The Python implementations in
 Section~\ref{sect1-listing-fft} accompany the derivations below.
 
 \section{The language of signal processing}
-\label{sect1-language-processing-signal}\label{notation-42}\index{Signal}
+\label{sect1-language-processing-signal}\label{notation-42}
+
+Using the group Fourier transform on sampled data requires a precise
+convention for signs, scaling, and frequency indices. We establish that
+convention here and record the inversion and energy formulas that numerical
+implementations must respect.
+
+\index{Signal}
 A sampled signal is a vector $f=(f[0],\ldots,f[N-1])\in\CC^N$.
 It may come from a continuous signal $\wt f$ by $f[n]=\wt f(t_n)$.
 For equally spaced samples on $[a,b)$,
@@ -41,6 +48,9 @@ with $\gcd(r,N)=1$, permutes the frequency labels by $k\mapsto rk\pmod N$.
 It can also be interpreted as a change of generator of the cyclic group,
 provided the signal coordinates are changed consistently.
 
+\statementintro{The connection with Chapter~1 is exact once the cyclic characters are
+indexed with this sign convention.}
+
 \begin{rem}[Relation to the group Fourier transform]
 For this chapter, index the characters by the negative exponential:
 \begin{equation}
@@ -54,6 +64,9 @@ then $\wh f[k]=\wh{f_1}(\chi_k)$ under the group-transform convention
 we have specified its frequency indexing.
 \end{rem}
 
+\statementintro{Character orthogonality gives reconstruction with the opposite exponential
+sign and a factor of $1/N$.}
+
 \begin{prop}[Inversion]
 \label{prop-tfd-inverse}
 For every $f\in\CC^N$,
@@ -66,9 +79,15 @@ For every $f\in\CC^N$,
 Substitute \eqref{eq-defn-tfd} and use
 $\sum_{k=0}^{N-1}\omega_N^{k(n-m)}=N\delta_{nm}$ for $0\leq n,m<N$.
 \end{proof}
+
+\statementintro{In particular, no information is lost when a vector is replaced by its DFT.}
+
 \begin{cor}
 The DFT is a linear isomorphism of $\CC^N$.
 \end{cor}
+
+\statementintro{The same orthogonality calculation tracks inner products, and hence energy,
+under the transform.}
 
 \begin{prop}[Plancherel identity]
 \label{prop-formula-floorel-tfd}
@@ -91,7 +110,13 @@ complex arithmetic; the Good--Thomas exercise exposes the group-theoretic
 structure behind one important variant.
 
 \subsection{The radix-two algorithm}
-\label{sect2-present-algo-fft}\index{FFT}\index{Divide and conquer}
+\label{sect2-present-algo-fft}
+
+For a power-of-two signal length, splitting even and odd sample indices
+exposes two transforms of half the size. We derive the recursion and show
+how the two results produce every output frequency.
+
+\index{FFT}\index{Divide and conquer}
 Direct evaluation of
 \begin{equation}
 \label{eq-calcul-direct-tfd}
@@ -132,6 +157,9 @@ Using $\omega_N^{-(k+N/2)}=-\omega_N^{-k}$ gives
  \qquad 0\leq k<N/2.
 \end{align}
 The same two shorter transforms therefore produce every output coefficient.
+
+\statementintro{To write the recursive step compactly, we introduce notation for output
+halves and phase multiplication.}
 
 \begin{defn}[Halves and phase multiplication]
 \label{notation-45}\label{notation-46}
@@ -184,6 +212,11 @@ versions expose its memory layout more explicitly.
 
 \subsection{Arithmetic cost}
 \label{sect2-analyze-cost-fft}
+
+The recursive factorization is useful because each level shares work across
+all frequencies. Counting that work makes the $O(N\log N)$ gain precise and
+separates arithmetic complexity from actual running time.
+
 \begin{prop}[FFT complexity]
 If a combine stage costs $KN$ operations and a length-one transform costs
 zero, the recurrence $C(N)=2C(N/2)+KN$ gives $C(N)=KN\log_2N$ for $N=2^p$.
@@ -199,6 +232,12 @@ hardware; a count of complex operations alone does not determine it.
 
 \subsection{Zero padding and other radices}
 \label{sect2-variations-fft}
+
+An inconvenient signal length raises two distinct possibilities: change the
+data by padding, or factor the transform at its original length. We explain
+what padding changes before extending the radix-two construction to other
+radices.
+
 \begin{rem}[What zero padding changes]
 Appending zeros to a length-$N$ vector and taking a length-$M$ DFT evaluates
 the same trigonometric sum $\sum_{n=0}^{N-1}f[n]e^{-\imath n\theta}$ at
@@ -207,6 +246,9 @@ unless the required frequencies coincide. Padding is useful for denser
 frequency sampling and for linear convolution. When the length-$N$ DFT
 itself is required, use an algorithm for that length.
 \end{rem}
+
+\statementintro{Keeping the original transform length instead leads to factorizations based
+on its available integer factors.}
 
 \begin{rem}[Radix four and a general radix]
 \label{rmk-radix-fft}\index{FFT!radix four}
@@ -236,6 +278,11 @@ Exercise~\ref{exo-algo-split-radix} combines radix-two and radix-four splits.
 
 \subsection{The Cooley--Tukey factorization}
 \label{sect2-transfo-cooley-tukey}
+
+A composite transform length can be decomposed even when its factors are not
+coprime. We derive the general Cooley--Tukey step, keeping track of the
+index maps and the phase factors that connect the shorter transforms.
+
 Suppose $N=pq$, without requiring $p$ and $q$ to be prime or coprime.
 Starting again from
 \begin{equation}
@@ -267,7 +314,13 @@ factors (Exercise~\ref{exo-algo-good-thomas}); chirp methods offer another
 route for lengths with inconvenient factorizations.
 
 \subsection{Bit reversal and iterative implementation}
-\label{sect2-impl-concrete}\index{Bit reversal}
+\label{sect2-impl-concrete}
+
+To turn the recursive FFT into an iterative algorithm, we need to understand
+the order in which it visits the data. Binary digits reveal that order and
+explain the bit-reversal permutation used in the implementation.
+
+\index{Bit reversal}
 The recursive DIT algorithm splits even and odd indices at every level.
 For $N=2^p$, following these choices down the recursion tree reads the bits
 of an input index from least to most significant. The resulting leaf order
@@ -312,8 +365,14 @@ behavior of a low-level scalar implementation.
 \end{figure}
 
 \subsection{Decimation in frequency}
-\label{sect2-frequency-decimation}\index{Decimation!frequency}
-DIF splits the output indices by parity. Write $f_g[n]=f[n]$ and
+\label{sect2-frequency-decimation}
+
+The factorization can also begin by separating output frequencies. This
+alternative gives the decimation-in-frequency (DIF) algorithm and changes
+where phase multiplication and reordering occur.
+
+\index{Decimation!frequency}
+Write $f_g[n]=f[n]$ and
 $f_d[n]=f[n+N/2]$ for $0\leq n<N/2$. Then
 \[
  \wh f[k]=\sum_{n=0}^{N/2-1}\bigl(f_g[n]+(-1)^kf_d[n]\bigr)\omega_N^{-nk}.
@@ -343,7 +402,13 @@ implementation and the data layout, not solely on this distinction.
 For broader surveys see Burrus~\cite{burrus-fft}.
 
 \subsection{Matrix form}
-\label{sect1-matrix-writing}\index{Fourier matrix}\index{Vandermonde matrix}
+\label{sect1-matrix-writing}
+
+Matrix notation exposes the FFT as a factorization of a structured linear
+map. It also connects the DFT to polynomial evaluation, which will be useful
+for fast multiplication.
+
+\index{Fourier matrix}\index{Vandermonde matrix}
 The matrix of the DFT is
 \begin{equation}
 \label{eq-defn-matrix-fourier}
@@ -378,6 +443,11 @@ or signals are extended by zero.
 
 \subsection{Circular convolution}
 \label{sect1-convolution-circular}
+
+On a finite cyclic grid, translating a signal wraps indices around the
+boundary. Circular convolution is the product compatible with this geometry
+and with the length-$N$ DFT.
+
 \begin{defn}[Circular convolution]
 For $f,g\in\CC^N$, define
 \begin{equation}
@@ -393,6 +463,9 @@ algebra, or directly by changing summation indices. Without modulo notation,
              +\sum_{k=n+1}^{N-1}f[k]g[n-k+N].
 \]
 Both sums contain a difference of indices, not a product.
+
+\statementintro{The group convolution theorem now takes a particularly simple form in array
+notation.}
 
 \begin{prop}[DFT convolution theorem]
 \label{prop-convol-tfd}
@@ -418,6 +491,11 @@ This is a boundary model; it need not agree with extending the signal by zero.
 
 \subsection{Computing convolution with an FFT}
 \label{sect1-convolution-calcul-fft}
+
+The convolution theorem gives a practical algorithm by moving the expensive
+operation into frequency coordinates. Its cost depends on whether the filter
+transform can be reused and how long the filter is.
+
 The theorem and inversion give
 \[
  f*g=\Ff^{-1}(\wh f\cdot\wh g).
@@ -429,7 +507,13 @@ For a very short filter, direct convolution may still be preferable because
 it avoids the overhead of the transforms.
 
 \subsection{Linear convolution and zero padding}
-\label{sect1-convolution-acyclic}\index{Convolution!linear}
+\label{sect1-convolution-acyclic}
+
+Signals extended by zero require a convolution without wraparound. We
+determine the output support and the padding needed to compute this linear
+convolution with a circular FFT.
+
+\index{Convolution!linear}
 For finitely supported sequences $f_1,f_2:\ZZ\to\CC$, define
 \begin{equation}
 \label{eq-convolution-acyclic}
@@ -486,6 +570,11 @@ separate into one-dimensional transforms.
 
 \subsection{The two-dimensional DFT}
 \label{sect2-transforme-discrete-2d}
+
+For images and other rectangular arrays, a frequency has one coordinate for
+each axis. We define the two-dimensional transform and recover inversion by
+applying one-dimensional orthogonality in both directions.
+
 \begin{defn}[Two-dimensional DFT]
 For $f\in\CC^{N\times P}$, define
 \begin{equation}
@@ -498,6 +587,9 @@ Here $0\leq k<N$ and $0\leq l<P$.
 The characters of $\ZZ/N\ZZ\times\ZZ/P\ZZ$ are
 $\chi_{k,l}(i,j)=\omega_N^{-ik}\omega_P^{-jl}$, so the formula is the
 corresponding group Fourier transform.
+
+\statementintro{Applying the one-dimensional inversion formula in each coordinate determines
+the two-dimensional normalization.}
 
 \begin{prop}[Two-dimensional inversion]
 For $0\leq i<N$ and $0\leq j<P$,
@@ -531,6 +623,11 @@ The complex coefficient also carries phase, which a magnitude display omits.
 
 \subsection{Two-dimensional convolution}
 \label{sect2-convolution-2d}
+
+Filtering an array combines translations along both axes. With periodic
+boundary conditions, the two-dimensional DFT again replaces this operation
+by pointwise multiplication.
+
 \begin{defn}[Circular convolution of arrays]
 For $f,g\in\CC^{N\times P}$,
 \begin{equation}
@@ -540,6 +637,10 @@ For $f,g\in\CC^{N\times P}$,
 \end{equation}
 \end{defn}
 This uses periodic boundaries along both axes.
+
+\statementintro{The corresponding convolution theorem provides the basis of FFT filtering
+for images.}
+
 \begin{prop}[Two-dimensional convolution theorem]
 \label{prop-convol-tfd-2d}
 \begin{equation}
@@ -575,6 +676,11 @@ It also reveals the choices involved in defining fractional powers.
 
 \subsection{Symmetry identities}
 \label{sect2-prop-symmetry}
+
+Reversal and complex conjugation organize several useful DFT identities. We
+define reversal on the cyclic grid, split a signal by symmetry, and use
+these operations to describe repeated transforms and real-valued data.
+
 \begin{defn}[Cyclic reversal]
 \label{defn-symmetry-operator}\label{notation-48}
 For $f\in\CC^N$, define
@@ -585,11 +691,18 @@ For $f\in\CC^N$, define
 Thus $f^\sharp=(f[0],f[N-1],\ldots,f[1])$.
 A vector is symmetric if $f^\sharp=f$ and antisymmetric if $f^\sharp=-f$.
 \end{defn}
+
+\statementintro{Averaging a signal with its reversal isolates its symmetric component;
+taking their difference isolates the antisymmetric component.}
+
 \begin{defn}[Symmetric and antisymmetric parts]
 \label{defn-parts-sym-anti-sym}\label{notation-49}
 Set $\psym f=(f+f^\sharp)/2$ and $\pasym f=(f-f^\sharp)/2$.
 Then $f=\psym f+\pasym f$ is an orthogonal decomposition.
 \end{defn}
+
+\statementintro{These components behave predictably under the DFT, as the following
+identities show.}
 
 \begin{prop}[Symmetry of the DFT]
 For every $f\in\CC^N$,
@@ -612,6 +725,12 @@ or antisymmetry proves the final claims.
 
 \subsection{Eigenvectors and fractional powers}
 \label{sect2-eigenvalues-tfd}
+
+The identity obtained after four normalized transforms restricts the
+possible eigenvalues to four phases. We use this finite spectrum to
+construct explicit spectral components and to explain the choices involved
+in fractional powers.
+
 Write $U=N^{-1/2}\Ff$ for the unitary DFT. Then $U^2f=f^\sharp$ and
 $U^4=I$. Since $U$ is normal, it has an orthonormal eigenbasis, with all
 eigenvalues in $\{1,-1,\imath,-\imath\}$.
@@ -619,6 +738,9 @@ Some eigenspaces can be zero-dimensional for small $N$.
 The unnormalized transform has eigenvalues among
 $\{\sqrt N,-\sqrt N,\imath\sqrt N,-\imath\sqrt N\}$ and satisfies
 $\Ff^4=N^2I$.
+
+\statementintro{The symmetry decomposition gives explicit formulas for extracting each
+possible eigenvalue component from a vector.}
 
 \begin{thmdefn}[Explicit spectral components]
 For $f\in\CC^N$, define
@@ -695,6 +817,11 @@ For further background see Cariolaro~\cite{cariolaro-partial-fourier}.
 \section{Exercises}
 \label{sect1-chap2-exercises}
 
+These exercises develop alternative FFT factorizations, applications of
+convolution, and the spectral structure of the transform. The first makes
+the indexing behind an iterative FFT explicit through a recursion on binary
+digits.
+
 \begin{exo}[Bit reversal]
 \label{exo-bit-reversal}\index{Bit reversal}
 Define index vectors recursively by
@@ -710,6 +837,9 @@ $\wt f_g=\widetilde{f^0}$ and $\wt f_d=\widetilde{f^1}$.
 copying cost with generating $u^{(n)}$ directly by the index-vector recursion.
 \end{enumerate}
 \end{exo}
+
+\statementintro{For coprime factors, the Chinese remainder theorem gives a factorization in
+which permutations replace the usual twiddle factors.}
 
 \begin{exo}[The Good--Thomas algorithm]
 \label{exo-algo-good-thomas}\index{Good--Thomas algorithm}
@@ -731,6 +861,9 @@ other algorithms for inconvenient lengths; distinguish arithmetic savings
 from the cost of permutations.
 \end{enumerate}
 \end{exo}
+
+\statementintro{Combining radix-two and radix-four decompositions reduces the arithmetic
+count in a more flexible recursion.}
 
 \begin{exo}[The split-radix algorithm]
 \label{exo-algo-split-radix}\index{Split-radix FFT}
@@ -762,6 +895,9 @@ claim or a guarantee about running time. For further variants see
 Vetterli and Nussbaumer~\cite{vetterli-split-radix}.
 \end{exo}
 
+\statementintro{When a filter is short compared with the signal, processing overlapping
+output blocks can reduce the convolution cost.}
+
 \begin{exo}[Overlap-add convolution]
 \label{exo-calcul-convolution-fft}\index{Convolution!overlap-add}
 Let $f$ and $g$ have lengths $N$ and $M$, with $M\ll N$, and extend both
@@ -779,6 +915,9 @@ Show that choosing $L=O(M)$ gives total cost $O(N\log M)$ for $M\geq2$.
 Implement the method and compare its output with direct linear convolution.
 \end{enumerate}
 \end{exo}
+
+\statementintro{Circulant matrices provide the linear-algebraic form of circular convolution
+and its Fourier diagonalization.}
 
 \begin{exo}[Circulant matrices]
 \label{exo-circulating-matrix}\index{Circulant matrix}
@@ -800,6 +939,9 @@ Hence show that $Cx=\Omega_N^{-1}((\Omega_Nc)\cdot(\Omega_Nx))$.
 Recover the diagonalization from the convolution theorem.
 \end{enumerate}
 \end{exo}
+
+\statementintro{Padding the spectrum, with the frequency labels and scaling preserved,
+produces samples of a trigonometric interpolant.}
 
 \begin{exo}[Trigonometric interpolation]
 \label{exo-interpolation-trigonometric}\index{Trigonometric interpolation}
@@ -826,6 +968,9 @@ coefficient that arises at even lengths.
 \label{fig-fft-interpolation}
 \end{figure}
 \end{exo}
+
+\statementintro{A cosine change of variables connects Fourier computation with polynomial
+interpolation at Chebyshev nodes.}
 
 \begin{exo}[Chebyshev interpolation]
 \label{exo-interpolation-chebyshev}\index{Chebyshev polynomials}
@@ -874,6 +1019,9 @@ Chebyshev expansions are also useful in spectral methods for differential
 equations; see Boyd~\cite{boyd-spectral}.
 \end{exo}
 
+\statementintro{Fourier multipliers extend integer-order differentiation to fractional
+orders once a phase convention is fixed.}
+
 \begin{exo}[Fractional differentiation]
 \label{exo-derivation-fractionionnaire}\index{Fractional differentiation}
 Let $f$ be a Schwartz function on $\RR$, with
@@ -897,6 +1045,9 @@ approximate differentiation on $\RR$.
 \label{fig-derivation-fractionionnaire}
 \end{figure}
 \end{exo}
+
+\statementintro{A related spectral construction defines continuous families of powers of the
+DFT, with an explicit choice of eigenvalue phases.}
 
 \begin{exo}[Intermediate Fourier transforms]
 \label{exo-transforme-partial-fourier}\index{Fractional Fourier transform!discrete}
@@ -936,6 +1087,9 @@ would return $N$ times that input.
 \label{fig-transforme-partial-fourier}
 \end{figure}
 \end{exo}
+
+\statementintro{A second operator commuting with the DFT helps choose a reproducible
+eigenbasis inside its repeated eigenspaces.}
 
 \begin{exo}[A structured eigenbasis of the DFT]
 \label{exo-diagonalization-tfd}\label{notation-50}\label{notation-51}
@@ -990,6 +1144,9 @@ inherent in choosing an additional commuting operator and an ordering.
 \end{figure}
 \end{exo}
 
+\statementintro{The final exercise uses a flat Fourier magnitude to construct orthonormal
+families of cyclic translates.}
+
 \begin{exo}[Orthogonalizing cyclic translates]
 \label{exo-orthogonalization-fourier}\index{Orthogonalization}
 On $G=\ZZ/n\ZZ$, use the normalized inner product
@@ -1032,3 +1189,5 @@ in oscillation or a smoothing operation.
 \label{fig-orthogonalisation-fourier}
 \end{figure}
 \end{exo}
+
+\input{chapters-tex/solutions/03-dft}

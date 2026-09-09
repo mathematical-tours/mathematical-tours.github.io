@@ -7,6 +7,11 @@ and independent reference calculations make it possible to understand both
 the algorithms and the limits of floating-point arithmetic.}
 
 \section*{Using the programs}
+
+The printed code is intended to be run alongside the mathematical
+derivations. This section explains how to use the accompanying modules and
+check a first transform against an independent implementation.
+
 The accompanying \texttt{listings/} directory contains ordinary Python
 modules with their imports and shared helpers. The printed functions are
 extracted directly from these files; functions in the same module can call
@@ -37,6 +42,11 @@ independent numerical or exact references.
 
 \section{Fast Walsh transform}
 \label{sect1-listing-fwt}
+
+The Walsh recursion provides a compact example of a transform built entirely
+from additions and subtractions. The implementation makes the tensor
+factorization visible and keeps the inverse normalization explicit.
+
 The function \texttt{fwt}, in \texttt{transforms.py}, follows the tensor
 factorization of Section~\ref{sect2-fwt}. Its length must be a positive
 power of two. The transform satisfies $H_N^2=NI$, so applying the same
@@ -50,6 +60,11 @@ uses $O(N\log N)$ arithmetic and creates temporary arrays at each level.
 
 \section{Fast Hartley transform}
 \label{sect1-listing-fht}
+
+The fast Hartley transform shows how paired frequencies allow a real-kernel
+transform to be evaluated recursively. The accompanying convolution routine
+demonstrates how those coefficients can be used directly in a calculation.
+
 The module \texttt{hartley.py} implements the real-kernel transform
 of Section~\ref{sect2-algo-de-calcul-hartley}. The radix-two function
 \texttt{fht} calls \texttt{hartley\_twiddle}, which combines the paired
@@ -82,6 +97,12 @@ common length at least the sum of their lengths minus one.
 
 \section{Fast Fourier transforms}
 \label{sect1-listing-fft}
+
+Different FFT factorizations compute the same transform but organize the
+data differently. These implementations place recursive, time-decimation,
+and frequency-decimation algorithms side by side so their indexing can be
+compared.
+
 The module \texttt{fft\_algorithms.py} provides three radix-two FFTs:
 \texttt{fft\_recursive} follows the time-decimation identity directly;
 \texttt{fft\_dit} iterates butterflies after bit reversal;
@@ -134,6 +155,11 @@ operation is needed.
 
 \section{Integer multiplication by FFT}
 \label{sect1-listing-mult-integers}
+
+FFT multiplication connects an approximate numerical transform with an exact
+integer output. The code separates digit conversion, convolution, rounding,
+and carry propagation, then checks the final product independently.
+
 The module \texttt{polynomials.py} stores the base-$b$ digits of a
 nonnegative integer from least to most significant. The conversion
 functions use exact Python integers, whose precision is not fixed.
@@ -175,6 +201,12 @@ built-in large-integer multiplication.
 
 \section{The Dirichlet Poisson equation}
 \label{sect1-listing-fish}
+
+The Poisson solver turns a boundary-value problem into a transform
+calculation on an extended grid. Its interface makes the source, boundary
+values, and grid spacing explicit so that the numerical result can be
+checked against a manufactured solution.
+
 The routines in \texttt{pde.py} implement the finite-difference problem
 of Section~\ref{sect2-resol-eq-Poisson}. The full source and boundary
 arrays share a grid; only the boundary entries of the second array are
@@ -216,6 +248,12 @@ verification device, not information used in the interior solve.
 
 \section{The periodic heat equation}
 \label{sect1-listing-heat}
+
+The periodic heat equation is especially simple in Fourier coordinates
+because each mode evolves independently. The program evaluates this
+evolution directly at selected times, making the effect of diffusion visible
+without a time-stepping loop.
+
 The function \texttt{heat\_periodic}, also in \texttt{pde.py}, evolves
 a periodic trigonometric interpolant for
 $\partial_t u=\kappa\,\partial_{xx}u$. On a period $L$, each Fourier

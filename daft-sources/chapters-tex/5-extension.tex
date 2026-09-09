@@ -16,7 +16,12 @@ used to compute convolutions. It is an alternative representation of the
 same information, rather than a uniformly faster replacement for a real-input
 FFT. Bracewell~\cite{bracewell} develops this viewpoint in detail.
 
-\subsection{Definition and first properties}
+\subsection{Hartley coefficients and inversion}
+
+Combining sine and cosine in one real kernel gives a transform that remains
+invertible. We define it, establish its normalization, and show how its
+symmetric and antisymmetric parts retain the complex Fourier information.
+
 \begin{defn}[Discrete Hartley transform]
 \label{notation-58}\label{notation-59}
 For $f\in\CC^N$, define
@@ -30,6 +35,9 @@ The map is complex-linear, and maps $\RR^N$ into $\RR^N$.
 \end{defn}
 Its continuous counterpart, with frequency measured in cycles per unit,
 is $\Hh f(s)=\int_\RR f(x)\cas(2\pi sx)\d x$ for $f\in L^1(\RR)$.
+
+\statementintro{Orthogonality of the real kernel makes reconstruction possible by applying
+the same transform again.}
 
 \begin{prop}[Inversion]
 \label{prop-ptes-transfo-hartley}
@@ -54,6 +62,9 @@ The sine sum is zero, and the cosine sum is $N$ if $n=n'$ and zero
 otherwise. The matrix of $\Hh$ is real and symmetric, so this identity
 proves both assertions.
 \end{proof}
+
+\statementintro{For real input, symmetry identifies exactly how to pass between Hartley
+coefficients and complex DFT coefficients.}
 
 \begin{prop}[Relation to the DFT]
 For real $f$, with the negative exponential in the DFT,
@@ -83,6 +94,11 @@ factor-of-two advantage or improvement in rounding error.
 
 \subsection{Fast Hartley transform}
 \label{sect2-algo-de-calcul-hartley}
+
+The Hartley kernel admits a divide-and-conquer algorithm analogous to the
+FFT. Its addition formula explains how shorter transforms and reversed
+frequency indices combine into the full result.
+
 \index{Algorithm!FHT}\index{FHT}
 Let $N=2M$, $f^0[n]=f[2n]$, and $f^1[n]=f[2n+1]$. Splitting the sum gives
 \begin{equation}
@@ -129,6 +145,11 @@ its Fourier spectrum; their difference is the negative imaginary part.
 
 \subsection{Convolution by Hartley transforms}
 \label{sect2-usage-hartley-convolution}
+
+Hartley coefficients can compute convolution while keeping real data in real
+arithmetic. The product formula couples opposite frequencies, reflecting how
+the transform stores cosine and sine contributions.
+
 \begin{prop}[Hartley convolution formula]
 \index{Convolution!by Hartley transform}
 For the unnormalized circular convolution of $a,b\in\RR^N$, let
@@ -154,7 +175,9 @@ Section~\ref{sect1-listing-fht}, applies this formula and divides the
 final Hartley transform by $N$.
 
 \paragraph{Self-convolution and autocorrelation.}
-These are different operations. For $c=\Hh(a)$,
+Self-convolution and autocorrelation couple opposite frequencies
+differently. Comparing their Hartley formulas prevents confusing
+the two operations. For $c=\Hh(a)$,
 \[
  \Hh(a*a)[k]=c[k]c[-k]+\tfrac12(c[k]^2-c[-k]^2),
 \]
@@ -173,8 +196,13 @@ transform, even when the resulting function is rational.
 See~\cite{wich,demengel,cartan-holo} for analytic background and
 \cite{knuth-concrete,generatingfunctionology} for generating-function methods.
 
-\subsection{Definition and basic properties}
+\subsection{The Z transform and its calculus}
 \label{sect2-defn-trans-Z}
+
+A Z transform records both a Laurent series and the region where it
+represents a function. We make this convergence information explicit before
+deriving the rules for delays, convolution, and coefficient extraction.
+
 \begin{defn}[Bilateral Z transform]
 \label{notation-60}\index{Z transform}\index{Laurent series}
 For a sequence $f\in\CC^\ZZ$, define
@@ -192,6 +220,9 @@ for example, $f[n]=(1+|n|)^{-2}$ gives absolute convergence only on $|z|=1$.
 A finite sequence has a Laurent-polynomial transform and no convergence
 issue for $z\ne0$.
 
+\statementintro{Geometric sequences illustrate why a rational expression must be accompanied
+by its region of convergence.}
+
 \begin{exmp}
 The causal constant sequence $u[n]=1$ for $n\geq0$ and zero otherwise has
 \[
@@ -205,6 +236,9 @@ and $b^n$ for $n<0$ has transform
 \]
 Both formulas follow by summing geometric series in their stated regions.
 \end{exmp}
+
+\statementintro{Absolute convergence justifies the algebraic manipulations that make the Z
+transform useful for filtering.}
 
 \begin{prop}[Z-transform rules]
 \label{prop-prte-z-trans}
@@ -237,6 +271,11 @@ $|z|=\rho$ contained in the annulus, oriented counterclockwise,
 
 \subsection{Recursive filters}
 \label{sect2-application-trans-z-filters}
+
+A recursive filter computes each output from a few inputs and earlier
+outputs. Its Z transform turns the recurrence into a rational transfer
+function, whose poles reveal whether the zero-state response is stable.
+
 \begin{defn}[Causal recursive filter]
 \label{notation-61}\index{Filter!recursive}
 Given coefficients $a_0,\ldots,a_k$ and $b_1,\ldots,b_l$, define
@@ -261,6 +300,9 @@ For a causal impulse response, its Laurent expansion is taken about
 infinity. Nonzero initial conditions add a separate response; they cannot
 be dropped when transforming a recurrence.
 
+\statementintro{A first-order recurrence shows how causality and the convergence region
+select the impulse response.}
+
 \begin{exmp}[A first-order filter]
 \begin{equation}
 \label{eq-recurrence-1st-order}
@@ -275,6 +317,9 @@ That sequence is absolutely summable precisely when $|\alpha|>1$.
 The rational expression without its region of convergence does not
 identify the impulse response.
 \end{exmp}
+
+\statementintro{The pole criterion generalizes this example to every causal rational filter
+after cancellation of common factors.}
 
 \begin{prop}[Poles and stability]
 \label{prop-poles-stability}\index{Pole}\index{Stability}
@@ -299,6 +344,11 @@ unstable pole algebraically can hide an unstable internal mode in a
 particular recurrence with nonzero initial state.
 
 \subsection{Design by poles and zeros}
+
+Pole and zero locations provide direct control over a recursive filter's
+frequency response. We illustrate this design principle with a notch filter,
+balancing frequency suppression against stability.
+
 A notch filter suppresses selected frequencies by placing zeros on the
 unit circle. For $\theta=\pi/4$ and $r=0.9$, consider
 \[
@@ -365,6 +415,9 @@ voltage law gives
 \label{fig-circuit-rlc}
 \end{figure}
 
+\statementintro{The Laplace transform plays the continuous-time role of the Z transform and
+will convert this differential equation into a transfer function.}
+
 \begin{defn}[Laplace transform]
 \label{notation-62}\index{Laplace transform}
 For a causal function $f$, its Laplace transform is
@@ -400,8 +453,19 @@ for an integrator.
 
 \section{Vector Z transform and the chirp algorithm}
 \label{sect1-trans-Z-vector}
+
+The usual DFT samples a spectrum at equally spaced points around the unit
+circle. The vector Z transform allows a more flexible geometric progression
+of evaluation points, and the chirp factorization makes these evaluations
+fast by reducing them to convolution.
+
 \subsection{A fast evaluation algorithm}
 \label{sect2-algo-trans-z}
+
+The essential step is to rewrite the product of input and output indices as
+a difference of squares. After defining the finite evaluation problem, we
+use this identity to derive a convolution that an FFT can compute.
+
 \begin{defn}[Vector Z transform]
 \label{notation-63}\index{Z transform!vector}
 For $z\in\CC\setminus\{0\}$ and $f\in\CC^N$, define
@@ -450,6 +514,11 @@ cancellation can limit the accuracy of a direct chirp implementation.
 
 \subsection{Computing a DFT of arbitrary length}
 \label{sect2-applications-z-transform-tfd}
+
+The chirp factorization supplies an FFT method even when the requested
+length has no useful small factors. Specializing the evaluation points to
+roots of unity gives Bluestein's algorithm without changing the desired DFT.
+
 Choosing $z=e^{2\pi\imath/N}$ gives $\Gg_z=\Ff_N$. The chirp construction
 therefore computes a DFT even when $N$ is prime. With $Q$ the smallest
 power of two satisfying $Q\geq2N-1$, it needs two forward FFTs and one
@@ -464,8 +533,19 @@ length-$N$ DFT.
 
 \section{Scaled-frequency Fourier transforms}
 \label{sect1-transforme-fourier-fractionionnaire}
-\subsection{Definition and computation}
+
+Some applications need a detailed spectrum only within a selected frequency
+interval. We use the chirp algorithm to vary the sampling grid, then examine
+why denser evaluation does not remove the leakage caused by a finite
+observation window.
+
+\subsection{Changing the frequency grid}
 \label{sect2-trans-frac}
+
+A single scale parameter changes the spacing of the evaluated frequencies.
+We define this finite transform and distinguish its invertibility properties
+from those of unitary fractional powers of the DFT.
+
 For a real parameter $\alpha$, define
 \[
  G(f,\alpha)[k]=\sum_{n=0}^{N-1}f[n]e^{-2\pi\imath\alpha nk/N},
@@ -494,8 +574,13 @@ flexible spectral evaluation.
 
 \subsection{Finite records and spectral leakage}
 \label{sect2-applications-trans-frac-periodicite}
+
+The spectrum of a finite record depends on the observation window as well as
+on the underlying frequencies. A single sinusoid makes this leakage explicit
+and shows what a finer frequency grid can reveal.
+
 \index{Spectral leakage}
-A finite observation window spreads the spectrum of a sinusoid. Consider
+Consider
 $f[n]=e^{2\pi\imath\beta n/N}$ for $0\leq n<N$, and evaluate its
 finite-record spectrum at any real frequency $\nu$:
 \[
@@ -516,6 +601,10 @@ not a failure of the DFT to represent the finite vector.
 \end{figure}
 
 \paragraph{Zooming around a spectral peak.}
+
+A local spectral zoom evaluates only the neighborhood of interest, allowing
+finer sampling without a large transform over the full frequency range.
+
 To evaluate $S(b+k\delta)$ for $0\leq k<M$, modulate the data and use
 an $M$-output chirp transform:
 \[
@@ -530,6 +619,10 @@ underlying component frequency exactly. Finer evaluation does not remove
 noise, window effects, or sampling aliases.
 
 \paragraph{Adjusting the observation length.}
+
+Changing the observation window alters the spectrum itself, so it offers a
+different way to control leakage from a known pure tone.
+
 For a pure tone with known $1<\beta<N/2$, set $b=\lfloor\beta\rfloor$,
 $L=Nb/\beta$, and let $r$ be the nearest integer to $L$. Retain the first
 $r\leq N$ samples and evaluate
@@ -561,6 +654,10 @@ using fewer data and a frequency grid tailored to that tone.
 \section{Exercises}
 \label{sect1-ext-trans-fourier-exercises}
 
+These exercises extend real-kernel transforms, recursive filtering, and
+flexible spectral evaluation. The first returns to spectral projectors to
+define powers of the Hartley transform with a consistent phase choice.
+
 \begin{exo}[Eigenvectors and powers of the Hartley transform]
 \label{exo-eigenvectors-transfo-hartley}
 Find the possible eigenvalues of $\Hh$ and construct the orthogonal
@@ -577,6 +674,9 @@ Section~\ref{sect2-eigenvalues-tfd}.
 \label{fig-transfo-hartley-interm}
 \end{figure}
 \end{exo}
+
+\statementintro{Changing the phase of the real kernel gives a different family, whose
+invertibility must be checked separately.}
 
 \begin{exo}[Generalized Hartley transform]
 \label{exo-transfo-hartley-generalisee}
@@ -606,6 +706,9 @@ fractional powers in the preceding exercise.
 \end{figure}
 \end{exo}
 
+\statementintro{Hartley coefficients can also represent the same trigonometric interpolant
+as the DFT, using only real basis functions.}
+
 \begin{exo}[Interpolation by the Hartley transform]
 \label{exo-interpolation-transfo-hartley}
 Let $N=2K+1$ and $f\in\RR^N$. Construct the trigonometric polynomial with
@@ -615,6 +718,9 @@ frequency padding evaluates it on a finer uniform grid. Prove that it is
 the same interpolant as in Exercise~\ref{exo-interpolation-trigonometric},
 and specify the normalization after padding.
 \end{exo}
+
+\statementintro{A tensor-product construction extends the Hartley transform to images while
+preserving separability.}
 
 \begin{exo}[A separable two-dimensional Hartley transform]
 \label{exo-transfo-hartley-2d}
@@ -627,6 +733,9 @@ Prove $\Hh_2^2=N_1N_2\Id$ and give an algorithm based on row and column
 transforms. This tensor-product convention uses a product of two
 $\cas$ functions, not $\cas$ of the sum of the two phases.
 \end{exo}
+
+\statementintro{The sine and cosine formulas can be expressed algebraically, allowing exact
+Hartley transforms over suitable finite fields and rings.}
 
 \begin{exo}[Hartley transforms over finite fields]
 \label{exo-transfo-hartley-corps-finis}
@@ -643,6 +752,9 @@ $N$ are units and $\zeta$ is a principal $N$th root of unity.
 Implement an exact example in $\FF_5[X]/(X^4+3)$ with $N=16$ and $\iota=2$.
 The finite-field constructions are developed in the next chapter.
 \end{exo}
+
+\statementintro{Toeplitz matrices expose the convolution hidden in a chirp transform and
+explain its embedding into a circulant matrix.}
 
 \begin{exo}[Chirp transforms and Toeplitz matrices]
 \label{exo-chirp-transform-toeplitz}
@@ -665,6 +777,9 @@ and $M$ output values.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Different quadrature rules for a continuous integrator produce different
+digital recurrences and transfer functions.}
+
 \begin{exo}[Quadrature methods as recursive filters]
 \label{exo-meth-quadratures-recursive-filter}
 For a continuous input, consider the integrator
@@ -683,6 +798,9 @@ and Simpson's recurrence over two steps. Determine the corresponding
 zero-state rational digital transfer functions. Explain the initialization
 needed to approximate the integral from $0$, and identify the poles.
 \end{exo}
+
+\statementintro{A causal pass followed by an anticausal pass can implement spline
+prefiltering, provided the endpoint conditions are initialized correctly.}
 
 \begin{exo}[Cubic spline prefiltering by recursions]
 \label{exo-calcul-spline-iir}
@@ -706,6 +824,9 @@ filtering interpretation.
 \end{enumerate}
 \end{exo}
 
+\statementintro{For a prime transform length, multiplicative indexing provides another
+reduction to circular convolution.}
+
 \begin{exo}[Rader's prime-length FFT]
 \label{exo-chirp-transform-finis-corps}
 Let $p$ be prime, $g$ a generator of $\FF_p^*$, and
@@ -718,6 +839,9 @@ Interpret this as a circular convolution on $\ZZ/(p-1)\ZZ$, specify its
 inputs and the output permutation, and implement the algorithm. Keep the
 zero-frequency coefficient separate.
 \end{exo}
+
+\statementintro{The chirp transform can evaluate a quadrature approximation on a chosen
+physical frequency grid, with the phases and weights made explicit.}
 
 \begin{exo}[Fourier-integral quadrature on a flexible frequency grid]
 \label{exo-calcul-approaches-transfo-frac}
@@ -738,6 +862,9 @@ physical scaling and phase factors included.
 \end{enumerate}
 \end{exo}
 
+\statementintro{Applying the scaled-frequency transform along each coordinate extends
+spectral zooming to rectangular images.}
+
 \begin{exo}[Scaled-frequency transforms of an image]
 \label{exo-transforme-fourier-fractionionnaire-2d}
 Extend $G(f,\alpha)$ to rectangular two-dimensional arrays by tensor
@@ -751,3 +878,5 @@ Test it on a disk indicator, displaying the magnitude of the complex output.
 \label{fig-transforme-fourier-fractionionnaire-2d}
 \end{figure}
 \end{exo}
+
+\input{chapters-tex/solutions/05-related-transforms}
