@@ -150,7 +150,7 @@ chapters:
       <p class="format-note">Free to read · Full PDF: {{ page.book_pdf_mb }} MB</p>
     </div>
     <figure class="cover">
-      <a href="{{ page.book_pdf | relative_url }}" aria-label="Open the complete book PDF"><img src="{{ '/img/foundations-cover.webp' | relative_url }}" alt="Cover of Mathematical Foundations of Data Sciences by Gabriel Peyré, with the original wave illustration" width="849" height="1200" fetchpriority="high"></a>
+      <a href="{{ page.book_pdf | relative_url }}" aria-label="Open the complete book PDF"><img src="{{ '/img/foundations-cover.webp' | relative_url }}" alt="Cover of Mathematical Foundations of Data Sciences by Gabriel Peyré, with a landscape painting by Louis Peyré" width="849" height="1200" fetchpriority="high"></a>
       <figcaption>The complete book<span>PDF edition · {{ page.book_pages }} pages</span></figcaption>
     </figure>
   </section>
@@ -161,10 +161,10 @@ chapters:
     <div class="fact"><strong>{{ page.book_pages }}</strong><span>pages in the complete PDF</span></div>
   </div>
 
-  <section class="chapters wrap" id="chapters" aria-labelledby="chapters-title">
+  <section class="chapters foundations-chapters wrap" id="chapters" aria-labelledby="chapters-title">
     <div class="section-heading">
       <div><p class="eyebrow">Contents</p><h2 id="chapters-title">Read chapter by chapter</h2></div>
-      <p>Follow the book in order or go straight to a topic. Every chapter is available online and as a separate PDF.</p>
+      <p>Follow the book in order or go straight to a topic. Each preview opens a visual example in the online chapter. Separate PDFs are available alongside.</p>
     </div>
     <div class="chapter-tools" hidden>
       <div class="field"><label for="chapter-search">Find a chapter</label><input type="search" id="chapter-search" placeholder="Try wavelets, sparsity, or learning" autocomplete="off" aria-controls="chapter-catalogue"></div>
@@ -180,9 +180,10 @@ chapters:
           {% for chapter in group_chapters %}
           {% assign online_path = '/book/interactive/' | append: chapter.slug | append: '/' %}
           {% assign pdf_path = '/book-sources/chapters-pdf/' | append: chapter.slug | append: '.pdf' %}
+          {% assign preview = site.data.foundations_chapter_previews[chapter.slug] %}
           <li data-chapter="{{ chapter.slug }}" data-topic="{{ group.id }}" data-search="{{ chapter.number }} {{ chapter.title | escape }} {{ chapter.summary | escape }} {{ chapter.slug }}">
-            <span class="chapter-number" aria-hidden="true">{% if chapter.number < 10 %}0{% endif %}{{ chapter.number }}</span>
-            <div><h4 class="chapter-title"><a href="{{ online_path | relative_url }}">{{ chapter.title | escape }}</a></h4><p class="chapter-description">{{ chapter.summary }}</p></div>
+            <a class="chapter-visual" href="{{ preview.online | relative_url }}" aria-label="Explore {{ preview.label | escape }} in chapter {{ chapter.number }}: {{ chapter.title | escape }}"><img src="{{ preview.image | relative_url }}" alt="{{ preview.alt | escape }}" width="{{ preview.width }}" height="{{ preview.height }}" loading="lazy" decoding="async"><span>{{ preview.label }} <span aria-hidden="true">↗</span></span></a>
+            <div class="chapter-copy"><span class="chapter-number" aria-hidden="true">{% if chapter.number < 10 %}0{% endif %}{{ chapter.number }}</span><div><h4 class="chapter-title"><a href="{{ online_path | relative_url }}">{{ chapter.title | escape }}</a></h4><p class="chapter-description">{{ chapter.summary }}</p></div></div>
             <div class="chapter-actions"><a href="{{ online_path | relative_url }}" aria-label="Read chapter {{ chapter.number }} online: {{ chapter.title | escape }}">Read online <span aria-hidden="true">↗</span></a><a class="chapter-pdf" href="{{ pdf_path | relative_url }}" aria-label="Chapter {{ chapter.number }} PDF: {{ chapter.title | escape }}, {{ chapter.pages }} pages">PDF <span class="pages">{{ chapter.pages }} pp.</span><span aria-hidden="true"> ↓</span></a></div>
           </li>
           {% endfor %}
