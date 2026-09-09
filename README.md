@@ -14,16 +14,18 @@ With Ruby and Bundler installed:
 
 ```sh
 bundle install
-bundle exec jekyll serve
+python3 tools/prepare-site.py --destination .pages-source --report .pages-inputs.json
+bundle exec jekyll serve --source .pages-source
 ```
 
-Open `http://127.0.0.1:4000/`. GitHub Pages publishes the root of `master`. The Gemfile follows GitHub Pages’ dependency bundle so local and published builds use the same versions. The templates also work with Jekyll 4.
+Open `http://127.0.0.1:4000/`. The versioned `.github/workflows/pages.yml` workflow publishes changes to `master`. It stages only the pages and downloads declared in `tools/public-site.json`. The Gemfile follows GitHub Pages’ dependency bundle so local and published builds use the same versions. The templates also work with Jekyll 4.
 
 For a static build and a check of the public pages and their local links:
 
 ```sh
-bundle exec jekyll build
+bundle exec jekyll build --source .pages-source --destination _site
 python3 tools/check-site.py _site
+python3 tools/check-publication.py _site --source-map .pages-inputs.json
 ```
 
 ## Where to edit
@@ -60,3 +62,21 @@ Resource previews show actual teaching material. Each entry in `_data/slides.jso
 records its selected slide number, local JPEG, alternative text and original
 Speaker Deck image URL. Preview links use `?slide=N` to open that exact slide.
 `docs/visual-assets.json` records the preview sources and checksums.
+
+## Deployment checks
+
+The publishing workflow checks the site’s links, verifies every download and
+interactive asset against its source checksum, and enforces a 600 MB / 5,000-file
+budget before upload. Book sources, old datasets, caches, and unlinked auxiliary
+materials stay in the repository without being copied to Pages. Existing chapter
+URLs and compatibility downloads remain available.
+
+To add a downloadable file, include it in `tools/public-site.json`; an undeclared
+local link makes the build fail before publication. Preparation requires a fresh
+destination directory, so it cannot overwrite unrelated local work.
+
+The deployment step uses GitHub’s Pages REST API with the workflow’s temporary
+OIDC identity and token. It waits for confirmed success, cancels on timeout or
+interruption, and never logs credentials. This avoids the deprecated artifact SDK
+in the current `deploy-pages` action. Official checkout and upload actions are
+pinned to releases that support Node 24. See [the deployment repair record](docs/deployment-repair.md).

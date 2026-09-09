@@ -1,0 +1,71 @@
+name: Publish website
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check the publication tools
+        run: python3 -m unittest discover -s tools/tests -v
+      - name: Select website pages and downloads
+        run: python3 tools/prepare-site.py --destination .pages-source --report .pages-inputs.json
+      - name: Build with GitHub Pages' Jekyll
+        uses: actions/jekyll-build-pages@44a6e6beabd48582f863aeeb6cb2151cc1716697 # v1.0.13
+        with:
+          source: .pages-source
+          destination: _site
+      - name: Verify links, assets and publication size
+        run: |
+          python3 tools/check-site.py _site
+          python3 tools/check-publication.py _site --source-map .pages-inputs.json --report .pages-report.json
+          cat .pages-report.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Package the verified website
+        run: tar --dereference --hard-dereference -cf "$RUNNER_TEMP/artifact.tar" -C _site .
+      - name: Upload the website
+        id: upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: tools
+      - name: Deploy and wait for GitHub Pages
+        id: deployment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PAGES_ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+        run: python3 tools/deploy-pages.py --artifact-id "$PAGES_ARTIFACT_ID"
