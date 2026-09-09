@@ -4,9 +4,9 @@ Book Cover.
 
 ## Book cover
 
-Original retained at the author’s request; the rejected proposal is archived.
+Removed from the book at the author’s request.
 
-Exact current book caption (LaTeX):
+Last published caption (LaTeX):
 
 ```tex
 Book cover: wave

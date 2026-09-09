@@ -2,7 +2,7 @@
 book_page: true
 social_image: /img/book-basics-cover.webp
 social_image_alt: "Cover of the book by Gabriel Peyré"
-banner: /img/wave-simple.jpg
+artwork: paysages-2
 layout: book-basics
 permalink: /book-basics/
 title: "An Introduction to Data Sciences"

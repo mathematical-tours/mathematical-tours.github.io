@@ -686,3 +686,13 @@ corrections, not an exhaustive list of punctuation and spelling edits.
   placement and order of every printed solution within its own chapter.
   The contents, all solution pages, and chapter boundaries were visually
   reviewed. All 68 figures and 88 Python programs remain included.
+
+## 9 September 2026: Louis Peyré cover artwork
+
+- Replaced the cover image with the supplied detail of a still-life painting of
+  books by Louis Peyré (1923–2012); added a linked artist credit under the image.
+- Preserved the French-original publication attribution and the legacy edition.
+  Recorded the cover source and checksum in `docs/cover-artwork.json`.
+- Rebuilt the 206-page PDF and 69-page figure comparator. Document verification
+  passes, including all 88 chapter-numbered exercises and their chapter-end
+  solutions; the TeX log contains no warnings.

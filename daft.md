@@ -2,7 +2,7 @@
 book_page: true
 social_image: /img/daft-cover.webp
 social_image_alt: "Cover of the book by Gabriel Peyré"
-banner: /img/hiroshige-whirpool.jpg
+artwork: natures-mortes-2
 layout: daft
 permalink: /daft/
 title: "The Discrete Algebra of the Fourier Transform"

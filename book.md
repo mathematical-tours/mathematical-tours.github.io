@@ -2,14 +2,14 @@
 book_page: true
 social_image: /img/foundations-cover.webp
 social_image_alt: "Cover of the book by Gabriel Peyré"
-banner: /img/boat-waves.jpg
+artwork: paysages-paris
 layout: book
 permalink: /book/
 title: "Mathematical Foundations of Data Sciences"
 description: "Read Gabriel Peyré’s book in PDF or as an interactive edition. Explore signal processing, inverse problems, optimization, and machine learning across 19 chapters."
 book_pdf: /book-sources/FundationsDataScience.pdf
 book_pages: 277
-book_pdf_mb: 17.1
+book_pdf_mb: 17.2
 groups:
   - id: signals
     title: "Signal and image processing"

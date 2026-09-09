@@ -112,7 +112,7 @@ def main():
             # contain links to ../FundationsDataScience.pdf, so keep that layout.
             flat=pdfs/path.name
             if flat.exists():flat.unlink()
-        shutil.copyfile(ROOT/'figures/chapter-book-cover/wave/original/wave.jpg',WEB/'assets/cover.jpg')
+        shutil.copyfile(ROOT/'figures/chapter-book-cover/paris-rooftops/artwork.jpg',WEB/'assets/cover.jpg')
         shutil.copyfile(ROOT/'data/bird.wav',WEB/'live/data/bird.wav')
         used_images=set()
         for data_file in DATA.glob('*.json'):

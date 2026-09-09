@@ -57,7 +57,7 @@ def main():
              'a **What to look for** explanation. **Open figure** preserves selected '
              'parameters and the comparison tab in a shareable URL. Focus a plot to '
              'inspect values with the arrow keys, or expand its numerical table. '
-             'The original cover and explicitly retained illustrations remain unchanged.\n\n',
+             'The cover features a credited painting detail by Louis Peyré; explicitly retained mathematical illustrations remain unchanged.\n\n',
              '| Chapter | Interactive | Retained | Computed states |\n',
              '| --- | ---: | ---: | ---: |\n']
     for chapter in conversion['chapters']:

@@ -22,7 +22,7 @@ throughout the computational examples.
 | `listings/` | Executable Python modules; `tex/` selects the exact functions printed in the book |
 | `figures/chapter-title/figure-name/` | The 68 generated figure PDFs used by the book |
 | `figures-code/chapter-title/figure-name/` | Each figure's Python generator and, where applicable, TikZ source |
-| `data/` | The supplied flower photograph and the retained original cover artwork |
+| `data/` | The supplied flower photograph and historical cover artwork |
 | `comparator-figures/` | Before/after PDF, original panels, and an index with final figure numbers and captions |
 | `tests/` | Independent mathematical and numerical checks |
 | `tools/` | Reproduction, verification and packaging utilities |
@@ -61,7 +61,7 @@ code, word, received, corrected = bch_example()
 Modules contain their own imports and shared helper functions. The book prints
 compact function excerpts rather than repeating these imports in every program.
 All new numerical illustrations use synthetic data or the supplied flower image.
-The retained still-life artwork is used only for the cover.
+The cover features a detail of a still-life painting by [Louis Peyré (1923–2012)](https://www.louispeyre.com/). `docs/cover-artwork.json` records the source image and checksum.
 
 ## Build the documents
 

@@ -113,6 +113,10 @@ def main():
    if not (ROOT/i['proposed_source']).exists():issues.append('Missing TeX composite '+i['id'])
    for t in i['tikz_sources']:
     if not (ROOT/t['source']).exists():issues.append('Missing TeX source '+i['id'])
+ # The cover is an author-supplied painting, separate from generated mathematical figures.
+ cover=json.loads((ROOT/'docs/cover-artwork.json').read_text());cover_path=ROOT/cover['file']
+ if hashlib.sha256(cover_path.read_bytes()).hexdigest()!=cover['sha256']:issues.append('Cover artwork differs from its credited source')
+ expected.add(cover_path.resolve())
  # The compiled reading edition must exactly implement the author's decisions.
  fls=ROOT/'build/book/FundationsDataScience.fls';inputs=set()
  for line in fls.read_text().splitlines():

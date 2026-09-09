@@ -82,7 +82,7 @@ for(const name of ['sitemap.xml','robots.txt']){
 }
 const fingerprint=createHash('sha256');
 fingerprint.update(JSON.stringify({base,site}));
-const inputs=[...walk(path.join(root,'chapters')),...walk(path.join(root,'live')).filter(p=>!p.includes('/data/images/')), ...['index.md','references.md','myst.yml','book-frame.js','book-theme.css','assets/figure-hashes.json','package-lock.json','scripts/build.mjs'].map(p=>path.join(root,p))].sort();
+const inputs=[...walk(path.join(root,'chapters')),...walk(path.join(root,'live')).filter(p=>!p.includes('/data/images/')), ...['index.md','references.md','myst.yml','book-frame.js','book-theme.css','assets/figure-hashes.json','assets/cover.jpg','package-lock.json','scripts/build.mjs'].map(p=>path.join(root,p))].sort();
 for(const p of inputs){fingerprint.update(path.relative(root,p));fingerprint.update(fs.readFileSync(p));}
 fs.writeFileSync(path.join(root,'_build/html/build-info.json'),JSON.stringify({base_url:base,public_url:publicURL+'/',book:'Mathematical Foundations of Data Sciences',content_sha256:fingerprint.digest('hex')})+'\n');
 console.log(`Installed responsive figures on ${count} book pages.`);

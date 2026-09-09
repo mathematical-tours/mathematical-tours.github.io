@@ -58,3 +58,15 @@ Validation: 4 conversion tests, 15 numerical invariant tests, and 6 browser-modu
 - Kept the established `/book/` page address and used a standalone layout so other website pages retain their existing presentation.
 
 Validation: the full-book PDF, interactive homepage, all 19 chapter PDFs, all 19 web chapters, and the three course-note PDFs returned successful live responses. The generated page matches the canonical chapter order, titles, and PDF sizes. Browser checks passed at desktop, tablet, and 320-pixel mobile widths, including search, topic filters, keyboard operation, reset, chapter navigation, and the JavaScript-free catalogue. The page requires no external font or script downloads.
+
+## 9 September 2026: Louis Peyré cover and website artwork
+
+- Replaced the wave cover illustration with the supplied Paris-rooftops painting
+  detail by Louis Peyré (1923–2012), with a linked credit beneath the image.
+  The original wave and its reconstruction remain in the historical figure files.
+- Added a source/checksum record in `cover-artwork.json` and extended the figure
+  audit to verify the current cover independently of historical reconstructions.
+- Rebuilt the 277-page book, all 19 standalone chapters, and the figure comparator;
+  refreshed PDF downloads and the credited cover in the interactive edition.
+- Added credited painting banners to the interactive chapter pages, including
+  navigation between chapters, and refreshed the website's book thumbnail.

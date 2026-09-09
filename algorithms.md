@@ -5,7 +5,7 @@ title: "Algorithms"
 description: "A searchable directory of algorithms and mathematical models, grouped by subject: coding, graphs, matrices, geometry, signals, learning, probability, and optimization."
 intro: "A directory of methods that shape computational mathematics. Browse by subject or search for an algorithm, then follow its reference to learn more."
 resource_page: true
-banner: /img/hiroshige-whirpool.jpg
+artwork: paysages-paris-1
 ---
 {% assign total = 0 %}{% for group in site.data.algorithms %}{% assign total = total | plus: group.entries.size %}{% endfor %}
 <div class="page-meta"><span><strong>{{ total }} entries</strong> to explore</span><span><strong>{{ site.data.algorithms.size }} subjects</strong></span><span>Algorithms, models, and computational ideas</span></div>

@@ -368,10 +368,20 @@ def main():
         obj={k:f.get(k) for k in ['id','chapter','chapter_title','figure_number','book_page','book_label','caption_source','folder','engine','review_state','current_assets','asset_directory','code_directory']}
         obj['interaction']=coverage.get(f['id']);public.append(obj)
     (WEB/'live/figures.json').write_text(json.dumps(public,ensure_ascii=False,indent=2)+'\n')
+    def artwork_banner(prefix):
+        # Render through MyST so the server and client share the same document.
+        return ('::::{div}\n:class: reader-artwork\n\n'
+                ':::{figure} ' + prefix + 'assets/cover.jpg\n'
+                ':alt: Paris rooftops, detail of a painting by Louis Peyré\n'
+                ':width: 100%\n\n'
+                'Painting detail by [Louis Peyré (1923–2012)](https://www.louispeyre.com/). '
+                '[About the paintings](https://mathematical-tours.github.io/#paintings).\n'
+                ':::\n::::\n\n')
     for CHNO,PAGE in enumerate(chapter_list(),1):
         pre=Preprocessor(PAGE,CHNO,reg);path=ROOT/'chapters-tex'/f'{PAGE}.tex';source=pre.prepare(pre.file(path));ast=pandoc(source)
         renderer=Renderer(reg);header=next(n for n in ast if n['t']=='Header' and n['c'][0]==1);title=renderer.inline(header['c'][2]);anchor=header['c'][1][0]
         intro='---\n'+f'title: {json.dumps(str(CHNO)+". "+title)}\n'+'numbering:\n  headings: false\n  math: false\n  figures: false\n---\n\n'
+        intro+=artwork_banner('../')
         intro+=renderer.anchor(anchor) if anchor else ''
         intro+=f'[Chapter PDF](../assets/pdfs/chapters-pdf/{PAGE}.pdf) · [Complete book](../assets/pdfs/FundationsDataScience.pdf)\n\n'
         body=renderer.blocks(ast)
@@ -382,7 +392,7 @@ def main():
     PAGE='references';CHNO=0
     bbl=ROOT/'build/book/FundationsDataScience.bbl';saved=WEB/'references-source.tex'
     if bbl.exists():shutil.copyfile(bbl,saved)
-    text=saved.read_text();items=list(re.finditer(r'\\bibitem(?:\[[^\]]*\])?\{([^}]+)\}',text));render=Renderer(reg);parts=['# References\n\n']
+    text=saved.read_text();items=list(re.finditer(r'\\bibitem(?:\[[^\]]*\])?\{([^}]+)\}',text));render=Renderer(reg);parts=['# References\n\n', artwork_banner('')]
     for i,m in enumerate(items):
         body=text[m.end():items[i+1].start() if i+1<len(items) else text.index(r'\end{thebibliography}')]
         body=body.replace(r'\newblock',' ')
@@ -391,7 +401,7 @@ def main():
     cover='# Mathematical Foundations of Data Sciences\n\n'
     cover+='Sampling, representation, information, and learning: read the mathematics, then explore how its conclusions change as you vary the parameters. Each experiment sits beside its corresponding book figure and retains the publication’s numbering.\n\n'
     cover+='[Download the complete book](assets/pdfs/FundationsDataScience.pdf)\n\n'
-    cover+=':::{figure} assets/cover.jpg\n:alt: Original wave illustration from the book cover\n:width: 85%\n:::\n\n'
+    cover+=':::{figure} assets/cover.jpg\n:alt: Paris rooftops, detail of a painting by Louis Peyré (1923–2012)\n:width: 100%\n\nPainting detail by [Louis Peyré (1923–2012)](https://www.louispeyre.com/). [About the paintings](https://mathematical-tours.github.io/#paintings).\n:::\n\n'
     preface=active((ROOT/'chapters-tex/abstract.tex').read_text());preface=re.sub(r'\\chapter\*\{[^}]*\}|\\addcontentsline\{[^}]*\}\{[^}]*\}\{[^}]*\}|\\tableofcontents','',preface)
     cover+='## Preface\n\n'+Renderer(reg).blocks(pandoc(preface))
     cover+='## Chapters\n\n'+''.join(f'{i["number"]}. [{i["title"]}](chapters/{i["chapter"]}.md)\n' for i in REPORT['chapters'])

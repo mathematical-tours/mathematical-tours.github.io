@@ -295,3 +295,14 @@ refer to the revised books, which now contain the same five chapters.
 - Machine-readable results are in `reports/`. These numerical and rendering
   checks support the mathematical and editorial review; they do not constitute
   proofs of the general theorems.
+
+## Louis Peyré cover artwork — 9 September 2026
+
+- Both covers now use the supplied sunset-landscape painting detail by
+  Louis Peyré (1923–2012), with a linked credit in the language of each edition.
+- Kept the source image unchanged and recorded its provenance and SHA-256 checksum
+  beside the book's local artwork copy.
+- Rebuilt both 39-page books, all ten independent chapters, and the compatibility
+  downloads. PDF checks pass for text, French accents, fonts, dates and numbering;
+  both full-book builds and the chapter builds have no LaTeX warnings.
+- Updated the website template and cover thumbnail to match the new artwork.
