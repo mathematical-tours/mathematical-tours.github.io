@@ -56,13 +56,6 @@ description: "Gabriel Peyré's illustrated introduction to information theory, i
       </li>
     </ol>
   </section>
-  <section class="about wrap" id="about" aria-labelledby="about-title">
-    <h2 id="about-title">A mathematical starting point</h2>
-    <div>
-      <p>The first two chapters start from elementary algebra, logarithms, and basic probability. The later chapters introduce more advanced ideas using vectors, matrices, derivatives, and probability distributions. Concrete examples motivate the definitions and theorems.</p>
-      <p>Both editions include the five chapters, including discriminative and generative neural networks. This revision aligns the two texts, refines the mathematical statements, and updates the typography.</p>
-    </div>
-  </section>
   <section class="resources" id="resources" aria-labelledby="resources-title"><div class="wrap">
     <h2 id="resources-title">Figures and further reading</h2>
     <div class="resource-grid resource-grid-two">

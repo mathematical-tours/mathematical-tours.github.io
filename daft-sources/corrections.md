@@ -712,3 +712,12 @@ corrections, not an exhaustive list of punctuation and spelling edits.
 - Verified desktop, tablet, and phone layouts, keyboard navigation, search,
   downloadable files, and access with JavaScript disabled. The browser checks
   report no errors or warnings; all 320 checked website targets resolve.
+
+## Visual chapter navigation — 9 September 2026
+
+- Added a representative thumbnail to each of the eight chapters on the book
+  page. The first seven lead to their chapter in the figure gallery; the final
+  thumbnail illustrates the four body diagonals permuted by cube rotations and
+  links directly to that discussion in the PDF.
+- Reused the responsive chapter layout shared by the other books and removed
+  the chapter, exercise, and program statistics strip from the landing page.
