@@ -1,8 +1,8 @@
 PYTHON ?= python3
 LATEXMK ?= latexmk
 
-.PHONY: all book listings figures comparator check documents python-download clean
-all: book comparator python-download
+.PHONY: all book listings figures comparator check documents python-download gallery clean
+all: book gallery python-download
 
 listings:
 	$(PYTHON) tools/sync_listings.py
@@ -21,6 +21,9 @@ check:
 
 documents:
 	$(PYTHON) tools/verify_documents.py
+
+gallery: book
+	$(PYTHON) tools/build_gallery.py
 
 python-download:
 	$(PYTHON) tools/package_python.py

@@ -6,7 +6,7 @@ artwork: natures-mortes-2
 layout: daft
 permalink: /daft/
 title: "The Discrete Algebra of the Fourier Transform"
-description: "Gabriel Peyré's DAFT book: an adapted English translation of L'algèbre discrète de la transformée de Fourier (Ellipses, 2004), revised with Python programs and regenerated figures."
+description: "Gabriel Peyré's DAFT book: an adapted English translation of L'algèbre discrète de la transformée de Fourier (Ellipses, 2004), with Python programs, notebooks, and a searchable figure gallery."
 ---
 <main id="main">
   <section class="hero wrap" aria-labelledby="book-title">
@@ -17,7 +17,7 @@ description: "Gabriel Peyré's DAFT book: an adapted English translation of L'al
       <p class="hero-intro">The algebra behind Fourier analysis, from finite groups and fast algorithms to error-correcting codes and representations. Mathematical ideas developed through proofs, exercises, and working Python examples.</p>
       <div class="hero-actions">
         <a class="button primary" href="{{ '/daft-sources/DAFT-EN.pdf' | relative_url }}">Read the book <span aria-hidden="true">↗</span></a>
-        <a class="button" href="{{ '/daft-sources/downloads/daft-python.zip' | relative_url }}" download>Download Python examples <span aria-hidden="true">↓</span></a>
+        <a class="button" href="{{ '/daft/figures/' | relative_url }}">Explore the figures <span aria-hidden="true">↗</span></a>
       </div>
       <p class="format-note">PDF · 206 pages · 4.2 MB · September 2026</p>
     </div>
@@ -46,14 +46,14 @@ description: "Gabriel Peyré's DAFT book: an adapted English translation of L'al
   </section>
   <section class="about wrap" id="edition" aria-labelledby="edition-title">
     <h2 id="edition-title">An English adaptation of the French original</h2>
-    <div><p>This book is an adapted English translation of Gabriel Peyré's <a href="https://www.editions-ellipses.fr/fr/accueil/12783-23434-l-algebre-discrete-de-la-transformee-de-fourier-niveau-m1-9782729818678.html" lang="fr"><em>L'algèbre discrète de la transformée de Fourier</em></a>, published by <strong>Ellipses in 2004</strong>, ISBN 9782729818678.</p><p>The September 2026 edition revises the proofs and exposition, regenerates the 68 numbered figures, and replaces the MATLAB and Maple programs with Python. It assumes undergraduate linear algebra and basic familiarity with groups and complex numbers.</p><p>The previous English edition and its original programs remain available in the <a href="https://github.com/mathematical-tours/mathematical-tours.github.io/blob/master/daft-sources/legacy/pre-python-2026-09-08/DAFT-EN.pdf">legacy PDF</a> and <a href="https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/daft-sources/legacy">archived sources</a>.</p></div>
+    <div><p>This book is an adapted English translation of Gabriel Peyré's <a href="https://www.editions-ellipses.fr/fr/accueil/12783-23434-l-algebre-discrete-de-la-transformee-de-fourier-niveau-m1-9782729818678.html" lang="fr"><em>L'algèbre discrète de la transformée de Fourier</em></a>, published by <strong>Ellipses in 2004</strong>, ISBN 9782729818678.</p><p>The September 2026 edition develops the proofs and exposition with 68 figures and Python examples throughout. It assumes undergraduate linear algebra and basic familiarity with groups and complex numbers.</p><p>The previous English edition and its original programs remain available in the <a href="https://github.com/mathematical-tours/mathematical-tours.github.io/blob/master/daft-sources/legacy/pre-python-2026-09-08/DAFT-EN.pdf">legacy PDF</a> and <a href="https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/daft-sources/legacy">archived sources</a>.</p></div>
   </section>
   <section class="resources" id="resources" aria-labelledby="resources-title"><div class="wrap">
-    <h2 id="resources-title">Read, compute, and review</h2>
+    <h2 id="resources-title">Figures and Python</h2>
     <div class="resource-grid">
-      <article class="resource-card"><span class="resource-type">Companion code</span><h3>Python examples</h3><p>Compact numerical and symbolic programs, their shared helpers, and 84 checks against mathematical references. Installation instructions are included.</p><a href="{{ '/daft-sources/downloads/daft-python.zip' | relative_url }}" download>Download the Python archive <span aria-hidden="true">↓</span></a></article>
-      <article class="resource-card"><span class="resource-type">Figure audit</span><h3>Before and after</h3><p>All 68 original and regenerated figures side by side, identified by the revised book's exact figure number, caption, and page.</p><a href="{{ '/daft-sources/comparator-figures/comparison.pdf' | relative_url }}">Open the figure comparator <span aria-hidden="true">↗</span></a></article>
-      <article class="resource-card"><span class="resource-type">Edition history</span><h3>Corrections and sources</h3><p>Major mathematical repairs and editorial changes, together with the complete LaTeX, Python, and TikZ sources.</p><ul><li><a href="https://github.com/mathematical-tours/mathematical-tours.github.io/blob/master/daft-sources/corrections.md">Read the correction log <span aria-hidden="true">↗</span></a></li><li><a href="https://github.com/mathematical-tours/mathematical-tours.github.io/tree/master/daft-sources">Browse the sources <span aria-hidden="true">↗</span></a></li></ul></article>
+      <article class="resource-card"><span class="resource-type">Visual companion</span><h3>Explore all 68 figures</h3><p>Search by topic, chapter, or figure number. Open a full-size preview, download the vector PDF, and follow the Python notebook or TikZ source.</p><a href="{{ '/daft/figures/' | relative_url }}">Browse the figure gallery <span aria-hidden="true">↗</span></a></article>
+      <article class="resource-card"><span class="resource-type">Companion code</span><h3>Python examples</h3><p>The book's numerical and symbolic programs, with shared helpers and installation instructions. Use them to explore transforms, finite groups, interpolation, and error-correcting codes.</p><a href="{{ '/daft-sources/downloads/daft-python.zip' | relative_url }}" download>Download the Python examples <span aria-hidden="true">↓</span></a></article>
+      <article class="resource-card"><span class="resource-type">Reproduce the figures</span><h3>Code and data</h3><p>All figure generators in one download, including the plotting helpers, TikZ diagrams, and flower photograph used in the image examples.</p><a href="{{ site.data.daft_figures.archive | relative_url }}" download>Download figure code and data <span aria-hidden="true">↓</span></a></article>
     </div>
   </div></section>
 </main>

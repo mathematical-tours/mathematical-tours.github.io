@@ -9,7 +9,7 @@ The September 2026 edition revises the mathematics and exposition and uses Pytho
 throughout the computational examples.
 
 - [Read the book](DAFT-EN.pdf).
-- [Audit all 68 original/revised figures](comparator-figures/comparison.pdf).
+- [Explore all 68 figures, their code, and Python notebooks](https://mathematical-tours.github.io/daft/figures/).
 - [Major corrections](corrections.md).
 - [Download the Python examples and checks](downloads/daft-python.zip).
 - [Previous edition and its MATLAB/Maple sources](legacy/README.md).
@@ -23,7 +23,7 @@ throughout the computational examples.
 | `figures/chapter-title/figure-name/` | The 68 generated figure PDFs used by the book |
 | `figures-code/chapter-title/figure-name/` | Each figure's Python generator and, where applicable, TikZ source |
 | `data/` | The supplied flower photograph and historical cover artwork |
-| `comparator-figures/` | Before/after PDF, original panels, and an index with final figure numbers and captions |
+| `notebooks/chapter-title/` | Runnable notebooks for all 60 Python figures |
 | `tests/` | Independent mathematical and numerical checks |
 | `tools/` | Reproduction, verification and packaging utilities |
 | `docs/` | Figure/program inventories and verification reports |
@@ -66,12 +66,10 @@ The cover features a detail of a still-life painting by [Louis Peyré (1923–20
 ## Build the documents
 
 A TeX Live installation with `latexmk`, pdfLaTeX, New PX, Source Sans Pro,
-TikZ and the usual AMS packages is required. Ghostscript is needed to reconstruct
-old EPS panels for the comparator. TeX Live 2022 was used for this edition.
+TikZ and the usual AMS packages is required. TeX Live 2022 was used for this edition.
 
 ```sh
 make book PYTHON=.venv/bin/python
-make comparator PYTHON=.venv/bin/python
 make documents PYTHON=.venv/bin/python
 ```
 
@@ -83,9 +81,13 @@ make figures PYTHON=.venv/bin/python
 .venv/bin/python tools/regenerate_figures.py --figure fig-cyclic-characters
 ```
 
-Then rebuild the book and comparator to refresh page numbers and captions.
+Then rebuild the book and run `make gallery PYTHON=.venv/bin/python` to refresh
+the gallery previews, figure numbers, PDF page links, notebooks, and source bundle.
+The gallery reads the current captions and the compiled PDF destinations.
+Rebuild the book before rebuilding the gallery whenever pagination changes.
 `make python-download` rebuilds the small standalone code archive.
 `make clean` removes TeX working files while retaining the deliverable PDFs.
 
-The legacy snapshot is never used as a source of new numerical figures. It is
-read only when constructing the **before** panels of the comparator.
+The figure gallery uses the same vector PDFs and generation code as the book.
+Its notebooks display the full plotting code and share a versioned source archive,
+so downloaded notebooks continue to use their corresponding figure inputs.

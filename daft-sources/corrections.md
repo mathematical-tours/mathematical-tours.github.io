@@ -696,3 +696,19 @@ corrections, not an exhaustive list of punctuation and spelling edits.
 - Rebuilt the 206-page PDF and 69-page figure comparator. Document verification
   passes, including all 88 chapter-numbered exercises and their chapter-end
   solutions; the TeX log contains no warnings.
+
+## Figure gallery and notebooks — 9 September 2026
+
+- Added a searchable gallery of all 68 numbered figures, with chapter and code
+  filters, enlarged previews, vector downloads, and links to the figures in the PDF.
+- Read figure numbers, captions, and PDF destinations from the current sources
+  and compiled book, including Figure 5.13 in the exercise solutions.
+- Added 60 Jupyter/Colab notebooks containing the book's Python plotting code.
+  Executed every notebook: all 60 generated PDFs are identical to the book figures.
+- Published the eight TikZ sources and a versioned archive of figure generators,
+  shared numerical routines, and required data. Kept the Louis Peyré banner credit.
+- Reworked the DAFT landing page around the book, figure gallery, and Python
+  resources. Added publication checks for figure files, notebooks, and links.
+- Verified desktop, tablet, and phone layouts, keyboard navigation, search,
+  downloadable files, and access with JavaScript disabled. The browser checks
+  report no errors or warnings; all 320 checked website targets resolve.
