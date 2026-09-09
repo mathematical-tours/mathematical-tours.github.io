@@ -324,3 +324,13 @@ refer to the revised books, which now contain the same five chapters.
   operation without JavaScript, and compatibility with the DAFT figure gallery.
   The complete website passes its local link and publication checks; no browser
   warnings or script errors were found. See `reports/figure-gallery-validation.json`.
+
+## Illustrated chapter navigation — 9 September 2026
+
+- Added representative thumbnails to the five chapter entries on the presentation
+  page: prefix codes, color channels, sparse reconstruction, palette transfer, and
+  neural networks. Each preview opens the corresponding chapter's figure gallery.
+- Kept the English and French chapter downloads directly accessible, and adapted
+  the illustrated rows to tablet and phone screens. Updated the page generator
+  to reuse the gallery's current thumbnails. All ten PDF links and all five
+  gallery links pass browser checks at widths from 320 to 1440 pixels.

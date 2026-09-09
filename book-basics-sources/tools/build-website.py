@@ -7,6 +7,7 @@ Only book-basics.md, _layouts/book-basics.html and its cover are written.
 from pathlib import Path
 import argparse
 import html
+import json
 import re
 import shutil
 from pypdf import PdfReader
@@ -27,6 +28,13 @@ CHAPTERS = [
     ('05-neural-networks', 'Neural networks', 'Réseaux de neurones',
      'Classification, backpropagation, generative models, and connections with transport.'),
 ]
+CHAPTER_FIGURES = [
+    'basics-en-trees',
+    'basics-en-canaux-coul',
+    'basics-en-inpainting',
+    'basics-en-image-eq',
+    'basics-en-discriminative',
+]
 
 def pdf_stats(path):
     return len(PdfReader(path).pages), f'{path.stat().st_size/1_000_000:.1f}'
@@ -44,6 +52,8 @@ def main():
     metadata = (ROOT/'chapters-tex/shared/book-metadata.tex').read_text()
     values['DATE_FR'], values['DATE_EN'] = re.findall(r'\\newcommand\{\\BookEditionDate\}\{([^}]+)', metadata)
     rows = []
+    gallery = json.loads((ROOT.parent/'_data/basics_figures.json').read_text())
+    illustrations = {figure['id']: figure for figure in gallery['figures']}
     for n, (name, title, french, description) in enumerate(CHAPTERS, 1):
         links = []
         for lang, label in [('en', 'English PDF'), ('fr', 'PDF français')]:
@@ -51,7 +61,22 @@ def main():
             url = "{{ '/book-basics-sources/chapters-pdf/"+lang+'/'+name+".pdf' | relative_url }}"
             accessible = f'Chapter {n}: {title} — English PDF' if lang=='en' else f'Chapitre {n} : {french} — PDF français'
             links.append(f'<a href="{url}" hreflang="{lang}" lang="{lang}" aria-label="{html.escape(accessible, quote=True)}">{label}<span class="pages">{pages} p.</span></a>')
-        rows.append(f'      <li><span class="chapter-number">{n:02d}</span><div><h3 class="chapter-title">{html.escape(title)}<span class="chapter-title-fr" lang="fr">{html.escape(french)}</span></h3><p class="chapter-description">{html.escape(description)}</p></div><div class="chapter-actions">'+''.join(links)+'</div></li>')
+        figure = illustrations[CHAPTER_FIGURES[n-1]]
+        assert figure['chapter'] == n
+        assert (ROOT.parent/figure['thumbnail'].lstrip('/')).is_file()
+        image = "{{ '"+figure['thumbnail']+"' | relative_url }}"
+        gallery_url = "{{ '/book-basics/figures/' | relative_url }}?chapter="+str(n)
+        rows.append(
+            '      <li>\n'
+            f'        <a class="chapter-visual" href="{gallery_url}" aria-label="Browse the figures for chapter {n}: {html.escape(title, quote=True)}">'
+            f'<img src="{image}" alt="{html.escape(figure["title"], quote=True)}" width="{figure["width"]}" height="{figure["height"]}" loading="lazy" decoding="async">'
+            '<span>View figures <span aria-hidden="true">↗</span></span></a>\n'
+            f'        <div class="chapter-copy"><span class="chapter-number">{n:02d}</span><div>'
+            f'<h3 class="chapter-title">{html.escape(title)}<span class="chapter-title-fr" lang="fr">{html.escape(french)}</span></h3>'
+            f'<p class="chapter-description">{html.escape(description)}</p></div></div>\n'
+            '        <div class="chapter-actions">'+''.join(links)+'</div>\n'
+            '      </li>'
+        )
     values['CHAPTERS'] = '\n'.join(rows)
     source = (ROOT/'website/book-basics.md.in').read_text()
     for key, value in values.items():

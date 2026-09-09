@@ -87,7 +87,9 @@ in their captions and the text; see [figure notes](figures/README.md).
 
 This prepares `book-basics.md`, `_layouts/book-basics.html` and
 `img/book-basics-cover.webp`, using the actual page counts and file sizes of the
-PDFs. The page reuses the parent website's `css/book.css`. To update the parent
+PDFs. Representative chapter previews use the existing gallery thumbnails and
+link to each chapter's figures. The page reuses the parent website's shared CSS.
+To update the parent
 Jekyll site, run the command with `--output ..`; this writes only those three
 presentation files. It does not publish the site.
 
