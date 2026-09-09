@@ -8,7 +8,7 @@ import json
 import sys
 
 PAGES = ['index.html', 'book/index.html', 'daft/index.html', 'daft/figures/index.html',
-         'book-basics/index.html', 'algorithms/index.html', 'slides/index.html',
+         'book-basics/index.html', 'book-basics/figures/index.html', 'algorithms/index.html', 'slides/index.html',
          'maths-ia-course/index.html', '404.html', 'tweets/index.html',
          'tweets_main/index.html', 'tweets_oldies/index.html']
 

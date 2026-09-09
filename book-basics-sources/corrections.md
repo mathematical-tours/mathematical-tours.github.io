@@ -306,3 +306,21 @@ refer to the revised books, which now contain the same five chapters.
   downloads. PDF checks pass for text, French accents, fonts, dates and numbering;
   both full-book builds and the chapter builds have no LaTeX warnings.
 - Updated the website template and cover thumbnail to match the new artwork.
+
+## Searchable figure gallery — 9 September 2026
+
+- Replaced the public “Sources and corrections” resource with direct access to
+  all 42 numbered figures in both English and French. Added keyword and chapter
+  filters, exact figure-number search, edition selection and shareable searches.
+- Exported complete illustrations, including panel arrangements and labels, as
+  individual PDFs and high-quality JPGs. Added lightweight previews and a larger
+  keyboard-accessible viewer. Preserved the captions, credits and links to the
+  correct pages of each edition. The books themselves are unchanged.
+- Shared 24 visually identical English/French pairs to avoid duplicate downloads;
+  language-specific diagrams remain separate. Added a repeatable export tool and
+  publication checks against the current source and PDF hashes.
+- Verified all 84 edition entries and both download formats, rendered mathematics,
+  bilingual and exact-number search, keyboard access, layouts down to 320 pixels,
+  operation without JavaScript, and compatibility with the DAFT figure gallery.
+  The complete website passes its local link and publication checks; no browser
+  warnings or script errors were found. See `reports/figure-gallery-validation.json`.

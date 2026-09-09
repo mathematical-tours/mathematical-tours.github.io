@@ -10,6 +10,7 @@ and neural networks. Both complete books contain the same five chapters.
 - [Livre complet en français](IntroImaging-FR.pdf)
 - [English chapters](chapters-pdf/en/) · [Chapitres en français](chapters-pdf/fr/)
 - [Presentation page](https://mathematical-tours.github.io/book-basics/)
+- [Searchable figure gallery](https://mathematical-tours.github.io/book-basics/figures/)
 - [Major corrections](corrections.md)
 
 Les deux éditions ont été relues et harmonisées. Les sources françaises sont en
@@ -27,6 +28,7 @@ dans sa version autonome, le titre du livre, l'auteur, l'affiliation et la date.
 | `chapters-tex/standalone/` | Drivers for the ten independent chapter PDFs |
 | `chapters-pdf/en/`, `chapters-pdf/fr/` | Published chapter downloads |
 | `figures/` | Only the illustration assets used by the revised books |
+| `gallery/` | Complete figure PDF/JPG downloads and lightweight previews for both editions |
 | `data/`, `figures-code/` | Flower photograph and reproducible numerical illustrations |
 | `tools/` | Builds, mathematical checks, PDF checks and page generation |
 | `website/` | Bilingual Jekyll page template and its layout |
@@ -97,3 +99,30 @@ are refreshed by the build.
 Before changing the edition date, edit `chapters-tex/shared/book-metadata.tex`, then
 rebuild and regenerate the page. The complete books show the date on the cover;
 standalone chapters show it below their title.
+
+## Figure gallery
+
+The [figure gallery](https://mathematical-tours.github.io/book-basics/figures/)
+contains all 42 numbered illustrations from each edition. Search accepts English
+and French keywords, figure numbers, and chapter filters. Each entry offers a
+larger preview, a link to the correct book page, and PDF and JPG downloads.
+
+After changing a book or an illustration, rebuild the complete books and exports:
+
+```sh
+.venv/bin/python tools/build.py --books
+.venv/bin/python tools/build-gallery.py
+python3 ../tools/check-basics-gallery.py
+```
+
+The exporter uses pdfLaTeX (including the `preview` package) and the PDF/image
+packages in `requirements.txt`. It reads captions, numbering and page destinations
+from the current sources and compiled books. Complete figure bodies retain their
+panels and labels; the PDFs preserve the original vector and raster content.
+It also generates high-quality JPGs and smaller WebP previews. Visually identical
+English/French illustrations share files; distinct labels keep separate exports.
+
+By default, the tool writes `gallery/` and the parent site's
+`_data/basics_figures.json`. Use `--site-root build/gallery-preview` to export into
+a temporary site directory. The site build checks source and download hashes so
+that changed illustrations, broken downloads or stale book links fail publication.

@@ -6,6 +6,9 @@
   const chapter = document.getElementById('figure-chapter');
   const type = document.getElementById('figure-type');
   const count = document.getElementById('figure-count');
+  const typeKey = type.dataset.query || 'code';
+  const defaultType = type.dataset.default || '';
+  const total = new Set(cards.map(card => card.dataset.number)).size;
   const reset = document.getElementById('reset-figures');
   const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const index = new Map(cards.map(card => [card, normalize(card.dataset.search)]));
@@ -15,19 +18,19 @@
     const query = normalize(search.value).trim();
     const number = query.match(numberQuery);
     const terms = query.split(/\s+/).filter(Boolean);
-    let matches = 0;
+    const matches = new Set();
     for (const card of cards) {
       const textMatch = number ? card.dataset.number === number[1] : terms.every(term => index.get(card).includes(term));
       card.hidden = !textMatch || (chapter.value !== '' && card.dataset.chapter !== chapter.value) ||
         (type.value !== '' && card.dataset.type !== type.value);
-      if (!card.hidden) matches++;
+      if (!card.hidden) matches.add(card.dataset.number);
     }
-    count.textContent = `${matches} of ${cards.length} figures`;
-    reset.hidden = !query && !chapter.value && !type.value;
-    document.getElementById('no-figures').hidden = matches !== 0;
+    count.textContent = `${matches.size} of ${total} figures`;
+    reset.hidden = !query && !chapter.value && type.value === defaultType;
+    document.getElementById('no-figures').hidden = matches.size !== 0;
     if (updateURL) {
       const url = new URL(location.href);
-      for (const [key, value] of [['q', search.value.trim()], ['chapter', chapter.value], ['code', type.value]]) {
+      for (const [key, value] of [['q', search.value.trim()], ['chapter', chapter.value], [typeKey, type.value === defaultType ? '' : type.value || 'all']]) {
         if (value) url.searchParams.set(key, value); else url.searchParams.delete(key);
       }
       history.replaceState(null, '', url);
@@ -38,13 +41,13 @@
     const params = new URLSearchParams(location.search);
     search.value = params.get('q') || '';
     chapter.value = params.get('chapter') || '';
-    type.value = params.get('code') || '';
+    type.value = params.has(typeKey) ? (params.get(typeKey) === 'all' ? '' : params.get(typeKey)) : defaultType;
     if (chapter.selectedIndex < 0) chapter.value = '';
-    if (type.selectedIndex < 0) type.value = '';
+    if (type.selectedIndex < 0) type.value = defaultType;
     filter(false);
   }
   function clear() {
-    search.value = ''; chapter.value = ''; type.value = '';
+    search.value = ''; chapter.value = ''; type.value = defaultType;
     filter(); search.focus();
   }
   search.addEventListener('input', () => filter());
