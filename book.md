@@ -1,11 +1,15 @@
 ---
+book_page: true
+social_image: /img/foundations-cover.webp
+social_image_alt: "Cover of the book by Gabriel Peyré"
+banner: /img/boat-waves.jpg
 layout: book
 permalink: /book/
 title: "Mathematical Foundations of Data Sciences"
 description: "Read Gabriel Peyré’s book in PDF or as an interactive edition. Explore signal processing, inverse problems, optimization, and machine learning across 19 chapters."
 book_pdf: /book-sources/FundationsDataScience.pdf
 book_pages: 277
-book_pdf_mb: 16.3
+book_pdf_mb: 17.1
 groups:
   - id: signals
     title: "Signal and image processing"
@@ -197,9 +201,8 @@ chapters:
   <section class="resources" id="resources" aria-labelledby="resources-title">
     <div class="wrap">
       <p class="eyebrow">Companion material</p><h2 id="resources-title">Continue exploring</h2>
-      <div class="resource-grid">
+      <div class="resource-grid resource-grid-two">
         <article class="resource-card"><span class="resource-type">Implementations</span><h3>Numerical Tours</h3><p>Computational tours that put the book’s mathematical ideas into practice through detailed implementations.</p><a href="https://www.numerical-tours.com/">Explore the Numerical Tours <span aria-hidden="true">↗</span></a></article>
-        <article class="resource-card"><span class="resource-type">Course notes</span><h3>Optimization for ML</h3><p>Focused notes on optimization and its applications in machine learning.</p><ul><li><a href="{{ '/book-sources/aux/optim-ml/OptimML.pdf' | relative_url }}">Optimization for machine learning</a><span class="file-type">PDF</span></li><li><a href="{{ '/book-sources/aux/optim-ml/OptimML-PAC.pdf' | relative_url }}">PAC learning</a><span class="file-type">PDF</span></li><li><a href="{{ '/book-sources/aux/optim-ml/OptimML-DiffusionModels.pdf' | relative_url }}">Diffusion models</a><span class="file-type">PDF</span></li></ul></article>
         <article class="resource-card"><span class="resource-type">Related book</span><h3>Optimal Transport</h3><p>OT4ML: <em>Optimal Transport for Machine Learners</em>. A dedicated book with an interactive edition and teaching resources.</p><a href="https://www.gpeyre.com/ot4ml/">Explore OT4ML <span aria-hidden="true">↗</span></a></article>
       </div>
     </div>

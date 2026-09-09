@@ -1,2 +1,43 @@
-# mathematical-tours.github.io
-Web site of the [Mathematical Tours of Data Science](https://mathematical-tours.github.io).
+# Mathematical Tours
+
+[mathematical-tours.github.io](https://mathematical-tours.github.io/) presents three books by Gabriel Peyré:
+
+- **Mathematical Foundations of Data Sciences:** PDF, separate chapters, and an interactive edition.
+- **The Discrete Algebra of the Fourier Transform (DAFT):** an English adaptation of the French Ellipses book, with Python examples.
+- **An Introduction to Data Sciences:** complete English and French books, and separate chapters.
+
+The site also links to Numerical Tours and Mathematical Nexus and hosts the algorithms directory, course slides, and the ten-lecture *Mathematics of Machine Learning* course.
+
+## Run the website locally
+
+With Ruby and Bundler installed:
+
+```sh
+bundle install
+bundle exec jekyll serve
+```
+
+Open `http://127.0.0.1:4000/`. GitHub Pages publishes the root of `master`. The templates use standard Jekyll/Liquid features supported by both the local Jekyll 4 build and GitHub Pages.
+
+For a static build and a check of the public pages and their local links:
+
+```sh
+bundle exec jekyll build
+python3 tools/check-site.py _site
+```
+
+## Where to edit
+
+| Content | Location |
+| --- | --- |
+| Homepage and book cards | `index.md`, `_data/books.json` |
+| Book presentation pages | `book.md`, `daft.md`, `book-basics.md` |
+| Algorithms and slide decks | `_data/algorithms.json`, `_data/slides.json` |
+| Ten lectures and their materials | `_data/lectures.json` |
+| Shared navigation, footer, metadata, and banners | `_includes/`, `_layouts/` |
+| Website styles and navigation/search | `css/site.css`, `js/site.js` |
+| Book typography and chapter catalogue | `css/book.css`, `js/book.js` |
+
+The introduction page is generated from `book-basics-sources/website/`; update those templates when changing its layout or content. Book source folders have their own build instructions. The interactive edition is built from `book-sources/myst/` into `book/interactive/`; do not edit its generated HTML directly.
+
+Published URLs remain stable, including `/maths-ia-course/`. The former Tweets pages forward readers to Mathematical Nexus. Development artifacts and archived sources are excluded from the website build; sources remain accessible on GitHub.

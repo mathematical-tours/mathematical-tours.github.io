@@ -1,34 +1,18 @@
 ---
-layout: page
-title: "Slides"
-description: "For courses"
-header-img: "img/boat-waves.jpg"
+layout: resource
+permalink: /slides/
+title: "Course slides"
+description: "Seventeen slide decks for teaching signal and image processing, sparse recovery, geometry, and mesh processing."
+intro: "Two collections for teaching and review. Follow a course in order, or open the deck for the topic you need."
+resource_page: true
+banner: /img/hiroshige-whirpool.jpg
 ---
-
-You can find here slides for courses that covers the topic of [the book](../book/).
-
-
-Slides for a Signal/Image Processing Course
--------------------
-
-* [Overview: a Sparse Tour of Signal Processing](https://speakerdeck.com/gpeyre/a-sparse-tour-of-imaging-sciences)
-* [Signal and Image Processing with Orthogonal Decompositions](https://speakerdeck.com/gpeyre/signal-processing-course-signal-processing-in-ortho-bases)
-* [Fourier Processing](https://speakerdeck.com/gpeyre/signal-processing-course-fourier-processing)
-* [Wavelet Processing](https://speakerdeck.com/gpeyre/signal-processing-course-wavelet-processing)
-* [Approximation and Coding with Orthogonal Decompositions](https://speakerdeck.com/gpeyre/signal-processing-course-non-linear-approximation-and-coding)
-* [Linear and Non-linear Denoising](https://speakerdeck.com/gpeyre/signal-processing-course-denoising)
-* [Variational Regularization of Inverse Problems](https://speakerdeck.com/gpeyre/signal-processing-course-variational-regularization)
-* [Sparse Regularization of Inverse Problems](https://speakerdeck.com/gpeyre/signal-processing-course-sparse-regularization-of-inverse-problems)
-* [Convex Optimization for Imaging](https://speakerdeck.com/gpeyre/signal-processing-course-convex-optimization-for-imaging)
-* [Compressive Sensing](https://speakerdeck.com/gpeyre/signal-processing-course-compressed-sensing)
-* [Sparse L1 Recovery](https://speakerdeck.com/gpeyre/signal-processing-course-sparse-l1-recovery)
-
-Slides for a Mesh Processing Course
--------------------
-
-* [Differential Mesh Processing](https://speakerdeck.com/gpeyre/mesh-processing-course-differential-mesh-processing)
-* [Geodesic Mesh Processing](https://speakerdeck.com/gpeyre/mesh-processing-course-geodesic-mesh-processing)
-* [Geodesic Sampling and Meshing](https://speakerdeck.com/gpeyre/mesh-processing-course-geodesic-sampling)
-* [Surface Parameterization](https://speakerdeck.com/gpeyre/mesh-processing-course-parameterization-and-flattening)
-* [Active Contours](https://speakerdeck.com/gpeyre/mesh-processing-course-active-contours)
-* [Multiresolution Mesh Processing](https://speakerdeck.com/gpeyre/mesh-processing-course-multiresolution-mesh-processing)
+<div class="page-meta"><span><strong>17 slide decks</strong></span><span><strong>2 course collections</strong></span><span>View the slides on Speaker Deck</span></div>
+<nav class="jump-links" aria-label="Slide collections"><a class="button" href="#signals">Signal &amp; image processing ↓</a><a class="button" href="#geometry">Geometry &amp; meshes ↓</a></nav>
+{% for group in site.data.slides %}
+<section class="slide-section" id="{{ group.id }}" aria-labelledby="title-{{ group.id }}">
+  <div class="section-heading"><h2 id="title-{{ group.id }}">{{ group.title }}</h2><p>{{ group.intro }}</p></div>
+  <ol class="slide-grid">{% for deck in group.decks %}<li class="slide-card"><span class="slide-number" aria-hidden="true">{% if forloop.index < 10 %}0{% endif %}{{ forloop.index }}</span><div><h3><a href="{{ deck.url }}">{{ deck.title }}</a></h3><p>{{ deck.description }}</p><a class="text-link" href="{{ deck.url }}" aria-label="Open slides: {{ deck.title | escape }}">Open the slides <span aria-hidden="true">↗</span></a></div></li>{% endfor %}</ol>
+</section>
+{% endfor %}
+<div class="editorial-note">For the mathematical development behind the signal-processing course, read <a href="{{ '/book/' | relative_url }}">Mathematical Foundations of Data Sciences</a>. For neural networks, generative models, and optimal transport, follow the <a href="{{ '/maths-ia-course/' | relative_url }}">ten-lecture machine-learning course</a>.</div>
