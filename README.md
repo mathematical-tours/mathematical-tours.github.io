@@ -17,7 +17,7 @@ bundle install
 bundle exec jekyll serve
 ```
 
-Open `http://127.0.0.1:4000/`. GitHub Pages publishes the root of `master`. The templates use standard Jekyll/Liquid features supported by both the local Jekyll 4 build and GitHub Pages.
+Open `http://127.0.0.1:4000/`. GitHub Pages publishes the root of `master`. The Gemfile follows GitHub Pages’ dependency bundle so local and published builds use the same versions. The templates also work with Jekyll 4.
 
 For a static build and a check of the public pages and their local links:
 
