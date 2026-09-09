@@ -11,7 +11,7 @@ The website now presents the three books as its main collection, followed by Num
 - Reorganized all seventeen slide decks into two ordered collections with short descriptions.
 - Repaired moved optimization-note paths, retired notebook hosts, the automatic-differentiation slide link, and several research references. The old Tweets pages forward to Mathematical Nexus.
 - Replaced the old Bootstrap/jQuery navigation and obsolete analytics scripts with lightweight shared HTML, CSS, and progressive enhancement. Navigation and catalogues remain usable without JavaScript. Added a consistent 404 page and an SVG favicon.
-- Excluded development and legacy source folders from the website build while retaining the public books, chapters, course materials, Python archive, and DAFT figure comparator. In particular, the MFDS figure-development archive no longer adds 231 MB to the published site.
+- Excluded development and legacy source folders from the website build while retaining the public books, chapters, course materials, Python archive, and DAFT figure comparator. In particular, the MFDS figure-development archive no longer adds 231 MB to the published site. The retired Tweets illustration archive (1.4 GB) and temporary files also remain outside the website build, while their Git history is preserved.
 - Updated the introduction’s website templates so regenerating its page preserves the shared design.
 
 ## Verification
