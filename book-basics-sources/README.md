@@ -81,6 +81,9 @@ in their captions and the text; see [figure notes](figures/README.md).
 
 ## Presentation page
 
+The presentation page uses English throughout and links to both the English and
+French editions, including all ten individual chapter PDFs.
+
 ```sh
 .venv/bin/python tools/build-website.py --output build/site
 ```

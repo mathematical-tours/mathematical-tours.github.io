@@ -334,3 +334,12 @@ refer to the revised books, which now contain the same five chapters.
   the illustrated rows to tablet and phone screens. Updated the page generator
   to reuse the gallery's current thumbnails. All ten PDF links and all five
   gallery links pass browser checks at widths from 320 to 1440 pixels.
+
+## English presentation page — 9 September 2026
+
+- Made the introductory book's presentation page entirely English, including
+  chapter titles, download labels, descriptions and accessible link labels. Both
+  language editions remain available through English and French PDF links.
+- Removed the three statistics for chapters, editions and chapter downloads.
+  Preserved the illustrated chapter navigation and adjusted the spacing below
+  the book introduction. Updated the page template and generator consistently.
